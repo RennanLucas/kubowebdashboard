@@ -21,20 +21,33 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
+
         if (error) throw error;
-        toast.success("Verifique seu email para confirmar a conta");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate("/dashboard");
+
+        if (data.session) {
+          toast.success("Conta criada com sucesso! Você já pode acessar o dashboard.");
+          navigate("/onboarding");
+          return;
+        }
+
+        toast.success("Conta criada! Verifique seu email para confirmar a conta.");
+        return;
       }
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error.message);
+      if (error.message?.includes("User already registered")) {
+        toast.error("Este email já está cadastrado. Tente entrar.");
+      } else {
+        toast.error(error.message);
+      }
     } finally {
       setLoading(false);
     }
