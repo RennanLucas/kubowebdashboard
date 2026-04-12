@@ -65,10 +65,13 @@ Deno.serve(async (req) => {
 
     const userAgent = req.headers.get("user-agent") || null;
     
-    // Try headers first, then fallback to IP geo lookup
+    // Try headers first for country, then fallback to IP geo lookup for both
     let country = getCountryFromHeaders(req);
+    let city: string | null = null;
     if (!country) {
-      country = await getCountryFromIP(req);
+      const geo = await getGeoFromIP(req);
+      country = geo.country;
+      city = geo.city;
     }
 
     const supabaseAdmin = createClient(
