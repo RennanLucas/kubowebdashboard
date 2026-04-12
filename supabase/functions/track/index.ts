@@ -103,6 +103,7 @@ Deno.serve(async (req) => {
         referrer: ref || null,
         user_agent: userAgent,
         country: country,
+        city: city,
         session_id: sid || null,
       });
 
