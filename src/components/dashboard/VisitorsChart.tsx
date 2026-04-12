@@ -22,8 +22,8 @@ const VisitorsChart = ({ data }: VisitorsChartProps) => (
             }}
           />
           <Legend />
-          <Line name="Visitantes" type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} dot={false} />
-          <Line name="Leads" type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} dot={false} />
+          <Line name="Visitantes" type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} />
+          <Line name="Leads" type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>
