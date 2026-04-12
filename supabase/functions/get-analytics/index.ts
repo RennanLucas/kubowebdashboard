@@ -210,6 +210,7 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const selectedProjectId = url.searchParams.get("project_id") || null;
 
     // Get client data
     const { data: clientData, error: clientError } = await supabaseAdmin
@@ -226,7 +227,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const projectId = clientData.projects?.[0]?.id;
+    // Select project (support multi-project)
+    const projects = clientData.projects || [];
+    const projectId = selectedProjectId && projects.some((p: any) => p.id === selectedProjectId)
+      ? selectedProjectId
+      : projects[0]?.id;
+    const currentProject = projects.find((p: any) => p.id === projectId) || null;
     const analyticsPropertyId = clientData.analytics_property_id;
 
     // Calculate dates
