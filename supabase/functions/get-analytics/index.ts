@@ -469,7 +469,7 @@ Deno.serve(async (req) => {
           dailyMap, refMap, pageMap,
           totalVisitors: totalVisitors.size, totalViews: data.length,
           deviceMap, browserMap, osMap, countryMap,
-          bounceRate, avgSessionDuration, totalSessions,
+          bounceRate, avgSessionDuration, totalSessions, sessions,
         };
       }
 
@@ -516,11 +516,56 @@ Deno.serve(async (req) => {
         }))
         .sort((a, b) => b.visitors - a.visitors);
 
+      // Calculate per-page bounce rate & avg time from session data
+      const pageSessionData: Record<string, { bounces: number; totalSessions: number; totalTime: number }> = {};
+      const sessionsByPage: Record<string, Set<string>> = {};
+
+      for (const pv of pvData) {
+        const pagePath = pv.page_path || "/";
+        const sid = pv.session_id || pv.id;
+        if (!sessionsByPage[pagePath]) sessionsByPage[pagePath] = new Set();
+        sessionsByPage[pagePath].add(sid);
+      }
+
+      for (const [pagePath, sids] of Object.entries(sessionsByPage)) {
+        let bounces = 0;
+        let totalTime = 0;
+        let sessionCount = 0;
+        for (const sid of sids) {
+          const sess = current.sessions[sid];
+          if (sess) {
+            sessionCount++;
+            if (sess.pages === 1) bounces++;
+            totalTime += (sess.lastTime - sess.firstTime) / 1000;
+          }
+        }
+        pageSessionData[pagePath] = { bounces, totalSessions: sessionCount, totalTime };
+      }
+
+      const nameMap: Record<string, string> = {
+        "/": "Página Inicial",
+        "/servicos": "Serviços",
+        "/contato": "Contato",
+        "/sobre": "Sobre Nós",
+        "/portfolio": "Portfólio",
+        "/diagnostico": "Diagnóstico",
+      };
+
       const topPages = Object.entries(current.pageMap)
-        .map(([path, views]) => ({
-          path, name: path === "/" ? "Página Inicial" : path,
-          views, avgTime: "0:00", bounceRate: 0,
-        }))
+        .map(([path, views]) => {
+          const pd = pageSessionData[path];
+          const bounceRate = pd && pd.totalSessions > 0 ? Number(((pd.bounces / pd.totalSessions) * 100).toFixed(1)) : 0;
+          const avgSeconds = pd && pd.totalSessions > 0 ? Math.round(pd.totalTime / pd.totalSessions) : 0;
+          const mins = Math.floor(avgSeconds / 60);
+          const secs = avgSeconds % 60;
+          return {
+            path,
+            name: nameMap[path] || path,
+            views,
+            avgTime: `${mins}:${String(secs).padStart(2, "0")}`,
+            bounceRate,
+          };
+        })
         .sort((a, b) => b.views - a.views)
         .slice(0, 10);
 

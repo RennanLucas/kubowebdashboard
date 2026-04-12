@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Settings, ChevronDown, FileDown } from "lucide-react";
+import { LogOut, Settings, ChevronDown, FileDown, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
@@ -47,68 +47,78 @@ const DashboardHeader = ({
   const hasMultipleProjects = projects && projects.length > 1;
 
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-xl font-bold text-foreground">KUBOWEB</h1>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Portal</span>
+    <header className="glass-card rounded-2xl p-6 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-foreground tracking-tight">
+                {clientName || "Dashboard"}
+              </h1>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
+                Analytics
+              </span>
+            </div>
+            {hasMultipleProjects ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mt-0.5">
+                    {projectName || "Selecionar projeto"}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {projects.map((p) => (
+                    <DropdownMenuItem
+                      key={p.id}
+                      onClick={() => onProjectChange?.(p.id)}
+                      className={p.id === selectedProjectId ? "bg-accent" : ""}
+                    >
+                      {p.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {projectName || `Bem-vindo, ${user?.email}`}
+              </p>
+            )}
+          </div>
         </div>
-        {clientName && (
-          <p className="text-sm font-medium text-foreground">{clientName}</p>
-        )}
-        {hasMultipleProjects ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Projeto: {projectName || "Selecionar"}
-                <ChevronDown className="h-3 w-3" />
+        <div className="flex items-center gap-3">
+          <div className="flex bg-muted rounded-lg p-0.5">
+            {[7, 30, 90].map((d) => (
+              <button
+                key={d}
+                onClick={() => onDateRangeChange(d)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  dateRange === d
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {d}d
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {projects.map((p) => (
-                <DropdownMenuItem
-                  key={p.id}
-                  onClick={() => onProjectChange?.(p.id)}
-                  className={p.id === selectedProjectId ? "bg-accent" : ""}
-                >
-                  {p.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {projectName ? `Projeto: ${projectName}` : `Bem-vindo, ${user?.email}`}
-          </p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="flex bg-muted rounded-lg p-0.5">
-          {[7, 30, 90].map((d) => (
-            <button
-              key={d}
-              onClick={() => onDateRangeChange(d)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                dateRange === d
-                  ? "bg-card text-card-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-card-foreground"
-              }`}
-            >
-              {d}d
-            </button>
-          ))}
-        </div>
-        {onExportPDF && (
-          <Button variant="ghost" size="icon" onClick={onExportPDF} className="text-muted-foreground" title="Exportar PDF">
-            <FileDown className="h-4 w-4" />
+            ))}
+          </div>
+          <div className="h-6 w-px bg-border" />
+          {onExportPDF && (
+            <Button variant="outline" size="sm" onClick={onExportPDF} className="gap-1.5 text-xs">
+              <FileDown className="h-3.5 w-3.5" />
+              Exportar
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-muted-foreground h-8 w-8">
+            <Settings className="h-4 w-4" />
           </Button>
-        )}
-        <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-muted-foreground">
-          <Settings className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground">
-          <LogOut className="h-4 w-4" />
-        </Button>
+          <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground h-8 w-8">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );
