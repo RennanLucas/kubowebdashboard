@@ -41,7 +41,7 @@ async function getGoogleAccessToken(
   const payload = strToBase64url(
     JSON.stringify({
       iss: serviceAccount.client_email,
-      scope: "https://www.googleapis.com/auth/analytics.readonly",
+      scope: "https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/webmasters.readonly",
       aud: "https://oauth2.googleapis.com/token",
       iat: now,
       exp: now + 3600,
