@@ -192,7 +192,7 @@ const Dashboard = () => {
                 browsers={data?.browsers ?? []}
                 operatingSystems={data?.operatingSystems ?? []}
               />
-              <GeoCard countries={data?.countries ?? []} />
+              <GeoCard countries={data?.countries ?? []} cities={data?.cities ?? []} />
             </div>
 
             {insights.length > 0 && <InsightsSection insights={insights} />}
