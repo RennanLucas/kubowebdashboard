@@ -67,6 +67,7 @@ interface AnalyticsResponse {
   browsers: BreakdownItem[] | null;
   operatingSystems: BreakdownItem[] | null;
   countries: BreakdownItem[] | null;
+  cities: BreakdownItem[] | null;
   engagement: {
     bounceRate: number;
     avgSessionDuration: number;
