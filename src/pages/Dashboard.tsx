@@ -34,11 +34,24 @@ const Dashboard = () => {
   const totalButtons = metrics?.reduce((s, m) => s + m.button_clicks, 0) ?? 0;
   const totalViews = metrics?.reduce((s, m) => s + (m.visitors || 0), 0) ?? 0;
 
-  const chartData = metrics?.map((m) => ({
-    date: format(new Date(m.date), "dd/MM"),
-    visitors: m.visitors,
-    leads: m.leads,
-  })) ?? [];
+  const chartData = (() => {
+    if (!metrics || metrics.length === 0) return [];
+    const metricsMap = new Map(metrics.map((m) => [m.date, m]));
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - (dateRange - 1));
+    const result: Array<{ date: string; visitors: number; leads: number }> = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split("T")[0];
+      const m = metricsMap.get(key);
+      result.push({
+        date: format(new Date(key), "dd/MM"),
+        visitors: m?.visitors ?? 0,
+        leads: m?.leads ?? 0,
+      });
+    }
+    return result;
+  })();
 
   const insights = [];
   if (totalVisitors > 0) {
