@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Users, Target, TrendingUp, DollarSign } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICard from "@/components/dashboard/KPICard";
@@ -46,6 +47,11 @@ const Dashboard = () => {
     if (totalLeads > 50) {
       insights.push({ type: "growth" as const, title: "Geração de Leads", message: `Você gerou ${totalLeads} leads nos últimos ${dateRange} dias. Continue investindo nos canais ativos.` });
     }
+  }
+
+  // Redirect to onboarding if no client registered
+  if (!clientLoading && !clientData) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   if (isLoading) {

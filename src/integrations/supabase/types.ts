@@ -16,20 +16,26 @@ export type Database = {
     Tables: {
       clients: {
         Row: {
+          analytics_property_id: string | null
           company_name: string
           created_at: string
+          domain: string | null
           id: string
           user_id: string
         }
         Insert: {
+          analytics_property_id?: string | null
           company_name: string
           created_at?: string
+          domain?: string | null
           id?: string
           user_id: string
         }
         Update: {
+          analytics_property_id?: string | null
           company_name?: string
           created_at?: string
+          domain?: string | null
           id?: string
           user_id?: string
         }
