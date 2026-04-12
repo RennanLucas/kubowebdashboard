@@ -313,13 +313,105 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fallback: use database data
+    // Fallback: use pageviews (custom tracking) or legacy DB tables
     if (!projectId) {
       return new Response(JSON.stringify({ client: clientData, metrics: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Try custom pageviews first
+    const { data: pvData, error: pvError } = await supabaseAdmin
+      .from("pageviews")
+      .select("*")
+      .eq("project_id", projectId)
+      .gte("created_at", `${startDateStr}T00:00:00Z`)
+      .lte("created_at", `${endDateStr}T23:59:59Z`);
+
+    if (!pvError && pvData && pvData.length > 0) {
+      // Aggregate pageviews into daily metrics
+      const dailyMap: Record<string, { visitors: Set<string>; views: number }> = {};
+      const refMap: Record<string, Set<string>> = {};
+      const pageMap: Record<string, number> = {};
+
+      for (const pv of pvData) {
+        const day = pv.created_at.split("T")[0];
+        if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), views: 0 };
+        dailyMap[day].visitors.add(pv.session_id || pv.id);
+        dailyMap[day].views += 1;
+
+        // Traffic sources from referrer
+        let source = "Direto";
+        if (pv.referrer) {
+          try {
+            const refHost = new URL(pv.referrer).hostname;
+            if (refHost.includes("google")) source = "Google";
+            else if (refHost.includes("facebook") || refHost.includes("instagram") || refHost.includes("twitter") || refHost.includes("linkedin") || refHost.includes("tiktok")) source = "Redes Sociais";
+            else source = refHost;
+          } catch { source = "Outro"; }
+        }
+        if (!refMap[source]) refMap[source] = new Set();
+        refMap[source].add(pv.session_id || pv.id);
+
+        // Page views
+        const pagePath = pv.page_path || "/";
+        pageMap[pagePath] = (pageMap[pagePath] || 0) + 1;
+      }
+
+      const metrics = Object.entries(dailyMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, d]) => ({
+          date,
+          visitors: d.visitors.size,
+          leads: 0, conversion_rate: 0, estimated_value: 0,
+          whatsapp_clicks: 0, form_submissions: 0, button_clicks: 0,
+        }));
+
+      const colorMap: Record<string, string> = {
+        Google: "hsl(var(--chart-blue))",
+        "Redes Sociais": "hsl(var(--chart-purple))",
+        Direto: "hsl(var(--chart-green))",
+      };
+      const trafficTotal = Object.values(refMap).reduce((s, v) => s + v.size, 0);
+      const trafficSources = Object.entries(refMap)
+        .map(([source, visitors]) => ({
+          source,
+          visitors: visitors.size,
+          percentage: trafficTotal > 0 ? Math.round((visitors.size / trafficTotal) * 100) : 0,
+          color: colorMap[source] || "hsl(var(--chart-orange))",
+        }))
+        .sort((a, b) => b.visitors - a.visitors);
+
+      const topPages = Object.entries(pageMap)
+        .map(([path, views]) => ({
+          path,
+          name: path === "/" ? "Página Inicial" : path,
+          views,
+          avgTime: "0:00",
+          bounceRate: 0,
+        }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 10);
+
+      return new Response(
+        JSON.stringify({
+          client: {
+            id: clientData.id,
+            company_name: clientData.company_name,
+            domain: clientData.domain,
+            analytics_property_id: clientData.analytics_property_id,
+            project: clientData.projects?.[0] || null,
+          },
+          metrics,
+          trafficSources,
+          topPages,
+          source: "custom_tracking",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Legacy fallback: use old DB tables
     const [metricsRes, trafficRes, pagesRes] = await Promise.all([
       supabaseAdmin
         .from("website_metrics")
@@ -345,12 +437,11 @@ Deno.serve(async (req) => {
     if (trafficRes.error) throw trafficRes.error;
     if (pagesRes.error) throw pagesRes.error;
 
-    // Aggregate traffic sources
     const trafficGrouped: Record<string, number> = {};
     for (const row of trafficRes.data) {
       trafficGrouped[row.source] = (trafficGrouped[row.source] || 0) + row.visitors;
     }
-    const trafficTotal = Object.values(trafficGrouped).reduce((s, v) => s + v, 0);
+    const trafficTotalDb = Object.values(trafficGrouped).reduce((s, v) => s + v, 0);
     const dbColorMap: Record<string, string> = {
       Google: "hsl(var(--chart-blue))",
       "Redes Sociais": "hsl(var(--chart-purple))",
@@ -361,12 +452,11 @@ Deno.serve(async (req) => {
       .map(([source, visitors]) => ({
         source,
         visitors,
-        percentage: trafficTotal > 0 ? Math.round((visitors / trafficTotal) * 100) : 0,
+        percentage: trafficTotalDb > 0 ? Math.round((visitors / trafficTotalDb) * 100) : 0,
         color: dbColorMap[source] || "hsl(var(--chart-blue))",
       }))
       .sort((a, b) => b.visitors - a.visitors);
 
-    // Aggregate page metrics
     const pageGrouped: Record<string, { views: number; totalTime: number; totalBounce: number; count: number }> = {};
     for (const row of pagesRes.data) {
       if (!pageGrouped[row.page_path]) {
