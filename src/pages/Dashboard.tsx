@@ -8,18 +8,17 @@ import TrafficSources from "@/components/dashboard/TrafficSources";
 import ConversionsCard from "@/components/dashboard/ConversionsCard";
 import TopPages from "@/components/dashboard/TopPages";
 import InsightsSection from "@/components/dashboard/InsightsSection";
-import { useClientData, useWebsiteMetrics, useTrafficSources, usePageMetrics } from "@/hooks/useDashboardData";
+import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState(30);
-  const { data: clientData, isLoading: clientLoading } = useClientData();
-  const projectId = clientData?.projects?.[0]?.id;
-  const { data: metrics, isLoading: metricsLoading } = useWebsiteMetrics(projectId, dateRange);
-  const { data: trafficSources } = useTrafficSources(projectId, dateRange);
-  const { data: topPages } = usePageMetrics(projectId, dateRange);
+  const { data, isLoading } = useDashboardAnalytics(dateRange);
 
-  const isLoading = clientLoading || metricsLoading;
+  const clientData = data?.client;
+  const metrics = data?.metrics;
+  const trafficSources = data?.trafficSources;
+  const topPages = data?.topPages;
 
   // Compute KPIs from real data
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
@@ -50,7 +49,7 @@ const Dashboard = () => {
   }
 
   // Redirect to onboarding if no client registered
-  if (!clientLoading && !clientData) {
+  if (!isLoading && !clientData) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -69,7 +68,7 @@ const Dashboard = () => {
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           clientName={clientData?.company_name}
-          projectName={clientData?.projects?.[0]?.name}
+          projectName={clientData?.project?.name}
         />
 
         {/* KPI Cards */}
