@@ -335,49 +335,67 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Try custom pageviews first
-    const { data: pvData, error: pvError } = await supabaseAdmin
-      .from("pageviews")
-      .select("*")
-      .eq("project_id", projectId)
-      .gte("created_at", `${startDateStr}T00:00:00Z`)
-      .lte("created_at", `${endDateStr}T23:59:59Z`);
+    // Try custom pageviews first (current + previous period)
+    const [pvRes, pvPrevRes] = await Promise.all([
+      supabaseAdmin
+        .from("pageviews")
+        .select("*")
+        .eq("project_id", projectId)
+        .gte("created_at", `${startDateStr}T00:00:00Z`)
+        .lte("created_at", `${endDateStr}T23:59:59Z`),
+      supabaseAdmin
+        .from("pageviews")
+        .select("*")
+        .eq("project_id", projectId)
+        .gte("created_at", `${prevStartStr}T00:00:00Z`)
+        .lte("created_at", `${prevEndStr}T23:59:59Z`),
+    ]);
 
-    if (!pvError && pvData && pvData.length > 0) {
-      // Aggregate pageviews into daily metrics
-      const dailyMap: Record<string, { visitors: Set<string>; views: number }> = {};
-      const refMap: Record<string, Set<string>> = {};
-      const pageMap: Record<string, number> = {};
+    const pvData = pvRes.data;
+    const pvPrevData = pvPrevRes.data;
 
-      for (const pv of pvData) {
-        const day = pv.created_at.split("T")[0];
-        if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), views: 0 };
-        dailyMap[day].visitors.add(pv.session_id || pv.id);
-        dailyMap[day].views += 1;
+    if (!pvRes.error && pvData && pvData.length > 0) {
+      // Helper to aggregate pageviews
+      function aggregatePV(data: any[]) {
+        const dailyMap: Record<string, { visitors: Set<string>; views: number }> = {};
+        const refMap: Record<string, Set<string>> = {};
+        const pageMap: Record<string, number> = {};
+        let totalVisitors = new Set<string>();
 
-        // Traffic sources from referrer
-        let source = "Direto";
-        if (pv.referrer) {
-          try {
-            const refHost = new URL(pv.referrer).hostname;
-            if (refHost.includes("google")) source = "Google";
-            else if (refHost.includes("facebook") || refHost.includes("instagram") || refHost.includes("twitter") || refHost.includes("linkedin") || refHost.includes("tiktok")) source = "Redes Sociais";
-            else source = refHost;
-          } catch { source = "Outro"; }
+        for (const pv of data) {
+          const day = pv.created_at.split("T")[0];
+          const sid = pv.session_id || pv.id;
+          if (!dailyMap[day]) dailyMap[day] = { visitors: new Set(), views: 0 };
+          dailyMap[day].visitors.add(sid);
+          dailyMap[day].views += 1;
+          totalVisitors.add(sid);
+
+          let source = "Direto";
+          if (pv.referrer) {
+            try {
+              const refHost = new URL(pv.referrer).hostname;
+              if (refHost.includes("google")) source = "Google";
+              else if (refHost.includes("facebook") || refHost.includes("instagram") || refHost.includes("twitter") || refHost.includes("linkedin") || refHost.includes("tiktok")) source = "Redes Sociais";
+              else source = refHost;
+            } catch { source = "Outro"; }
+          }
+          if (!refMap[source]) refMap[source] = new Set();
+          refMap[source].add(sid);
+
+          const pagePath = pv.page_path || "/";
+          pageMap[pagePath] = (pageMap[pagePath] || 0) + 1;
         }
-        if (!refMap[source]) refMap[source] = new Set();
-        refMap[source].add(pv.session_id || pv.id);
 
-        // Page views
-        const pagePath = pv.page_path || "/";
-        pageMap[pagePath] = (pageMap[pagePath] || 0) + 1;
+        return { dailyMap, refMap, pageMap, totalVisitors: totalVisitors.size, totalViews: data.length };
       }
 
-      const metrics = Object.entries(dailyMap)
+      const current = aggregatePV(pvData);
+      const previous = pvPrevData ? aggregatePV(pvPrevData) : null;
+
+      const metrics = Object.entries(current.dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, d]) => ({
-          date,
-          visitors: d.visitors.size,
+          date, visitors: d.visitors.size,
           leads: 0, conversion_rate: 0, estimated_value: 0,
           whatsapp_clicks: 0, form_submissions: 0, button_clicks: 0,
         }));
@@ -387,26 +405,33 @@ Deno.serve(async (req) => {
         "Redes Sociais": "hsl(var(--chart-purple))",
         Direto: "hsl(var(--chart-green))",
       };
-      const trafficTotal = Object.values(refMap).reduce((s, v) => s + v.size, 0);
-      const trafficSources = Object.entries(refMap)
+      const trafficTotal = Object.values(current.refMap).reduce((s, v) => s + v.size, 0);
+      const trafficSources = Object.entries(current.refMap)
         .map(([source, visitors]) => ({
-          source,
-          visitors: visitors.size,
+          source, visitors: visitors.size,
           percentage: trafficTotal > 0 ? Math.round((visitors.size / trafficTotal) * 100) : 0,
           color: colorMap[source] || "hsl(var(--chart-orange))",
         }))
         .sort((a, b) => b.visitors - a.visitors);
 
-      const topPages = Object.entries(pageMap)
+      const topPages = Object.entries(current.pageMap)
         .map(([path, views]) => ({
-          path,
-          name: path === "/" ? "Página Inicial" : path,
-          views,
-          avgTime: "0:00",
-          bounceRate: 0,
+          path, name: path === "/" ? "Página Inicial" : path,
+          views, avgTime: "0:00", bounceRate: 0,
         }))
         .sort((a, b) => b.views - a.views)
         .slice(0, 10);
+
+      // Calculate changes vs previous period
+      const calcChange = (curr: number, prev: number) =>
+        prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : curr > 0 ? 100 : 0;
+
+      const comparison = previous ? {
+        visitors: calcChange(current.totalVisitors, previous.totalVisitors),
+        views: calcChange(current.totalViews, previous.totalViews),
+        prevVisitors: previous.totalVisitors,
+        prevViews: previous.totalViews,
+      } : null;
 
       return new Response(
         JSON.stringify({
@@ -414,12 +439,13 @@ Deno.serve(async (req) => {
             id: clientData.id,
             company_name: clientData.company_name,
             domain: clientData.domain,
-            analytics_property_id: clientData.analytics_property_id,
-            project: clientData.projects?.[0] || null,
+            project: currentProject,
+            projects,
           },
           metrics,
           trafficSources,
           topPages,
+          comparison,
           source: "custom_tracking",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
