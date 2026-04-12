@@ -6,6 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function getCountryFromHeaders(req: Request): string | null {
+  // Try multiple Cloudflare / proxy headers (case-insensitive in Deno)
+  const candidates = [
+    "cf-ipcountry",
+    "x-country",
+    "x-vercel-ip-country",
+    "x-real-ip-country",
+  ];
+  for (const h of candidates) {
+    const val = req.headers.get(h);
+    if (val && val !== "XX" && val !== "T1") return val.toUpperCase();
+  }
+  return null;
+}
+
+async function getCountryFromIP(req: Request): Promise<string | null> {
+  try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+               req.headers.get("x-real-ip") ||
+               req.headers.get("cf-connecting-ip");
+    if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) return null;
+
+    const res = await fetch(`https://ipapi.co/${ip}/country/`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (res.ok) {
+      const code = (await res.text()).trim();
+      if (code.length === 2) return code.toUpperCase();
+    }
+  } catch {
+    // Geo lookup failed silently
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -27,8 +62,12 @@ Deno.serve(async (req) => {
     }
 
     const userAgent = req.headers.get("user-agent") || null;
-    const cfCountry = req.headers.get("cf-ipcountry") || 
-                      req.headers.get("x-country") || null;
+    
+    // Try headers first, then fallback to IP geo lookup
+    let country = getCountryFromHeaders(req);
+    if (!country) {
+      country = await getCountryFromIP(req);
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -36,7 +75,6 @@ Deno.serve(async (req) => {
     );
 
     if (type === "event" && event_type) {
-      // Insert into events table
       const { error } = await supabaseAdmin.from("events").insert({
         project_id: pid,
         event_type: event_type,
@@ -54,13 +92,12 @@ Deno.serve(async (req) => {
         });
       }
     } else {
-      // Insert pageview (default behavior)
       const { error } = await supabaseAdmin.from("pageviews").insert({
         project_id: pid,
         page_path: path || "/",
         referrer: ref || null,
         user_agent: userAgent,
-        country: cfCountry,
+        country: country,
         session_id: sid || null,
       });
 
