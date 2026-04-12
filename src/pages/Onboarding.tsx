@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowRight, Globe, BarChart3, Building2 } from "lucide-react";
+import { ArrowRight, Globe, Building2 } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 
 interface ClientFormData {
   companyName: string;
   domain: string;
-  analyticsPropertyId: string;
   projectName: string;
 }
 
@@ -34,7 +33,6 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
   const [form, setForm] = useState<ClientFormData>({
     companyName: "",
     domain: "",
-    analyticsPropertyId: "",
     projectName: "",
   });
 
@@ -43,7 +41,6 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       setForm({
         companyName: existingClient.company_name,
         domain: existingClient.domain || "",
-        analyticsPropertyId: existingClient.analytics_property_id || "",
         projectName: existingClient.projects?.[0]?.name || "",
       });
     }
@@ -56,19 +53,16 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
 
     try {
       if (editMode && existingClient) {
-        // Update existing client
         const { error: clientError } = await supabase
           .from("clients")
           .update({
             company_name: form.companyName,
             domain: form.domain || null,
-            analytics_property_id: form.analyticsPropertyId || null,
           })
           .eq("id", existingClient.id);
 
         if (clientError) throw clientError;
 
-        // Update project if exists
         if (existingClient.projects?.[0]) {
           const { error: projectError } = await supabase
             .from("projects")
@@ -84,21 +78,18 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
         toast.success("Dados atualizados com sucesso!");
         navigate("/dashboard");
       } else {
-        // Create new client
         const { data: client, error: clientError } = await supabase
           .from("clients")
           .insert({
             user_id: user.id,
             company_name: form.companyName,
             domain: form.domain || null,
-            analytics_property_id: form.analyticsPropertyId || null,
           })
           .select()
           .single();
 
         if (clientError) throw clientError;
 
-        // Create default project
         const { error: projectError } = await supabase
           .from("projects")
           .insert({
@@ -154,7 +145,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
 
           <div className="space-y-2">
             <Label htmlFor="projectName" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <Globe className="h-4 w-4 text-muted-foreground" />
               Nome do Projeto
             </Label>
             <Input
@@ -179,34 +170,6 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
               onChange={(e) => update("domain", e.target.value)}
             />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="analyticsId" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              Google Analytics Property ID <span className="text-xs text-muted-foreground">(opcional)</span>
-            </Label>
-            <Input
-              id="analyticsId"
-              placeholder="Ex: 123456789"
-              value={form.analyticsPropertyId}
-              onChange={(e) => update("analyticsPropertyId", e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Opcional. Se preenchido, usaremos dados do GA4. Caso contrário, use nosso tracking próprio abaixo.
-            </p>
-          </div>
-
-          {form.analyticsPropertyId && (
-            <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
-              <p className="text-sm font-medium text-foreground">⚠️ Passo para GA4</p>
-              <p className="text-xs text-muted-foreground">
-                Adicione nosso email como <strong>Leitor</strong> na propriedade GA4:
-              </p>
-              <code className="block text-xs bg-background px-2 py-1 rounded border border-border select-all break-all">
-                kuboweb-analytics-service@tidy-access-478016-a7.iam.gserviceaccount.com
-              </code>
-            </div>
-          )}
 
           {editMode && existingClient?.projects?.[0]?.id && (
             <TrackingSnippet projectId={existingClient.projects[0].id} />
