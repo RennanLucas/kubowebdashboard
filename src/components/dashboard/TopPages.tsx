@@ -7,8 +7,8 @@ interface PageData {
 }
 
 const TopPages = ({ pages }: { pages: PageData[] }) => (
-  <div className="glass-card rounded-xl p-5">
-    <h3 className="text-sm font-semibold text-card-foreground mb-4">Páginas Mais Visitadas</h3>
+  <div className="glass-card p-5">
+    <h3 className="text-sm font-medium text-card-foreground mb-4">Páginas Mais Visitadas</h3>
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
@@ -20,8 +20,8 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
           </tr>
         </thead>
         <tbody>
-          {pages.map((page) => (
-            <tr key={page.path} className="border-b border-border/50 last:border-0">
+          {pages.map((page, i) => (
+            <tr key={page.path} className={`border-b border-border/40 last:border-0 transition-colors duration-150 hover:bg-muted/50 ${i % 2 === 1 ? "bg-muted/30" : ""}`}>
               <td className="py-3">
                 <p className="text-sm font-medium text-card-foreground">{page.name}</p>
                 <p className="text-xs text-muted-foreground">{page.path}</p>
@@ -29,7 +29,11 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
               <td className="text-right text-sm font-medium text-card-foreground">{page.views.toLocaleString("pt-BR")}</td>
               <td className="text-right text-sm text-muted-foreground hidden sm:table-cell">{page.avgTime}</td>
               <td className="text-right text-sm hidden sm:table-cell">
-                <span className={page.bounceRate > 40 ? "text-destructive" : "text-[hsl(var(--success))]"}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  page.bounceRate > 40
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]"
+                }`}>
                   {page.bounceRate}%
                 </span>
               </td>

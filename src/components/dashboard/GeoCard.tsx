@@ -32,8 +32,8 @@ const GeoCard = ({ countries, cities = [] }: GeoCardProps) => {
   const maxCount = items.length > 0 ? items[0].count : 1;
 
   return (
-    <div className="glass-card rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
+    <div className="glass-card p-5">
+      <h3 className="text-sm font-medium text-card-foreground mb-3 flex items-center gap-2">
         <MapPin className="h-4 w-4 text-primary" /> Localização dos Visitantes
       </h3>
 
@@ -41,16 +41,16 @@ const GeoCard = ({ countries, cities = [] }: GeoCardProps) => {
       <div className="flex gap-1 mb-4 p-0.5 bg-muted rounded-lg">
         <button
           onClick={() => setTab("cities")}
-          className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${
-            tab === "cities" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+          className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-all duration-150 ${
+            tab === "cities" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Cidades
         </button>
         <button
           onClick={() => setTab("countries")}
-          className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${
-            tab === "countries" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+          className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-all duration-150 ${
+            tab === "countries" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Países
@@ -73,7 +73,7 @@ const GeoCard = ({ countries, cities = [] }: GeoCardProps) => {
                     {tab === "countries" ? (countryNames[c.name] || c.name) : c.name}
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground">{c.count} · {c.percentage}%</span>
+                <span className="text-xs text-muted-foreground">{c.count.toLocaleString("pt-BR")} · {c.percentage}%</span>
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div

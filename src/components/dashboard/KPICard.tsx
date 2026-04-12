@@ -12,12 +12,12 @@ const KPICard = ({ title, value, change, icon }: KPICardProps) => {
   const isPositive = hasChange && change >= 0;
 
   return (
-    <div className="glass-card rounded-xl p-5 transition-all hover:shadow-md">
+    <div className="glass-card p-5 transition-all duration-150 ease-in-out hover:shadow-md">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-muted-foreground">{title}</span>
-        <div className="text-muted-foreground/60">{icon}</div>
+        <span className="text-xs font-medium text-muted-foreground tracking-wide">{title}</span>
+        <div className="text-muted-foreground/50">{icon}</div>
       </div>
-      <div className="text-2xl font-semibold text-card-foreground mb-1">{value}</div>
+      <div className="text-2xl font-medium text-card-foreground mb-1">{value}</div>
       {hasChange ? (
         <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
           {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
