@@ -8,15 +8,15 @@ interface PageData {
 
 const TopPages = ({ pages }: { pages: PageData[] }) => (
   <div className="glass-card rounded-xl p-5">
-    <h3 className="text-sm font-semibold text-card-foreground mb-4">Top Pages</h3>
+    <h3 className="text-sm font-semibold text-card-foreground mb-4">Páginas Mais Visitadas</h3>
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
           <tr className="text-xs text-muted-foreground border-b border-border">
-            <th className="text-left pb-3 font-medium">Page</th>
-            <th className="text-right pb-3 font-medium">Views</th>
-            <th className="text-right pb-3 font-medium hidden sm:table-cell">Avg. Time</th>
-            <th className="text-right pb-3 font-medium hidden sm:table-cell">Bounce</th>
+            <th className="text-left pb-3 font-medium">Página</th>
+            <th className="text-right pb-3 font-medium">Visitas</th>
+            <th className="text-right pb-3 font-medium hidden sm:table-cell">Tempo Médio</th>
+            <th className="text-right pb-3 font-medium hidden sm:table-cell">Rejeição</th>
           </tr>
         </thead>
         <tbody>
@@ -26,7 +26,7 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
                 <p className="text-sm font-medium text-card-foreground">{page.name}</p>
                 <p className="text-xs text-muted-foreground">{page.path}</p>
               </td>
-              <td className="text-right text-sm font-medium text-card-foreground">{page.views.toLocaleString()}</td>
+              <td className="text-right text-sm font-medium text-card-foreground">{page.views.toLocaleString("pt-BR")}</td>
               <td className="text-right text-sm text-muted-foreground hidden sm:table-cell">{page.avgTime}</td>
               <td className="text-right text-sm hidden sm:table-cell">
                 <span className={page.bounceRate > 40 ? "text-destructive" : "text-[hsl(var(--success))]"}>

@@ -9,14 +9,14 @@ interface ConversionItem {
 
 const ConversionsCard = ({ data }: { data: { whatsappClicks: { value: number; change: number }; formSubmissions: { value: number; change: number }; buttonClicks: { value: number; change: number } } }) => {
   const items: ConversionItem[] = [
-    { label: "WhatsApp Clicks", value: data.whatsappClicks.value, change: data.whatsappClicks.change, icon: <MessageCircle className="h-4 w-4" /> },
-    { label: "Form Submissions", value: data.formSubmissions.value, change: data.formSubmissions.change, icon: <FileText className="h-4 w-4" /> },
-    { label: "Button Clicks", value: data.buttonClicks.value, change: data.buttonClicks.change, icon: <MousePointerClick className="h-4 w-4" /> },
+    { label: "Cliques no WhatsApp", value: data.whatsappClicks.value, change: data.whatsappClicks.change, icon: <MessageCircle className="h-4 w-4" /> },
+    { label: "Envios de Formulário", value: data.formSubmissions.value, change: data.formSubmissions.change, icon: <FileText className="h-4 w-4" /> },
+    { label: "Cliques em Botões", value: data.buttonClicks.value, change: data.buttonClicks.change, icon: <MousePointerClick className="h-4 w-4" /> },
   ];
 
   return (
     <div className="glass-card rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-card-foreground mb-4">Conversions</h3>
+      <h3 className="text-sm font-semibold text-card-foreground mb-4">Conversões</h3>
       <div className="space-y-4">
         {items.map((item) => {
           const isPositive = item.change >= 0;
@@ -32,7 +32,7 @@ const ConversionsCard = ({ data }: { data: { whatsappClicks: { value: number; ch
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-semibold text-card-foreground">{item.value}</span>
+              <span className="text-lg font-semibold text-card-foreground">{item.value.toLocaleString("pt-BR")}</span>
             </div>
           );
         })}

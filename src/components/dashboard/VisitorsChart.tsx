@@ -6,7 +6,7 @@ interface VisitorsChartProps {
 
 const VisitorsChart = ({ data }: VisitorsChartProps) => (
   <div className="glass-card rounded-xl p-5">
-    <h3 className="text-sm font-semibold text-card-foreground mb-4">Visitors & Leads</h3>
+    <h3 className="text-sm font-semibold text-card-foreground mb-4">Visitantes e Leads</h3>
     <div className="h-72">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
@@ -22,8 +22,8 @@ const VisitorsChart = ({ data }: VisitorsChartProps) => (
             }}
           />
           <Legend />
-          <Line type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} dot={false} />
+          <Line name="Visitantes" type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} dot={false} />
+          <Line name="Leads" type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

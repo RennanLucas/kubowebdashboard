@@ -20,7 +20,7 @@ const KPICard = ({ title, value, change, icon }: KPICardProps) => {
       <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
         {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
         <span>{isPositive ? "+" : ""}{change}%</span>
-        <span className="text-muted-foreground ml-1">vs prev period</span>
+        <span className="text-muted-foreground ml-1">vs período anterior</span>
       </div>
     </div>
   );

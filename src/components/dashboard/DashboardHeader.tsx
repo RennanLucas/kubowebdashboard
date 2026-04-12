@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 interface DashboardHeaderProps {
   dateRange: number;
   onDateRangeChange: (days: number) => void;
+  clientName?: string;
+  projectName?: string;
 }
 
-const DashboardHeader = ({ dateRange, onDateRangeChange }: DashboardHeaderProps) => {
+const DashboardHeader = ({ dateRange, onDateRangeChange, clientName, projectName }: DashboardHeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -24,8 +26,11 @@ const DashboardHeader = ({ dateRange, onDateRangeChange }: DashboardHeaderProps)
           <h1 className="text-xl font-bold text-foreground">KUBOWEB</h1>
           <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Portal</span>
         </div>
+        {clientName && (
+          <p className="text-sm font-medium text-foreground">{clientName}</p>
+        )}
         <p className="text-sm text-muted-foreground">
-          Welcome, {user?.email}
+          {projectName ? `Projeto: ${projectName}` : `Bem-vindo, ${user?.email}`}
         </p>
       </div>
       <div className="flex items-center gap-2">
