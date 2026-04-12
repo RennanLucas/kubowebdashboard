@@ -149,9 +149,10 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <ConversionsCard data={{
-                whatsappClicks: { value: totalWhatsapp, change: 12.5 },
-                formSubmissions: { value: totalForms, change: -3.2 },
-                buttonClicks: { value: totalButtons, change: 8.7 },
+                whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
+                formSubmissions: { value: conversions?.form_submissions ?? totalForms, change: conversions?.changes.forms ?? 0 },
+                buttonClicks: { value: conversions?.button_clicks ?? totalButtons, change: conversions?.changes.buttons ?? 0 },
+                recentEvents: conversions?.recent ?? [],
               }} />
               <TopPages pages={topPages ?? []} />
             </div>
