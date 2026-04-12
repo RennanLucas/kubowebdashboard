@@ -14,7 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          company_name: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      page_metrics: {
+        Row: {
+          avg_time_on_page: number
+          bounce_rate: number
+          created_at: string
+          date: string
+          id: string
+          page_path: string
+          project_id: string
+          views: number
+        }
+        Insert: {
+          avg_time_on_page?: number
+          bounce_rate?: number
+          created_at?: string
+          date: string
+          id?: string
+          page_path: string
+          project_id: string
+          views?: number
+        }
+        Update: {
+          avg_time_on_page?: number
+          bounce_rate?: number
+          created_at?: string
+          date?: string
+          id?: string
+          page_path?: string
+          project_id?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_metrics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          name: string
+          url: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          name: string
+          url?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traffic_sources: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          project_id: string
+          source: string
+          visitors: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          project_id: string
+          source: string
+          visitors?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          project_id?: string
+          source?: string
+          visitors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_sources_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_metrics: {
+        Row: {
+          button_clicks: number
+          conversion_rate: number
+          created_at: string
+          date: string
+          estimated_value: number
+          form_submissions: number
+          id: string
+          leads: number
+          project_id: string
+          visitors: number
+          whatsapp_clicks: number
+        }
+        Insert: {
+          button_clicks?: number
+          conversion_rate?: number
+          created_at?: string
+          date: string
+          estimated_value?: number
+          form_submissions?: number
+          id?: string
+          leads?: number
+          project_id: string
+          visitors?: number
+          whatsapp_clicks?: number
+        }
+        Update: {
+          button_clicks?: number
+          conversion_rate?: number
+          created_at?: string
+          date?: string
+          estimated_value?: number
+          form_submissions?: number
+          id?: string
+          leads?: number
+          project_id?: string
+          visitors?: number
+          whatsapp_clicks?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_metrics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
