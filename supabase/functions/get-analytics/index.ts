@@ -336,8 +336,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Try custom pageviews first (current + previous period)
-    const [pvRes, pvPrevRes] = await Promise.all([
+    // Try custom pageviews + events (current + previous period)
+    const [pvRes, pvPrevRes, evRes, evPrevRes] = await Promise.all([
       supabaseAdmin
         .from("pageviews")
         .select("*")
@@ -350,10 +350,24 @@ Deno.serve(async (req) => {
         .eq("project_id", projectId)
         .gte("created_at", `${prevStartStr}T00:00:00Z`)
         .lte("created_at", `${prevEndStr}T23:59:59Z`),
+      supabaseAdmin
+        .from("events")
+        .select("*")
+        .eq("project_id", projectId)
+        .gte("created_at", `${startDateStr}T00:00:00Z`)
+        .lte("created_at", `${endDateStr}T23:59:59Z`),
+      supabaseAdmin
+        .from("events")
+        .select("*")
+        .eq("project_id", projectId)
+        .gte("created_at", `${prevStartStr}T00:00:00Z`)
+        .lte("created_at", `${prevEndStr}T23:59:59Z`),
     ]);
 
     const pvData = pvRes.data;
     const pvPrevData = pvPrevRes.data;
+    const evData = evRes.data || [];
+    const evPrevData = evPrevRes.data || [];
 
     if (!pvRes.error && pvData && pvData.length > 0) {
       // Helper to aggregate pageviews
@@ -390,8 +404,27 @@ Deno.serve(async (req) => {
         return { dailyMap, refMap, pageMap, totalVisitors: totalVisitors.size, totalViews: data.length };
       }
 
+      // Helper to count events by type
+      function countEvents(events: any[]) {
+        const counts: Record<string, number> = {};
+        const details: any[] = [];
+        for (const ev of events) {
+          counts[ev.event_type] = (counts[ev.event_type] || 0) + 1;
+          details.push({
+            type: ev.event_type,
+            label: ev.event_label,
+            page: ev.page_path,
+            time: ev.created_at,
+            metadata: ev.metadata,
+          });
+        }
+        return { counts, details };
+      }
+
       const current = aggregatePV(pvData);
       const previous = pvPrevData ? aggregatePV(pvPrevData) : null;
+      const currentEvents = countEvents(evData);
+      const previousEvents = countEvents(evPrevData);
 
       const metrics = Object.entries(current.dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
@@ -423,7 +456,6 @@ Deno.serve(async (req) => {
         .sort((a, b) => b.views - a.views)
         .slice(0, 10);
 
-      // Calculate changes vs previous period
       const calcChange = (curr: number, prev: number) =>
         prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : curr > 0 ? 100 : 0;
 
@@ -433,6 +465,23 @@ Deno.serve(async (req) => {
         prevVisitors: previous.totalVisitors,
         prevViews: previous.totalViews,
       } : null;
+
+      // Real conversion data
+      const conversions = {
+        whatsapp_clicks: currentEvents.counts["whatsapp_click"] || 0,
+        button_clicks: currentEvents.counts["button_click"] || 0,
+        form_submissions: currentEvents.counts["form_submit"] || 0,
+        phone_clicks: currentEvents.counts["phone_click"] || 0,
+        email_clicks: currentEvents.counts["email_click"] || 0,
+        changes: {
+          whatsapp: calcChange(currentEvents.counts["whatsapp_click"] || 0, previousEvents.counts["whatsapp_click"] || 0),
+          buttons: calcChange(currentEvents.counts["button_click"] || 0, previousEvents.counts["button_click"] || 0),
+          forms: calcChange(currentEvents.counts["form_submit"] || 0, previousEvents.counts["form_submit"] || 0),
+        },
+        recent: currentEvents.details
+          .sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime())
+          .slice(0, 20),
+      };
 
       return new Response(
         JSON.stringify({
@@ -447,6 +496,7 @@ Deno.serve(async (req) => {
           trafficSources,
           topPages,
           comparison,
+          conversions,
           source: "custom_tracking",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

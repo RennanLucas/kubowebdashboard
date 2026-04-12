@@ -38,6 +38,25 @@ interface AnalyticsResponse {
     prevVisitors: number;
     prevViews: number;
   } | null;
+  conversions: {
+    whatsapp_clicks: number;
+    button_clicks: number;
+    form_submissions: number;
+    phone_clicks: number;
+    email_clicks: number;
+    changes: {
+      whatsapp: number;
+      buttons: number;
+      forms: number;
+    };
+    recent: Array<{
+      type: string;
+      label: string;
+      page: string;
+      time: string;
+      metadata: Record<string, any>;
+    }>;
+  } | null;
 }
 
 export const useDashboardAnalytics = (days: number, projectId?: string) => {
