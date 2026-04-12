@@ -154,6 +154,7 @@ export const useClientData = () => {
       ? {
           ...data.client,
           company_name: data.client.company_name,
+          lead_value: (data.client as any).lead_value ?? 25,
           projects: data.client.projects || (data.client.project ? [data.client.project] : []),
         }
       : null,

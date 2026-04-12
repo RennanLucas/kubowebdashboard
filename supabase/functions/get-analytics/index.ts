@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
         else if (ev.event_type === "button_click") ga4EventsByDay[day].buttons++;
       }
 
-      const LEAD_VALUE = 25;
+      const LEAD_VALUE = clientData.lead_value ?? 25;
 
       const colorMap: Record<string, string> = {
         "Organic Search": "hsl(var(--chart-blue))",
@@ -378,6 +378,7 @@ Deno.serve(async (req) => {
             id: clientData.id,
             company_name: clientData.company_name,
             domain: clientData.domain,
+            lead_value: clientData.lead_value ?? 25,
             project: currentProject,
             projects,
           },
@@ -541,7 +542,7 @@ Deno.serve(async (req) => {
         else if (ev.event_type === "button_click") eventsByDay[day].buttons++;
       }
 
-      const LEAD_VALUE = 25; // R$ estimated value per lead
+      const LEAD_VALUE = clientData.lead_value ?? 25;
 
       const metrics = Object.entries(current.dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
@@ -687,6 +688,7 @@ Deno.serve(async (req) => {
             id: clientData.id,
             company_name: clientData.company_name,
             domain: clientData.domain,
+            lead_value: clientData.lead_value ?? 25,
             project: currentProject,
             projects,
           },
@@ -791,6 +793,7 @@ Deno.serve(async (req) => {
           id: clientData.id,
           company_name: clientData.company_name,
           domain: clientData.domain,
+          lead_value: clientData.lead_value ?? 25,
           project: currentProject,
           projects,
         },
