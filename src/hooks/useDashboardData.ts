@@ -65,14 +65,24 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
     refetchInterval: 60000, // Auto-refresh every 60 seconds
     refetchIntervalInBackground: false,
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Refresh session to ensure valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        // Try refreshing
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (!refreshData.session?.access_token) {
+          throw new Error("Sessão expirada. Faça login novamente.");
+        }
+      }
+      const currentSession = (await supabase.auth.getSession()).data.session;
+      
       const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
       if (projectId) url += `&project_id=${projectId}`;
 
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${currentSession?.access_token}`,
           "Content-Type": "application/json",
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
