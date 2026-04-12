@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Users, Target, TrendingUp, DollarSign } from "lucide-react";
+import { Users, Target, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICard from "@/components/dashboard/KPICard";
 import VisitorsChart from "@/components/dashboard/VisitorsChart";
