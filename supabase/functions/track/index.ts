@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { pid, path, ref, sid } = body;
+    const { type, pid, path, ref, sid, event_type, event_label, metadata } = body;
 
     if (!pid || typeof pid !== "string") {
       return new Response(JSON.stringify({ error: "Missing pid" }), {
@@ -35,21 +35,42 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { error } = await supabaseAdmin.from("pageviews").insert({
-      project_id: pid,
-      page_path: path || "/",
-      referrer: ref || null,
-      user_agent: userAgent,
-      country: cfCountry,
-      session_id: sid || null,
-    });
-
-    if (error) {
-      console.error("Insert error:", error.message);
-      return new Response(JSON.stringify({ error: "Failed to record" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (type === "event" && event_type) {
+      // Insert into events table
+      const { error } = await supabaseAdmin.from("events").insert({
+        project_id: pid,
+        event_type: event_type,
+        event_label: event_label || null,
+        page_path: path || "/",
+        session_id: sid || null,
+        metadata: metadata || {},
       });
+
+      if (error) {
+        console.error("Event insert error:", error.message);
+        return new Response(JSON.stringify({ error: "Failed to record event" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // Insert pageview (default behavior)
+      const { error } = await supabaseAdmin.from("pageviews").insert({
+        project_id: pid,
+        page_path: path || "/",
+        referrer: ref || null,
+        user_agent: userAgent,
+        country: cfCountry,
+        session_id: sid || null,
+      });
+
+      if (error) {
+        console.error("Insert error:", error.message);
+        return new Response(JSON.stringify({ error: "Failed to record" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ ok: true }), {
