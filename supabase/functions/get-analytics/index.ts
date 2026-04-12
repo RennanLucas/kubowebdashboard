@@ -235,12 +235,19 @@ Deno.serve(async (req) => {
     const currentProject = projects.find((p: any) => p.id === projectId) || null;
     const analyticsPropertyId = clientData.analytics_property_id;
 
-    // Calculate dates
+    // Calculate dates for current and previous period
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - (days - 1));
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
+
+    const prevEndDate = new Date(startDate);
+    prevEndDate.setDate(prevEndDate.getDate() - 1);
+    const prevStartDate = new Date(prevEndDate);
+    prevStartDate.setDate(prevStartDate.getDate() - (days - 1));
+    const prevStartStr = prevStartDate.toISOString().split("T")[0];
+    const prevEndStr = prevEndDate.toISOString().split("T")[0];
 
     // Try GA4 real data first
     const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
