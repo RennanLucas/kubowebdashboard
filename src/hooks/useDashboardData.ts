@@ -6,8 +6,8 @@ interface AnalyticsResponse {
     id: string;
     company_name: string;
     domain: string | null;
-    analytics_property_id: string | null;
     project: { id: string; name: string; url: string | null } | null;
+    projects: Array<{ id: string; name: string; url: string | null }>;
   } | null;
   metrics: Array<{
     date: string;
@@ -32,15 +32,22 @@ interface AnalyticsResponse {
     avgTime: string;
     bounceRate: number;
   }> | null;
+  comparison: {
+    visitors: number;
+    views: number;
+    prevVisitors: number;
+    prevViews: number;
+  } | null;
 }
 
-export const useDashboardAnalytics = (days: number) => {
+export const useDashboardAnalytics = (days: number, projectId?: string) => {
   return useQuery({
-    queryKey: ["dashboard-analytics", days],
+    queryKey: ["dashboard-analytics", days, projectId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const url = `https://${projectId}.supabase.co/functions/v1/get-analytics?days=${days}`;
+      const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
+      if (projectId) url += `&project_id=${projectId}`;
 
       const response = await fetch(url, {
         headers: {
@@ -60,7 +67,6 @@ export const useDashboardAnalytics = (days: number) => {
   });
 };
 
-// Backward-compatible hook for onboarding redirect check
 export const useClientData = () => {
   const { data, isLoading, error } = useDashboardAnalytics(30);
   return {
@@ -68,7 +74,7 @@ export const useClientData = () => {
       ? {
           ...data.client,
           company_name: data.client.company_name,
-          projects: data.client.project ? [data.client.project] : [],
+          projects: data.client.projects || (data.client.project ? [data.client.project] : []),
         }
       : null,
     isLoading,

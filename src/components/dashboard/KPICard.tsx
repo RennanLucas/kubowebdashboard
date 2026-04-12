@@ -3,12 +3,13 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 interface KPICardProps {
   title: string;
   value: string;
-  change: number;
+  change: number | null;
   icon: React.ReactNode;
 }
 
 const KPICard = ({ title, value, change, icon }: KPICardProps) => {
-  const isPositive = change >= 0;
+  const hasChange = change !== null && change !== undefined;
+  const isPositive = hasChange && change >= 0;
 
   return (
     <div className="glass-card rounded-xl p-5 transition-all hover:shadow-md">
@@ -17,11 +18,15 @@ const KPICard = ({ title, value, change, icon }: KPICardProps) => {
         <div className="text-muted-foreground/60">{icon}</div>
       </div>
       <div className="text-2xl font-semibold text-card-foreground mb-1">{value}</div>
-      <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
-        {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-        <span>{isPositive ? "+" : ""}{change}%</span>
-        <span className="text-muted-foreground ml-1">vs período anterior</span>
-      </div>
+      {hasChange ? (
+        <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+          {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+          <span>{isPositive ? "+" : ""}{change}%</span>
+          <span className="text-muted-foreground ml-1">vs período anterior</span>
+        </div>
+      ) : (
+        <div className="text-xs text-muted-foreground">—</div>
+      )}
     </div>
   );
 };

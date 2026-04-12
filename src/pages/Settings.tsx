@@ -18,8 +18,8 @@ const Settings = () => {
       existingClient={clientData ? {
         id: clientData.id,
         company_name: clientData.company_name,
-        domain: clientData.domain,
-        analytics_property_id: clientData.analytics_property_id,
+        domain: clientData.domain ?? null,
+        analytics_property_id: null,
         projects: clientData.projects ?? [],
       } : undefined}
     />
