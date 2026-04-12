@@ -532,7 +532,7 @@ Deno.serve(async (req) => {
         let totalTime = 0;
         let sessionCount = 0;
         for (const sid of sids) {
-          const sess = sessions[sid];
+          const sess = current.sessions[sid];
           if (sess) {
             sessionCount++;
             if (sess.pages === 1) bounces++;
