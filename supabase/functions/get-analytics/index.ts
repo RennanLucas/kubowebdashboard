@@ -504,13 +504,34 @@ Deno.serve(async (req) => {
       const currentEvents = countEvents(evData);
       const previousEvents = countEvents(evPrevData);
 
+      // Count events per day for leads calculation
+      const eventsByDay: Record<string, { whatsapp: number; forms: number; buttons: number }> = {};
+      for (const ev of evData) {
+        const day = ev.created_at.split("T")[0];
+        if (!eventsByDay[day]) eventsByDay[day] = { whatsapp: 0, forms: 0, buttons: 0 };
+        if (ev.event_type === "whatsapp_click") eventsByDay[day].whatsapp++;
+        else if (ev.event_type === "form_submit") eventsByDay[day].forms++;
+        else if (ev.event_type === "button_click") eventsByDay[day].buttons++;
+      }
+
+      const LEAD_VALUE = 25; // R$ estimated value per lead
+
       const metrics = Object.entries(current.dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, d]) => ({
-          date, visitors: d.visitors.size,
-          leads: 0, conversion_rate: 0, estimated_value: 0,
-          whatsapp_clicks: 0, form_submissions: 0, button_clicks: 0,
-        }));
+        .map(([date, d]) => {
+          const dayEvents = eventsByDay[date] || { whatsapp: 0, forms: 0, buttons: 0 };
+          const dayLeads = dayEvents.whatsapp + dayEvents.forms;
+          const visitors = d.visitors.size;
+          return {
+            date, visitors,
+            leads: dayLeads,
+            conversion_rate: visitors > 0 ? Number(((dayLeads / visitors) * 100).toFixed(2)) : 0,
+            estimated_value: dayLeads * LEAD_VALUE,
+            whatsapp_clicks: dayEvents.whatsapp,
+            form_submissions: dayEvents.forms,
+            button_clicks: dayEvents.buttons,
+          };
+        });
 
       const colorMap: Record<string, string> = {
         Google: "hsl(var(--chart-blue))",
