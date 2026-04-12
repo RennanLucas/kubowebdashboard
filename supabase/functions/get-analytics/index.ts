@@ -5,13 +5,187 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// --- Google Auth helpers ---
+
+function base64url(data: Uint8Array): string {
+  return btoa(String.fromCharCode(...data))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function strToBase64url(str: string): string {
+  return base64url(new TextEncoder().encode(str));
+}
+
+async function importPrivateKey(pem: string): Promise<CryptoKey> {
+  const pemContents = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, "")
+    .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\s/g, "");
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+  return crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+}
+
+async function getGoogleAccessToken(
+  serviceAccount: { client_email: string; private_key: string }
+): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const header = strToBase64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const payload = strToBase64url(
+    JSON.stringify({
+      iss: serviceAccount.client_email,
+      scope: "https://www.googleapis.com/auth/analytics.readonly",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+    })
+  );
+
+  const key = await importPrivateKey(serviceAccount.private_key);
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    new TextEncoder().encode(`${header}.${payload}`)
+  );
+  const jwt = `${header}.${payload}.${base64url(new Uint8Array(signature))}`;
+
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  });
+
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Google token error: ${err}`);
+  }
+  const { access_token } = await tokenRes.json();
+  return access_token;
+}
+
+// --- GA4 Data API ---
+
+interface GA4Row {
+  dimensionValues: { value: string }[];
+  metricValues: { value: string }[];
+}
+
+async function fetchGA4Report(
+  accessToken: string,
+  propertyId: string,
+  startDate: string,
+  endDate: string
+): Promise<{
+  dailyMetrics: { date: string; visitors: number; sessions: number; views: number }[];
+  trafficSources: { source: string; visitors: number }[];
+  topPages: { path: string; views: number; avgTime: number; bounceRate: number }[];
+}> {
+  const baseUrl = `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`;
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+  };
+
+  // Run 3 reports in parallel
+  const [dailyRes, trafficRes, pagesRes] = await Promise.all([
+    // Daily visitors
+    fetch(baseUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: "date" }],
+        metrics: [
+          { name: "activeUsers" },
+          { name: "sessions" },
+          { name: "screenPageViews" },
+        ],
+        orderBys: [{ dimension: { dimensionName: "date" } }],
+      }),
+    }),
+    // Traffic sources
+    fetch(baseUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: "sessionDefaultChannelGroup" }],
+        metrics: [{ name: "activeUsers" }],
+        orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+        limit: 10,
+      }),
+    }),
+    // Top pages
+    fetch(baseUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: "pagePath" }],
+        metrics: [
+          { name: "screenPageViews" },
+          { name: "averageSessionDuration" },
+          { name: "bounceRate" },
+        ],
+        orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+        limit: 10,
+      }),
+    }),
+  ]);
+
+  for (const res of [dailyRes, trafficRes, pagesRes]) {
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`GA4 API error [${res.status}]: ${errText}`);
+    }
+  }
+
+  const [dailyData, trafficData, pagesData] = await Promise.all([
+    dailyRes.json(),
+    trafficRes.json(),
+    pagesRes.json(),
+  ]);
+
+  const dailyMetrics = (dailyData.rows || []).map((row: GA4Row) => {
+    const dateStr = row.dimensionValues[0].value; // YYYYMMDD
+    return {
+      date: `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`,
+      visitors: parseInt(row.metricValues[0].value) || 0,
+      sessions: parseInt(row.metricValues[1].value) || 0,
+      views: parseInt(row.metricValues[2].value) || 0,
+    };
+  });
+
+  const trafficSources = (trafficData.rows || []).map((row: GA4Row) => ({
+    source: row.dimensionValues[0].value,
+    visitors: parseInt(row.metricValues[0].value) || 0,
+  }));
+
+  const topPages = (pagesData.rows || []).map((row: GA4Row) => ({
+    path: row.dimensionValues[0].value,
+    views: parseInt(row.metricValues[0].value) || 0,
+    avgTime: parseFloat(row.metricValues[1].value) || 0,
+    bounceRate: parseFloat(row.metricValues[2].value) || 0,
+  }));
+
+  return { dailyMetrics, trafficSources, topPages };
+}
+
+// --- Main handler ---
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Validate JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -25,7 +199,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify user token
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
@@ -38,7 +211,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
 
-    // Get client data for authenticated user
+    // Get client data
     const { data: clientData, error: clientError } = await supabaseAdmin
       .from("clients")
       .select("*, projects(*)")
@@ -54,18 +227,99 @@ Deno.serve(async (req) => {
     }
 
     const projectId = clientData.projects?.[0]?.id;
+    const analyticsPropertyId = clientData.analytics_property_id;
+
+    // Calculate dates
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    const startDateStr = startDate.toISOString().split("T")[0];
+    const endDateStr = endDate.toISOString().split("T")[0];
+
+    // Try GA4 real data first
+    const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+    let ga4Data: Awaited<ReturnType<typeof fetchGA4Report>> | null = null;
+
+    if (serviceAccountJson && analyticsPropertyId) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        const accessToken = await getGoogleAccessToken(serviceAccount);
+        ga4Data = await fetchGA4Report(accessToken, analyticsPropertyId, startDateStr, endDateStr);
+        console.log("GA4 real data fetched successfully");
+      } catch (gaError) {
+        console.error("GA4 fetch failed, falling back to DB:", gaError);
+      }
+    }
+
+    if (ga4Data) {
+      // Format GA4 data for the frontend
+      const colorMap: Record<string, string> = {
+        "Organic Search": "hsl(var(--chart-blue))",
+        "Direct": "hsl(var(--chart-green))",
+        "Social": "hsl(var(--chart-purple))",
+        "Paid Search": "hsl(var(--chart-orange))",
+        "Referral": "hsl(var(--chart-blue))",
+        "Email": "hsl(var(--chart-green))",
+      };
+
+      const trafficTotal = ga4Data.trafficSources.reduce((s, t) => s + t.visitors, 0);
+      const trafficSources = ga4Data.trafficSources.map((t) => ({
+        source: t.source,
+        visitors: t.visitors,
+        percentage: trafficTotal > 0 ? Math.round((t.visitors / trafficTotal) * 100) : 0,
+        color: colorMap[t.source] || "hsl(var(--chart-blue))",
+      }));
+
+      const topPages = ga4Data.topPages.map((p) => {
+        const avgSeconds = Math.round(p.avgTime);
+        const mins = Math.floor(avgSeconds / 60);
+        const secs = avgSeconds % 60;
+        return {
+          path: p.path,
+          name: p.path === "/" ? "Página Inicial" : p.path,
+          views: p.views,
+          avgTime: `${mins}:${String(secs).padStart(2, "0")}`,
+          bounceRate: Number((p.bounceRate * 100).toFixed(1)),
+        };
+      });
+
+      // Map daily metrics to expected format
+      const metrics = ga4Data.dailyMetrics.map((d) => ({
+        date: d.date,
+        visitors: d.visitors,
+        leads: 0,
+        conversion_rate: 0,
+        estimated_value: 0,
+        whatsapp_clicks: 0,
+        form_submissions: 0,
+        button_clicks: 0,
+      }));
+
+      return new Response(
+        JSON.stringify({
+          client: {
+            id: clientData.id,
+            company_name: clientData.company_name,
+            domain: clientData.domain,
+            analytics_property_id: analyticsPropertyId,
+            project: clientData.projects?.[0] || null,
+          },
+          metrics,
+          trafficSources,
+          topPages,
+          source: "google_analytics",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fallback: use database data
     if (!projectId) {
       return new Response(JSON.stringify({ client: clientData, metrics: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Calculate start date
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (days - 1));
-    const startDateStr = startDate.toISOString().split("T")[0];
-
-    // Fetch all data in parallel
     const [metricsRes, trafficRes, pagesRes] = await Promise.all([
       supabaseAdmin
         .from("website_metrics")
@@ -97,7 +351,7 @@ Deno.serve(async (req) => {
       trafficGrouped[row.source] = (trafficGrouped[row.source] || 0) + row.visitors;
     }
     const trafficTotal = Object.values(trafficGrouped).reduce((s, v) => s + v, 0);
-    const colorMap: Record<string, string> = {
+    const dbColorMap: Record<string, string> = {
       Google: "hsl(var(--chart-blue))",
       "Redes Sociais": "hsl(var(--chart-purple))",
       Direto: "hsl(var(--chart-green))",
@@ -108,7 +362,7 @@ Deno.serve(async (req) => {
         source,
         visitors,
         percentage: trafficTotal > 0 ? Math.round((visitors / trafficTotal) * 100) : 0,
-        color: colorMap[source] || "hsl(var(--chart-blue))",
+        color: dbColorMap[source] || "hsl(var(--chart-blue))",
       }))
       .sort((a, b) => b.visitors - a.visitors);
 
@@ -157,6 +411,7 @@ Deno.serve(async (req) => {
         metrics: metricsRes.data,
         trafficSources,
         topPages,
+        source: "database",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
