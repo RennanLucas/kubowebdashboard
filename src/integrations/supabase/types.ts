@@ -120,6 +120,7 @@ export type Database = {
       }
       pageviews: {
         Row: {
+          city: string | null
           country: string | null
           created_at: string
           id: string
@@ -130,6 +131,7 @@ export type Database = {
           user_agent: string | null
         }
         Insert: {
+          city?: string | null
           country?: string | null
           created_at?: string
           id?: string
@@ -140,6 +142,7 @@ export type Database = {
           user_agent?: string | null
         }
         Update: {
+          city?: string | null
           country?: string | null
           created_at?: string
           id?: string

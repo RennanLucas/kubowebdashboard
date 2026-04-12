@@ -444,6 +444,7 @@ Deno.serve(async (req) => {
         const browserMap: Record<string, number> = {};
         const osMap: Record<string, number> = {};
         const countryMap: Record<string, number> = {};
+        const cityMap: Record<string, number> = {};
 
         // Session-based metrics for bounce rate & avg duration
         const sessions: Record<string, { pages: number; firstTime: number; lastTime: number }> = {};
@@ -459,10 +460,21 @@ Deno.serve(async (req) => {
           let source = "Direto";
           if (pv.referrer) {
             try {
-              const refHost = new URL(pv.referrer).hostname;
+              const refHost = new URL(pv.referrer).hostname
+                .replace(/^www\./, "")
+                .replace(/\.com$|\.com\.br$|\.org$|\.net$/, "");
               if (refHost.includes("google")) source = "Google";
-              else if (refHost.includes("facebook") || refHost.includes("instagram") || refHost.includes("twitter") || refHost.includes("linkedin") || refHost.includes("tiktok")) source = "Redes Sociais";
-              else source = refHost;
+              else if (refHost.includes("bing")) source = "Bing";
+              else if (refHost.includes("yahoo")) source = "Yahoo";
+              else if (refHost.includes("facebook") || refHost.includes("fb")) source = "Facebook";
+              else if (refHost.includes("instagram")) source = "Instagram";
+              else if (refHost.includes("twitter") || refHost.includes("x.")) source = "X (Twitter)";
+              else if (refHost.includes("linkedin")) source = "LinkedIn";
+              else if (refHost.includes("tiktok")) source = "TikTok";
+              else if (refHost.includes("youtube")) source = "YouTube";
+              else if (refHost.includes("pinterest")) source = "Pinterest";
+              else if (refHost.includes("lovable") || refHost.includes("lovableproject")) source = "Direto";
+              else source = new URL(pv.referrer).hostname.replace(/^www\./, "");
             } catch { source = "Outro"; }
           }
           if (!refMap[source]) refMap[source] = new Set();
@@ -480,9 +492,12 @@ Deno.serve(async (req) => {
           browserMap[browser] = (browserMap[browser] || 0) + 1;
           osMap[os] = (osMap[os] || 0) + 1;
 
-          // Country
+          // Country & City
           if (pv.country) {
             countryMap[pv.country] = (countryMap[pv.country] || 0) + 1;
+          }
+          if (pv.city) {
+            cityMap[pv.city] = (cityMap[pv.city] || 0) + 1;
           }
 
           // Session tracking
@@ -506,7 +521,7 @@ Deno.serve(async (req) => {
         return {
           dailyMap, refMap, pageMap,
           totalVisitors: totalVisitors.size, totalViews: data.length,
-          deviceMap, browserMap, osMap, countryMap,
+          deviceMap, browserMap, osMap, countryMap, cityMap,
           bounceRate, avgSessionDuration, totalSessions, sessions,
         };
       }
@@ -665,6 +680,7 @@ Deno.serve(async (req) => {
       const browsers = toList(current.browserMap);
       const operatingSystems = toList(current.osMap);
       const countries = toList(current.countryMap);
+      const cities = toList(current.cityMap);
 
       // Real-time: count sessions active in last 5 minutes
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -701,6 +717,7 @@ Deno.serve(async (req) => {
           browsers,
           operatingSystems,
           countries,
+          cities,
           engagement,
           activeVisitors: activeNow || 0,
           source: "custom_tracking",

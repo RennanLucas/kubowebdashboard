@@ -21,24 +21,26 @@ function getCountryFromHeaders(req: Request): string | null {
   return null;
 }
 
-async function getCountryFromIP(req: Request): Promise<string | null> {
+async function getGeoFromIP(req: Request): Promise<{ country: string | null; city: string | null }> {
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
                req.headers.get("x-real-ip") ||
                req.headers.get("cf-connecting-ip");
-    if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) return null;
+    if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) return { country: null, city: null };
 
-    const res = await fetch(`https://ipapi.co/${ip}/country/`, {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`, {
       signal: AbortSignal.timeout(2000),
     });
     if (res.ok) {
-      const code = (await res.text()).trim();
-      if (code.length === 2) return code.toUpperCase();
+      const data = await res.json();
+      const country = data.country_code && data.country_code.length === 2 ? data.country_code.toUpperCase() : null;
+      const city = data.city || null;
+      return { country, city };
     }
   } catch {
     // Geo lookup failed silently
   }
-  return null;
+  return { country: null, city: null };
 }
 
 Deno.serve(async (req) => {
@@ -63,10 +65,13 @@ Deno.serve(async (req) => {
 
     const userAgent = req.headers.get("user-agent") || null;
     
-    // Try headers first, then fallback to IP geo lookup
+    // Try headers first for country, then fallback to IP geo lookup for both
     let country = getCountryFromHeaders(req);
+    let city: string | null = null;
     if (!country) {
-      country = await getCountryFromIP(req);
+      const geo = await getGeoFromIP(req);
+      country = geo.country;
+      city = geo.city;
     }
 
     const supabaseAdmin = createClient(
@@ -98,6 +103,7 @@ Deno.serve(async (req) => {
         referrer: ref || null,
         user_agent: userAgent,
         country: country,
+        city: city,
         session_id: sid || null,
       });
 
