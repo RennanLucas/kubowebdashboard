@@ -98,7 +98,13 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
     queryFn: async () => {
       let { data: { session } } = await supabase.auth.getSession();
 
-      if (!session?.access_token) {
+      if (session?.access_token) {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) {
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          session = refreshData.session;
+        }
+      } else {
         const { data: refreshData } = await supabase.auth.refreshSession();
         session = refreshData.session;
       }
