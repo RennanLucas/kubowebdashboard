@@ -186,14 +186,36 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
             </Label>
             <Input
               id="analyticsId"
-              placeholder="Ex: G-XXXXXXXXXX"
+              placeholder="Ex: 123456789"
               value={form.analyticsPropertyId}
               onChange={(e) => update("analyticsPropertyId", e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Opcional. Necessário para integração futura com Google Analytics.
+              O ID numérico da propriedade (não o Measurement ID que começa com G-).
+              Encontre em: Google Analytics → ⚙️ Administrador → Configurações da propriedade.
             </p>
           </div>
+
+          {form.analyticsPropertyId && (
+            <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
+              <p className="text-sm font-medium text-foreground">⚠️ Passo importante</p>
+              <p className="text-xs text-muted-foreground">
+                Para que possamos acessar os dados do seu Google Analytics, você precisa adicionar
+                nosso email de serviço como <strong>Leitor</strong> na sua propriedade GA4:
+              </p>
+              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
+                <li>Acesse o Google Analytics → ⚙️ Administrador</li>
+                <li>Clique em <strong>Gerenciamento de acesso à propriedade</strong></li>
+                <li>Clique em <strong>+</strong> → <strong>Adicionar usuários</strong></li>
+                <li>Cole o email abaixo e selecione o papel <strong>Leitor</strong></li>
+              </ol>
+              <div className="mt-2">
+                <code className="text-xs bg-background px-2 py-1 rounded border border-border select-all break-all">
+                  kuboweb-analytics-service@tidy-access-478016-a7.iam.gserviceaccount.com
+                </code>
+              </div>
+            </div>
+          )}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (

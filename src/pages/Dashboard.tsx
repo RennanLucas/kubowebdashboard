@@ -61,6 +61,8 @@ const Dashboard = () => {
     );
   }
 
+  const hasData = totalVisitors > 0 || (trafficSources && trafficSources.length > 0);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -71,34 +73,55 @@ const Dashboard = () => {
           projectName={clientData?.project?.name}
         />
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={12.3} icon={<Users className="h-4 w-4" />} />
-          <KPICard title="Taxa de Conversão" value={`${avgConversion}%`} change={1.2} icon={<Target className="h-4 w-4" />} />
-          <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={8.5} icon={<TrendingUp className="h-4 w-4" />} />
-          <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={15.1} icon={<DollarSign className="h-4 w-4" />} />
-        </div>
-
-        {/* Chart + Traffic */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-2">
-            <VisitorsChart data={chartData} />
+        {!hasData ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <BarChart3 className="h-16 w-16 text-muted-foreground/40 mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Ainda não há dados disponíveis
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mb-2">
+              {clientData?.analytics_property_id
+                ? "Seu Google Analytics está conectado, mas ainda não registrou tráfego no período selecionado. Verifique se o tag do GA4 está instalado no seu site."
+                : "Configure o Google Analytics Property ID nas configurações para começar a ver os dados do seu site."}
+            </p>
+            {!clientData?.analytics_property_id && (
+              <a href="/settings" className="text-sm text-primary hover:underline mt-2">
+                Ir para Configurações →
+              </a>
+            )}
           </div>
-          <TrafficSources data={trafficSources ?? []} />
-        </div>
+        ) : (
+          <>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={12.3} icon={<Users className="h-4 w-4" />} />
+              <KPICard title="Taxa de Conversão" value={`${avgConversion}%`} change={1.2} icon={<Target className="h-4 w-4" />} />
+              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={8.5} icon={<TrendingUp className="h-4 w-4" />} />
+              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={15.1} icon={<DollarSign className="h-4 w-4" />} />
+            </div>
 
-        {/* Conversions + Top Pages */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <ConversionsCard data={{
-            whatsappClicks: { value: totalWhatsapp, change: 12.5 },
-            formSubmissions: { value: totalForms, change: -3.2 },
-            buttonClicks: { value: totalButtons, change: 8.7 },
-          }} />
-          <TopPages pages={topPages ?? []} />
-        </div>
+            {/* Chart + Traffic */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              <div className="lg:col-span-2">
+                <VisitorsChart data={chartData} />
+              </div>
+              <TrafficSources data={trafficSources ?? []} />
+            </div>
 
-        {/* Insights */}
-        {insights.length > 0 && <InsightsSection insights={insights} />}
+            {/* Conversions + Top Pages */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <ConversionsCard data={{
+                whatsappClicks: { value: totalWhatsapp, change: 12.5 },
+                formSubmissions: { value: totalForms, change: -3.2 },
+                buttonClicks: { value: totalButtons, change: 8.7 },
+              }} />
+              <TopPages pages={topPages ?? []} />
+            </div>
+
+            {/* Insights */}
+            {insights.length > 0 && <InsightsSection insights={insights} />}
+          </>
+        )}
       </div>
     </div>
   );
