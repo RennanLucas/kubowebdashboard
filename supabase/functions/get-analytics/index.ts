@@ -469,7 +469,7 @@ Deno.serve(async (req) => {
           dailyMap, refMap, pageMap,
           totalVisitors: totalVisitors.size, totalViews: data.length,
           deviceMap, browserMap, osMap, countryMap,
-          bounceRate, avgSessionDuration, totalSessions,
+          bounceRate, avgSessionDuration, totalSessions, sessions,
         };
       }
 
