@@ -92,10 +92,10 @@ const Dashboard = () => {
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `relatorio-${clientData?.company_name || "kuboweb"}-${dateRange}d.pdf`;
+      a.download = `relatorio-${clientData?.company_name || "kuboweb"}-${dateRange}d.html`;
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
-      toast.success("Relatório baixado com sucesso!");
+      toast.success("Relatório baixado! Abra o arquivo e use Ctrl+P para salvar como PDF.");
     } catch (error: any) {
       toast.error("Erro ao gerar relatório: " + error.message);
     }
