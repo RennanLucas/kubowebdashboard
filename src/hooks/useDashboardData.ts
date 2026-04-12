@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface BreakdownItem {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
 interface AnalyticsResponse {
   client: {
     id: string;
@@ -57,6 +63,17 @@ interface AnalyticsResponse {
       metadata: Record<string, any>;
     }>;
   } | null;
+  devices: BreakdownItem[] | null;
+  browsers: BreakdownItem[] | null;
+  operatingSystems: BreakdownItem[] | null;
+  countries: BreakdownItem[] | null;
+  engagement: {
+    bounceRate: number;
+    avgSessionDuration: number;
+    totalSessions: number;
+    pagesPerSession: number;
+  } | null;
+  activeVisitors: number | null;
 }
 
 const fetchAnalytics = async (days: number, projectId: string | undefined, accessToken: string) => {
