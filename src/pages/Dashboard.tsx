@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Users, Target, TrendingUp, DollarSign, BarChart3, Eye } from "lucide-react";
+import { Users, TrendingUp, DollarSign, BarChart3, Eye } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import KPICard from "@/components/dashboard/KPICard";
 import VisitorsChart from "@/components/dashboard/VisitorsChart";
@@ -8,6 +8,10 @@ import TrafficSources from "@/components/dashboard/TrafficSources";
 import ConversionsCard from "@/components/dashboard/ConversionsCard";
 import TopPages from "@/components/dashboard/TopPages";
 import InsightsSection from "@/components/dashboard/InsightsSection";
+import DevicesBrowsersCard from "@/components/dashboard/DevicesBrowsersCard";
+import GeoCard from "@/components/dashboard/GeoCard";
+import EngagementCard from "@/components/dashboard/EngagementCard";
+import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -150,13 +154,16 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* KPIs + Active Visitors */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
               <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} />
               <KPICard title="Pageviews" value={totalViews.toLocaleString("pt-BR")} change={comparison?.views ?? null} icon={<Eye className="h-4 w-4" />} />
               <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={null} icon={<TrendingUp className="h-4 w-4" />} />
               <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={null} icon={<DollarSign className="h-4 w-4" />} />
+              <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
             </div>
 
+            {/* Chart + Traffic Sources */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
                 <VisitorsChart data={chartData} />
@@ -164,6 +171,7 @@ const Dashboard = () => {
               <TrafficSources data={trafficSources ?? []} />
             </div>
 
+            {/* Conversions + Top Pages */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <ConversionsCard data={{
                 whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
@@ -172,6 +180,19 @@ const Dashboard = () => {
                 recentEvents: conversions?.recent ?? [],
               }} />
               <TopPages pages={topPages ?? []} />
+            </div>
+
+            {/* Engagement + Devices + Geo */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              {data?.engagement && (
+                <EngagementCard data={data.engagement} />
+              )}
+              <DevicesBrowsersCard
+                devices={data?.devices ?? []}
+                browsers={data?.browsers ?? []}
+                operatingSystems={data?.operatingSystems ?? []}
+              />
+              <GeoCard countries={data?.countries ?? []} />
             </div>
 
             {insights.length > 0 && <InsightsSection insights={insights} />}

@@ -93,9 +93,7 @@ async function fetchGA4Report(
     "Content-Type": "application/json",
   };
 
-  // Run 3 reports in parallel
   const [dailyRes, trafficRes, pagesRes] = await Promise.all([
-    // Daily visitors
     fetch(baseUrl, {
       method: "POST",
       headers,
@@ -110,7 +108,6 @@ async function fetchGA4Report(
         orderBys: [{ dimension: { dimensionName: "date" } }],
       }),
     }),
-    // Traffic sources
     fetch(baseUrl, {
       method: "POST",
       headers,
@@ -122,7 +119,6 @@ async function fetchGA4Report(
         limit: 10,
       }),
     }),
-    // Top pages
     fetch(baseUrl, {
       method: "POST",
       headers,
@@ -154,7 +150,7 @@ async function fetchGA4Report(
   ]);
 
   const dailyMetrics = (dailyData.rows || []).map((row: GA4Row) => {
-    const dateStr = row.dimensionValues[0].value; // YYYYMMDD
+    const dateStr = row.dimensionValues[0].value;
     return {
       date: `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`,
       visitors: parseInt(row.metricValues[0].value) || 0,
@@ -176,6 +172,37 @@ async function fetchGA4Report(
   }));
 
   return { dailyMetrics, trafficSources, topPages };
+}
+
+// --- User agent parsing helpers ---
+
+function parseDevice(ua: string): string {
+  if (!ua) return "Desconhecido";
+  const lower = ua.toLowerCase();
+  if (lower.includes("mobile") || lower.includes("android") || lower.includes("iphone"))
+    return "Mobile";
+  if (lower.includes("tablet") || lower.includes("ipad")) return "Tablet";
+  return "Desktop";
+}
+
+function parseBrowser(ua: string): string {
+  if (!ua) return "Outro";
+  if (ua.includes("Edg/") || ua.includes("Edge/")) return "Edge";
+  if (ua.includes("OPR/") || ua.includes("Opera")) return "Opera";
+  if (ua.includes("Chrome/") && !ua.includes("Edg/")) return "Chrome";
+  if (ua.includes("Safari/") && !ua.includes("Chrome/")) return "Safari";
+  if (ua.includes("Firefox/")) return "Firefox";
+  return "Outro";
+}
+
+function parseOS(ua: string): string {
+  if (!ua) return "Outro";
+  if (ua.includes("Windows")) return "Windows";
+  if (ua.includes("Mac OS")) return "macOS";
+  if (ua.includes("Android")) return "Android";
+  if (ua.includes("iPhone") || ua.includes("iPad") || ua.includes("iOS")) return "iOS";
+  if (ua.includes("Linux")) return "Linux";
+  return "Outro";
 }
 
 // --- Main handler ---
@@ -227,7 +254,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Select project (support multi-project)
+    // Select project
     const projects = clientData.projects || [];
     const projectId = selectedProjectId && projects.some((p: any) => p.id === selectedProjectId)
       ? selectedProjectId
@@ -235,7 +262,7 @@ Deno.serve(async (req) => {
     const currentProject = projects.find((p: any) => p.id === projectId) || null;
     const analyticsPropertyId = clientData.analytics_property_id;
 
-    // Calculate dates for current and previous period
+    // Calculate dates
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - (days - 1));
@@ -267,7 +294,6 @@ Deno.serve(async (req) => {
     const ga4HasData = ga4Data && ga4Data.dailyMetrics.length > 0;
 
     if (ga4HasData) {
-      // Format GA4 data for the frontend
       const colorMap: Record<string, string> = {
         "Organic Search": "hsl(var(--chart-blue))",
         "Direct": "hsl(var(--chart-green))",
@@ -298,7 +324,6 @@ Deno.serve(async (req) => {
         };
       });
 
-      // Map daily metrics to expected format
       const metrics = ga4Data.dailyMetrics.map((d) => ({
         date: d.date,
         visitors: d.visitors,
@@ -336,7 +361,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Try custom pageviews + events (current + previous period)
+    // Try custom pageviews + events
     const [pvRes, pvPrevRes, evRes, evPrevRes] = await Promise.all([
       supabaseAdmin
         .from("pageviews")
@@ -370,12 +395,20 @@ Deno.serve(async (req) => {
     const evPrevData = evPrevRes.data || [];
 
     if (!pvRes.error && pvData && pvData.length > 0) {
-      // Helper to aggregate pageviews
       function aggregatePV(data: any[]) {
         const dailyMap: Record<string, { visitors: Set<string>; views: number }> = {};
         const refMap: Record<string, Set<string>> = {};
         const pageMap: Record<string, number> = {};
-        let totalVisitors = new Set<string>();
+        const totalVisitors = new Set<string>();
+
+        // Device / browser / country aggregation
+        const deviceMap: Record<string, number> = {};
+        const browserMap: Record<string, number> = {};
+        const osMap: Record<string, number> = {};
+        const countryMap: Record<string, number> = {};
+
+        // Session-based metrics for bounce rate & avg duration
+        const sessions: Record<string, { pages: number; firstTime: number; lastTime: number }> = {};
 
         for (const pv of data) {
           const day = pv.created_at.split("T")[0];
@@ -399,12 +432,47 @@ Deno.serve(async (req) => {
 
           const pagePath = pv.page_path || "/";
           pageMap[pagePath] = (pageMap[pagePath] || 0) + 1;
+
+          // Parse user agent
+          const ua = pv.user_agent || "";
+          const device = parseDevice(ua);
+          const browser = parseBrowser(ua);
+          const os = parseOS(ua);
+          deviceMap[device] = (deviceMap[device] || 0) + 1;
+          browserMap[browser] = (browserMap[browser] || 0) + 1;
+          osMap[os] = (osMap[os] || 0) + 1;
+
+          // Country
+          if (pv.country) {
+            countryMap[pv.country] = (countryMap[pv.country] || 0) + 1;
+          }
+
+          // Session tracking
+          const pvTime = new Date(pv.created_at).getTime();
+          if (!sessions[sid]) {
+            sessions[sid] = { pages: 0, firstTime: pvTime, lastTime: pvTime };
+          }
+          sessions[sid].pages += 1;
+          if (pvTime < sessions[sid].firstTime) sessions[sid].firstTime = pvTime;
+          if (pvTime > sessions[sid].lastTime) sessions[sid].lastTime = pvTime;
         }
 
-        return { dailyMap, refMap, pageMap, totalVisitors: totalVisitors.size, totalViews: data.length };
+        // Calculate bounce rate and avg session duration
+        const sessionList = Object.values(sessions);
+        const totalSessions = sessionList.length;
+        const bounces = sessionList.filter(s => s.pages === 1).length;
+        const bounceRate = totalSessions > 0 ? Number(((bounces / totalSessions) * 100).toFixed(1)) : 0;
+        const totalDuration = sessionList.reduce((sum, s) => sum + (s.lastTime - s.firstTime), 0);
+        const avgSessionDuration = totalSessions > 0 ? Math.round(totalDuration / totalSessions / 1000) : 0;
+
+        return {
+          dailyMap, refMap, pageMap,
+          totalVisitors: totalVisitors.size, totalViews: data.length,
+          deviceMap, browserMap, osMap, countryMap,
+          bounceRate, avgSessionDuration, totalSessions,
+        };
       }
 
-      // Helper to count events by type
       function countEvents(events: any[]) {
         const counts: Record<string, number> = {};
         const details: any[] = [];
@@ -466,7 +534,6 @@ Deno.serve(async (req) => {
         prevViews: previous.totalViews,
       } : null;
 
-      // Real conversion data
       const conversions = {
         whatsapp_clicks: currentEvents.counts["whatsapp_click"] || 0,
         button_clicks: currentEvents.counts["button_click"] || 0,
@@ -483,6 +550,34 @@ Deno.serve(async (req) => {
           .slice(0, 20),
       };
 
+      // Format devices/browsers for frontend
+      const totalPV = pvData.length;
+      const toList = (map: Record<string, number>) =>
+        Object.entries(map)
+          .map(([name, count]) => ({ name, count, percentage: totalPV > 0 ? Math.round((count / totalPV) * 100) : 0 }))
+          .sort((a, b) => b.count - a.count);
+
+      const devices = toList(current.deviceMap);
+      const browsers = toList(current.browserMap);
+      const operatingSystems = toList(current.osMap);
+      const countries = toList(current.countryMap);
+
+      // Real-time: count sessions active in last 5 minutes
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { count: activeNow } = await supabaseAdmin
+        .from("pageviews")
+        .select("session_id", { count: "exact", head: true })
+        .eq("project_id", projectId)
+        .gte("created_at", fiveMinAgo);
+
+      // Engagement
+      const engagement = {
+        bounceRate: current.bounceRate,
+        avgSessionDuration: current.avgSessionDuration,
+        totalSessions: current.totalSessions,
+        pagesPerSession: current.totalSessions > 0 ? Number((current.totalViews / current.totalSessions).toFixed(1)) : 0,
+      };
+
       return new Response(
         JSON.stringify({
           client: {
@@ -497,6 +592,12 @@ Deno.serve(async (req) => {
           topPages,
           comparison,
           conversions,
+          devices,
+          browsers,
+          operatingSystems,
+          countries,
+          engagement,
+          activeVisitors: activeNow || 0,
           source: "custom_tracking",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
