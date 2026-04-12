@@ -6,13 +6,13 @@ export const useClientData = () => {
   return useQuery({
     queryKey: ["client-data"],
     queryFn: async () => {
-      const { data: clients, error } = await supabase
+      const { data, error } = await supabase
         .from("clients")
         .select("*, projects(*)")
         .limit(1)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return clients;
+      return data;
     },
   });
 };
