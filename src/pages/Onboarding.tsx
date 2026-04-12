@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowRight, Globe, BarChart3, Building2 } from "lucide-react";
+import TrackingSnippet from "@/components/TrackingSnippet";
 
 interface ClientFormData {
   companyName: string;
