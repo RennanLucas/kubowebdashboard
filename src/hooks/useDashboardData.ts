@@ -43,6 +43,8 @@ interface AnalyticsResponse {
 export const useDashboardAnalytics = (days: number, projectId?: string) => {
   return useQuery({
     queryKey: ["dashboard-analytics", days, projectId],
+    refetchInterval: 60000, // Auto-refresh every 60 seconds
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
