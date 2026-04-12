@@ -304,6 +304,29 @@ Deno.serve(async (req) => {
     const ga4HasData = ga4Data && ga4Data.dailyMetrics.length > 0;
 
     if (ga4HasData) {
+      // Also fetch events from DB to enrich GA4 data with leads
+      let ga4Events: any[] = [];
+      if (projectId) {
+        const { data: evs } = await supabaseAdmin
+          .from("events")
+          .select("*")
+          .eq("project_id", projectId)
+          .gte("created_at", `${startDateStr}T00:00:00Z`)
+          .lte("created_at", `${endDateStr}T23:59:59Z`);
+        ga4Events = evs || [];
+      }
+
+      const ga4EventsByDay: Record<string, { whatsapp: number; forms: number; buttons: number }> = {};
+      for (const ev of ga4Events) {
+        const day = ev.created_at.split("T")[0];
+        if (!ga4EventsByDay[day]) ga4EventsByDay[day] = { whatsapp: 0, forms: 0, buttons: 0 };
+        if (ev.event_type === "whatsapp_click") ga4EventsByDay[day].whatsapp++;
+        else if (ev.event_type === "form_submit") ga4EventsByDay[day].forms++;
+        else if (ev.event_type === "button_click") ga4EventsByDay[day].buttons++;
+      }
+
+      const LEAD_VALUE = 25;
+
       const colorMap: Record<string, string> = {
         "Organic Search": "hsl(var(--chart-blue))",
         "Direct": "hsl(var(--chart-green))",
@@ -334,16 +357,20 @@ Deno.serve(async (req) => {
         };
       });
 
-      const metrics = ga4Data.dailyMetrics.map((d) => ({
-        date: d.date,
-        visitors: d.visitors,
-        leads: 0,
-        conversion_rate: 0,
-        estimated_value: 0,
-        whatsapp_clicks: 0,
-        form_submissions: 0,
-        button_clicks: 0,
-      }));
+      const metrics = ga4Data.dailyMetrics.map((d) => {
+        const dayEv = ga4EventsByDay[d.date] || { whatsapp: 0, forms: 0, buttons: 0 };
+        const dayLeads = dayEv.whatsapp + dayEv.forms;
+        return {
+          date: d.date,
+          visitors: d.visitors,
+          leads: dayLeads,
+          conversion_rate: d.visitors > 0 ? Number(((dayLeads / d.visitors) * 100).toFixed(2)) : 0,
+          estimated_value: dayLeads * LEAD_VALUE,
+          whatsapp_clicks: dayEv.whatsapp,
+          form_submissions: dayEv.forms,
+          button_clicks: dayEv.buttons,
+        };
+      });
 
       return new Response(
         JSON.stringify({
@@ -504,13 +531,34 @@ Deno.serve(async (req) => {
       const currentEvents = countEvents(evData);
       const previousEvents = countEvents(evPrevData);
 
+      // Count events per day for leads calculation
+      const eventsByDay: Record<string, { whatsapp: number; forms: number; buttons: number }> = {};
+      for (const ev of evData) {
+        const day = ev.created_at.split("T")[0];
+        if (!eventsByDay[day]) eventsByDay[day] = { whatsapp: 0, forms: 0, buttons: 0 };
+        if (ev.event_type === "whatsapp_click") eventsByDay[day].whatsapp++;
+        else if (ev.event_type === "form_submit") eventsByDay[day].forms++;
+        else if (ev.event_type === "button_click") eventsByDay[day].buttons++;
+      }
+
+      const LEAD_VALUE = 25; // R$ estimated value per lead
+
       const metrics = Object.entries(current.dailyMap)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, d]) => ({
-          date, visitors: d.visitors.size,
-          leads: 0, conversion_rate: 0, estimated_value: 0,
-          whatsapp_clicks: 0, form_submissions: 0, button_clicks: 0,
-        }));
+        .map(([date, d]) => {
+          const dayEvents = eventsByDay[date] || { whatsapp: 0, forms: 0, buttons: 0 };
+          const dayLeads = dayEvents.whatsapp + dayEvents.forms;
+          const visitors = d.visitors.size;
+          return {
+            date, visitors,
+            leads: dayLeads,
+            conversion_rate: visitors > 0 ? Number(((dayLeads / visitors) * 100).toFixed(2)) : 0,
+            estimated_value: dayLeads * LEAD_VALUE,
+            whatsapp_clicks: dayEvents.whatsapp,
+            form_submissions: dayEvents.forms,
+            button_clicks: dayEvents.buttons,
+          };
+        });
 
       const colorMap: Record<string, string> = {
         Google: "hsl(var(--chart-blue))",
