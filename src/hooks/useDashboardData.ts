@@ -38,12 +38,6 @@ export const useDashboardAnalytics = (days: number) => {
   return useQuery({
     queryKey: ["dashboard-analytics", days],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke<AnalyticsResponse>(
-        "get-analytics",
-        { body: null, headers: {} }
-      );
-
-      // supabase.functions.invoke uses POST by default; switch to GET with query params
       const { data: { session } } = await supabase.auth.getSession();
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const url = `https://${projectId}.supabase.co/functions/v1/get-analytics?days=${days}`;
@@ -66,7 +60,7 @@ export const useDashboardAnalytics = (days: number) => {
   });
 };
 
-// Keep backward-compatible hooks that delegate to the unified query
+// Backward-compatible hook for onboarding redirect check
 export const useClientData = () => {
   const { data, isLoading, error } = useDashboardAnalytics(30);
   return {
