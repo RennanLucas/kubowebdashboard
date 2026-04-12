@@ -49,6 +49,9 @@ const DashboardHeader = ({ dateRange, onDateRangeChange, clientName, projectName
             </button>
           ))}
         </div>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-muted-foreground">
+          <Settings className="h-4 w-4" />
+        </Button>
         <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground">
           <LogOut className="h-4 w-4" />
         </Button>
