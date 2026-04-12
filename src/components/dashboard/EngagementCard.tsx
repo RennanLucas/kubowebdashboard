@@ -40,8 +40,8 @@ const EngagementCard = ({ data }: { data: EngagementData }) => {
   ];
 
   return (
-    <div className="glass-card rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-card-foreground mb-4">Engajamento</h3>
+    <div className="glass-card p-5">
+      <h3 className="text-sm font-medium text-card-foreground mb-4">Engajamento</h3>
       <div className="grid grid-cols-2 gap-4">
         {items.map((item) => (
           <div key={item.label} className="space-y-1">
@@ -49,7 +49,7 @@ const EngagementCard = ({ data }: { data: EngagementData }) => {
               {item.icon}
               <span className="text-xs font-medium">{item.label}</span>
             </div>
-            <p className="text-xl font-semibold text-card-foreground">{item.value}</p>
+            <p className="text-xl font-medium text-card-foreground">{item.value}</p>
             <p className="text-[10px] text-muted-foreground">{item.description}</p>
           </div>
         ))}

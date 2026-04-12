@@ -28,20 +28,20 @@ const barColors = [
 
 const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBrowsersCardProps) => {
   return (
-    <div className="glass-card rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-card-foreground mb-4 flex items-center gap-2">
-        <Globe className="h-4 w-4" /> Dispositivos & Navegadores
+    <div className="glass-card p-5">
+      <h3 className="text-sm font-medium text-card-foreground mb-4 flex items-center gap-2">
+        <Globe className="h-4 w-4 text-primary" /> Dispositivos & Navegadores
       </h3>
 
       {/* Devices */}
       <div className="mb-4">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Dispositivos</p>
         <div className="space-y-2">
-          {devices.slice(0, 4).map((d, i) => (
+          {devices.slice(0, 4).map((d) => (
             <div key={d.name} className="flex items-center gap-2">
               <span className="text-muted-foreground">{deviceIcons[d.name] || <Monitor className="h-4 w-4" />}</span>
               <span className="text-sm text-card-foreground flex-1">{d.name}</span>
-              <span className="text-xs text-muted-foreground">{d.count}</span>
+              <span className="text-xs text-muted-foreground">{d.count.toLocaleString("pt-BR")}</span>
               <span className="text-xs font-medium text-card-foreground w-10 text-right">{d.percentage}%</span>
             </div>
           ))}
@@ -57,10 +57,10 @@ const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBro
             <div key={b.name}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-card-foreground">{b.name}</span>
-                <span className="text-xs text-muted-foreground">{b.count} · {b.percentage}%</span>
+                <span className="text-xs text-muted-foreground">{b.count.toLocaleString("pt-BR")} · {b.percentage}%</span>
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${barColors[i % barColors.length]}`} style={{ width: `${b.percentage}%` }} />
+                <div className={`h-full rounded-full transition-all duration-500 ${barColors[i % barColors.length]}`} style={{ width: `${b.percentage}%` }} />
               </div>
             </div>
           ))}
@@ -73,7 +73,7 @@ const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBro
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Sistemas Operacionais</p>
         <div className="flex flex-wrap gap-2">
           {operatingSystems.slice(0, 5).map((os) => (
-            <span key={os.name} className="inline-flex items-center px-2 py-1 rounded-md bg-muted text-xs text-muted-foreground">
+            <span key={os.name} className="inline-flex items-center px-2.5 py-1 rounded-full bg-muted text-xs text-muted-foreground">
               {os.name} <span className="ml-1 font-medium text-card-foreground">{os.percentage}%</span>
             </span>
           ))}

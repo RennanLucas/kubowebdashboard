@@ -33,7 +33,6 @@ const sourceCategory = (source: string): string => {
 const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
   const totalVisitors = data.reduce((s, d) => s + d.visitors, 0);
 
-  // Group by category for summary
   const categories: Record<string, number> = {};
   for (const s of data) {
     const cat = sourceCategory(s.source);
@@ -41,9 +40,9 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
   }
 
   return (
-    <div className="glass-card rounded-xl p-5">
+    <div className="glass-card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-card-foreground flex items-center gap-2">
+        <h3 className="text-sm font-medium text-card-foreground flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" /> Fontes de Tráfego
         </h3>
         <span className="text-xs text-muted-foreground font-medium">
@@ -58,10 +57,10 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
           .map(([cat, count]) => (
             <span
               key={cat}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-xs font-medium text-muted-foreground"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground"
             >
               {cat}
-              <span className="text-foreground font-semibold">
+              <span className="text-foreground font-medium">
                 {totalVisitors > 0 ? Math.round((count / totalVisitors) * 100) : 0}%
               </span>
             </span>
@@ -71,16 +70,16 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
       {/* Detailed sources */}
       <div className="space-y-3">
         {data.map((s, i) => (
-          <div key={s.source}>
+          <div key={s.source} className="group">
             <div className="flex items-center justify-between text-sm mb-1">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+                <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-150">
                   {sourceIcons[s.source] || <ExternalLink className="h-3.5 w-3.5" />}
                 </div>
                 <span className="text-card-foreground font-medium truncate">{s.source}</span>
               </div>
               <div className="flex items-center gap-2 shrink-0 ml-2">
-                <span className="text-card-foreground font-semibold text-xs">{s.visitors.toLocaleString("pt-BR")}</span>
+                <span className="text-card-foreground font-medium text-xs">{s.visitors.toLocaleString("pt-BR")}</span>
                 <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
               </div>
             </div>

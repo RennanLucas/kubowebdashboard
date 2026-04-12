@@ -34,8 +34,8 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
   const recentEvents = data.recentEvents || [];
 
   return (
-    <div className="glass-card rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-card-foreground mb-4">Conversões</h3>
+    <div className="glass-card p-5">
+      <h3 className="text-sm font-medium text-card-foreground mb-4">Conversões</h3>
       <div className="space-y-4">
         {items.map((item) => {
           const isPositive = item.change >= 0;
@@ -56,7 +56,7 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
                   )}
                 </div>
               </div>
-              <span className="text-lg font-semibold text-card-foreground">{item.value.toLocaleString("pt-BR")}</span>
+              <span className="text-lg font-medium text-card-foreground">{item.value.toLocaleString("pt-BR")}</span>
             </div>
           );
         })}
@@ -64,14 +64,14 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
 
       {recentEvents.length > 0 && (
         <div className="mt-5 pt-4 border-t border-border">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <Clock className="h-3 w-3" /> Últimos eventos
           </h4>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {recentEvents.slice(0, 5).map((event, i) => (
               <div key={i} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
                     {eventTypeLabels[event.type] || event.type}
                   </span>
                   <span className="text-muted-foreground truncate">{event.label || event.page}</span>
