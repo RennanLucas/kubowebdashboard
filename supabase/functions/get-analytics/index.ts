@@ -680,6 +680,7 @@ Deno.serve(async (req) => {
       const browsers = toList(current.browserMap);
       const operatingSystems = toList(current.osMap);
       const countries = toList(current.countryMap);
+      const cities = toList(current.cityMap);
 
       // Real-time: count sessions active in last 5 minutes
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -716,6 +717,7 @@ Deno.serve(async (req) => {
           browsers,
           operatingSystems,
           countries,
+          cities,
           engagement,
           activeVisitors: activeNow || 0,
           source: "custom_tracking",
