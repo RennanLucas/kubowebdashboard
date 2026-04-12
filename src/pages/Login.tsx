@@ -27,7 +27,7 @@ const Login = () => {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Check your email to confirm your account");
+        toast.success("Verifique seu email para confirmar a conta");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -47,10 +47,10 @@ const Login = () => {
         <div className="max-w-md">
           <h1 className="text-4xl font-bold text-primary-foreground mb-4">KUBOWEB</h1>
           <p className="text-primary-foreground/80 text-lg leading-relaxed">
-            Track your website performance, monitor leads, and grow your business with real-time analytics.
+            Acompanhe o desempenho do seu site, monitore leads e cresça seu negócio com análises em tempo real.
           </p>
           <div className="mt-12 space-y-4">
-            {["Real-time visitor tracking", "Lead generation insights", "Performance analytics"].map((item) => (
+            {["Rastreamento de visitantes em tempo real", "Insights de geração de leads", "Análise de desempenho"].map((item) => (
               <div key={item} className="flex items-center gap-3 text-primary-foreground/90">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />
                 <span>{item}</span>
@@ -67,10 +67,10 @@ const Login = () => {
             <h1 className="text-2xl font-bold text-foreground">KUBOWEB</h1>
           </div>
           <h2 className="text-2xl font-semibold text-foreground mb-1">
-            {isSignUp ? "Create account" : "Welcome back"}
+            {isSignUp ? "Criar conta" : "Bem-vindo de volta"}
           </h2>
           <p className="text-muted-foreground mb-8">
-            {isSignUp ? "Start tracking your performance" : "Sign in to your dashboard"}
+            {isSignUp ? "Comece a acompanhar seu desempenho" : "Entre no seu painel"}
           </p>
 
           <form onSubmit={handleAuth} className="space-y-4">
@@ -79,14 +79,14 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@company.com"
+                placeholder="voce@empresa.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -111,7 +111,7 @@ const Login = () => {
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
               ) : (
                 <>
-                  {isSignUp ? "Create Account" : "Sign In"}
+                  {isSignUp ? "Criar Conta" : "Entrar"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -119,12 +119,12 @@ const Login = () => {
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            {isSignUp ? "Já tem uma conta?" : "Não tem uma conta?"}{" "}
             <button
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-primary hover:underline font-medium"
             >
-              {isSignUp ? "Sign in" : "Sign up"}
+              {isSignUp ? "Entrar" : "Cadastrar"}
             </button>
           </p>
         </div>
