@@ -251,7 +251,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (ga4Data) {
+    const ga4HasData = ga4Data && ga4Data.dailyMetrics.length > 0;
+
+    if (ga4HasData) {
       // Format GA4 data for the frontend
       const colorMap: Record<string, string> = {
         "Organic Search": "hsl(var(--chart-blue))",
