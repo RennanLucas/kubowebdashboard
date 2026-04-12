@@ -59,42 +59,55 @@ interface AnalyticsResponse {
   } | null;
 }
 
+const fetchAnalytics = async (days: number, projectId: string | undefined, accessToken: string) => {
+  const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
+  if (projectId) url += `&project_id=${projectId}`;
+
+  return fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    },
+  });
+};
+
 export const useDashboardAnalytics = (days: number, projectId?: string) => {
   return useQuery({
     queryKey: ["dashboard-analytics", days, projectId],
-    refetchInterval: 60000, // Auto-refresh every 60 seconds
+    refetchInterval: 60000,
     refetchIntervalInBackground: false,
     queryFn: async () => {
-      // Get current session, try refresh if needed
       let { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.access_token) {
         const { data: refreshData } = await supabase.auth.refreshSession();
         session = refreshData.session;
       }
 
       if (!session?.access_token) {
-        // Session is completely dead - sign out to redirect to login
-        await supabase.auth.signOut();
-        throw new Error("Sessão expirada. Faça login novamente.");
+        await supabase.auth.signOut({ scope: "local" });
+        throw new Error("AUTH_EXPIRED");
       }
 
-      const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
-      if (projectId) url += `&project_id=${projectId}`;
-
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-      });
+      let response = await fetchAnalytics(days, projectId, session.access_token);
 
       if (response.status === 401) {
-        // Token rejected by server - force re-login
-        await supabase.auth.signOut();
-        throw new Error("Sessão expirada. Faça login novamente.");
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        const refreshedToken = refreshData.session?.access_token;
+
+        if (!refreshedToken) {
+          await supabase.auth.signOut({ scope: "local" });
+          throw new Error("AUTH_EXPIRED");
+        }
+
+        response = await fetchAnalytics(days, projectId, refreshedToken);
+      }
+
+      if (response.status === 401) {
+        await supabase.auth.signOut({ scope: "local" });
+        throw new Error("AUTH_EXPIRED");
       }
 
       if (!response.ok) {
@@ -105,8 +118,7 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
       return (await response.json()) as AnalyticsResponse;
     },
     retry: (failureCount, error) => {
-      // Don't retry auth errors
-      if (error.message.includes("expirada")) return false;
+      if (error.message === "AUTH_EXPIRED") return false;
       return failureCount < 2;
     },
   });

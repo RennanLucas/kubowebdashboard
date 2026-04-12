@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState(30);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
-  const { data, isLoading } = useDashboardAnalytics(dateRange, selectedProjectId);
+  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId);
 
   const clientData = data?.client;
   const metrics = data?.metrics;
@@ -56,6 +56,10 @@ const Dashboard = () => {
         message: `O tráfego ${dir} ${Math.abs(comparison.visitors)}% comparado ao período anterior (${comparison.prevVisitors} visitantes).`,
       });
     }
+  }
+
+  if ((error as Error | null)?.message === "AUTH_EXPIRED") {
+    return <Navigate to="/login" replace />;
   }
 
   if (!isLoading && !clientData) {
