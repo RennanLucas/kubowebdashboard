@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowRight, Globe, BarChart3, Building2 } from "lucide-react";
+import TrackingSnippet from "@/components/TrackingSnippet";
 
 interface ClientFormData {
   companyName: string;
@@ -182,7 +183,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
           <div className="space-y-2">
             <Label htmlFor="analyticsId" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              Google Analytics Property ID
+              Google Analytics Property ID <span className="text-xs text-muted-foreground">(opcional)</span>
             </Label>
             <Input
               id="analyticsId"
@@ -191,30 +192,24 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
               onChange={(e) => update("analyticsPropertyId", e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              O ID numérico da propriedade (não o Measurement ID que começa com G-).
-              Encontre em: Google Analytics → ⚙️ Administrador → Configurações da propriedade.
+              Opcional. Se preenchido, usaremos dados do GA4. Caso contrário, use nosso tracking próprio abaixo.
             </p>
           </div>
 
           {form.analyticsPropertyId && (
             <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
-              <p className="text-sm font-medium text-foreground">⚠️ Passo importante</p>
+              <p className="text-sm font-medium text-foreground">⚠️ Passo para GA4</p>
               <p className="text-xs text-muted-foreground">
-                Para que possamos acessar os dados do seu Google Analytics, você precisa adicionar
-                nosso email de serviço como <strong>Leitor</strong> na sua propriedade GA4:
+                Adicione nosso email como <strong>Leitor</strong> na propriedade GA4:
               </p>
-              <ol className="text-xs text-muted-foreground list-decimal list-inside space-y-1">
-                <li>Acesse o Google Analytics → ⚙️ Administrador</li>
-                <li>Clique em <strong>Gerenciamento de acesso à propriedade</strong></li>
-                <li>Clique em <strong>+</strong> → <strong>Adicionar usuários</strong></li>
-                <li>Cole o email abaixo e selecione o papel <strong>Leitor</strong></li>
-              </ol>
-              <div className="mt-2">
-                <code className="text-xs bg-background px-2 py-1 rounded border border-border select-all break-all">
-                  kuboweb-analytics-service@tidy-access-478016-a7.iam.gserviceaccount.com
-                </code>
-              </div>
+              <code className="block text-xs bg-background px-2 py-1 rounded border border-border select-all break-all">
+                kuboweb-analytics-service@tidy-access-478016-a7.iam.gserviceaccount.com
+              </code>
             </div>
+          )}
+
+          {editMode && existingClient?.projects?.[0]?.id && (
+            <TrackingSnippet projectId={existingClient.projects[0].id} />
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
