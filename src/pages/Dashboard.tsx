@@ -23,6 +23,7 @@ const Dashboard = () => {
   const trafficSources = data?.trafficSources;
   const topPages = data?.topPages;
   const comparison = data?.comparison;
+  const conversions = data?.conversions;
 
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
   const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
