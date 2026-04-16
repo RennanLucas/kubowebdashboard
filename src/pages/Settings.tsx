@@ -69,11 +69,16 @@ const Settings = () => {
           lead_value: leadVal,
         } as any)
         .eq("id", clientData.id)
-        .select()
-        .single();
+        .select("id, company_name, domain, lead_value");
 
-      if (clientError) throw clientError;
-      if (!updated) throw new Error("Não foi possível salvar. Verifique suas permissões.");
+      if (clientError) {
+        console.error("Erro ao atualizar cliente:", clientError);
+        throw clientError;
+      }
+      if (!updated || updated.length === 0) {
+        throw new Error("Não foi possível salvar. Verifique suas permissões.");
+      }
+      console.log("Cliente atualizado:", updated[0]);
 
       if (clientData.projects?.[0]) {
         const { error: projectError } = await supabase
