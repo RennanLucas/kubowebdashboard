@@ -1,16 +1,34 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useClientData } from "@/hooks/useDashboardData";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save } from "lucide-react";
+import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
+
+const HelpTip = ({ text }: { text: string }) => (
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" className="inline-flex text-muted-foreground hover:text-foreground transition-colors">
+          <HelpCircle className="h-3.5 w-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
 const Settings = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: clientData, isLoading } = useClientData();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -43,16 +61,19 @@ const Settings = () => {
         return;
       }
 
-      const { error: clientError } = await supabase
+      const { data: updated, error: clientError } = await supabase
         .from("clients")
         .update({
           company_name: form.companyName,
           domain: form.domain || null,
           lead_value: leadVal,
         } as any)
-        .eq("id", clientData.id);
+        .eq("id", clientData.id)
+        .select()
+        .single();
 
       if (clientError) throw clientError;
+      if (!updated) throw new Error("Não foi possível salvar. Verifique suas permissões.");
 
       if (clientData.projects?.[0]) {
         const { error: projectError } = await supabase
@@ -65,6 +86,9 @@ const Settings = () => {
 
         if (projectError) throw projectError;
       }
+
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-analytics"] });
+      await queryClient.refetchQueries({ queryKey: ["dashboard-analytics"] });
 
       toast.success("Configurações salvas com sucesso!");
       navigate("/dashboard");
@@ -103,7 +127,10 @@ const Settings = () => {
               <Building2 className="h-4 w-4 text-primary" /> Empresa
             </h2>
             <div className="space-y-2">
-              <Label htmlFor="companyName">Nome da Empresa</Label>
+              <Label htmlFor="companyName" className="flex items-center gap-2">
+                Nome da Empresa
+                <HelpTip text="Nome da sua empresa ou marca. Aparece no topo do dashboard e nos relatórios exportados." />
+              </Label>
               <Input
                 id="companyName"
                 value={form.companyName}
@@ -119,7 +146,10 @@ const Settings = () => {
               <Rocket className="h-4 w-4 text-primary" /> Projeto
             </h2>
             <div className="space-y-2">
-              <Label htmlFor="projectName">Nome do Projeto</Label>
+              <Label htmlFor="projectName" className="flex items-center gap-2">
+                Nome do Projeto
+                <HelpTip text="Identifica o site monitorado. Útil quando você gerencia mais de um projeto na mesma conta." />
+              </Label>
               <Input
                 id="projectName"
                 value={form.projectName}
@@ -130,6 +160,7 @@ const Settings = () => {
             <div className="space-y-2">
               <Label htmlFor="domain" className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-primary" /> Domínio do Site
+                <HelpTip text="Endereço completo do site rastreado (ex.: https://www.seusite.com.br). Usado para validar os pageviews recebidos pelo código de rastreamento." />
               </Label>
               <Input
                 id="domain"
@@ -146,12 +177,16 @@ const Settings = () => {
           <div className="glass-card rounded-xl p-6 space-y-4">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" /> Valor por Lead
+              <HelpTip text="Quanto vale, em média, cada lead gerado pelo seu site. O dashboard multiplica esse valor pela quantidade de conversões (cliques no WhatsApp + envios de formulário) para calcular o Valor Estimado." />
             </h2>
             <p className="text-sm text-muted-foreground">
               Defina quanto vale cada lead gerado (clique no WhatsApp ou envio de formulário). Esse valor é usado para calcular o "Valor Estimado" no dashboard.
             </p>
             <div className="space-y-2">
-              <Label htmlFor="leadValue">Valor em R$</Label>
+              <Label htmlFor="leadValue" className="flex items-center gap-2">
+                Valor em R$
+                <HelpTip text="Use vírgula ou ponto para decimais (ex.: 50 ou 50.00). O valor mínimo é 0." />
+              </Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                 <Input
@@ -170,7 +205,10 @@ const Settings = () => {
           {/* Tracking Snippet */}
           {clientData?.projects?.[0]?.id && (
             <div className="glass-card rounded-xl p-6 space-y-4">
-              <h2 className="text-base font-semibold text-foreground">Código de Rastreamento</h2>
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                Código de Rastreamento
+                <HelpTip text="Cole este código no <head> do seu site para começar a coletar visitas, fontes de tráfego e conversões automaticamente." />
+              </h2>
               <TrackingSnippet projectId={clientData.projects[0].id} />
             </div>
           )}
