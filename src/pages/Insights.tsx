@@ -3,13 +3,15 @@ import { Sparkles, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useDashboardAnalytics } from "@/hooks/useDashboardData";
-import { generateLocalInsights } from "@/lib/local-insights";
+import { useDashboardAnalytics, useClientData } from "@/hooks/useDashboardData";
+import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 
 export default function Insights() {
   const { data, isLoading, error } = useDashboardAnalytics(30);
+  const { data: client } = useClientData();
   const [analysis, setAnalysis] = useState<string>("");
   const [generating, setGenerating] = useState(false);
 
@@ -17,12 +19,32 @@ export default function Insights() {
     return <Navigate to="/login" replace />;
   }
 
+  const fetchHourly = async (): Promise<HourlyPoint[]> => {
+    const projectId = (client as any)?.projects?.[0]?.id;
+    if (!projectId) return [];
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const { data: rows, error: pvError } = await supabase
+      .from("pageviews")
+      .select("created_at")
+      .eq("project_id", projectId)
+      .gte("created_at", since.toISOString())
+      .limit(10000);
+    if (pvError || !rows) return [];
+    const buckets = new Array(24).fill(0);
+    for (const r of rows) {
+      const h = new Date(r.created_at as string).getHours();
+      if (h >= 0 && h < 24) buckets[h] += 1;
+    }
+    return buckets.map((visitors, hour) => ({ hour, visitors }));
+  };
+
   const generate = async () => {
     setGenerating(true);
     setAnalysis("");
     try {
-      // Pequeno delay para feedback visual
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 300));
+      const hourlyDistribution = await fetchHourly();
       const result = generateLocalInsights({
         days: 30,
         metrics: data?.metrics ?? [],
@@ -37,6 +59,7 @@ export default function Insights() {
         comparison: data?.comparison,
         devices: data?.devices ?? [],
         countries: data?.countries ?? [],
+        hourlyDistribution,
       });
       setAnalysis(result);
     } catch (e: any) {
