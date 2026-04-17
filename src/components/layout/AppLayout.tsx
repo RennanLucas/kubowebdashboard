@@ -48,17 +48,24 @@ const HeaderBadges = () => {
         <TooltipTrigger asChild>
           <Link
             to="/alerts"
-            className="relative inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
+            className={`relative inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/60 transition-colors ${
+              criticalCount > 0 ? "text-destructive" : "text-muted-foreground hover:text-foreground"
+            }`}
             aria-label={`Alertas${count > 0 ? ` (${count})` : ""}`}
           >
-            <Bell className="h-4 w-4" />
+            <Bell className={`h-4 w-4 ${criticalCount > 0 ? "animate-pulse" : ""}`} />
             {count > 0 && (
-              <Badge
-                variant={criticalCount > 0 ? "destructive" : "secondary"}
-                className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none flex items-center justify-center rounded-full"
-              >
-                {count > 9 ? "9+" : count}
-              </Badge>
+              <>
+                {criticalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 rounded-full bg-destructive/40 animate-ping" />
+                )}
+                <Badge
+                  variant={criticalCount > 0 ? "destructive" : "secondary"}
+                  className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none flex items-center justify-center rounded-full"
+                >
+                  {count > 9 ? "9+" : count}
+                </Badge>
+              </>
             )}
           </Link>
         </TooltipTrigger>
