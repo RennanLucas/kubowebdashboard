@@ -3,7 +3,6 @@ import { Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const features = [
   "Rastreamento ilimitado de visitantes",
@@ -31,7 +30,6 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PaymentTestModeBanner />
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-semibold text-foreground mb-3">Comece com 7 dias grátis</h1>
