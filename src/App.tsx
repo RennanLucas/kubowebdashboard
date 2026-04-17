@@ -13,6 +13,8 @@ import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import Insights from "./pages/Insights";
+import Alerts from "./pages/Alerts";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute requireSubscription><Settings /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute requireSubscription><Dashboard /></ProtectedRoute>} />
+            <Route path="/insights" element={<ProtectedRoute requireSubscription><Insights /></ProtectedRoute>} />
+            <Route path="/alerts" element={<ProtectedRoute requireSubscription><Alerts /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

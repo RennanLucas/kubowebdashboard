@@ -1,14 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Settings, ChevronDown, FileDown, BarChart3, Shield, FileText, FileSpreadsheet, FileType } from "lucide-react";
+import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DateRangePicker } from "./DateRangePicker";
 
 interface Project {
   id: string;
@@ -41,14 +40,7 @@ const DashboardHeader = ({
   onExportCSV,
   onExportExcel,
 }: DashboardHeaderProps) => {
-  const { user, signOut } = useAuth();
-  const { isAdmin } = useIsAdmin();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
-  };
+  const { user } = useAuth();
 
   const hasMultipleProjects = projects && projects.length > 1;
 
@@ -95,27 +87,12 @@ const DashboardHeader = ({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex bg-muted rounded-lg p-0.5">
-            {[7, 30, 90].map((d) => (
-              <button
-                key={d}
-                onClick={() => onDateRangeChange(d)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 ${
-                  dateRange === d
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {d}d
-              </button>
-            ))}
-          </div>
-          <div className="h-6 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs transition-all duration-150">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 transition-all duration-150">
                   <FileDown className="h-3.5 w-3.5" />
                   Exportar
                   <ChevronDown className="h-3 w-3" />
@@ -143,17 +120,6 @@ const DashboardHeader = ({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {isAdmin && (
-            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground" title="Admin">
-              <Shield className="h-4 w-4" />
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground">
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground">
-            <LogOut className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </header>
