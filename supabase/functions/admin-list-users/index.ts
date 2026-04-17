@@ -47,7 +47,7 @@ serve(async (req) => {
 
       const userIds = usersList.users.map((u) => u.id);
       const [{ data: subs }, { data: roles }, { data: profiles }] = await Promise.all([
-        admin.from("subscriptions").select("user_id, status, current_period_end, trial_end, cancel_at_period_end, environment").in("user_id", userIds),
+        admin.from("subscriptions").select("user_id, status, current_period_end, trial_end, cancel_at_period_end, environment, stripe_subscription_id").in("user_id", userIds),
         admin.from("user_roles").select("user_id, role").in("user_id", userIds),
         admin.from("profiles").select("user_id, full_name").in("user_id", userIds),
       ]);
@@ -74,6 +74,48 @@ serve(async (req) => {
         if (targetId === userRes.user.id) return json({ error: "Cannot demote yourself" }, 400);
         await admin.from("user_roles").delete().eq("user_id", targetId).eq("role", "admin");
       }
+      return json({ ok: true });
+    }
+
+    if (action === "grant_subscription") {
+      const targetId = body.userId as string;
+      const days = Math.max(1, Math.min(3650, Number(body.days) || 365));
+      const env = (body.environment as string) || "sandbox";
+      if (!targetId) return json({ error: "userId required" }, 400);
+
+      const periodEnd = new Date(Date.now() + days * 86400000).toISOString();
+      const manualId = `manual_${targetId}_${env}`;
+
+      const { error: upsertErr } = await admin.from("subscriptions").upsert(
+        {
+          user_id: targetId,
+          stripe_subscription_id: manualId,
+          stripe_customer_id: manualId,
+          product_id: "manual_grant",
+          price_id: "manual_grant",
+          status: "active",
+          current_period_start: new Date().toISOString(),
+          current_period_end: periodEnd,
+          cancel_at_period_end: false,
+          environment: env,
+        },
+        { onConflict: "stripe_subscription_id" },
+      );
+      if (upsertErr) return json({ error: upsertErr.message }, 500);
+      return json({ ok: true, current_period_end: periodEnd });
+    }
+
+    if (action === "revoke_subscription") {
+      const targetId = body.userId as string;
+      const env = (body.environment as string) || "sandbox";
+      if (!targetId) return json({ error: "userId required" }, 400);
+      const { error: delErr } = await admin
+        .from("subscriptions")
+        .delete()
+        .eq("user_id", targetId)
+        .eq("environment", env)
+        .like("stripe_subscription_id", "manual_%");
+      if (delErr) return json({ error: delErr.message }, 500);
       return json({ ok: true });
     }
 

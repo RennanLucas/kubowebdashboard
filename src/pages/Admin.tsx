@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Loader2, Shield, ShieldOff, ArrowLeft, RefreshCw } from "lucide-react";
+import { Loader2, Shield, ShieldOff, ArrowLeft, RefreshCw, Gift, Ban } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ interface AdminUser {
     trial_end: string | null;
     cancel_at_period_end: boolean;
     environment: string;
+    stripe_subscription_id?: string | null;
   } | null;
 }
 
@@ -72,6 +73,45 @@ export default function Admin() {
       toast.error(data?.error || error?.message || "Falha ao atualizar role");
     } else {
       toast.success(isTargetAdmin ? "Admin removido" : "Promovido a admin");
+      await fetchUsers();
+    }
+    setBusyId(null);
+  };
+
+  const grantSubscription = async (target: AdminUser) => {
+    const input = window.prompt(
+      `Conceder assinatura manual para ${target.email}.\nQuantos dias de acesso?`,
+      "365",
+    );
+    if (input === null) return;
+    const days = parseInt(input, 10);
+    if (!Number.isFinite(days) || days < 1) {
+      toast.error("Informe um número de dias válido");
+      return;
+    }
+    setBusyId(target.id);
+    const { data, error } = await supabase.functions.invoke("admin-list-users", {
+      body: { action: "grant_subscription", userId: target.id, days, environment: "sandbox" },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Falha ao conceder assinatura");
+    } else {
+      toast.success(`Assinatura concedida por ${days} dias`);
+      await fetchUsers();
+    }
+    setBusyId(null);
+  };
+
+  const revokeSubscription = async (target: AdminUser) => {
+    if (!window.confirm(`Revogar assinatura manual de ${target.email}?`)) return;
+    setBusyId(target.id);
+    const { data, error } = await supabase.functions.invoke("admin-list-users", {
+      body: { action: "revoke_subscription", userId: target.id, environment: "sandbox" },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "Falha ao revogar assinatura");
+    } else {
+      toast.success("Assinatura manual revogada");
       await fetchUsers();
     }
     setBusyId(null);
@@ -180,21 +220,42 @@ export default function Admin() {
                           {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("pt-BR") : "nunca"}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <Button
-                            size="sm"
-                            variant={isTargetAdmin ? "outline" : "secondary"}
-                            disabled={busyId === u.id || isSelf}
-                            onClick={() => togglePromote(u)}
-                            title={isSelf ? "Você não pode alterar sua própria role" : ""}
-                          >
-                            {busyId === u.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : isTargetAdmin ? (
-                              <><ShieldOff className="h-3 w-3 mr-1" />Remover admin</>
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            {sub?.stripe_subscription_id?.startsWith("manual_") ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busyId === u.id}
+                                onClick={() => revokeSubscription(u)}
+                              >
+                                <Ban className="h-3 w-3 mr-1" />Revogar
+                              </Button>
                             ) : (
-                              <><Shield className="h-3 w-3 mr-1" />Tornar admin</>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                disabled={busyId === u.id}
+                                onClick={() => grantSubscription(u)}
+                              >
+                                <Gift className="h-3 w-3 mr-1" />Conceder
+                              </Button>
                             )}
-                          </Button>
+                            <Button
+                              size="sm"
+                              variant={isTargetAdmin ? "outline" : "secondary"}
+                              disabled={busyId === u.id || isSelf}
+                              onClick={() => togglePromote(u)}
+                              title={isSelf ? "Você não pode alterar sua própria role" : ""}
+                            >
+                              {busyId === u.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : isTargetAdmin ? (
+                                <><ShieldOff className="h-3 w-3 mr-1" />Remover admin</>
+                              ) : (
+                                <><Shield className="h-3 w-3 mr-1" />Tornar admin</>
+                              )}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
