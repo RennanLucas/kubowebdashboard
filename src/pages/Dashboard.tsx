@@ -14,8 +14,12 @@ import EngagementCard from "@/components/dashboard/EngagementCard";
 import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { GoalsCard } from "@/components/dashboard/GoalsCard";
+import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
+import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +36,9 @@ const Dashboard = () => {
   const topPages = data?.topPages;
   const comparison = data?.comparison;
   const conversions = data?.conversions;
+
+  const activeProjectId = selectedProjectId || clientData?.project?.id;
+  const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
 
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
   const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
@@ -79,6 +86,13 @@ const Dashboard = () => {
       return (m.leads / m.visitors) * 100;
     });
   }, [metrics, chartData]);
+
+  const prevSeries = useMemo(() => {
+    if (!comparison || !comparison.prevVisitors) return [] as number[];
+    const totalCurrent = chartData.reduce((s, d) => s + d.visitors, 0);
+    if (totalCurrent === 0) return chartData.map(() => Math.round(comparison.prevVisitors / Math.max(1, chartData.length)));
+    return chartData.map((d) => Math.round((d.visitors / totalCurrent) * comparison.prevVisitors));
+  }, [chartData, comparison]);
 
   const insights = [];
   if (totalVisitors > 0) {
@@ -226,9 +240,22 @@ const Dashboard = () => {
             {/* Chart + Traffic Sources */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
-                <VisitorsChart data={chartData} />
+                <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} />
               </div>
               <TrafficSources data={trafficSources ?? []} />
+            </div>
+
+            {/* Goals + Heatmap */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              <GoalsCard
+                projectId={activeProjectId}
+                visitors={totalVisitors}
+                leads={totalLeads}
+                estimatedValue={totalValue}
+              />
+              <div className="lg:col-span-2">
+                <HourlyHeatmap data={heatmap} isLoading={heatmapLoading} />
+              </div>
             </div>
 
             {/* Funnel + Conversions */}
@@ -247,9 +274,10 @@ const Dashboard = () => {
               }} />
             </div>
 
-            {/* Top Pages */}
-            <div className="grid grid-cols-1 gap-4 mb-6">
+            {/* Top Pages + Top Referrers */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <TopPages pages={topPages ?? []} />
+              <TopReferrers data={referrers} isLoading={heatmapLoading} />
             </div>
 
             {/* Engagement + Devices + Geo */}

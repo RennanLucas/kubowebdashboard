@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, BarChart3, Bell } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, BarChart3, Bell, HelpCircle } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -27,6 +27,7 @@ const mainItems = [
 const accountItems = [
   { title: "Configurações", url: "/settings", icon: Settings },
   { title: "Assinatura", url: "/pricing", icon: CreditCard },
+  { title: "Ajuda", url: "/help", icon: HelpCircle },
 ];
 
 export function AppSidebar() {
