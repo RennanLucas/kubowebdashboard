@@ -32,9 +32,15 @@ export default function ProjectsManager({ clientId }: Props) {
     },
   });
 
+  const limitReached = (projects?.length ?? 0) >= 2;
+
   const handleAdd = async () => {
     if (!form.name.trim()) {
       toast.error("Informe um nome para o projeto");
+      return;
+    }
+    if (limitReached) {
+      toast.error("Limite de 2 projetos por conta atingido");
       return;
     }
     setSaving(true);
@@ -66,7 +72,7 @@ export default function ProjectsManager({ clientId }: Props) {
         </h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-2" disabled={limitReached}>
               <Plus className="h-4 w-4" /> Adicionar projeto
             </Button>
           </DialogTrigger>
@@ -106,7 +112,8 @@ export default function ProjectsManager({ clientId }: Props) {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Cada projeto representa um site monitorado. Use a página <span className="font-medium text-foreground">Comparar</span> para analisar dois lado a lado.
+        Cada projeto representa um site monitorado. Você pode ter até <span className="font-medium text-foreground">2 projetos</span> por conta para usar a página <span className="font-medium text-foreground">Comparar</span>.
+        {limitReached && <span className="block mt-1 text-destructive">Limite atingido (2/2).</span>}
       </p>
 
       <div className="space-y-2">
