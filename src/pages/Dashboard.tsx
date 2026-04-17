@@ -16,6 +16,7 @@ import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState(30);
