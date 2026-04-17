@@ -113,7 +113,7 @@ export default function ProjectsManager({ clientId }: Props) {
 
       <p className="text-sm text-muted-foreground">
         Cada projeto representa um site monitorado. Você pode ter até <span className="font-medium text-foreground">2 projetos</span> por conta para usar a página <span className="font-medium text-foreground">Comparar</span>.
-        {limitReached && <span className="block mt-1 text-amber-600 dark:text-amber-400">Limite atingido (2/2).</span>}
+        {limitReached && <span className="block mt-1 text-destructive">Limite atingido (2/2).</span>}
       </p>
 
       <div className="space-y-2">
