@@ -16,6 +16,7 @@ import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState(30);
@@ -123,6 +124,34 @@ const Dashboard = () => {
     }
   };
 
+  const buildExportData = () => ({
+    clientName: clientData?.company_name || "kuboweb",
+    dateRange,
+    metrics: metrics ?? [],
+    trafficSources: trafficSources ?? [],
+    topPages: topPages ?? [],
+    devices: data?.devices ?? [],
+    countries: data?.countries ?? [],
+  });
+
+  const handleExportCSV = () => {
+    try {
+      exportToCSV(buildExportData());
+      toast.success("CSV baixado com sucesso!");
+    } catch (e: any) {
+      toast.error("Erro ao gerar CSV: " + e.message);
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportToExcel(buildExportData());
+      toast.success("Planilha Excel baixada com sucesso!");
+    } catch (e: any) {
+      toast.error("Erro ao gerar Excel: " + e.message);
+    }
+  };
+
   const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
 
   return (
@@ -137,6 +166,8 @@ const Dashboard = () => {
           selectedProjectId={selectedProjectId || clientData?.project?.id}
           onProjectChange={setSelectedProjectId}
           onExportPDF={hasData ? handleExportPDF : undefined}
+          onExportCSV={hasData ? handleExportCSV : undefined}
+          onExportExcel={hasData ? handleExportExcel : undefined}
         />
 
         {!hasData ? (
