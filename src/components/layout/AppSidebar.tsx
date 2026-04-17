@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, BarChart3, Bell, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, BarChart3, Bell, HelpCircle, GitCompare, Maximize2 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -22,6 +22,8 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Insights", url: "/insights", icon: Sparkles },
   { title: "Alertas", url: "/alerts", icon: Bell },
+  { title: "Comparar", url: "/compare", icon: GitCompare },
+  { title: "Apresentação", url: "/presentation", icon: Maximize2 },
 ];
 
 const accountItems = [
