@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { GitCompare, Users, TrendingUp, DollarSign, Percent, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,9 +123,33 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
 }
 
 const Compare = () => {
+  const { user } = useAuth();
   const [days, setDays] = useState(30);
   const { data: baseData, isLoading: baseLoading, error } = useDashboardAnalytics(days);
-  const projects = baseData?.client?.projects ?? [];
+
+  // Buscar TODOS os projetos do usuário (de todos os clientes dele)
+  const { data: allProjects } = useQuery({
+    queryKey: ["all-user-projects", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data: clients } = await supabase
+        .from("clients")
+        .select("id, company_name")
+        .eq("user_id", user!.id);
+      if (!clients || clients.length === 0) return [];
+      const ids = clients.map((c) => c.id);
+      const { data: projs } = await supabase
+        .from("projects")
+        .select("id, name, client_id")
+        .in("client_id", ids);
+      const clientMap = new Map(clients.map((c) => [c.id, c.company_name]));
+      return (projs ?? []).map((p) => ({
+        id: p.id,
+        name: `${clientMap.get(p.client_id) ?? "?"} · ${p.name}`,
+      }));
+    },
+  });
+  const projects = allProjects ?? [];
 
   const [projectA, setProjectA] = useState<string | undefined>();
   const [projectB, setProjectB] = useState<string | undefined>();
