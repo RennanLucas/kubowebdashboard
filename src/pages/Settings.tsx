@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toast } from "sonner";
 import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
+import ProjectsManager from "@/components/settings/ProjectsManager";
 
 const HelpTip = ({ text }: { text: string }) => (
   <TooltipProvider delayDuration={150}>
@@ -218,6 +219,9 @@ const Settings = () => {
               </div>
             </div>
           </div>
+
+          {/* Meus Projetos */}
+          {clientData?.id && <ProjectsManager clientId={clientData.id} />}
 
           {/* Tracking Snippet */}
           {clientData?.projects?.[0]?.id && (
