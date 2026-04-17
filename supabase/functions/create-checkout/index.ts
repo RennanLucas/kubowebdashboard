@@ -26,13 +26,14 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    // Don't pass payment_method_types — let Stripe auto-select based on dashboard settings.
-    // For recurring (subscriptions), Stripe restricts to card automatically.
-    // For one-time BRL payments, Pix appears if enabled in the Stripe dashboard.
+    // Force card-only to avoid errors from payment methods (like Pix) not yet
+    // activated in the Stripe dashboard. Once Pix is enabled in Stripe Settings →
+    // Payment methods, add "pix" here for one-time BRL payments.
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
+      payment_method_types: ["card"],
       return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(isRecurring && {
