@@ -1,4 +1,5 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, BarChart3, Bell, HelpCircle, GitCompare, Maximize2 } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2 } from "lucide-react";
+import logoKuboweb from "@/assets/logo-kuboweb.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -52,14 +53,21 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div className="h-9 w-9 rounded-lg bg-sidebar-primary/15 flex items-center justify-center shrink-0">
-            <BarChart3 className="h-5 w-5 text-sidebar-primary" />
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-sidebar-foreground truncate">KUBOWEB</div>
-              <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">Analytics</div>
+        <div className="flex items-center gap-2 px-2 py-3">
+          {collapsed ? (
+            <div className="h-9 w-9 rounded-lg bg-sidebar-primary/10 flex items-center justify-center shrink-0 mx-auto">
+              <img src={logoKuboweb} alt="KUBOWEB" className="h-6 w-6 object-contain brightness-0 invert" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src={logoKuboweb}
+                alt="KUBOWEB"
+                className="h-8 w-auto brightness-0 invert shrink-0"
+              />
+              <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
+                Analytics
+              </div>
             </div>
           )}
         </div>
