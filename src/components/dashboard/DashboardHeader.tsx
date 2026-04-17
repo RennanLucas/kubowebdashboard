@@ -112,11 +112,36 @@ const DashboardHeader = ({
             ))}
           </div>
           <div className="h-6 w-px bg-border" />
-          {onExportPDF && (
-            <Button variant="outline" size="sm" onClick={onExportPDF} className="gap-1.5 text-xs transition-all duration-150">
-              <FileDown className="h-3.5 w-3.5" />
-              Exportar
-            </Button>
+          {(onExportPDF || onExportCSV || onExportExcel) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs transition-all duration-150">
+                  <FileDown className="h-3.5 w-3.5" />
+                  Exportar
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onExportPDF && (
+                  <DropdownMenuItem onClick={onExportPDF} className="gap-2 cursor-pointer">
+                    <FileType className="h-4 w-4 text-muted-foreground" />
+                    PDF
+                  </DropdownMenuItem>
+                )}
+                {onExportExcel && (
+                  <DropdownMenuItem onClick={onExportExcel} className="gap-2 cursor-pointer">
+                    <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                    Excel (.xlsx)
+                  </DropdownMenuItem>
+                )}
+                {onExportCSV && (
+                  <DropdownMenuItem onClick={onExportCSV} className="gap-2 cursor-pointer">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    CSV
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           {isAdmin && (
             <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground" title="Admin">
