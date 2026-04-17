@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Settings, ChevronDown, FileDown, BarChart3 } from "lucide-react";
+import { LogOut, Settings, ChevronDown, FileDown, BarChart3, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -37,6 +38,7 @@ const DashboardHeader = ({
   onExportPDF,
 }: DashboardHeaderProps) => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -110,6 +112,11 @@ const DashboardHeader = ({
             <Button variant="outline" size="sm" onClick={onExportPDF} className="gap-1.5 text-xs transition-all duration-150">
               <FileDown className="h-3.5 w-3.5" />
               Exportar
+            </Button>
+          )}
+          {isAdmin && (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground" title="Admin">
+              <Shield className="h-4 w-4" />
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-muted-foreground h-8 w-8 transition-colors duration-150 hover:text-foreground">
