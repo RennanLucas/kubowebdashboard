@@ -155,11 +155,12 @@ const Dashboard = () => {
         ) : (
           <>
             {/* KPIs + Active Visitors */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
               <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} />
               <KPICard title="Pageviews" value={totalViews.toLocaleString("pt-BR")} change={comparison?.views ?? null} icon={<Eye className="h-4 w-4" />} />
-              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={null} icon={<TrendingUp className="h-4 w-4" />} />
-              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={null} icon={<DollarSign className="h-4 w-4" />} />
+              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={comparison?.leads ?? null} icon={<TrendingUp className="h-4 w-4" />} />
+              <KPICard title="Conversão" value={`${avgConversion}%`} change={comparison?.conversionRate ?? null} changeUnit="pp" icon={<Percent className="h-4 w-4" />} />
+              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={comparison?.estimatedValue ?? null} icon={<DollarSign className="h-4 w-4" />} />
               <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
             </div>
 
