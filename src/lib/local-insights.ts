@@ -27,7 +27,10 @@ export interface InsightsInput {
   comparison?: any;
   devices?: any[];
   countries?: any[];
+  hourlyDistribution?: HourlyPoint[];
 }
+
+const DAY_NAMES = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
