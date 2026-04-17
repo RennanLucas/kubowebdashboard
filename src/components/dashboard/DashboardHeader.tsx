@@ -38,6 +38,8 @@ const DashboardHeader = ({
   selectedProjectId,
   onProjectChange,
   onExportPDF,
+  onExportCSV,
+  onExportExcel,
 }: DashboardHeaderProps) => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
