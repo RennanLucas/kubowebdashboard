@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
+import TrackingStatus from "@/components/settings/TrackingStatus";
 
 const HelpTip = ({ text }: { text: string }) => (
   <TooltipProvider delayDuration={150}>
@@ -230,6 +231,7 @@ const Settings = () => {
                 Código de Rastreamento
                 <HelpTip text="Cole este código no <head> do seu site para começar a coletar visitas, fontes de tráfego e conversões automaticamente." />
               </h2>
+              <TrackingStatus projectId={clientData.projects[0].id} />
               <TrackingSnippet projectId={clientData.projects[0].id} />
             </div>
           )}
