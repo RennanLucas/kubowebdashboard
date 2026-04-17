@@ -152,6 +152,8 @@ const Dashboard = () => {
     }
   };
 
+  const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -164,6 +166,8 @@ const Dashboard = () => {
           selectedProjectId={selectedProjectId || clientData?.project?.id}
           onProjectChange={setSelectedProjectId}
           onExportPDF={hasData ? handleExportPDF : undefined}
+          onExportCSV={hasData ? handleExportCSV : undefined}
+          onExportExcel={hasData ? handleExportExcel : undefined}
         />
 
         {!hasData ? (
