@@ -5,10 +5,11 @@ interface KPICardProps {
   value: string;
   change: number | null;
   icon: React.ReactNode;
+  changeUnit?: "%" | "pp";
 }
 
-const KPICard = ({ title, value, change, icon }: KPICardProps) => {
-  const hasChange = change !== null && change !== undefined;
+const KPICard = ({ title, value, change, icon, changeUnit = "%" }: KPICardProps) => {
+  const hasChange = change !== null && change !== undefined && change !== 0;
   const isPositive = hasChange && change >= 0;
 
   return (
@@ -21,7 +22,7 @@ const KPICard = ({ title, value, change, icon }: KPICardProps) => {
       {hasChange ? (
         <div className={`flex items-center gap-1 text-xs font-medium ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
           {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-          <span>{isPositive ? "+" : ""}{change}%</span>
+          <span>{isPositive ? "+" : ""}{change}{changeUnit === "pp" ? " pp" : "%"}</span>
           <span className="text-muted-foreground ml-1">vs período anterior</span>
         </div>
       ) : (
