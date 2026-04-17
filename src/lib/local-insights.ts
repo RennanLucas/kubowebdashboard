@@ -1,9 +1,15 @@
 // Analisador local de insights — gera análises baseadas em regras, sem IA, sem custo.
 
 interface Metric {
+  date?: string;
   visitors: number;
   leads: number;
   estimated_value: number | string;
+}
+
+export interface HourlyPoint {
+  hour: number; // 0-23
+  visitors: number;
 }
 
 interface TrafficSource {
