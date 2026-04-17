@@ -187,6 +187,18 @@ const Settings = () => {
             <p className="text-sm text-muted-foreground">
               Defina quanto vale cada lead gerado (clique no WhatsApp ou envio de formulário). Esse valor é usado para calcular o "Valor Estimado" no dashboard.
             </p>
+            <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-2 text-sm">
+              <p className="font-medium text-foreground">Como funciona?</p>
+              <p className="text-muted-foreground leading-relaxed">
+                Cada conversão do seu site (clique no WhatsApp, envio de formulário ou clique em botão de contato) é contada como <span className="font-medium text-foreground">1 lead</span>. O dashboard multiplica a quantidade de leads pelo valor definido aqui para mostrar o <span className="font-medium text-foreground">"Valor Estimado"</span> gerado pelo site.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Exemplo:</span> R$ 25 por lead × 40 conversões no mês = <span className="font-medium text-foreground">R$ 1.000,00</span> de valor estimado.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Dica:</span> use o seu ticket médio multiplicado pela taxa de fechamento de leads (ex.: ticket de R$ 500 × 5% de fechamento = R$ 25 por lead).
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="leadValue" className="flex items-center gap-2">
                 Valor em R$
