@@ -231,6 +231,7 @@ const Settings = () => {
                 Código de Rastreamento
                 <HelpTip text="Cole este código no <head> do seu site para começar a coletar visitas, fontes de tráfego e conversões automaticamente." />
               </h2>
+              <TrackingStatus projectId={clientData.projects[0].id} />
               <TrackingSnippet projectId={clientData.projects[0].id} />
             </div>
           )}
