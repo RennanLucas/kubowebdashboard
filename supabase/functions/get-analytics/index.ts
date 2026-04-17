@@ -646,11 +646,25 @@ Deno.serve(async (req) => {
       const calcChange = (curr: number, prev: number) =>
         prev > 0 ? Number(((curr - prev) / prev * 100).toFixed(1)) : curr > 0 ? 100 : 0;
 
+      const currLeadsTotal = (currentEvents.counts["whatsapp_click"] || 0) + (currentEvents.counts["form_submit"] || 0);
+      const prevLeadsTotal = (previousEvents.counts["whatsapp_click"] || 0) + (previousEvents.counts["form_submit"] || 0);
+      const currConv = current.totalVisitors > 0 ? Number(((currLeadsTotal / current.totalVisitors) * 100).toFixed(2)) : 0;
+      const prevConv = previous && previous.totalVisitors > 0 ? Number(((prevLeadsTotal / previous.totalVisitors) * 100).toFixed(2)) : 0;
+      const LEAD_VALUE_COMP = clientData.lead_value ?? 25;
+      const currValue = currLeadsTotal * LEAD_VALUE_COMP;
+      const prevValue = prevLeadsTotal * LEAD_VALUE_COMP;
+
       const comparison = previous ? {
         visitors: calcChange(current.totalVisitors, previous.totalVisitors),
         views: calcChange(current.totalViews, previous.totalViews),
+        leads: calcChange(currLeadsTotal, prevLeadsTotal),
+        conversionRate: Number((currConv - prevConv).toFixed(2)),
+        estimatedValue: calcChange(currValue, prevValue),
         prevVisitors: previous.totalVisitors,
         prevViews: previous.totalViews,
+        prevLeads: prevLeadsTotal,
+        prevConversionRate: prevConv,
+        prevEstimatedValue: prevValue,
       } : null;
 
       const conversions = {
