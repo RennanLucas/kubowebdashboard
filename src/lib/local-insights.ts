@@ -42,15 +42,20 @@ export function generateLocalInsights(input: InsightsInput): string {
     (input.conversions?.button_clicks || 0);
 
   const topSource = input.trafficSources?.[0];
-  const topPage = input.topPages?.[0];
-  const topCountry = input.countries?.[0];
-  const topDevice = input.devices?.[0];
+  const topPage: any = input.topPages?.[0];
+  const topPagePath = topPage?.page_path || topPage?.path || topPage?.name || "principal";
+  const topPageViews = topPage?.views ?? topPage?.visitors ?? 0;
+  const topCountry: any = input.countries?.[0];
+  const topCountryName = topCountry?.country || topCountry?.name || topCountry?.label || "";
+  const topCountryVisitors = topCountry?.visitors ?? topCountry?.value ?? 0;
+  const topDevice: any = input.devices?.[0];
+  const topDeviceName = topDevice?.device || topDevice?.name || topDevice?.label || "";
 
   const visitorsChange = input.comparison?.visitorsChange ?? 0;
   const leadsChange = input.comparison?.leadsChange ?? 0;
 
-  const bounce = input.engagement?.bounce_rate ?? 0;
-  const avgTime = input.engagement?.avg_time_on_page ?? 0;
+  const bounce = input.engagement?.bounce_rate ?? input.engagement?.bounceRate ?? 0;
+  const avgTime = input.engagement?.avg_time_on_page ?? input.engagement?.avgSessionDuration ?? 0;
 
   // === RESUMO EXECUTIVO ===
   let resumo = `Nos últimos ${input.days} dias, seu site recebeu **${fmt(totalVisitors)} visitantes** `;
@@ -66,11 +71,11 @@ export function generateLocalInsights(input: InsightsInput): string {
   if (topSource)
     destaques.push(`🚀 **${topSource.source}** é seu canal #1 com ${fmt(topSource.visitors)} visitantes.`);
   if (topPage)
-    destaques.push(`📄 Página mais vista: \`${topPage.page_path}\` (${fmt(topPage.views)} views).`);
+    destaques.push(`📄 Página mais vista: \`${topPagePath}\` (${fmt(topPageViews)} views).`);
   if (conversionRate >= 3)
     destaques.push(`✨ Taxa de conversão ${conversionRate.toFixed(2)}% está acima da média do mercado (1-3%).`);
-  if (topCountry)
-    destaques.push(`🌎 Maior audiência em **${topCountry.country}** (${fmt(topCountry.visitors)} visitantes).`);
+  if (topCountry && topCountryName)
+    destaques.push(`🌎 Maior audiência em **${topCountryName}** (${fmt(topCountryVisitors)} visitantes).`);
   if (destaques.length === 0)
     destaques.push("Continue acompanhando — ainda está coletando dados suficientes para destaques.");
 
