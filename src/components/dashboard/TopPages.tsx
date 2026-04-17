@@ -1,3 +1,5 @@
+import { InfoTooltip } from "@/components/InfoTooltip";
+
 interface PageData {
   path: string;
   name: string;
@@ -8,7 +10,16 @@ interface PageData {
 
 const TopPages = ({ pages }: { pages: PageData[] }) => (
   <div className="glass-card p-5">
-    <h3 className="text-sm font-medium text-card-foreground mb-4">Páginas Mais Visitadas</h3>
+    <div className="flex items-center gap-1.5 mb-4">
+      <h3 className="text-sm font-medium text-card-foreground">Páginas Mais Visitadas</h3>
+      <InfoTooltip content={
+        <div className="space-y-1">
+          <p>Ranking das páginas mais acessadas do seu site.</p>
+          <p><strong>Tempo Médio:</strong> quanto tempo o visitante fica na página.</p>
+          <p><strong>Rejeição:</strong> % que sai sem visitar outras páginas. Acima de 40% pode indicar conteúdo pouco relevante.</p>
+        </div>
+      } />
+    </div>
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
