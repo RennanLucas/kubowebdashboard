@@ -77,6 +77,48 @@ serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "grant_subscription") {
+      const targetId = body.userId as string;
+      const days = Math.max(1, Math.min(3650, Number(body.days) || 365));
+      const env = (body.environment as string) || "sandbox";
+      if (!targetId) return json({ error: "userId required" }, 400);
+
+      const periodEnd = new Date(Date.now() + days * 86400000).toISOString();
+      const manualId = `manual_${targetId}_${env}`;
+
+      const { error: upsertErr } = await admin.from("subscriptions").upsert(
+        {
+          user_id: targetId,
+          stripe_subscription_id: manualId,
+          stripe_customer_id: manualId,
+          product_id: "manual_grant",
+          price_id: "manual_grant",
+          status: "active",
+          current_period_start: new Date().toISOString(),
+          current_period_end: periodEnd,
+          cancel_at_period_end: false,
+          environment: env,
+        },
+        { onConflict: "stripe_subscription_id" },
+      );
+      if (upsertErr) return json({ error: upsertErr.message }, 500);
+      return json({ ok: true, current_period_end: periodEnd });
+    }
+
+    if (action === "revoke_subscription") {
+      const targetId = body.userId as string;
+      const env = (body.environment as string) || "sandbox";
+      if (!targetId) return json({ error: "userId required" }, 400);
+      const { error: delErr } = await admin
+        .from("subscriptions")
+        .delete()
+        .eq("user_id", targetId)
+        .eq("environment", env)
+        .like("stripe_subscription_id", "manual_%");
+      if (delErr) return json({ error: delErr.message }, 500);
+      return json({ ok: true });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e: any) {
     return json({ error: e.message }, 500);
