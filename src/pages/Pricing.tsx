@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { cn } from "@/lib/utils";
 
@@ -49,9 +50,10 @@ const plans: Array<{
 export default function Pricing() {
   const { user, loading: authLoading } = useAuth();
   const { isActive, loading: subLoading } = useSubscription();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [selectedPlan, setSelectedPlan] = useState<PlanId>("kuboweb_pro_yearly");
 
-  if (authLoading || subLoading) {
+  if (authLoading || subLoading || adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -60,7 +62,7 @@ export default function Pricing() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (isActive) return <Navigate to="/dashboard" replace />;
+  if (isActive || isAdmin) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="min-h-screen bg-background">
