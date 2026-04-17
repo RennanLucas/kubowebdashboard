@@ -105,12 +105,12 @@ export function generateLocalInsights(input: InsightsInput): string {
   else if (input.conversions?.form_submissions > 0)
     recomendacoes.push(`📝 Formulários estão performando — teste reduzir campos para aumentar conversão.`);
   if (topPage)
-    recomendacoes.push(`🎯 Otimize \`${topPage.page_path}\` com CTAs mais visíveis — é onde está sua maior audiência.`);
+    recomendacoes.push(`🎯 Otimize \`${topPagePath}\` com CTAs mais visíveis — é onde está sua maior audiência.`);
   if (topSource && topSource.source.toLowerCase().includes("google"))
     recomendacoes.push(`🔍 Tráfego orgânico está forte — invista em mais conteúdo SEO sobre temas similares.`);
   if (topSource && (topSource.source.toLowerCase().includes("instagram") || topSource.source.toLowerCase().includes("facebook")))
     recomendacoes.push(`📱 Redes sociais trazem bons resultados — aumente frequência de posts com link para o site.`);
-  if (topDevice && topDevice.device.toLowerCase().includes("mobile"))
+  if (topDevice && topDeviceName.toLowerCase().includes("mobile"))
     recomendacoes.push(`📱 Maioria acessa por mobile — priorize otimizações de velocidade e UX mobile-first.`);
   if (bounce > 60)
     recomendacoes.push(`⚡ Reduza tempo de carregamento e melhore a primeira dobra para baixar a rejeição.`);
@@ -121,7 +121,7 @@ export function generateLocalInsights(input: InsightsInput): string {
 
   // === PRÓXIMOS PASSOS ===
   const proximos = [
-    `1. Revisar a página \`${topPage?.page_path || "principal"}\` e otimizar CTAs.`,
+    `1. Revisar a página \`${topPagePath}\` e otimizar CTAs.`,
     `2. Configurar alertas para quedas >20% em tráfego ou leads.`,
     `3. Diversificar canais de aquisição além de ${topSource?.source || "seu canal principal"}.`,
     `4. Analisar comportamento por dispositivo e ajustar UX onde necessário.`,
