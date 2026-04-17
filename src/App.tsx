@@ -9,7 +9,10 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
+import CheckoutReturn from "./pages/CheckoutReturn";
 import NotFound from "./pages/NotFound";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const queryClient = new QueryClient();
 
@@ -20,12 +23,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PaymentTestModeBanner />
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+            <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute requireSubscription><Settings /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute requireSubscription><Dashboard /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
