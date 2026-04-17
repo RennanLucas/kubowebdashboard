@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import logoKuboweb from "@/assets/logo-kuboweb.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -58,7 +59,11 @@ const Login = () => {
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md">
-          <h1 className="text-4xl font-bold text-primary-foreground mb-4">KUBOWEB</h1>
+          <img
+            src={logoKuboweb}
+            alt="KUBOWEB"
+            className="h-14 w-auto mb-6 brightness-0 invert"
+          />
           <p className="text-primary-foreground/80 text-lg leading-relaxed">
             Acompanhe o desempenho do seu site, monitore leads e cresça seu negócio com análises em tempo real.
           </p>
@@ -76,8 +81,8 @@ const Login = () => {
       {/* Right: Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden mb-8">
-            <h1 className="text-2xl font-bold text-foreground">KUBOWEB</h1>
+          <div className="mb-8 flex justify-center lg:justify-start">
+            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
           </div>
           <h2 className="text-2xl font-semibold text-foreground mb-1">
             {isSignUp ? "Criar conta" : "Bem-vindo de volta"}
