@@ -1,7 +1,7 @@
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { supabase } from "@/integrations/supabase/client";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 interface Props {
   priceId: string;
@@ -27,9 +27,11 @@ export function StripeEmbeddedCheckout({ priceId, customerEmail, userId, returnU
     return data.clientSecret as string;
   }, [priceId, customerEmail, userId, returnUrl]);
 
+  const stripePromise = useMemo(() => getStripe(), []);
+
   return (
     <div id="checkout">
-      <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
+      <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
         <EmbeddedCheckout />
       </EmbeddedCheckoutProvider>
     </div>
