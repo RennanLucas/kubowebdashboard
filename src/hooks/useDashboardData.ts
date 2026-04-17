@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -150,15 +151,19 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
 
 export const useClientData = () => {
   const { data, isLoading, error } = useDashboardAnalytics(30);
+  const client = useMemo(() => {
+    if (!data?.client) return null;
+
+    return {
+      ...data.client,
+      company_name: data.client.company_name,
+      lead_value: (data.client as any).lead_value ?? 25,
+      projects: data.client.projects || (data.client.project ? [data.client.project] : []),
+    };
+  }, [data?.client]);
+
   return {
-    data: data?.client
-      ? {
-          ...data.client,
-          company_name: data.client.company_name,
-          lead_value: (data.client as any).lead_value ?? 25,
-          projects: data.client.projects || (data.client.project ? [data.client.project] : []),
-        }
-      : null,
+    data: client,
     isLoading,
     error,
   };
