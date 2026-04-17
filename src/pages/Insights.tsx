@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics, useClientData } from "@/hooks/useDashboardData";
 import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
 import { supabase } from "@/integrations/supabase/client";
