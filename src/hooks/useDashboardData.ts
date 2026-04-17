@@ -42,8 +42,14 @@ interface AnalyticsResponse {
   comparison: {
     visitors: number;
     views: number;
+    leads?: number;
+    conversionRate?: number;
+    estimatedValue?: number;
     prevVisitors: number;
     prevViews: number;
+    prevLeads?: number;
+    prevConversionRate?: number;
+    prevEstimatedValue?: number;
   } | null;
   conversions: {
     whatsapp_clicks: number;
