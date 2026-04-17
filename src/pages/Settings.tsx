@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
@@ -14,18 +14,20 @@ import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
 
 const HelpTip = ({ text }: { text: string }) => (
-  <TooltipProvider delayDuration={150}>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button type="button" className="inline-flex text-muted-foreground hover:text-foreground transition-colors">
-          <HelpCircle className="h-3.5 w-3.5" />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
-        {text}
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+  <Popover>
+    <PopoverTrigger asChild>
+      <button
+        type="button"
+        aria-label="Ajuda"
+        className="inline-flex text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
+      >
+        <HelpCircle className="h-3.5 w-3.5" />
+      </button>
+    </PopoverTrigger>
+    <PopoverContent side="top" className="max-w-xs text-xs leading-relaxed p-3">
+      {text}
+    </PopoverContent>
+  </Popover>
 );
 
 const Settings = () => {
