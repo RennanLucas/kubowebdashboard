@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Sparklines, SparklinesLine } from "@/components/dashboard/Sparkline";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface KPICardProps {
   title: string;
@@ -9,16 +10,20 @@ interface KPICardProps {
   changeUnit?: "%" | "pp";
   sparkline?: number[];
   sparklineColor?: string;
+  tooltip?: React.ReactNode;
 }
 
-const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, sparklineColor }: KPICardProps) => {
+const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, sparklineColor, tooltip }: KPICardProps) => {
   const hasChange = change !== null && change !== undefined && change !== 0;
   const isPositive = hasChange && change >= 0;
 
   return (
     <div className="glass-card p-5 transition-all duration-150 ease-in-out hover:shadow-md relative overflow-hidden">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium text-muted-foreground tracking-wide">{title}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground tracking-wide">{title}</span>
+          {tooltip && <InfoTooltip content={tooltip} />}
+        </div>
         <div className="text-muted-foreground/50">{icon}</div>
       </div>
       <div className="text-2xl font-medium text-card-foreground mb-1">{value}</div>
