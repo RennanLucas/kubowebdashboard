@@ -1,9 +1,11 @@
-import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
-import { Navigate } from "react-router-dom";
+import { useGoals } from "@/hooks/useGoals";
+import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
+import { Navigate, Link } from "react-router-dom";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
@@ -24,6 +26,9 @@ const severityConfig: Record<AlertSeverity, { color: string; bg: string; badge: 
 
 export default function Alerts() {
   const { data, isLoading, error } = useDashboardAnalytics(30);
+  const projectId = data?.client?.project?.id;
+  const { goals } = useGoals(projectId);
+  const { heatmap } = useHourlyHeatmap(projectId, 30);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -104,6 +109,59 @@ export default function Alerts() {
         icon: <Info className="h-5 w-5" />,
       });
     }
+
+    // Goal-based alerts
+    const totalValue = data.metrics?.reduce((s, m) => s + Number(m.estimated_value), 0) ?? 0;
+    if (goals.visitors > 0 && totalVisitors >= goals.visitors) {
+      alerts.push({
+        id: "goal-visitors",
+        severity: "success",
+        title: "Meta de visitantes atingida 🎯",
+        message: `Você ultrapassou sua meta de ${goals.visitors.toLocaleString("pt-BR")} visitantes (atual: ${totalVisitors.toLocaleString("pt-BR")}).`,
+        icon: <Target className="h-5 w-5" />,
+      });
+    } else if (goals.visitors > 0 && totalVisitors >= goals.visitors * 0.8) {
+      alerts.push({
+        id: "goal-visitors-near",
+        severity: "info",
+        title: "Perto da meta de visitantes",
+        message: `Faltam ${(goals.visitors - totalVisitors).toLocaleString("pt-BR")} visitantes para atingir sua meta.`,
+        icon: <Target className="h-5 w-5" />,
+      });
+    }
+    if (goals.leads > 0 && totalLeads >= goals.leads) {
+      alerts.push({
+        id: "goal-leads",
+        severity: "success",
+        title: "Meta de leads atingida 🎯",
+        message: `Você bateu sua meta de ${goals.leads} leads (atual: ${totalLeads}).`,
+        icon: <Target className="h-5 w-5" />,
+      });
+    }
+    if (goals.estimatedValue > 0 && totalValue >= goals.estimatedValue) {
+      alerts.push({
+        id: "goal-value",
+        severity: "success",
+        title: "Meta de valor atingida 🎯",
+        message: `Você superou a meta de R$ ${goals.estimatedValue.toLocaleString("pt-BR")} em valor estimado.`,
+        icon: <Target className="h-5 w-5" />,
+      });
+    }
+
+    // Peak hour insight from heatmap
+    if (heatmap.length > 0) {
+      const peak = [...heatmap].sort((a, b) => b.count - a.count)[0];
+      if (peak && peak.count > 0) {
+        const dayNames = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+        alerts.push({
+          id: "peak-hour",
+          severity: "info",
+          title: "Melhor horário identificado",
+          message: `Seu pico de visitas é ${dayNames[peak.day]} às ${peak.hour}h. Considere publicar conteúdo ou rodar anúncios nesse horário.`,
+          icon: <Clock className="h-5 w-5" />,
+        });
+      }
+    }
   }
 
   return (
@@ -115,7 +173,10 @@ export default function Alerts() {
             Alertas e Notificações
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Monitoramento automático de anomalias e oportunidades nos seus dados
+            Monitoramento automático de anomalias, metas e oportunidades nos seus dados.{" "}
+            <Link to="/help" className="text-primary hover:underline">
+              Saiba mais
+            </Link>
           </p>
         </div>
 
