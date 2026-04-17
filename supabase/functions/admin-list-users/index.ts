@@ -47,7 +47,7 @@ serve(async (req) => {
 
       const userIds = usersList.users.map((u) => u.id);
       const [{ data: subs }, { data: roles }, { data: profiles }] = await Promise.all([
-        admin.from("subscriptions").select("user_id, status, current_period_end, trial_end, cancel_at_period_end, environment").in("user_id", userIds),
+        admin.from("subscriptions").select("user_id, status, current_period_end, trial_end, cancel_at_period_end, environment, stripe_subscription_id").in("user_id", userIds),
         admin.from("user_roles").select("user_id, role").in("user_id", userIds),
         admin.from("profiles").select("user_id, full_name").in("user_id", userIds),
       ]);

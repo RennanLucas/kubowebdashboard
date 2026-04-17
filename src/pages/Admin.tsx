@@ -23,6 +23,7 @@ interface AdminUser {
     trial_end: string | null;
     cancel_at_period_end: boolean;
     environment: string;
+    stripe_subscription_id?: string | null;
   } | null;
 }
 
