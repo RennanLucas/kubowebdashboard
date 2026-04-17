@@ -1,4 +1,5 @@
 import { Activity, Clock, ArrowDownUp, Layers } from "lucide-react";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface EngagementData {
   bounceRate: number;
@@ -41,7 +42,17 @@ const EngagementCard = ({ data }: { data: EngagementData }) => {
 
   return (
     <div className="glass-card p-5">
-      <h3 className="text-sm font-medium text-card-foreground mb-4">Engajamento</h3>
+      <div className="flex items-center gap-1.5 mb-4">
+        <h3 className="text-sm font-medium text-card-foreground">Engajamento</h3>
+        <InfoTooltip content={
+          <div className="space-y-1">
+            <p><strong>Rejeição:</strong> % que saiu sem clicar em nada. Quanto menor, melhor.</p>
+            <p><strong>Duração média:</strong> tempo médio que cada visitante passa no site.</p>
+            <p><strong>Sessões:</strong> total de visitas (uma pessoa pode gerar várias).</p>
+            <p><strong>Páginas/sessão:</strong> quantas páginas o visitante navega em média.</p>
+          </div>
+        } />
+      </div>
       <div className="grid grid-cols-2 gap-4">
         {items.map((item) => (
           <div key={item.label} className="space-y-1">

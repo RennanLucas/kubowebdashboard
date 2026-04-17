@@ -1,4 +1,5 @@
 import { TrendingDown } from "lucide-react";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface FunnelStep {
   label: string;
@@ -25,7 +26,21 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
 
   return (
     <div className="glass-card p-5">
-      <h3 className="text-sm font-medium text-foreground mb-1">Funil de Conversão</h3>
+      <div className="flex items-center gap-1.5 mb-1">
+        <h3 className="text-sm font-medium text-foreground">Funil de Conversão</h3>
+        <InfoTooltip content={
+          <div className="space-y-1.5">
+            <p>Mostra a jornada do visitante em 4 etapas:</p>
+            <ul className="list-disc pl-3 space-y-0.5">
+              <li><strong>Visitantes:</strong> total de pessoas que entraram</li>
+              <li><strong>Engajados:</strong> visitantes que não saíram imediatamente (ficaram navegando)</li>
+              <li><strong>Cliques em CTA:</strong> clicaram em botões ou WhatsApp</li>
+              <li><strong>Conversões:</strong> completaram uma ação (lead)</li>
+            </ul>
+            <p className="pt-1">A queda entre etapas mostra onde você está perdendo público.</p>
+          </div>
+        } />
+      </div>
       <p className="text-xs text-muted-foreground mb-5">Jornada do visitante até a conversão</p>
 
       <div className="space-y-3">

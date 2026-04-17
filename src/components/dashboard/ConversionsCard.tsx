@@ -1,5 +1,6 @@
 import { MessageCircle, FileText, MousePointerClick, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface RecentEvent {
   type: string;
@@ -35,7 +36,17 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
 
   return (
     <div className="glass-card p-5">
-      <h3 className="text-sm font-medium text-card-foreground mb-4">Conversões</h3>
+      <div className="flex items-center gap-1.5 mb-4">
+        <h3 className="text-sm font-medium text-card-foreground">Conversões</h3>
+        <InfoTooltip content={
+          <div className="space-y-1">
+            <p>Ações de conversão registradas no site:</p>
+            <p><strong>WhatsApp:</strong> cliques em botões/links que abrem o WhatsApp.</p>
+            <p><strong>Formulários:</strong> envios bem-sucedidos de formulários.</p>
+            <p><strong>Botões:</strong> cliques em botões marcados como CTA.</p>
+          </div>
+        } />
+      </div>
       <div className="space-y-4">
         {items.map((item) => {
           const isPositive = item.change >= 0;

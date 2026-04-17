@@ -1,4 +1,5 @@
 import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink } from "lucide-react";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface TrafficSource {
   source: string;
@@ -44,6 +45,7 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-card-foreground flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" /> Fontes de Tráfego
+          <InfoTooltip content="De onde vêm seus visitantes. Agrupados em: Busca (Google, Bing), Social (Instagram, Facebook etc), Direto (digitaram a URL ou favoritos), Email e Referências (links de outros sites)." />
         </h3>
         <span className="text-xs text-muted-foreground font-medium">
           {totalVisitors.toLocaleString("pt-BR")} visitas
