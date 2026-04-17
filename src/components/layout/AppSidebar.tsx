@@ -1,5 +1,5 @@
 import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2 } from "lucide-react";
-import logoKuboweb from "@/assets/logo-kuboweb.png";
+import logoKuboweb from "@/assets/logo-kuboweb-white.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -55,18 +55,14 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (
-            <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0 mx-auto p-1">
-              <img src={logoKuboweb} alt="KUBOWEB" className="h-full w-full object-contain" />
-            </div>
+            <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto" />
           ) : (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="bg-white rounded-md px-2 py-1.5 shrink-0">
-                <img
-                  src={logoKuboweb}
-                  alt="KUBOWEB"
-                  className="h-6 w-auto"
-                />
-              </div>
+              <img
+                src={logoKuboweb}
+                alt="KUBOWEB"
+                className="h-7 w-auto shrink-0"
+              />
               <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
                 Analytics
               </div>

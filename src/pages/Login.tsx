@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
+import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -59,13 +60,11 @@ const Login = () => {
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 inline-block mb-6">
-            <img
-              src={logoKuboweb}
-              alt="KUBOWEB"
-              className="h-12 w-auto"
-            />
-          </div>
+          <img
+            src={logoKubowebWhite}
+            alt="KUBOWEB"
+            className="h-12 w-auto mb-6"
+          />
           <p className="text-primary-foreground/80 text-lg leading-relaxed">
             Acompanhe o desempenho do seu site, monitore leads e cresça seu negócio com análises em tempo real.
           </p>
