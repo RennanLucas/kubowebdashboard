@@ -123,9 +123,33 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
 }
 
 const Compare = () => {
+  const { user } = useAuth();
   const [days, setDays] = useState(30);
   const { data: baseData, isLoading: baseLoading, error } = useDashboardAnalytics(days);
-  const projects = baseData?.client?.projects ?? [];
+
+  // Buscar TODOS os projetos do usuário (de todos os clientes dele)
+  const { data: allProjects } = useQuery({
+    queryKey: ["all-user-projects", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data: clients } = await supabase
+        .from("clients")
+        .select("id, company_name")
+        .eq("user_id", user!.id);
+      if (!clients || clients.length === 0) return [];
+      const ids = clients.map((c) => c.id);
+      const { data: projs } = await supabase
+        .from("projects")
+        .select("id, name, client_id")
+        .in("client_id", ids);
+      const clientMap = new Map(clients.map((c) => [c.id, c.company_name]));
+      return (projs ?? []).map((p) => ({
+        id: p.id,
+        name: `${clientMap.get(p.client_id) ?? "?"} · ${p.name}`,
+      }));
+    },
+  });
+  const projects = allProjects ?? [];
 
   const [projectA, setProjectA] = useState<string | undefined>();
   const [projectB, setProjectB] = useState<string | undefined>();
