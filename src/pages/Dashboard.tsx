@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Users, TrendingUp, DollarSign, BarChart3, Eye, Percent } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -12,6 +12,9 @@ import DevicesBrowsersCard from "@/components/dashboard/DevicesBrowsersCard";
 import GeoCard from "@/components/dashboard/GeoCard";
 import EngagementCard from "@/components/dashboard/EngagementCard";
 import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
+import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -39,24 +42,43 @@ const Dashboard = () => {
   const totalButtons = metrics?.reduce((s, m) => s + m.button_clicks, 0) ?? 0;
   const totalViews = metrics?.reduce((s, m) => s + (m.visitors || 0), 0) ?? 0;
 
-  const chartData = (() => {
+  const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
     const metricsMap = new Map(metrics.map((m) => [m.date, m]));
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - (dateRange - 1));
-    const result: Array<{ date: string; visitors: number; leads: number }> = [];
+    const result: Array<{ date: string; visitors: number; leads: number; rawDate: string }> = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = d.toISOString().split("T")[0];
       const m = metricsMap.get(key);
       result.push({
         date: format(new Date(key), "dd/MM"),
+        rawDate: key,
         visitors: m?.visitors ?? 0,
         leads: m?.leads ?? 0,
       });
     }
     return result;
-  })();
+  }, [metrics, dateRange]);
+
+  // Series for sparklines
+  const visitorsSeries = chartData.map((d) => d.visitors);
+  const leadsSeries = chartData.map((d) => d.leads);
+  const valueSeries = useMemo(() => {
+    if (!metrics) return [];
+    const map = new Map(metrics.map((m) => [m.date, Number(m.estimated_value)]));
+    return chartData.map((d) => map.get(d.rawDate) ?? 0);
+  }, [metrics, chartData]);
+  const conversionSeries = useMemo(() => {
+    if (!metrics) return [];
+    const map = new Map(metrics.map((m) => [m.date, m]));
+    return chartData.map((d) => {
+      const m = map.get(d.rawDate);
+      if (!m || m.visitors === 0) return 0;
+      return (m.leads / m.visitors) * 100;
+    });
+  }, [metrics, chartData]);
 
   const insights = [];
   if (totalVisitors > 0) {
@@ -86,9 +108,9 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <AppLayout>
+        <DashboardSkeleton />
+      </AppLayout>
     );
   }
 
@@ -154,8 +176,14 @@ const Dashboard = () => {
 
   const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
 
+  // Funnel stages
+  const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
+  const engagedVisitors = data?.engagement
+    ? Math.round(totalVisitors * (1 - data.engagement.bounceRate / 100))
+    : Math.round(totalVisitors * 0.6);
+
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <DashboardHeader
           dateRange={dateRange}
@@ -187,11 +215,11 @@ const Dashboard = () => {
           <>
             {/* KPIs + Active Visitors */}
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-              <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} />
-              <KPICard title="Pageviews" value={totalViews.toLocaleString("pt-BR")} change={comparison?.views ?? null} icon={<Eye className="h-4 w-4" />} />
-              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={comparison?.leads ?? null} icon={<TrendingUp className="h-4 w-4" />} />
-              <KPICard title="Conversão" value={`${avgConversion}%`} change={comparison?.conversionRate ?? null} changeUnit="pp" icon={<Percent className="h-4 w-4" />} />
-              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={comparison?.estimatedValue ?? null} icon={<DollarSign className="h-4 w-4" />} />
+              <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} sparkline={visitorsSeries} sparklineColor="hsl(var(--chart-blue))" />
+              <KPICard title="Pageviews" value={totalViews.toLocaleString("pt-BR")} change={comparison?.views ?? null} icon={<Eye className="h-4 w-4" />} sparkline={visitorsSeries} sparklineColor="hsl(var(--chart-purple))" />
+              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={comparison?.leads ?? null} icon={<TrendingUp className="h-4 w-4" />} sparkline={leadsSeries} sparklineColor="hsl(var(--chart-green))" />
+              <KPICard title="Conversão" value={`${avgConversion}%`} change={comparison?.conversionRate ?? null} changeUnit="pp" icon={<Percent className="h-4 w-4" />} sparkline={conversionSeries} sparklineColor="hsl(var(--chart-orange))" />
+              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={comparison?.estimatedValue ?? null} icon={<DollarSign className="h-4 w-4" />} sparkline={valueSeries} sparklineColor="hsl(var(--chart-green))" />
               <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
             </div>
 
@@ -203,14 +231,24 @@ const Dashboard = () => {
               <TrafficSources data={trafficSources ?? []} />
             </div>
 
-            {/* Conversions + Top Pages */}
+            {/* Funnel + Conversions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <ConversionFunnel
+                visitors={totalVisitors}
+                engaged={engagedVisitors}
+                clicks={totalButtons + totalWhatsapp}
+                conversions={totalConversionsAll || totalLeads}
+              />
               <ConversionsCard data={{
                 whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
                 formSubmissions: { value: conversions?.form_submissions ?? totalForms, change: conversions?.changes.forms ?? 0 },
                 buttonClicks: { value: conversions?.button_clicks ?? totalButtons, change: conversions?.changes.buttons ?? 0 },
                 recentEvents: conversions?.recent ?? [],
               }} />
+            </div>
+
+            {/* Top Pages */}
+            <div className="grid grid-cols-1 gap-4 mb-6">
               <TopPages pages={topPages ?? []} />
             </div>
 
@@ -231,7 +269,7 @@ const Dashboard = () => {
           </>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
