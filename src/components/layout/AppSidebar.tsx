@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Insights IA", url: "/insights", icon: Sparkles },
+  { title: "Insights", url: "/insights", icon: Sparkles },
   { title: "Alertas", url: "/alerts", icon: Bell },
 ];
 
