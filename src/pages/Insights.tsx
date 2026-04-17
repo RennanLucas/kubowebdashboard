@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Sparkles, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -82,10 +84,30 @@ export default function Insights() {
               Análise automática dos seus dados dos últimos 30 dias — gratuita e instantânea
             </p>
           </div>
-          <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
-            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            {analysis ? "Regenerar" : "Gerar análise"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {analysis && !generating && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const blob = new Blob([analysis], { type: "text/markdown;charset=utf-8" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `relatorio-insights-${new Date().toISOString().slice(0, 10)}.md`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Exportar
+              </Button>
+            )}
+            <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {analysis ? "Regenerar" : "Gerar análise"}
+            </Button>
+          </div>
         </div>
 
         {!analysis && !generating && (
@@ -107,10 +129,28 @@ export default function Insights() {
         )}
 
         {analysis && !generating && (
-          <Card className="p-8">
-            <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap leading-relaxed">
-              {analysis}
-            </div>
+          <Card className="p-8 sm:p-10">
+            <article className="text-foreground leading-relaxed space-y-4
+              [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
+              [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
+              [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
+              [&_p]:text-sm [&_p]:text-foreground/90 [&_p]:leading-relaxed
+              [&_strong]:text-foreground [&_strong]:font-semibold
+              [&_ul]:space-y-2 [&_ul]:my-3 [&_ul]:pl-0 [&_ul]:list-none
+              [&_ul>li]:text-sm [&_ul>li]:text-foreground/90 [&_ul>li]:pl-5 [&_ul>li]:relative
+              [&_ul>li]:before:content-[''] [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:top-[0.55rem] [&_ul>li]:before:w-2 [&_ul>li]:before:h-2 [&_ul>li]:before:rounded-full [&_ul>li]:before:bg-primary/70
+              [&_ol]:space-y-2 [&_ol]:my-3 [&_ol]:pl-5 [&_ol]:list-decimal
+              [&_ol>li]:text-sm [&_ol>li]:text-foreground/90 [&_ol>li]:pl-1
+              [&_code]:bg-muted [&_code]:text-foreground [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
+              [&_table]:w-full [&_table]:my-4 [&_table]:text-sm [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:overflow-hidden
+              [&_thead]:bg-muted/50
+              [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide
+              [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90
+              [&_tr:hover]:bg-muted/30
+              [&_hr]:my-6 [&_hr]:border-border
+              [&_em]:text-muted-foreground [&_em]:text-xs [&_em]:not-italic [&_em]:block">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{analysis}</ReactMarkdown>
+            </article>
           </Card>
         )}
 
