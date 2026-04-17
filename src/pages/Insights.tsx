@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics, useClientData } from "@/hooks/useDashboardData";
 import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +22,80 @@ export default function Insights() {
   const { data: client } = useClientData();
   const [analysis, setAnalysis] = useState<string>("");
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const reportRef = useRef<HTMLElement>(null);
+
+  const exportMarkdown = () => {
+    const blob = new Blob([analysis], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `relatorio-insights-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = async () => {
+    if (!reportRef.current) return;
+    setExporting(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
+      ]);
+
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+      });
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const usableWidth = pageWidth - margin * 2;
+      const usableHeight = pageHeight - margin * 2;
+      const imgWidth = usableWidth;
+      const pageHeightPx = (canvas.width * usableHeight) / usableWidth;
+
+      let renderedHeight = 0;
+      let pageIndex = 0;
+      while (renderedHeight < canvas.height) {
+        const sliceHeight = Math.min(pageHeightPx, canvas.height - renderedHeight);
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHeight;
+        const ctx = sliceCanvas.getContext("2d");
+        if (!ctx) break;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+        ctx.drawImage(canvas, 0, renderedHeight, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+        const imgData = sliceCanvas.toDataURL("image/jpeg", 0.92);
+        const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
+        renderedHeight += sliceHeight;
+        pageIndex += 1;
+      }
+
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(120);
+        pdf.text(`Relatório de Insights  •  Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 4, { align: "center" });
+      }
+
+      pdf.save(`relatorio-insights-${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success("PDF exportado");
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao exportar PDF");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -86,22 +166,24 @@ export default function Insights() {
           </div>
           <div className="flex items-center gap-2">
             {analysis && !generating && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const blob = new Blob([analysis], { type: "text/markdown;charset=utf-8" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `relatorio-insights-${new Date().toISOString().slice(0, 10)}.md`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={exporting} className="gap-2">
+                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={exportPDF} className="gap-2 cursor-pointer">
+                    <FileType className="h-4 w-4" />
+                    Exportar como PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportMarkdown} className="gap-2 cursor-pointer">
+                    <FileText className="h-4 w-4" />
+                    Exportar como Markdown
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -130,7 +212,7 @@ export default function Insights() {
 
         {analysis && !generating && (
           <Card className="p-8 sm:p-10">
-            <article className="text-foreground leading-relaxed space-y-4
+            <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
               [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
               [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
               [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
