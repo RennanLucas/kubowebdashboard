@@ -11,31 +11,16 @@ interface TrafficSource {
   visitors: number;
 }
 
-interface TopPage {
-  page_path: string;
-  views: number;
-}
-
-interface Engagement {
-  avg_time_on_page?: number;
-  bounce_rate?: number;
-}
-
-interface Comparison {
-  visitorsChange?: number;
-  leadsChange?: number;
-}
-
 export interface InsightsInput {
   days: number;
   metrics: Metric[];
   conversions: { whatsapp_clicks: number; form_submissions: number; button_clicks: number };
   trafficSources: TrafficSource[];
-  topPages: TopPage[];
-  engagement?: Engagement;
-  comparison?: Comparison;
-  devices?: { device: string; visitors: number }[];
-  countries?: { country: string; visitors: number }[];
+  topPages: any[];
+  engagement?: any;
+  comparison?: any;
+  devices?: any[];
+  countries?: any[];
 }
 
 const fmt = (n: number) =>
