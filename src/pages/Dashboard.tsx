@@ -124,7 +124,33 @@ const Dashboard = () => {
     }
   };
 
-  const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
+  const buildExportData = () => ({
+    clientName: clientData?.company_name || "kuboweb",
+    dateRange,
+    metrics: metrics ?? [],
+    trafficSources: trafficSources ?? [],
+    topPages: topPages ?? [],
+    devices: data?.devices ?? [],
+    countries: data?.countries ?? [],
+  });
+
+  const handleExportCSV = () => {
+    try {
+      exportToCSV(buildExportData());
+      toast.success("CSV baixado com sucesso!");
+    } catch (e: any) {
+      toast.error("Erro ao gerar CSV: " + e.message);
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      exportToExcel(buildExportData());
+      toast.success("Planilha Excel baixada com sucesso!");
+    } catch (e: any) {
+      toast.error("Erro ao gerar Excel: " + e.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
