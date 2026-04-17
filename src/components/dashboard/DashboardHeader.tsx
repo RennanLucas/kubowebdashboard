@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Settings, ChevronDown, FileDown, BarChart3, Shield } from "lucide-react";
+import { LogOut, Settings, ChevronDown, FileDown, BarChart3, Shield, FileText, FileSpreadsheet, FileType } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +25,8 @@ interface DashboardHeaderProps {
   selectedProjectId?: string;
   onProjectChange?: (projectId: string) => void;
   onExportPDF?: () => void;
+  onExportCSV?: () => void;
+  onExportExcel?: () => void;
 }
 
 const DashboardHeader = ({
