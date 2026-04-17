@@ -1,14 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Settings, ChevronDown, FileDown, BarChart3, Shield, FileText, FileSpreadsheet, FileType } from "lucide-react";
+import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DateRangePicker } from "./DateRangePicker";
 
 interface Project {
   id: string;
