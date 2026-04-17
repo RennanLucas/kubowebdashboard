@@ -93,8 +93,8 @@ export default function Insights() {
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Análise inteligente dos seus dados</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Clique em "Gerar análise" para que a IA analise seu desempenho e gere recomendações
-              personalizadas sobre tráfego, conversões e oportunidades de crescimento.
+              Clique em "Gerar análise" para receber recomendações automáticas
+              sobre tráfego, conversões, sazonalidade e oportunidades de crescimento.
             </p>
           </Card>
         )}
@@ -102,7 +102,7 @@ export default function Insights() {
         {generating && (
           <Card className="p-12 text-center">
             <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">A IA está analisando seus dados...</p>
+            <p className="text-sm text-muted-foreground">Analisando seus dados...</p>
           </Card>
         )}
 
