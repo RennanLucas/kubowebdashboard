@@ -129,6 +129,40 @@ export default function ProjectsManager({ clientId }: Props) {
                   </div>
                 )}
               </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir projeto "{p.name}"?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Os dados de tráfego e conversões deste projeto serão mantidos no banco, mas o projeto deixará de aparecer no dashboard e na comparação.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        const { error } = await supabase.from("projects").delete().eq("id", p.id);
+                        if (error) {
+                          toast.error("Erro ao excluir: " + error.message);
+                          return;
+                        }
+                        toast.success("Projeto excluído");
+                        await refetch();
+                        await qc.invalidateQueries({ queryKey: ["dashboard-analytics"] });
+                        await qc.invalidateQueries({ queryKey: ["all-user-projects"] });
+                      }}
+                    >
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           ))
         ) : (
