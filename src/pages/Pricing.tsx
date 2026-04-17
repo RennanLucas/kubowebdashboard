@@ -38,11 +38,10 @@ const plans: Array<{
   {
     id: "kuboweb_pro_yearly",
     name: "Anual à vista",
-    price: "R$ 299",
+    price: "R$ 392,99",
     cadence: "/ano",
     highlight: "Pague com Pix ou cartão · sem renovação automática",
-    note: "Pagamento único de R$ 299 por 12 meses de acesso. Você renova manualmente quando quiser.",
-    badge: "Economize 17%",
+    note: "Pagamento único de R$ 392,99 por 12 meses de acesso. Você renova manualmente quando quiser.",
     recommended: true,
   },
 ];
