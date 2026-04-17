@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics, useClientData } from "@/hooks/useDashboardData";
+import logoKuboweb from "@/assets/logo-kuboweb.png";
 import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,15 +56,64 @@ export default function Insights() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 10;
+      const headerHeight = 22; // espaço reservado para a logo na primeira página
       const usableWidth = pageWidth - margin * 2;
       const usableHeight = pageHeight - margin * 2;
+      const firstPageContentHeight = usableHeight - headerHeight - 4;
       const imgWidth = usableWidth;
-      const pageHeightPx = (canvas.width * usableHeight) / usableWidth;
+
+      // Carrega logo como dataURL para embed
+      const logoImg = new Image();
+      logoImg.crossOrigin = "anonymous";
+      logoImg.src = logoKuboweb;
+      await new Promise<void>((resolve) => {
+        if (logoImg.complete) resolve();
+        else {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = () => resolve();
+        }
+      });
+
+      const drawHeader = (companyName: string) => {
+        // Logo (mantém aspect ratio do arquivo 851x219 ≈ 3.88:1)
+        const logoH = 12;
+        const logoW = logoH * (logoImg.width && logoImg.height ? logoImg.width / logoImg.height : 3.88);
+        try {
+          pdf.addImage(logoImg, "PNG", margin, margin, logoW, logoH);
+        } catch {
+          // ignora se falhar
+        }
+        // Texto à direita
+        pdf.setFontSize(9);
+        pdf.setTextColor(110);
+        pdf.text(companyName, pageWidth - margin, margin + 5, { align: "right" });
+        pdf.setFontSize(8);
+        pdf.setTextColor(150);
+        pdf.text(
+          new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
+          pageWidth - margin,
+          margin + 10,
+          { align: "right" },
+        );
+        // Linha divisória
+        pdf.setDrawColor(220);
+        pdf.setLineWidth(0.2);
+        pdf.line(margin, margin + headerHeight - 4, pageWidth - margin, margin + headerHeight - 4);
+      };
+
+      const companyName =
+        (client as any)?.company_name ||
+        (client as any)?.clients?.[0]?.company_name ||
+        "Relatório de Performance";
 
       let renderedHeight = 0;
       let pageIndex = 0;
       while (renderedHeight < canvas.height) {
+        const isFirst = pageIndex === 0;
+        const contentHeightMm = isFirst ? firstPageContentHeight : usableHeight;
+        const pageHeightPx = (canvas.width * contentHeightMm) / usableWidth;
         const sliceHeight = Math.min(pageHeightPx, canvas.height - renderedHeight);
+
         const sliceCanvas = document.createElement("canvas");
         sliceCanvas.width = canvas.width;
         sliceCanvas.height = sliceHeight;
@@ -74,8 +124,11 @@ export default function Insights() {
         ctx.drawImage(canvas, 0, renderedHeight, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
         const imgData = sliceCanvas.toDataURL("image/jpeg", 0.92);
         const sliceImgHeight = (sliceHeight * imgWidth) / canvas.width;
+
         if (pageIndex > 0) pdf.addPage();
-        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, sliceImgHeight);
+        if (isFirst) drawHeader(companyName);
+        const yPos = isFirst ? margin + headerHeight : margin;
+        pdf.addImage(imgData, "JPEG", margin, yPos, imgWidth, sliceImgHeight);
         renderedHeight += sliceHeight;
         pageIndex += 1;
       }
@@ -84,8 +137,13 @@ export default function Insights() {
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
-        pdf.setTextColor(120);
-        pdf.text(`Relatório de Insights  •  Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 4, { align: "center" });
+        pdf.setTextColor(150);
+        pdf.text(
+          `KUBOWEB  •  Relatório de Insights  •  Página ${i} de ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 5,
+          { align: "center" },
+        );
       }
 
       pdf.save(`relatorio-insights-${new Date().toISOString().slice(0, 10)}.pdf`);

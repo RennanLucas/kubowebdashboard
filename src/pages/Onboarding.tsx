@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowRight, Globe, Building2, Rocket, CheckCircle2, BarChart3, Zap } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
+import logoKuboweb from "@/assets/logo-kuboweb.png";
 
 interface ClientFormData {
   companyName: string;
@@ -143,7 +144,11 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
           <div className="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-primary-foreground/10 blur-2xl" />
         </div>
         <div className="relative z-10 max-w-sm">
-          <h1 className="text-3xl font-bold text-primary-foreground mb-3">KUBOWEB</h1>
+          <img
+            src={logoKuboweb}
+            alt="KUBOWEB"
+            className="h-12 w-auto mb-5 brightness-0 invert"
+          />
           <p className="text-primary-foreground/80 text-lg leading-relaxed mb-10">
             Configure seu projeto em poucos passos e comece a monitorar o desempenho do seu site.
           </p>
@@ -167,9 +172,8 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       {/* Right side - form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
-          {/* Logo mobile */}
-          <div className="lg:hidden mb-6">
-            <h1 className="text-2xl font-bold text-foreground">KUBOWEB</h1>
+          <div className="lg:hidden mb-6 flex justify-center">
+            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
           </div>
 
           {/* Step indicator */}
