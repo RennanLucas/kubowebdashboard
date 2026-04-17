@@ -59,11 +59,13 @@ const Login = () => {
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md">
-          <img
-            src={logoKuboweb}
-            alt="KUBOWEB"
-            className="h-14 w-auto mb-6 brightness-0 invert"
-          />
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 inline-block mb-6">
+            <img
+              src={logoKuboweb}
+              alt="KUBOWEB"
+              className="h-12 w-auto"
+            />
+          </div>
           <p className="text-primary-foreground/80 text-lg leading-relaxed">
             Acompanhe o desempenho do seu site, monitore leads e cresça seu negócio com análises em tempo real.
           </p>

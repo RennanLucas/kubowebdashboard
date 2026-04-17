@@ -55,16 +55,18 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (
-            <div className="h-9 w-9 rounded-lg bg-sidebar-primary/10 flex items-center justify-center shrink-0 mx-auto">
-              <img src={logoKuboweb} alt="KUBOWEB" className="h-6 w-6 object-contain brightness-0 invert" />
+            <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0 mx-auto p-1">
+              <img src={logoKuboweb} alt="KUBOWEB" className="h-full w-full object-contain" />
             </div>
           ) : (
             <div className="flex items-center gap-2 min-w-0">
-              <img
-                src={logoKuboweb}
-                alt="KUBOWEB"
-                className="h-8 w-auto brightness-0 invert shrink-0"
-              />
+              <div className="bg-white rounded-md px-2 py-1.5 shrink-0">
+                <img
+                  src={logoKuboweb}
+                  alt="KUBOWEB"
+                  className="h-6 w-auto"
+                />
+              </div>
               <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
                 Analytics
               </div>
