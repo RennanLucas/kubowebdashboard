@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
-import { supabase } from "@/integrations/supabase/client";
+import { generateLocalInsights } from "@/lib/local-insights";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 
@@ -21,35 +21,26 @@ export default function Insights() {
     setGenerating(true);
     setAnalysis("");
     try {
-      const summary = {
+      // Pequeno delay para feedback visual
+      await new Promise((r) => setTimeout(r, 400));
+      const result = generateLocalInsights({
         days: 30,
-        totalVisitors: data?.metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0,
-        totalLeads: data?.metrics?.reduce((s, m) => s + m.leads, 0) ?? 0,
-        estimatedValue: data?.metrics?.reduce((s, m) => s + Number(m.estimated_value), 0) ?? 0,
-        whatsappClicks: data?.conversions?.whatsapp_clicks ?? 0,
-        formSubmissions: data?.conversions?.form_submissions ?? 0,
-        buttonClicks: data?.conversions?.button_clicks ?? 0,
-        trafficSources: data?.trafficSources?.slice(0, 5) ?? [],
-        topPages: data?.topPages?.slice(0, 5) ?? [],
+        metrics: data?.metrics ?? [],
+        conversions: {
+          whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
+          form_submissions: data?.conversions?.form_submissions ?? 0,
+          button_clicks: data?.conversions?.button_clicks ?? 0,
+        },
+        trafficSources: data?.trafficSources ?? [],
+        topPages: data?.topPages ?? [],
         engagement: data?.engagement,
         comparison: data?.comparison,
-        devices: data?.devices?.slice(0, 5) ?? [],
-        countries: data?.countries?.slice(0, 5) ?? [],
-      };
-
-      const { data: result, error: fnError } = await supabase.functions.invoke("ai-insights", {
-        body: { summary },
+        devices: data?.devices ?? [],
+        countries: data?.countries ?? [],
       });
-
-      if (fnError) throw fnError;
-      if (result?.error) throw new Error(result.error);
-
-      setAnalysis(result.analysis || "Sem análise disponível.");
+      setAnalysis(result);
     } catch (e: any) {
-      const msg = e?.message || "Erro ao gerar análise";
-      if (msg.includes("429")) toast.error("Muitas requisições. Aguarde um momento.");
-      else if (msg.includes("402")) toast.error("Créditos de IA esgotados. Adicione mais em Configurações.");
-      else toast.error(msg);
+      toast.error(e?.message || "Erro ao gerar análise");
     } finally {
       setGenerating(false);
     }
@@ -62,10 +53,10 @@ export default function Insights() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
-              Insights com IA
+              Insights Automáticos
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Análise automática dos seus dados pelos últimos 30 dias
+              Análise automática dos seus dados dos últimos 30 dias — gratuita e instantânea
             </p>
           </div>
           <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
