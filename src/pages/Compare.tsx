@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { GitCompare, Users, TrendingUp, DollarSign, Percent, ArrowRight } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -128,7 +128,7 @@ const Compare = () => {
   const [projectB, setProjectB] = useState<string | undefined>();
 
   // Default selection
-  useMemo(() => {
+  useEffect(() => {
     if (projects.length >= 1 && !projectA) setProjectA(projects[0].id);
     if (projects.length >= 2 && !projectB) setProjectB(projects[1].id);
   }, [projects, projectA, projectB]);
