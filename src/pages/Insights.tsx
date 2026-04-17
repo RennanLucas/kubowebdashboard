@@ -92,22 +92,24 @@ export default function Insights() {
           </div>
           <div className="flex items-center gap-2">
             {analysis && !generating && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const blob = new Blob([analysis], { type: "text/markdown;charset=utf-8" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `relatorio-insights-${new Date().toISOString().slice(0, 10)}.md`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={exporting} className="gap-2">
+                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={exportPDF} className="gap-2 cursor-pointer">
+                    <FileType className="h-4 w-4" />
+                    Exportar como PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportMarkdown} className="gap-2 cursor-pointer">
+                    <FileText className="h-4 w-4" />
+                    Exportar como Markdown
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -136,7 +138,7 @@ export default function Insights() {
 
         {analysis && !generating && (
           <Card className="p-8 sm:p-10">
-            <article className="text-foreground leading-relaxed space-y-4
+            <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
               [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
               [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
               [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
