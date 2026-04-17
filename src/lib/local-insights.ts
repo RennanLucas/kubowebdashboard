@@ -128,6 +128,101 @@ export function generateLocalInsights(input: InsightsInput): string {
   if (recomendacoes.length === 0)
     recomendacoes.push(`Continue produzindo conteúdo consistente e monitorando os KPIs semanalmente.`);
 
+  // === SAZONALIDADE: melhor dia da semana ===
+  const sazonalidade: string[] = [];
+  const byWeekday: { sum: number; count: number }[] = Array.from({ length: 7 }, () => ({ sum: 0, count: 0 }));
+  for (const m of input.metrics) {
+    if (!m.date) continue;
+    // Parse YYYY-MM-DD como local para evitar shift de timezone
+    const [y, mo, d] = m.date.split("-").map(Number);
+    if (!y || !mo || !d) continue;
+    const wd = new Date(y, mo - 1, d).getDay();
+    byWeekday[wd].sum += m.visitors || 0;
+    byWeekday[wd].count += 1;
+  }
+  const weekdayAvgs = byWeekday.map((b, i) => ({
+    day: DAY_NAMES[i],
+    avg: b.count > 0 ? b.sum / b.count : 0,
+    count: b.count,
+  }));
+  const validDays = weekdayAvgs.filter((w) => w.count > 0);
+  if (validDays.length >= 3) {
+    const best = [...validDays].sort((a, b) => b.avg - a.avg)[0];
+    const worst = [...validDays].sort((a, b) => a.avg - b.avg)[0];
+    const overallAvg = validDays.reduce((s, w) => s + w.avg, 0) / validDays.length;
+    sazonalidade.push(
+      `📅 **Melhor dia da semana:** ${best.day} (média de ${fmt(best.avg)} visitantes/dia, ${pct(((best.avg - overallAvg) / overallAvg) * 100)} vs média).`,
+    );
+    if (worst.day !== best.day && worst.avg < overallAvg * 0.7) {
+      sazonalidade.push(
+        `📉 **Dia mais fraco:** ${worst.day} (média de ${fmt(worst.avg)} visitantes/dia). Considere campanhas específicas.`,
+      );
+    }
+    // Diferença fim de semana vs dias úteis
+    const weekend = [weekdayAvgs[0], weekdayAvgs[6]].filter((w) => w.count > 0);
+    const weekdays = weekdayAvgs.slice(1, 6).filter((w) => w.count > 0);
+    if (weekend.length > 0 && weekdays.length > 0) {
+      const weAvg = weekend.reduce((s, w) => s + w.avg, 0) / weekend.length;
+      const wdAvg = weekdays.reduce((s, w) => s + w.avg, 0) / weekdays.length;
+      if (wdAvg > weAvg * 1.3) {
+        sazonalidade.push(`💼 Tráfego de **dias úteis ${pct(((wdAvg - weAvg) / weAvg) * 100)} maior** que fim de semana — público B2B/profissional.`);
+      } else if (weAvg > wdAvg * 1.3) {
+        sazonalidade.push(`🏖️ Tráfego de **fim de semana ${pct(((weAvg - wdAvg) / wdAvg) * 100)} maior** que dias úteis — público consumidor/lazer.`);
+      }
+    }
+  }
+
+  // === SAZONALIDADE: tendência semana a semana ===
+  if (input.metrics.length >= 14) {
+    const sorted = [...input.metrics]
+      .filter((m) => m.date)
+      .sort((a, b) => (a.date! < b.date! ? -1 : 1));
+    const half = Math.floor(sorted.length / 2);
+    const firstHalf = sorted.slice(0, half).reduce((s, m) => s + (m.visitors || 0), 0) / half;
+    const secondHalf = sorted.slice(half).reduce((s, m) => s + (m.visitors || 0), 0) / (sorted.length - half);
+    if (firstHalf > 0) {
+      const trend = ((secondHalf - firstHalf) / firstHalf) * 100;
+      if (trend > 15) sazonalidade.push(`📈 **Tendência ascendente:** segunda metade do período cresceu ${pct(trend)} vs primeira metade.`);
+      else if (trend < -15) sazonalidade.push(`📉 **Tendência descendente:** segunda metade do período caiu ${pct(trend)} vs primeira metade.`);
+      else sazonalidade.push(`➡️ **Tráfego estável** ao longo do período (variação de ${pct(trend)}).`);
+    }
+  }
+
+  // === HORÁRIOS DE PICO ===
+  if (input.hourlyDistribution && input.hourlyDistribution.length > 0) {
+    const totalHourly = input.hourlyDistribution.reduce((s, h) => s + h.visitors, 0);
+    if (totalHourly > 0) {
+      const sorted = [...input.hourlyDistribution].sort((a, b) => b.visitors - a.visitors);
+      const top3 = sorted.slice(0, 3).map((h) => `${String(h.hour).padStart(2, "0")}h`);
+      sazonalidade.push(`⏰ **Horários de pico:** ${top3.join(", ")} concentram a maior parte do tráfego.`);
+
+      // Períodos do dia
+      const buckets = { madrugada: 0, manha: 0, tarde: 0, noite: 0 };
+      for (const h of input.hourlyDistribution) {
+        if (h.hour >= 0 && h.hour < 6) buckets.madrugada += h.visitors;
+        else if (h.hour < 12) buckets.manha += h.visitors;
+        else if (h.hour < 18) buckets.tarde += h.visitors;
+        else buckets.noite += h.visitors;
+      }
+      const periodNames: Record<string, string> = {
+        madrugada: "🌙 Madrugada (00-06h)",
+        manha: "☀️ Manhã (06-12h)",
+        tarde: "🌤️ Tarde (12-18h)",
+        noite: "🌆 Noite (18-24h)",
+      };
+      const bestPeriod = Object.entries(buckets).sort((a, b) => b[1] - a[1])[0];
+      sazonalidade.push(
+        `${periodNames[bestPeriod[0]]} é o período mais ativo (${((bestPeriod[1] / totalHourly) * 100).toFixed(0)}% das visitas).`,
+      );
+    }
+  } else {
+    sazonalidade.push(`💡 Dica: dados horários ainda não disponíveis para detectar horários de pico exatos.`);
+  }
+
+  if (sazonalidade.length === 0) {
+    sazonalidade.push("Continue coletando dados — em alguns dias será possível detectar padrões de sazonalidade.");
+  }
+
   // === PRÓXIMOS PASSOS ===
   const proximos = [
     `1. Revisar a página \`${topPagePath}\` e otimizar CTAs.`,
@@ -147,6 +242,9 @@ export function generateLocalInsights(input: InsightsInput): string {
     `⚠️ **PONTOS DE ATENÇÃO**`,
     ...atencao.map((a) => `• ${a}`),
     ``,
+    `📅 **SAZONALIDADE & PADRÕES**`,
+    ...sazonalidade.map((s) => `• ${s}`),
+    ``,
     `💡 **RECOMENDAÇÕES PRÁTICAS**`,
     ...recomendacoes.map((r) => `• ${r}`),
     ``,
@@ -154,3 +252,4 @@ export function generateLocalInsights(input: InsightsInput): string {
     ...proximos,
   ].join("\n");
 }
+
