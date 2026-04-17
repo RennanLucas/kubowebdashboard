@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { GitCompare, Users, TrendingUp, DollarSign, Percent, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
