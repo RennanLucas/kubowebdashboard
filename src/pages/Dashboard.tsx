@@ -37,6 +37,9 @@ const Dashboard = () => {
   const comparison = data?.comparison;
   const conversions = data?.conversions;
 
+  const activeProjectId = selectedProjectId || clientData?.project?.id;
+  const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
+
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
   const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
   const avgConversion = totalVisitors > 0 ? Number(((totalLeads / totalVisitors) * 100).toFixed(2)) : 0;
@@ -83,6 +86,13 @@ const Dashboard = () => {
       return (m.leads / m.visitors) * 100;
     });
   }, [metrics, chartData]);
+
+  const prevSeries = useMemo(() => {
+    if (!comparison || !comparison.prevVisitors) return [] as number[];
+    const totalCurrent = chartData.reduce((s, d) => s + d.visitors, 0);
+    if (totalCurrent === 0) return chartData.map(() => Math.round(comparison.prevVisitors / Math.max(1, chartData.length)));
+    return chartData.map((d) => Math.round((d.visitors / totalCurrent) * comparison.prevVisitors));
+  }, [chartData, comparison]);
 
   const insights = [];
   if (totalVisitors > 0) {
@@ -179,18 +189,6 @@ const Dashboard = () => {
   };
 
   const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
-  const activeProjectId = selectedProjectId || clientData?.project?.id;
-  const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
-
-  // Build previous-period series aligned to current chart length
-  const prevSeries = useMemo(() => {
-    if (!comparison || !comparison.prevVisitors) return [] as number[];
-    // We don't have day-by-day previous data; distribute proportionally to current shape
-    // Approximation: same daily share applied to previous total visitors
-    const totalCurrent = chartData.reduce((s, d) => s + d.visitors, 0);
-    if (totalCurrent === 0) return chartData.map(() => Math.round(comparison.prevVisitors / chartData.length));
-    return chartData.map((d) => Math.round((d.visitors / totalCurrent) * comparison.prevVisitors));
-  }, [chartData, comparison]);
 
   // Funnel stages
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
