@@ -269,7 +269,7 @@ REGRAS:
 
     const aiJson = await aiResp.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? "Sem conteúdo gerado.";
-    const model = "google/gemini-3-flash-preview";
+    const model = "google/gemini-2.5-flash";
 
     const { data: inserted, error: insErr } = await admin
       .from("ai_insights")
