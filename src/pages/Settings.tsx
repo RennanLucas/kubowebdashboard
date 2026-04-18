@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
+import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle, CreditCard, ExternalLink } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
+import { useSubscription } from "@/hooks/useSubscription";
+import { openPortal } from "@/lib/stripe";
 
 const HelpTip = ({ text }: { text: string }) => (
   <Popover>
