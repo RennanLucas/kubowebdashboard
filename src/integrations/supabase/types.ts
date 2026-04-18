@@ -223,49 +223,64 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          amount: number | null
           cancel_at_period_end: boolean | null
           created_at: string | null
           current_period_end: string | null
           current_period_start: string | null
           environment: string
+          external_id: string | null
           id: string
-          price_id: string
-          product_id: string
+          payer_email: string | null
+          plan_id: string | null
+          price_id: string | null
+          product_id: string | null
+          provider: string
           status: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           trial_end: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          amount?: number | null
           cancel_at_period_end?: boolean | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_id?: string | null
           id?: string
-          price_id: string
-          product_id: string
+          payer_email?: string | null
+          plan_id?: string | null
+          price_id?: string | null
+          product_id?: string | null
+          provider?: string
           status?: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           trial_end?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          amount?: number | null
           cancel_at_period_end?: boolean | null
           created_at?: string | null
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          external_id?: string | null
           id?: string
-          price_id?: string
-          product_id?: string
+          payer_email?: string | null
+          plan_id?: string | null
+          price_id?: string | null
+          product_id?: string | null
+          provider?: string
           status?: string
-          stripe_customer_id?: string
-          stripe_subscription_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           trial_end?: string | null
           updated_at?: string | null
           user_id?: string

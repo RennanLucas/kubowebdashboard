@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStripeEnvironment } from "@/lib/stripe";
 
 export interface SubscriptionRow {
   id: string;
@@ -9,8 +8,8 @@ export interface SubscriptionRow {
   current_period_end: string | null;
   trial_end: string | null;
   cancel_at_period_end: boolean;
-  product_id: string;
-  price_id: string;
+  product_id: string | null;
+  price_id: string | null;
   environment: string;
 }
 
@@ -25,12 +24,10 @@ export function useSubscription() {
       setLoading(false);
       return;
     }
-    const env = getStripeEnvironment();
     const { data } = await supabase
       .from("subscriptions" as any)
       .select("*")
       .eq("user_id", user.id)
-      .eq("environment", env)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -57,11 +54,11 @@ export function useSubscription() {
 
   const isActive = (() => {
     if (!subscription) return false;
-    const okStatus = ["active", "trialing"].includes(subscription.status);
+    const okStatus = ["active", "trialing", "authorized", "approved"].includes(subscription.status);
     const periodOk = !subscription.current_period_end ||
       new Date(subscription.current_period_end) > new Date();
     if (okStatus && periodOk) return true;
-    if (subscription.status === "canceled" && subscription.current_period_end &&
+    if (["canceled", "cancelled"].includes(subscription.status) && subscription.current_period_end &&
       new Date(subscription.current_period_end) > new Date()) return true;
     return false;
   })();

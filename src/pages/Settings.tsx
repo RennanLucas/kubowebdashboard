@@ -13,7 +13,7 @@ import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
 import { useSubscription } from "@/hooks/useSubscription";
-import { openPortal } from "@/lib/stripe";
+
 
 const HelpTip = ({ text }: { text: string }) => (
   <Popover>
@@ -37,20 +37,7 @@ const Settings = () => {
   const queryClient = useQueryClient();
   const { data: clientData, isLoading } = useClientData();
   const [saving, setSaving] = useState(false);
-  const [openingPortal, setOpeningPortal] = useState(false);
   const { subscription, isActive } = useSubscription();
-
-  const handleManageSubscription = async () => {
-    setOpeningPortal(true);
-    try {
-      const url = await openPortal(window.location.origin + "/settings");
-      window.open(url, "_blank");
-    } catch (e: any) {
-      toast.error(e.message || "Não foi possível abrir o portal");
-    } finally {
-      setOpeningPortal(false);
-    }
-  };
   const [form, setForm] = useState({
     companyName: "",
     domain: "",
@@ -288,22 +275,21 @@ const Settings = () => {
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Cancele o trial, atualize o cartão ou troque de plano pelo portal seguro do Stripe.
+                  Para cancelar a assinatura, atualizar o cartão ou ver suas faturas, acesse sua conta no Mercado Pago em <strong>Minhas assinaturas</strong>.
                 </p>
                 <Button
                   variant="outline"
                   className="w-full h-11"
-                  onClick={handleManageSubscription}
-                  disabled={openingPortal}
+                  asChild
                 >
-                  {openingPortal ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground" />
-                  ) : (
-                    <>
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Gerenciar assinatura
-                    </>
-                  )}
+                  <a
+                    href="https://www.mercadopago.com.br/subscriptions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Gerenciar no Mercado Pago
+                  </a>
                 </Button>
               </>
             ) : (

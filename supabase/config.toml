@@ -1,10 +1,10 @@
 project_id = "mgiwqgmgipyysbgmhyrh"
 
-[functions.create-checkout]
+[functions.track]
 verify_jwt = false
 
-[functions.get-stripe-price]
+[functions.tracker-script]
 verify_jwt = false
 
-[functions.payments-webhook]
+[functions.mp-webhook]
 verify_jwt = false
