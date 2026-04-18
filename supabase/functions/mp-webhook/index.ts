@@ -1,0 +1,153 @@
+// Webhook do Mercado Pago: processa notificações de payment e preapproval
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const url = new URL(req.url);
+    const queryType = url.searchParams.get("type") || url.searchParams.get("topic");
+    const queryId = url.searchParams.get("id") || url.searchParams.get("data.id");
+
+    let body: any = {};
+    try { body = await req.json(); } catch { /* GET ping */ }
+
+    const type = body.type || body.topic || queryType;
+    const dataId = body.data?.id || body.resource || queryId;
+
+    console.log("MP webhook:", { type, dataId, body });
+
+    if (!type || !dataId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+
+    if (type === "payment") {
+      await handlePayment(String(dataId).replace(/\D/g, ""));
+    } else if (type === "preapproval" || type === "subscription_preapproval") {
+      await handlePreapproval(String(dataId));
+    } else if (type === "subscription_authorized_payment") {
+      // Pagamento recorrente bem-sucedido — atualiza período
+      await handleAuthorizedPayment(String(dataId));
+    }
+
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  } catch (e) {
+    console.error("mp-webhook error:", e);
+    // Sempre 200 pra não causar retries infinitos
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+});
+
+async function mpFetch(path: string) {
+  const res = await fetch(`https://api.mercadopago.com${path}`, {
+    headers: { Authorization: `Bearer ${MP_TOKEN}` },
+  });
+  if (!res.ok) {
+    console.error("MP fetch error:", path, await res.text());
+    return null;
+  }
+  return res.json();
+}
+
+async function handlePayment(paymentId: string) {
+  const payment = await mpFetch(`/v1/payments/${paymentId}`);
+  if (!payment) return;
+
+  const extRef = payment.external_reference as string | undefined;
+  if (!extRef) {
+    console.warn("Payment without external_reference:", paymentId);
+    return;
+  }
+  const [userId, planId] = extRef.split("|");
+  if (!userId) return;
+
+  const status = payment.status as string; // approved, pending, rejected, refunded
+  const isAnnual = planId === "kuboweb_pro_yearly";
+  const isApproved = status === "approved";
+
+  if (!isAnnual) return; // recorrentes vêm via subscription_authorized_payment
+
+  const periodEnd = isApproved
+    ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
+  await admin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      provider: "mercadopago",
+      external_id: String(paymentId),
+      plan_id: planId,
+      status: isApproved ? "active" : status,
+      amount: payment.transaction_amount,
+      payer_email: payment.payer?.email,
+      current_period_start: new Date().toISOString(),
+      current_period_end: periodEnd,
+      environment: "live",
+      // Compatibilidade com schema legado
+      stripe_subscription_id: `mp_${paymentId}`,
+      stripe_customer_id: `mp_${payment.payer?.id ?? userId}`,
+      product_id: planId,
+      price_id: planId,
+    },
+    { onConflict: "external_id" },
+  );
+}
+
+async function handlePreapproval(preapprovalId: string) {
+  const sub = await mpFetch(`/preapproval/${preapprovalId}`);
+  if (!sub) return;
+
+  const extRef = sub.external_reference as string | undefined;
+  if (!extRef) return;
+  const [userId, planId] = extRef.split("|");
+  if (!userId) return;
+
+  const status = sub.status as string; // pending, authorized, paused, cancelled
+  const nextPayment = sub.next_payment_date ? new Date(sub.next_payment_date).toISOString() : null;
+  const trialEnd = sub.auto_recurring?.free_trial && sub.date_created
+    ? new Date(new Date(sub.date_created).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
+  const mappedStatus =
+    status === "authorized" ? (trialEnd && new Date(trialEnd) > new Date() ? "trialing" : "active") :
+    status === "cancelled" ? "canceled" :
+    status === "paused" ? "paused" : status;
+
+  await admin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      provider: "mercadopago",
+      external_id: preapprovalId,
+      plan_id: planId,
+      status: mappedStatus,
+      amount: sub.auto_recurring?.transaction_amount,
+      payer_email: sub.payer_email,
+      current_period_start: sub.date_created ? new Date(sub.date_created).toISOString() : new Date().toISOString(),
+      current_period_end: nextPayment,
+      trial_end: trialEnd,
+      environment: "live",
+      stripe_subscription_id: `mp_${preapprovalId}`,
+      stripe_customer_id: `mp_${sub.payer_id ?? userId}`,
+      product_id: planId,
+      price_id: planId,
+    },
+    { onConflict: "external_id" },
+  );
+}
+
+async function handleAuthorizedPayment(authPaymentId: string) {
+  const auth = await mpFetch(`/authorized_payments/${authPaymentId}`);
+  if (!auth?.preapproval_id) return;
+  await handlePreapproval(String(auth.preapproval_id));
+}
