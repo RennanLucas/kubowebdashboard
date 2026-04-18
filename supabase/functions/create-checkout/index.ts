@@ -26,15 +26,11 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    // Pix só para pagamento único em BRL e se ativado no Stripe Dashboard.
-    // Se Pix não estiver ativado, faz fallback para somente cartão.
-    const wantsPix = !isRecurring && stripePrice.currency === "brl";
-
-    const buildParams = (methods: string[]) => ({
+    const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: 1 }],
-      mode: (isRecurring ? "subscription" : "payment") as "subscription" | "payment",
-      ui_mode: "embedded" as const,
-      payment_method_types: methods,
+      mode: isRecurring ? "subscription" : "payment",
+      ui_mode: "embedded",
+      payment_method_types: ["card"],
       return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(isRecurring && {
@@ -45,20 +41,6 @@ serve(async (req) => {
       }),
       ...(userId && { metadata: { userId } }),
     });
-
-    let session;
-    try {
-      session = await stripe.checkout.sessions.create(
-        buildParams(wantsPix ? ["card", "pix"] : ["card"]) as any,
-      );
-    } catch (err: any) {
-      if (wantsPix && /pix/i.test(err?.message || "")) {
-        console.warn("Pix não ativado no Stripe, fallback para cartão:", err.message);
-        session = await stripe.checkout.sessions.create(buildParams(["card"]) as any);
-      } else {
-        throw err;
-      }
-    }
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
