@@ -37,6 +37,20 @@ const Settings = () => {
   const queryClient = useQueryClient();
   const { data: clientData, isLoading } = useClientData();
   const [saving, setSaving] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const { subscription, isActive } = useSubscription();
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const url = await openPortal(window.location.origin + "/settings");
+      window.open(url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível abrir o portal");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
   const [form, setForm] = useState({
     companyName: "",
     domain: "",
