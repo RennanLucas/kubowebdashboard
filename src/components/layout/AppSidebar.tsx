@@ -20,17 +20,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Live", url: "/live", icon: Activity },
-  { title: "Insights", url: "/insights", icon: Sparkles },
-  { title: "Alertas", url: "/alerts", icon: Bell },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tour: "sidebar-dashboard" },
+  { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live" },
+  { title: "Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights" },
+  { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
   { title: "Comparar", url: "/compare", icon: GitCompare },
   { title: "Apresentação", url: "/presentation", icon: Maximize2 },
 ];
 
 const accountItems = [
-  { title: "Configurações", url: "/settings", icon: Settings },
-  { title: "Assinatura", url: "/pricing", icon: CreditCard },
+  { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
+  { title: "Assinatura", url: "/pricing", icon: CreditCard, tour: "sidebar-pricing" },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
 ];
 
@@ -80,7 +80,7 @@ export function AppSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end>
+                    <NavLink to={item.url} end data-tour={(item as any).tour}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </NavLink>
@@ -98,7 +98,7 @@ export function AppSidebar() {
               {accountItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end>
+                    <NavLink to={item.url} end data-tour={(item as any).tour}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </NavLink>
