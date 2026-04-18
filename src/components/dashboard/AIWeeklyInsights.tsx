@@ -169,7 +169,7 @@ export const AIWeeklyInsights = () => {
               })}
             </span>
             {remaining === 0 && (
-              <span className="text-amber-600 dark:text-amber-400">
+              <span className="text-warning">
                 Limite mensal atingido — volta em {nextMonthLabel()}
               </span>
             )}
