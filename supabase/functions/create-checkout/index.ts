@@ -26,14 +26,17 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    // Use Stripe's automatic payment methods so Pix, boleto, cartão etc.
-    // aparecem conforme habilitados no Stripe Dashboard. Pix só funciona em
-    // pagamentos únicos em BRL — assinaturas continuam com cartão.
+    // Para assinaturas: somente cartão (Pix não suporta recorrência).
+    // Para pagamento único em BRL: cartão + Pix (Pix precisa estar ativado no Stripe Dashboard).
+    const paymentMethodTypes = isRecurring
+      ? ["card"]
+      : (stripePrice.currency === "brl" ? ["card", "pix"] : ["card"]);
+
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: paymentMethodTypes,
       return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       ...(customerEmail && { customer_email: customerEmail }),
       ...(isRecurring && {
