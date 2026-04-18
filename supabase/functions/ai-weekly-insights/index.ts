@@ -238,7 +238,7 @@ REGRAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Dados:\n${JSON.stringify(dataSummary, null, 2)}` },
@@ -269,7 +269,7 @@ REGRAS:
 
     const aiJson = await aiResp.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? "Sem conteúdo gerado.";
-    const model = "google/gemini-3-flash-preview";
+    const model = "google/gemini-2.5-flash";
 
     const { data: inserted, error: insErr } = await admin
       .from("ai_insights")
