@@ -55,6 +55,25 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Digite seu email primeiro para receber o link de recuperação.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Enviamos um link de recuperação para seu email.");
+    } catch (err: any) {
+      toast.error(err.message || "Não foi possível enviar o email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left: Brand */}
@@ -124,6 +143,15 @@ const Login = () => {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-primary hover:underline self-end"
+                >
+                  Esqueci minha senha
+                </button>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
