@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
