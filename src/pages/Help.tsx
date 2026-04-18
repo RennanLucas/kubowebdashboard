@@ -1,6 +1,10 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, PlayCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { startProductTour, TOUR_STORAGE_KEY } from "@/lib/product-tour";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
@@ -155,6 +159,21 @@ const sections: Section[] = [
 ];
 
 export default function Help() {
+  const navigate = useNavigate();
+
+  const handleRestartTour = () => {
+    try {
+      localStorage.removeItem(TOUR_STORAGE_KEY);
+    } catch {}
+    if (window.location.pathname !== "/dashboard") {
+      navigate("/dashboard");
+      setTimeout(() => startProductTour(), 500);
+    } else {
+      startProductTour();
+    }
+    toast.success("Tour iniciado!");
+  };
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -167,6 +186,22 @@ export default function Help() {
             Entenda cada métrica, fórmula e recurso disponível na plataforma.
           </p>
         </div>
+
+        <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <PlayCircle className="h-4 w-4 text-primary" />
+              Tour guiado da plataforma
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Refaça o tutorial interativo de boas-vindas mostrando todas as áreas do app.
+            </p>
+          </div>
+          <Button onClick={handleRestartTour} className="shrink-0">
+            <PlayCircle className="h-4 w-4 mr-2" />
+            Refazer tour
+          </Button>
+        </Card>
 
         <div className="space-y-4">
           {sections.map((sec) => (
