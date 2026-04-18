@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_insights: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          model: string | null
+          period_days: number
+          project_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          period_days?: number
+          project_id?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          period_days?: number
+          project_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       alert_preferences: {
         Row: {
           created_at: string
