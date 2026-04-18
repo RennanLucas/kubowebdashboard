@@ -104,8 +104,10 @@ export const AIWeeklyInsights = () => {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={remaining > 0 ? "secondary" : "outline"} className="gap-1">
-            <Calendar className="h-3 w-3" />
-            {remaining}/{limit} este mês
+            <span className="inline-flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {remaining}/{limit} este mês
+            </span>
           </Badge>
           <Button
             size="sm"
