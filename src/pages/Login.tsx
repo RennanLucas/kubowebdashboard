@@ -77,23 +77,58 @@ const Login = () => {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left: Brand */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
-        <div className="max-w-md">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12 relative overflow-hidden">
+        {/* Decorative gradient blobs */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="max-w-md relative z-10">
           <img
             src={logoKubowebWhite}
             alt="KUBOWEB"
             className="h-12 w-auto mb-6"
           />
-          <p className="text-primary-foreground/80 text-lg leading-relaxed">
-            Acompanhe o desempenho do seu site, monitore leads e cresça seu negócio com análises em tempo real.
+          <h1 className="text-primary-foreground text-3xl font-semibold leading-tight mb-4">
+            O painel completo para o desempenho do seu site.
+          </h1>
+          <p className="text-primary-foreground/80 text-base leading-relaxed mb-10">
+            Acompanhe visitantes, monitore leads e tome decisões baseadas em dados — tudo em tempo real, em um só lugar.
           </p>
-          <div className="mt-12 space-y-4">
-            {["Rastreamento de visitantes em tempo real", "Insights de geração de leads", "Análise de desempenho"].map((item) => (
-              <div key={item} className="flex items-center gap-3 text-primary-foreground/90">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary-foreground/60" />
-                <span>{item}</span>
+
+          {/* Features grid */}
+          <div className="grid grid-cols-1 gap-3 mb-10">
+            {[
+              { icon: BarChart3, title: "Analytics em tempo real", desc: "Veja o que acontece no seu site agora" },
+              { icon: Users, title: "Rastreamento de visitantes", desc: "Sem cookies, com privacidade garantida" },
+              { icon: Target, title: "Conversões automáticas", desc: "WhatsApp, formulários e cliques" },
+              { icon: Bell, title: "Alertas inteligentes", desc: "Saiba quando algo importante acontecer" },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3 p-3 rounded-lg bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10">
+                <div className="shrink-0 w-9 h-9 rounded-md bg-primary-foreground/10 flex items-center justify-center">
+                  <Icon className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div>
+                  <p className="text-primary-foreground font-medium text-sm">{title}</p>
+                  <p className="text-primary-foreground/70 text-xs mt-0.5">{desc}</p>
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex items-center gap-4 pt-6 border-t border-primary-foreground/10">
+            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
+              <Shield className="h-3.5 w-3.5" />
+              <span>LGPD compliant</span>
+            </div>
+            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
+              <Zap className="h-3.5 w-3.5" />
+              <span>Script &lt; 1KB</span>
+            </div>
+            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
+              <Globe className="h-3.5 w-3.5" />
+              <span>Multi-site</span>
+            </div>
           </div>
         </div>
       </div>
