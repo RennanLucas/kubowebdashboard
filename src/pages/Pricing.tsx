@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
-import { Check, Loader2 } from "lucide-react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Check, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -52,10 +52,16 @@ const plans: Array<{
 ];
 
 export default function Pricing() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { isActive, loading: subLoading } = useSubscription();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login", { replace: true });
+  };
 
   if (authLoading || subLoading || adminLoading) {
     return (
@@ -89,6 +95,22 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="border-b bg-card/60 backdrop-blur sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+              {(user?.email?.[0] ?? "?").toUpperCase()}
+            </div>
+            <span className="text-sm text-muted-foreground truncate">
+              Logado como <span className="text-foreground font-medium">{user?.email}</span>
+            </span>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sair
+          </Button>
+        </div>
+      </div>
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="text-center mb-10 max-w-2xl mx-auto">
           <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary mb-4">
