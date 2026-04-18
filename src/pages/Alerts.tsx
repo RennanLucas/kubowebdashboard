@@ -1,11 +1,15 @@
-import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock } from "lucide-react";
+import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock, X, Check } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useGoals } from "@/hooks/useGoals";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
+import { usePersistedAlerts } from "@/hooks/usePersistedAlerts";
 import { Navigate, Link } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
@@ -29,6 +33,7 @@ export default function Alerts() {
   const projectId = data?.client?.project?.id;
   const { goals } = useGoals(projectId);
   const { heatmap } = useHourlyHeatmap(projectId, 30);
+  const { alerts: persisted, markAsRead, dismiss, markAllRead } = usePersistedAlerts(projectId);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -164,25 +169,82 @@ export default function Alerts() {
     }
   }
 
+  const unreadCount = persisted.filter((a) => !a.read).length;
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-            <Bell className="h-6 w-6 text-primary" />
-            Alertas e Notificações
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Monitoramento automático de anomalias, metas e oportunidades nos seus dados.{" "}
-            <Link to="/help" className="text-primary hover:underline">
-              Saiba mais
-            </Link>
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+              <Bell className="h-6 w-6 text-primary" />
+              Alertas e Notificações
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="text-[10px]">{unreadCount} novos</Badge>
+              )}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Monitoramento automático de anomalias, metas e oportunidades.{" "}
+              <Link to="/help" className="text-primary hover:underline">Saiba mais</Link>
+            </p>
+          </div>
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllRead}>
+              <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
+            </Button>
+          )}
         </div>
 
+        {/* Persisted alerts (from cron) */}
+        {persisted.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              Notificações automáticas
+            </h2>
+            <div className="space-y-2">
+              {persisted.map((alert) => {
+                const cfg = severityConfig[alert.severity] ?? severityConfig.info;
+                return (
+                  <Card key={alert.id} className={`p-4 border ${cfg.bg} ${alert.read ? "opacity-60" : ""}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`shrink-0 ${cfg.color}`}>
+                        <Bell className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="text-sm font-semibold text-foreground">{alert.title}</h3>
+                          {!alert.read && <Badge variant="default" className="text-[10px] h-4">Novo</Badge>}
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true, locale: ptBR })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{alert.message}</p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        {!alert.read && (
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => markAsRead(alert.id)}>
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => dismiss(alert.id)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Local rule-based insights */}
+        <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+          Insights atuais
+        </h2>
         {isLoading ? (
           <Card className="p-12 text-center text-muted-foreground text-sm">Carregando alertas...</Card>
-        ) : alerts.length === 0 ? (
+        ) : alerts.length === 0 && persisted.length === 0 ? (
           <Card className="p-12 text-center border-dashed">
             <CheckCircle2 className="h-12 w-12 text-[hsl(var(--success))]/40 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Tudo certo por aqui!</h3>
