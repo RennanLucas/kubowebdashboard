@@ -45,18 +45,18 @@ const DashboardHeader = ({
   const hasMultipleProjects = projects && projects.length > 1;
 
   return (
-    <header className="glass-card p-6 mb-8">
+    <header className="glass-card p-5 sm:p-6 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10 flex items-center justify-center shrink-0">
             <BarChart3 className="h-5 w-5 text-primary" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-medium text-foreground tracking-tight">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight truncate">
                 {clientName || "Dashboard"}
               </h1>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium uppercase tracking-wider">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
                 Analytics
               </span>
             </div>
@@ -64,8 +64,8 @@ const DashboardHeader = ({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 mt-0.5">
-                    {projectName || "Selecionar projeto"}
-                    <ChevronDown className="h-3 w-3" />
+                    <span className="truncate max-w-[200px]">{projectName || "Selecionar projeto"}</span>
+                    <ChevronDown className="h-3 w-3 shrink-0" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
@@ -81,21 +81,21 @@ const DashboardHeader = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5 truncate">
                 {projectName || `Bem-vindo, ${user?.email}`}
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8 transition-all duration-150">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-9 rounded-lg shadow-sm hover:shadow transition-all duration-150">
                   <FileDown className="h-3.5 w-3.5" />
                   Exportar
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="h-3 w-3 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

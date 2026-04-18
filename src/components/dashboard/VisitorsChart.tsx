@@ -65,11 +65,14 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
   };
 
   return (
-    <div className="glass-card p-5">
-      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-card-foreground">Visitantes e Leads</h3>
-          <InfoTooltip content="Linha do tempo de visitantes e leads. Use as anotações para marcar campanhas ou eventos importantes e compare com o período anterior para ver tendências." />
+    <div className="glass-card p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-5 gap-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="section-title">Visitantes e Leads</h3>
+            <InfoTooltip content="Linha do tempo de visitantes e leads. Use as anotações para marcar campanhas ou eventos importantes e compare com o período anterior para ver tendências." />
+          </div>
+          <p className="section-subtitle">Evolução diária no período selecionado</p>
         </div>
         <div className="flex items-center gap-3">
           {prevSeries && prevSeries.length > 0 && (
@@ -140,19 +143,21 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
                 <stop offset="100%" stopColor="hsl(var(--chart-green))" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid rgba(0,0,0,0.06)",
-                borderRadius: "8px",
-                fontSize: 13,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "10px",
+                fontSize: 12,
+                padding: "8px 10px",
+                boxShadow: "0 8px 24px -8px rgba(16,24,40,0.12)",
               }}
+              cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
             />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />
             <Area name="Visitantes" type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} fill="url(#gradVisitors)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
             <Area name="Leads" type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} fill="url(#gradLeads)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
             {showCompare && prevSeries && (
