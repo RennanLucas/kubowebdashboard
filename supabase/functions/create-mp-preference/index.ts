@@ -89,6 +89,9 @@ Deno.serve(async (req) => {
     }
 
     // Pagamento único (anual) — Checkout Pro
+    // NÃO enviamos payer.email aqui: o MP rejeita quando o email do pagador
+    // é o mesmo da conta dona do token, ou quando é um email sem conta MP.
+    // Deixamos o comprador preencher no próprio checkout.
     const payload = {
       items: [
         {
@@ -98,7 +101,6 @@ Deno.serve(async (req) => {
           currency_id: "BRL",
         },
       ],
-      payer: email ? { email } : undefined,
       external_reference: `${userId}|${planId}`,
       back_urls: {
         success: baseReturn,
@@ -107,7 +109,7 @@ Deno.serve(async (req) => {
       },
       auto_return: "approved",
       notification_url: webhookUrl,
-      metadata: { user_id: userId, plan_id: planId },
+      metadata: { user_id: userId, plan_id: planId, payer_email: email },
     };
     const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
