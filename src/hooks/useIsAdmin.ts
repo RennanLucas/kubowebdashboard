@@ -13,6 +13,7 @@ export function useIsAdmin() {
       setLoading(false);
       return;
     }
+    setLoading(true);
     let cancelled = false;
     (async () => {
       const { data } = await supabase
