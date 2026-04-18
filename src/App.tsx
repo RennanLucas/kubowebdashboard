@@ -19,6 +19,7 @@ import Help from "./pages/Help";
 import Compare from "./pages/Compare";
 import Presentation from "./pages/Presentation";
 import ResetPassword from "./pages/ResetPassword";
+import Live from "./pages/Live";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/alerts" element={<ProtectedRoute requireSubscription><Alerts /></ProtectedRoute>} />
             <Route path="/compare" element={<ProtectedRoute requireSubscription><Compare /></ProtectedRoute>} />
             <Route path="/presentation" element={<ProtectedRoute requireSubscription><Presentation /></ProtectedRoute>} />
+            <Route path="/live" element={<ProtectedRoute requireSubscription><Live /></ProtectedRoute>} />
             <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
