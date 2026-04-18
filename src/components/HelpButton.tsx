@@ -23,8 +23,8 @@ export function HelpButton() {
       onClick={handleClick}
       size="icon"
       className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90"
-      title="Tour guiado"
-      aria-label="Abrir tour guiado"
+      title="Tutorial: como usar o app"
+      aria-label="Tutorial: como usar o app"
     >
       <HelpCircle className="h-5 w-5" />
     </Button>
