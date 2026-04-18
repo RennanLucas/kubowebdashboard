@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import { type StripeEnv, createStripeClient, verifyWebhook } from "../_shared/stripe.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -25,9 +25,41 @@ serve(async (req) => {
       case "customer.subscription.deleted":
         await markCanceled(event.data.object, env);
         break;
-      case "checkout.session.completed":
-        console.log("Checkout completed:", event.data.object.id);
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        console.log("Checkout completed:", session.id, "mode:", session.mode);
+        if (session.mode === "subscription" && session.subscription) {
+          const stripe = createStripeClient(env);
+          const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+          // Garante metadata.userId vindo do session caso a subscription não tenha
+          if (!sub.metadata?.userId && session.metadata?.userId) {
+            sub.metadata = { ...(sub.metadata || {}), userId: session.metadata.userId };
+          }
+          await upsertSubscription(sub, env);
+        } else if (session.mode === "payment" && session.metadata?.userId) {
+          // Pagamento único (anual à vista) — grava como ativo por 1 ano
+          const userId = session.metadata.userId;
+          const oneYear = new Date();
+          oneYear.setFullYear(oneYear.getFullYear() + 1);
+          await supabase.from("subscriptions").upsert(
+            {
+              user_id: userId,
+              stripe_subscription_id: session.id,
+              stripe_customer_id: (session.customer as string) || "one_time",
+              product_id: "one_time",
+              price_id: session.metadata?.priceId || "one_time",
+              status: "active",
+              current_period_start: new Date().toISOString(),
+              current_period_end: oneYear.toISOString(),
+              cancel_at_period_end: true,
+              environment: env,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "stripe_subscription_id" },
+          );
+        }
         break;
+      }
       case "invoice.payment_failed":
         console.log("Payment failed:", event.data.object.id);
         break;
