@@ -1,12 +1,14 @@
-import { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { CommandPalette } from "@/components/CommandPalette";
+import { HelpButton } from "@/components/HelpButton";
 import { useAlertsCount } from "@/hooks/useAlertsCount";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { hasCompletedTour, startProductTour } from "@/lib/product-tour";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -78,6 +80,16 @@ const HeaderBadges = () => {
 };
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const location = useLocation();
+
+  // Auto-start tour on first visit to dashboard
+  useEffect(() => {
+    if (location.pathname === "/dashboard" && !hasCompletedTour()) {
+      const t = setTimeout(() => startProductTour(), 800);
+      return () => clearTimeout(t);
+    }
+  }, [location.pathname]);
+
   return (
     <SidebarProvider>
       <CommandPalette />
@@ -90,6 +102,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </header>
           <main className="flex-1 min-w-0">{children}</main>
         </div>
+        <HelpButton />
       </div>
     </SidebarProvider>
   );
