@@ -24,6 +24,7 @@ export function useSubscription() {
       setLoading(false);
       return;
     }
+    setLoading(true);
     const { data } = await supabase
       .from("subscriptions" as any)
       .select("*")
