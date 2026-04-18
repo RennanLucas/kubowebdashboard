@@ -90,10 +90,18 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-semibold text-foreground mb-3">Escolha seu plano KUBOWEB Pro</h1>
-          <p className="text-muted-foreground">
-            Acesso completo à plataforma. Pagamentos processados pelo Mercado Pago.
+        <div className="text-center mb-10 max-w-2xl mx-auto">
+          <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary mb-4">
+            KUBOWEB Pro
+          </span>
+          <h1 className="text-3xl font-semibold text-foreground mb-3">Escolha seu plano</h1>
+          <p className="text-muted-foreground mb-2">
+            O KUBOWEB Pro é a plataforma completa de analytics e geração de leads para o seu site:
+            acompanhe visitantes em tempo real, conversões de WhatsApp, formulários e botões,
+            origem do tráfego, geolocalização e relatórios em PDF — tudo em um painel só.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Pagamentos processados com segurança pelo Mercado Pago.
           </p>
         </div>
 
