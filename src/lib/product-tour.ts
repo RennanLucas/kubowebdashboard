@@ -44,9 +44,9 @@ const baseSteps: DriveStep[] = [
   {
     element: "[data-tour='sidebar-insights']",
     popover: {
-      title: "✨ Insights com IA",
+      title: "💡 Insights automáticos",
       description:
-        "Resumos semanais automáticos analisando tendências, picos e quedas dos seus dados (2 análises por mês).",
+        "Análises automáticas dos seus dados — destaques, tendências e oportunidades calculadas no momento que você abre. <b>Ilimitado</b>, sem usar IA.",
       side: "right",
     },
   },
