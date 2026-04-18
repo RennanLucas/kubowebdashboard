@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle } from "lucide-react";
+import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle, CreditCard, ExternalLink } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
+import { useSubscription } from "@/hooks/useSubscription";
+import { openPortal } from "@/lib/stripe";
 
 const HelpTip = ({ text }: { text: string }) => (
   <Popover>
@@ -35,6 +37,20 @@ const Settings = () => {
   const queryClient = useQueryClient();
   const { data: clientData, isLoading } = useClientData();
   const [saving, setSaving] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const { subscription, isActive } = useSubscription();
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const url = await openPortal(window.location.origin + "/settings");
+      window.open(url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Não foi possível abrir o portal");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
   const [form, setForm] = useState({
     companyName: "",
     domain: "",
@@ -237,6 +253,70 @@ const Settings = () => {
               <TrackingSnippet projectId={clientData.projects[0].id} />
             </div>
           )}
+
+          {/* Assinatura */}
+          <div className="glass-card rounded-xl p-6 space-y-4">
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-primary" /> Assinatura
+            </h2>
+            {subscription ? (
+              <>
+                <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-1 text-sm">
+                  <p className="text-foreground">
+                    Status:{" "}
+                    <span className="font-medium capitalize">
+                      {subscription.status === "trialing"
+                        ? "Em período de teste"
+                        : subscription.status === "active"
+                          ? "Ativa"
+                          : subscription.status === "canceled"
+                            ? "Cancelada"
+                            : subscription.status}
+                    </span>
+                  </p>
+                  {subscription.trial_end && subscription.status === "trialing" && (
+                    <p className="text-muted-foreground">
+                      Trial termina em{" "}
+                      {new Date(subscription.trial_end).toLocaleDateString("pt-BR")}
+                    </p>
+                  )}
+                  {subscription.current_period_end && (
+                    <p className="text-muted-foreground">
+                      {subscription.cancel_at_period_end ? "Acesso até" : "Próxima cobrança"}:{" "}
+                      {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}
+                    </p>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Cancele o trial, atualize o cartão ou troque de plano pelo portal seguro do Stripe.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full h-11"
+                  onClick={handleManageSubscription}
+                  disabled={openingPortal}
+                >
+                  {openingPortal ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground" />
+                  ) : (
+                    <>
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Gerenciar assinatura
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não tem uma assinatura ativa.
+                </p>
+                <Button variant="outline" className="w-full h-11" onClick={() => navigate("/pricing")}>
+                  Ver planos
+                </Button>
+              </>
+            )}
+          </div>
 
           {/* Save */}
           <div className="flex gap-3">
