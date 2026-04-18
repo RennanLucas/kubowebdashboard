@@ -24,8 +24,8 @@ const mainItems = [
   { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live" },
   { title: "Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
-  { title: "Comparar", url: "/compare", icon: GitCompare },
-  { title: "Apresentação", url: "/presentation", icon: Maximize2 },
+  { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare" },
+  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation" },
 ];
 
 const accountItems = [
