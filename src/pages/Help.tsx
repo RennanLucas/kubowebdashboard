@@ -1,6 +1,10 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, PlayCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { startProductTour, TOUR_STORAGE_KEY } from "@/lib/product-tour";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
