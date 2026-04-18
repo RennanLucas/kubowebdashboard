@@ -17,6 +17,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { GoalsCard } from "@/components/dashboard/GoalsCard";
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
+import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
@@ -274,10 +275,11 @@ const Dashboard = () => {
               }} />
             </div>
 
-            {/* Top Pages + Top Referrers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Top Pages + Top Referrers + Live Feed */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <TopPages pages={topPages ?? []} />
               <TopReferrers data={referrers} isLoading={heatmapLoading} />
+              <LiveFeedCard projectId={activeProjectId ?? null} compact />
             </div>
 
             {/* Engagement + Devices + Geo */}

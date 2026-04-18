@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2 } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb-white.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Live", url: "/live", icon: Activity },
   { title: "Insights", url: "/insights", icon: Sparkles },
   { title: "Alertas", url: "/alerts", icon: Bell },
   { title: "Comparar", url: "/compare", icon: GitCompare },
