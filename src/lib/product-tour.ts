@@ -60,11 +60,37 @@ const baseSteps: DriveStep[] = [
     },
   },
   {
+    element: "[data-tour='sidebar-compare']",
+    popover: {
+      title: "📈 Comparar períodos",
+      description:
+        "Compare lado a lado dois períodos (ex: esta semana vs semana passada) pra ver evolução de visitantes, leads e conversões.",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='sidebar-presentation']",
+    popover: {
+      title: "🖥️ Modo Apresentação",
+      description:
+        "Tela cheia em formato de slides — perfeito pra mostrar resultados em reuniões com cliente ou na sua TV do escritório.",
+      side: "right",
+    },
+  },
+  {
     element: "[data-tour='sidebar-settings']",
     popover: {
-      title: "⚙️ Configurações & Tracking",
+      title: "⚙️ Configurações",
       description:
-        "Aqui você pega o script de tracking pra instalar no seu site, gerencia projetos e ajusta o valor por lead.",
+        "O coração do app:<br/>• Pega o <b>script de tracking</b> pra colar no seu site<br/>• Cria e gerencia <b>projetos</b> (múltiplos sites)<br/>• Define o <b>valor por lead</b> pra calcular ROI<br/>• Ajusta preferências de alertas",
+      side: "right",
+    },
+  },
+  {
+    element: "[data-tour='sidebar-pricing']",
+    popover: {
+      title: "💳 Assinatura",
+      description: "Gerencia seu plano. Sem assinatura ativa o dashboard fica bloqueado.",
       side: "right",
     },
   },
