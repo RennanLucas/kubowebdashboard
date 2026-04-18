@@ -97,12 +97,15 @@ Deno.serve(async (req) => {
     }
 
     // Coleta dados dos últimos 7 dias do projeto do usuário
-    const { data: client } = await admin
+    const { data: client, error: clientErr } = await admin
       .from("clients")
       .select("id, company_name, lead_value")
       .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .limit(1)
       .maybeSingle();
 
+    if (clientErr) console.error("client lookup error", clientErr);
     if (!client) {
       return new Response(JSON.stringify({ error: "Cliente não encontrado" }), {
         status: 404,
