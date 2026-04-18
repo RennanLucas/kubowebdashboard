@@ -75,10 +75,10 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
               </div>
               <div className="h-9 bg-muted/60 rounded-lg overflow-hidden relative">
                 <div
-                  className="h-full rounded-lg transition-all duration-700 ease-out"
+                  className="h-full rounded-lg transition-all duration-700 ease-out opacity-90"
                   style={{
                     width: `${Math.max(widthPct, 2)}%`,
-                    background: `linear-gradient(90deg, ${step.color} 0%, ${step.color}cc 100%)`,
+                    backgroundColor: step.color,
                   }}
                 />
               </div>
