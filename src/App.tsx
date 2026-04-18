@@ -18,7 +18,6 @@ import Alerts from "./pages/Alerts";
 import Help from "./pages/Help";
 import Compare from "./pages/Compare";
 import Presentation from "./pages/Presentation";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +28,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <PaymentTestModeBanner />
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
