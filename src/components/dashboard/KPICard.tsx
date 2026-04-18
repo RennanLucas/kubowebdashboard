@@ -19,9 +19,9 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
 
   return (
     <div className="glass-card glass-card-hover p-5 relative overflow-hidden group">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-1 min-w-0 flex-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">
             {title}
           </span>
           {tooltip && <InfoTooltip content={tooltip} />}
