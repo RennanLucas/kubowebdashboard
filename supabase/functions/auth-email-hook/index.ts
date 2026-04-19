@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "cubie-dash"
+const SITE_NAME = "KUBOWEB"
 const SENDER_DOMAIN = "notify.kuboweb.com.br"
 const ROOT_DOMAIN = "kuboweb.com.br"
 const FROM_DOMAIN = "kuboweb.com.br" // Domain shown in From address (may be root or sender subdomain)
