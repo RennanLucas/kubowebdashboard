@@ -41,8 +41,21 @@ const Login = () => {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Decide rota: se já tem cliente, vai pro dashboard; senão pro onboarding
+      const userId = signInData.user?.id;
+      if (userId) {
+        const { data: client } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("user_id", userId)
+          .limit(1)
+          .maybeSingle();
+        navigate(client ? "/dashboard" : "/onboarding");
+        return;
+      }
       navigate("/dashboard");
     } catch (error: any) {
       if (error.message?.includes("User already registered")) {
