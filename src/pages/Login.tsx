@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,11 +12,28 @@ import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { session, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Se já está logado, redireciona conforme tem ou não cliente
+  useEffect(() => {
+    if (authLoading || !session?.user) return;
+    let cancelled = false;
+    (async () => {
+      const { data: client } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) navigate(client ? "/dashboard" : "/onboarding", { replace: true });
+    })();
+    return () => { cancelled = true; };
+  }, [session, authLoading, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
