@@ -23,7 +23,6 @@ const baseFeatures = [
 const proPlusFeatures = [
   "Tudo do plano Pro, e mais:",
   "6 resumos com IA por mês (o dobro)",
-  "Relatórios PDF automáticos por email (semanal)",
   "Alertas inteligentes por email (quedas e metas)",
   "Projetos / sites ilimitados",
   "Histórico estendido de 12 meses",
