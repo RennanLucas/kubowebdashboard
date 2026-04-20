@@ -54,6 +54,24 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
     }
   }, [existingClient]);
 
+  // Se não está em editMode e o usuário já tem cliente cadastrado, vai direto pro dashboard
+  useEffect(() => {
+    if (editMode || !user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data) {
+        navigate("/dashboard", { replace: true });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editMode, user, navigate]);
+
   const handleSubmit = async () => {
     if (!user) return;
     setLoading(true);
