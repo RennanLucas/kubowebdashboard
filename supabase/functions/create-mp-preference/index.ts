@@ -19,10 +19,13 @@ const PLANS = {
     frequency_type: "months",
     free_trial: { frequency: 7, frequency_type: "days" },
   },
-  kuboweb_pro_yearly: {
-    type: "preference" as const,
-    title: "KUBOWEB Pro - Anual (12 meses)",
-    amount: 392.99,
+  kuboweb_pro_plus_monthly: {
+    type: "preapproval" as const,
+    reason: "KUBOWEB Pro+ - Mensal",
+    amount: 49.99,
+    frequency: 1,
+    frequency_type: "months",
+    free_trial: { frequency: 7, frequency_type: "days" },
   },
 } as const;
 
