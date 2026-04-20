@@ -19,10 +19,13 @@ const PLANS = {
     frequency_type: "months",
     free_trial: { frequency: 7, frequency_type: "days" },
   },
-  kuboweb_pro_yearly: {
-    type: "preference" as const,
-    title: "KUBOWEB Pro - Anual (12 meses)",
-    amount: 392.99,
+  kuboweb_pro_plus_monthly: {
+    type: "preapproval" as const,
+    reason: "KUBOWEB Pro+ - Mensal",
+    amount: 49.99,
+    frequency: 1,
+    frequency_type: "months",
+    free_trial: { frequency: 7, frequency_type: "days" },
   },
 } as const;
 
@@ -54,64 +57,23 @@ Deno.serve(async (req) => {
 
     const plan = PLANS[planId];
     const baseReturn = returnUrl || `${new URL(req.url).origin}/checkout/return`;
-    const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
-    if (plan.type === "preapproval") {
-      // Assinatura recorrente (cartão) com 7 dias grátis
-      const payload = {
-        reason: plan.reason,
-        external_reference: `${userId}|${planId}`,
-        payer_email: email,
-        back_url: baseReturn,
-        auto_recurring: {
-          frequency: plan.frequency,
-          frequency_type: plan.frequency_type,
-          transaction_amount: plan.amount,
-          currency_id: "BRL",
-          free_trial: plan.free_trial,
-        },
-        status: "pending",
-      };
-      const res = await fetch("https://api.mercadopago.com/preapproval", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${MP_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        console.error("MP preapproval error:", data);
-        return json({ error: data.message || "Falha ao criar assinatura", details: data }, 500);
-      }
-      return json({ url: data.init_point, id: data.id });
-    }
-
-    // Pagamento único (anual) — Checkout Pro
-    // NÃO enviamos payer.email aqui: o MP rejeita quando o email do pagador
-    // é o mesmo da conta dona do token, ou quando é um email sem conta MP.
-    // Deixamos o comprador preencher no próprio checkout.
+    // Assinatura recorrente (cartão) com 7 dias grátis
     const payload = {
-      items: [
-        {
-          title: plan.title,
-          quantity: 1,
-          unit_price: plan.amount,
-          currency_id: "BRL",
-        },
-      ],
+      reason: plan.reason,
       external_reference: `${userId}|${planId}`,
-      back_urls: {
-        success: baseReturn,
-        failure: baseReturn,
-        pending: baseReturn,
+      payer_email: email,
+      back_url: baseReturn,
+      auto_recurring: {
+        frequency: plan.frequency,
+        frequency_type: plan.frequency_type,
+        transaction_amount: plan.amount,
+        currency_id: "BRL",
+        free_trial: plan.free_trial,
       },
-      auto_return: "approved",
-      notification_url: webhookUrl,
-      metadata: { user_id: userId, plan_id: planId, payer_email: email },
+      status: "pending",
     };
-    const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+    const res = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${MP_TOKEN}`,
@@ -121,8 +83,8 @@ Deno.serve(async (req) => {
     });
     const data = await res.json();
     if (!res.ok) {
-      console.error("MP preference error:", data);
-      return json({ error: data.message || "Falha ao criar preferência", details: data }, 500);
+      console.error("MP preapproval error:", data);
+      return json({ error: data.message || "Falha ao criar assinatura", details: data }, 500);
     }
     return json({ url: data.init_point, id: data.id });
   } catch (e) {

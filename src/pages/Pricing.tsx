@@ -9,16 +9,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const features = [
+const baseFeatures = [
   "Rastreamento ilimitado de visitantes",
   "Conversões: WhatsApp, formulários e botões",
-  "Múltiplos projetos / sites",
-  "Relatórios em PDF",
   "Visitantes em tempo real",
   "Geolocalização e dispositivos",
+  "Relatórios em PDF sob demanda",
+  "Até 3 projetos / sites",
+  "Histórico de 3 meses",
+  "3 resumos com IA por mês",
 ];
 
-type PlanId = "kuboweb_pro_monthly" | "kuboweb_pro_yearly";
+const proPlusFeatures = [
+  "Tudo do plano Pro, e mais:",
+  "6 resumos com IA por mês (o dobro)",
+  "Relatórios PDF automáticos por email (semanal)",
+  "Alertas inteligentes por email (quedas e metas)",
+  "Projetos / sites ilimitados",
+  "Histórico estendido de 12 meses",
+  "Suporte prioritário",
+];
+
+type PlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
 
 const plans: Array<{
   id: PlanId;
@@ -28,25 +40,28 @@ const plans: Array<{
   highlight: string;
   note: string;
   cta: string;
+  features: string[];
   recommended?: boolean;
 }> = [
   {
     id: "kuboweb_pro_monthly",
-    name: "Mensal",
+    name: "Pro",
     price: "R$ 29,99",
     cadence: "/mês",
     highlight: "7 dias grátis · cancele a qualquer momento",
     note: "Cobrança recorrente no cartão. Após os 7 dias grátis, R$ 29,99/mês até cancelar.",
     cta: "Começar 7 dias grátis",
+    features: baseFeatures,
   },
   {
-    id: "kuboweb_pro_yearly",
-    name: "Anual à vista",
-    price: "R$ 392,99",
-    cadence: "/ano",
-    highlight: "Pague com Pix, boleto ou cartão · sem renovação automática",
-    note: "Pagamento único de R$ 392,99 por 12 meses de acesso. Renove manualmente.",
-    cta: "Assinar plano anual",
+    id: "kuboweb_pro_plus_monthly",
+    name: "Pro+",
+    price: "R$ 49,99",
+    cadence: "/mês",
+    highlight: "7 dias grátis · tudo incluso, sem limites",
+    note: "Cobrança recorrente no cartão. Após os 7 dias grátis, R$ 49,99/mês até cancelar.",
+    cta: "Começar 7 dias grátis",
+    features: proPlusFeatures,
     recommended: true,
   },
 ];
@@ -155,7 +170,7 @@ export default function Pricing() {
                   <p className="text-sm text-primary font-medium mt-2">{plan.highlight}</p>
                 </div>
                 <ul className="space-y-3 mb-6 flex-1">
-                  {features.map((f) => (
+                  {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-foreground">{f}</span>

@@ -6,7 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MONTHLY_LIMIT = 3;
+const MONTHLY_LIMIT_PRO = 3;
+const MONTHLY_LIMIT_PRO_PLUS = 6;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -49,6 +50,17 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") ?? "status";
 
+    // Descobre plano ativo do usuário (Pro vs Pro+)
+    const { data: subRow } = await admin
+      .from("subscriptions")
+      .select("plan_id, status, current_period_end")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const isProPlus = subRow?.plan_id === "kuboweb_pro_plus_monthly";
+    const MONTHLY_LIMIT = isProPlus ? MONTHLY_LIMIT_PRO_PLUS : MONTHLY_LIMIT_PRO;
+
     // Calcula uso no mês corrente
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -72,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (action === "status") {
       return new Response(
-        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest }),
+        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: isProPlus ? "pro_plus" : "pro" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
