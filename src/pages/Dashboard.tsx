@@ -19,6 +19,7 @@ import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { AIWeeklyInsights } from "@/components/dashboard/AIWeeklyInsights";
+import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
@@ -201,6 +202,7 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <UpgradeBanner />
         <DashboardHeader
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
