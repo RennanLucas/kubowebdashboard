@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePlan } from "./usePlan";
 
 interface BreakdownItem {
   name: string;
@@ -99,11 +100,16 @@ const fetchAnalytics = async (days: number, projectId: string | undefined, acces
 };
 
 export const useDashboardAnalytics = (days: number, projectId?: string) => {
+  const plan = usePlan();
+  // Capa o histórico ao máximo permitido pelo plano (Pro=90d, Pro+=365d)
+  const cappedDays = Math.min(days, plan.maxHistoryDays);
   return useQuery({
-    queryKey: ["dashboard-analytics", days, projectId],
+    queryKey: ["dashboard-analytics", cappedDays, projectId],
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
+    enabled: !plan.loading,
     queryFn: async () => {
+      const days = cappedDays;
       let { data: { session } } = await supabase.auth.getSession();
 
       if (session?.access_token) {

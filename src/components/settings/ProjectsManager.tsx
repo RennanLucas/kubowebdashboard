@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Globe, Trash2, Layers } from "lucide-react";
+import { Plus, Globe, Trash2, Layers, Sparkles } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
+import { Link } from "react-router-dom";
 
 interface Props {
   clientId: string;
@@ -15,6 +17,7 @@ interface Props {
 
 export default function ProjectsManager({ clientId }: Props) {
   const qc = useQueryClient();
+  const plan = usePlan();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", url: "" });
@@ -33,7 +36,9 @@ export default function ProjectsManager({ clientId }: Props) {
     },
   });
 
-  const limitReached = (projects?.length ?? 0) >= 2;
+  const currentCount = projects?.length ?? 0;
+  const limitReached = currentCount >= plan.maxProjects;
+  const limitLabel = Number.isFinite(plan.maxProjects) ? String(plan.maxProjects) : "∞";
 
   const handleAdd = async () => {
     if (!form.name.trim()) {
@@ -41,7 +46,11 @@ export default function ProjectsManager({ clientId }: Props) {
       return;
     }
     if (limitReached) {
-      toast.error("Limite de 2 projetos por conta atingido");
+      toast.error(
+        plan.isProPlus
+          ? "Limite atingido"
+          : `Plano Pro permite até ${plan.maxProjects} projetos. Faça upgrade para o Pro+ para projetos ilimitados.`,
+      );
       return;
     }
     setSaving(true);
@@ -113,8 +122,21 @@ export default function ProjectsManager({ clientId }: Props) {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        Cada projeto representa um site monitorado. Você pode ter até <span className="font-medium text-foreground">2 projetos</span> por conta para usar a página <span className="font-medium text-foreground">Comparar</span>.
-        {limitReached && <span className="block mt-1 text-destructive">Limite atingido (2/2).</span>}
+        Cada projeto representa um site monitorado.{" "}
+        {plan.isProPlus ? (
+          <>Seu plano <span className="font-medium text-foreground">Pro+</span> permite projetos ilimitados ({currentCount} criados).</>
+        ) : (
+          <>Plano <span className="font-medium text-foreground">Pro</span>: até <span className="font-medium text-foreground">{limitLabel} projetos</span> ({currentCount}/{limitLabel}).</>
+        )}
+        {limitReached && !plan.isProPlus && (
+          <span className="block mt-2 text-destructive">
+            Limite atingido.{" "}
+            <Link to="/pricing" className="inline-flex items-center gap-1 underline font-medium">
+              <Sparkles className="h-3 w-3" /> Faça upgrade para Pro+
+            </Link>{" "}
+            e tenha projetos ilimitados.
+          </span>
+        )}
       </p>
 
       <div className="space-y-2">
