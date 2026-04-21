@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -22,10 +22,12 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const authReadyRef = useRef(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (!authReadyRef.current && event === "INITIAL_SESSION") return;
         setSession(session);
         setLoading(false);
       }
@@ -46,11 +48,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setSession(session);
         }
+        authReadyRef.current = true;
         setLoading(false);
       })
       .catch(async () => {
         await supabase.auth.signOut({ scope: "local" });
         setSession(null);
+        authReadyRef.current = true;
         setLoading(false);
       });
 
