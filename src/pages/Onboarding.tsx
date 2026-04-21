@@ -72,18 +72,21 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
     let cancelled = false;
     setCheckingExistingClient(true);
     (async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1)
-        .maybeSingle();
-      if (!cancelled && data) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-      if (!cancelled) {
-        setCheckingExistingClient(false);
+      try {
+        const { data } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1)
+          .maybeSingle();
+        if (!cancelled && data) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+      } finally {
+        if (!cancelled) {
+          setCheckingExistingClient(false);
+        }
       }
     })();
     return () => { cancelled = true; };

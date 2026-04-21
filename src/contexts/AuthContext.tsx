@@ -25,6 +25,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const authReadyRef = useRef(false);
 
   useEffect(() => {
+    let mounted = true;
+
+    const finishAuthRestore = (nextSession: Session | null) => {
+      if (!mounted || authReadyRef.current) return;
+      authReadyRef.current = true;
+      setSession(nextSession);
+      setLoading(false);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!authReadyRef.current && event === "INITIAL_SESSION") return;
@@ -33,32 +42,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
+    const timeoutId = window.setTimeout(() => {
+      finishAuthRestore(null);
+    }, 5000);
+
     supabase.auth.getSession()
       .then(async ({ data: { session } }) => {
         if (!session) {
-          setSession(null);
-          setLoading(false);
+          finishAuthRestore(null);
           return;
         }
 
-        const { data, error } = await supabase.auth.getUser();
-        if (error || !data.user) {
-          await supabase.auth.signOut({ scope: "local" });
-          setSession(null);
-        } else {
-          setSession(session);
-        }
-        authReadyRef.current = true;
-        setLoading(false);
+        finishAuthRestore(session);
       })
       .catch(async () => {
-        await supabase.auth.signOut({ scope: "local" });
-        setSession(null);
-        authReadyRef.current = true;
-        setLoading(false);
+        void supabase.auth.signOut({ scope: "local" });
+        finishAuthRestore(null);
       });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      window.clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
