@@ -46,11 +46,3 @@ export function useIsAdmin(enabled = true) {
 
   return { isAdmin, loading };
 }
-        setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id]);
-
-  return { isAdmin, loading };
-}
