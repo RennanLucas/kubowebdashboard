@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   session: Session | null;
@@ -22,42 +21,40 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const authReadyRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
+    let restoreFinished = false;
 
-    const finishAuthRestore = (nextSession: Session | null) => {
-      if (!mounted || authReadyRef.current) return;
-      authReadyRef.current = true;
+    const finishRestore = (nextSession: Session | null) => {
+      if (!mounted) return;
+      restoreFinished = true;
       setSession(nextSession);
       setLoading(false);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!authReadyRef.current && event === "INITIAL_SESSION") return;
-        setSession(session);
+      (_event, nextSession) => {
+        if (!mounted) return;
+        if (!restoreFinished) restoreFinished = true;
+        setSession(nextSession);
         setLoading(false);
       }
     );
 
     const timeoutId = window.setTimeout(() => {
-      finishAuthRestore(null);
-    }, 5000);
+      finishRestore(null);
+    }, 10000);
 
     supabase.auth.getSession()
       .then(async ({ data: { session } }) => {
-        if (!session) {
-          finishAuthRestore(null);
-          return;
-        }
-
-        finishAuthRestore(session);
+        window.clearTimeout(timeoutId);
+        finishRestore(session);
       })
       .catch(async () => {
+        window.clearTimeout(timeoutId);
         void supabase.auth.signOut({ scope: "local" });
-        finishAuthRestore(null);
+        finishRestore(null);
       });
 
     return () => {

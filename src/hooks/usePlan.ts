@@ -11,8 +11,8 @@ export interface PlanLimits {
   loading: boolean;
 }
 
-export function usePlan(): PlanLimits {
-  const { subscription, loading } = useSubscription();
+export function usePlan(enabled = true): PlanLimits {
+  const { subscription, loading } = useSubscription(enabled);
   const planId = (subscription as any)?.plan_id as string | undefined;
   const isProPlus = planId === "kuboweb_pro_plus_monthly";
 

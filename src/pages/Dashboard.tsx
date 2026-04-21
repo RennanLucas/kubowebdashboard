@@ -119,7 +119,7 @@ const Dashboard = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!isLoading && !clientData) {
+  if (!isLoading && !error && data && !clientData) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -127,6 +127,19 @@ const Dashboard = () => {
     return (
       <AppLayout>
         <DashboardSkeleton />
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Não foi possível carregar o Dashboard</h2>
+            <p className="text-sm text-muted-foreground">Atualize a página em alguns instantes. Seus dados de acesso e onboarding foram preservados.</p>
+          </div>
+        </div>
       </AppLayout>
     );
   }

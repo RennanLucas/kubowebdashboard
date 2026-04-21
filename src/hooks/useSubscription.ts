@@ -13,30 +13,42 @@ export interface SubscriptionRow {
   environment: string;
 }
 
-export function useSubscription() {
-  const { user } = useAuth();
+export function useSubscription(enabled = true) {
+  const { user, loading: authLoading } = useAuth();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
 
   const fetchSub = async () => {
-    if (!user) {
+    if (!enabled || authLoading || !user) {
+      setSubscription(null);
+      setLoading(enabled && authLoading);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("subscriptions" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setSubscription((data as any) ?? null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!enabled) {
       setSubscription(null);
       setLoading(false);
       return;
     }
-    setLoading(true);
-    const { data } = await supabase
-      .from("subscriptions" as any)
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setSubscription((data as any) ?? null);
-    setLoading(false);
-  };
-
-  useEffect(() => {
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
     fetchSub();
     if (!user) return;
     const channel = supabase
@@ -51,7 +63,7 @@ export function useSubscription() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [enabled, authLoading, user?.id]);
 
   const isActive = (() => {
     if (!subscription) return false;

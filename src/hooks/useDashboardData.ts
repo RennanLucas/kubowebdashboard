@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "./usePlan";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BreakdownItem {
   name: string;
@@ -100,35 +101,36 @@ const fetchAnalytics = async (days: number, projectId: string | undefined, acces
 };
 
 export const useDashboardAnalytics = (days: number, projectId?: string) => {
-  const plan = usePlan();
+  const { session, loading: authLoading } = useAuth();
+  const plan = usePlan(!!session);
   // Capa o histórico ao máximo permitido pelo plano (Pro=90d, Pro+=365d)
   const cappedDays = Math.min(days, plan.maxHistoryDays);
   return useQuery({
     queryKey: ["dashboard-analytics", cappedDays, projectId],
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
-    enabled: !plan.loading,
+    enabled: !authLoading && !!session?.access_token && !plan.loading,
     queryFn: async () => {
       const days = cappedDays;
-      let { data: { session } } = await supabase.auth.getSession();
+      let activeSession = session;
 
-      if (session?.access_token) {
+      if (activeSession?.access_token) {
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) {
           const { data: refreshData } = await supabase.auth.refreshSession();
-          session = refreshData.session;
+          activeSession = refreshData.session;
         }
       } else {
         const { data: refreshData } = await supabase.auth.refreshSession();
-        session = refreshData.session;
+        activeSession = refreshData.session;
       }
 
-      if (!session?.access_token) {
+      if (!activeSession?.access_token) {
         await supabase.auth.signOut({ scope: "local" });
         throw new Error("AUTH_EXPIRED");
       }
 
-      let response = await fetchAnalytics(days, projectId, session.access_token);
+      let response = await fetchAnalytics(days, projectId, activeSession.access_token);
 
       if (response.status === 401) {
         const { data: refreshData } = await supabase.auth.refreshSession();

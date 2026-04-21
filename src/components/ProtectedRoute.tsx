@@ -11,13 +11,12 @@ interface Props {
 
 const ProtectedRoute = ({ children, requireSubscription = false, requireAdmin = false }: Props) => {
   const { session, loading } = useAuth();
-  const { isActive, loading: subLoading } = useSubscription();
-  const { isAdmin, loading: adminLoading } = useIsAdmin();
+  const needsAccessCheck = requireAdmin || requireSubscription;
+  const { isActive, loading: subLoading } = useSubscription(needsAccessCheck);
+  const { isAdmin, loading: adminLoading } = useIsAdmin(needsAccessCheck);
   const location = useLocation();
 
-  const needsAdminCheck = requireAdmin || requireSubscription;
-
-  if (loading || (needsAdminCheck && session && (subLoading || adminLoading))) {
+  if (loading || (needsAccessCheck && session && (subLoading || adminLoading))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
