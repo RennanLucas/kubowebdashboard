@@ -31,17 +31,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) {
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+        if (!session) {
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) {
+          await supabase.auth.signOut({ scope: "local" });
+          setSession(null);
+        } else {
+          setSession(session);
+        }
+        setLoading(false);
+      })
+      .catch(async () => {
+        await supabase.auth.signOut({ scope: "local" });
         setSession(null);
         setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase.auth.getUser();
-      setSession(error || !data.user ? null : session);
-      setLoading(false);
-    });
+      });
 
     return () => subscription.unsubscribe();
   }, []);

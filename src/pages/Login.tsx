@@ -18,6 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const isBusy = loading || authLoading;
 
   // Se já está logado, redireciona conforme tem ou não cliente
   useEffect(() => {
@@ -37,6 +38,7 @@ const Login = () => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isBusy) return;
     setLoading(true);
 
     try {
@@ -219,8 +221,8 @@ const Login = () => {
                 </button>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isBusy}>
+              {isBusy ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
               ) : (
                 <>
@@ -234,7 +236,9 @@ const Login = () => {
           <p className="text-center text-sm text-muted-foreground mt-6">
             {isSignUp ? "Já tem uma conta?" : "Não tem uma conta?"}{" "}
             <button
+              type="button"
               onClick={() => setIsSignUp(!isSignUp)}
+              disabled={isBusy}
               className="text-primary hover:underline font-medium"
             >
               {isSignUp ? "Entrar" : "Cadastrar"}
