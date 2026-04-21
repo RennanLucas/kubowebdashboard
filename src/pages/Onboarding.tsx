@@ -35,8 +35,9 @@ const steps = [
 
 const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [checkingExistingClient, setCheckingExistingClient] = useState(!editMode);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<ClientFormData>({
     companyName: "",
@@ -56,8 +57,20 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
 
   // Se não está em editMode e o usuário já tem cliente cadastrado, vai direto pro dashboard
   useEffect(() => {
-    if (editMode || !user) return;
+    if (editMode) {
+      setCheckingExistingClient(false);
+      return;
+    }
+
+    if (authLoading) return;
+
+    if (!user) {
+      setCheckingExistingClient(false);
+      return;
+    }
+
     let cancelled = false;
+    setCheckingExistingClient(true);
     (async () => {
       const { data } = await supabase
         .from("clients")
@@ -67,10 +80,14 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
         .maybeSingle();
       if (!cancelled && data) {
         navigate("/dashboard", { replace: true });
+        return;
+      }
+      if (!cancelled) {
+        setCheckingExistingClient(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [editMode, user, navigate]);
+  }, [authLoading, editMode, user, navigate]);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -151,6 +168,14 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       handleSubmit();
     }
   };
+
+  if (authLoading || checkingExistingClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background">
