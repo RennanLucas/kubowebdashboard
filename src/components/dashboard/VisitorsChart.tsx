@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -65,6 +65,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     prevVisitors: true,
   });
   const [keyboardFocus, setKeyboardFocus] = useState<KeyboardFocusState | null>(null);
+  const [focusedLegendIndex, setFocusedLegendIndex] = useState(0);
   const chartRef = useRef<HTMLDivElement | null>(null);
   const legendButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -178,6 +179,13 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
       available: Boolean(prevSeries?.length) && showCompare,
     },
   ].filter((item) => item.available);
+
+  useEffect(() => {
+    if (!legendItems.length) return;
+    if (focusedLegendIndex >= legendItems.length) {
+      setFocusedLegendIndex(legendItems.length - 1);
+    }
+  }, [focusedLegendIndex, legendItems.length]);
 
   const exportRows = merged.map((item) => ({
     date: item.rawDate,

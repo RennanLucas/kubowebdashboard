@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink, Download, FileImage, FileText } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ const sourceCategory = (source: string): string => {
 
 const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRangeDays: number }) => {
   const [activeCategories, setActiveCategories] = useState<Record<string, boolean>>({});
+  const [focusedCategoryIndex, setFocusedCategoryIndex] = useState(0);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const categoryButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -60,6 +61,13 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
     () => Object.entries(categories).sort(([, a], [, b]) => b - a),
     [categories],
   );
+
+  useEffect(() => {
+    if (!categoryEntries.length) return;
+    if (focusedCategoryIndex >= categoryEntries.length) {
+      setFocusedCategoryIndex(categoryEntries.length - 1);
+    }
+  }, [categoryEntries.length, focusedCategoryIndex]);
 
   const hasAnyActiveFilter = categoryEntries.some(([cat]) => activeCategories[cat]);
 
