@@ -139,7 +139,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       </div>
 
       {/* Category summary chips */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <div className="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="Filtros de categoria das fontes de tráfego">
         {categoryEntries.map(([cat, count]) => {
           const isActive = hasAnyActiveFilter ? Boolean(activeCategories[cat]) : true;
 
@@ -149,7 +149,8 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
               type="button"
               onClick={() => toggleCategory(cat)}
               aria-pressed={Boolean(activeCategories[cat])}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent"
+              aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               title={`Filtrar ${cat}`}
             >
               <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
@@ -171,6 +172,8 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
             key={s.source}
             className="group"
             title={`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
+            tabIndex={0}
+            aria-label={`${s.source}, ${s.visitors.toLocaleString("pt-BR")} visitas, ${s.percentage}% do tráfego no período filtrado`}
           >
             <div className="flex items-center justify-between text-sm mb-1">
               <div className="flex items-center gap-2 min-w-0">
