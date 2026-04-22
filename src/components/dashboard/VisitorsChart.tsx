@@ -235,7 +235,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
         </div>
       </div>
       <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Filtros de séries do gráfico de visitantes e leads">
-        {legendItems.map((item) => {
+        {legendItems.map((item, index) => {
           const isActive = activeSeries[item.key];
 
           return (
