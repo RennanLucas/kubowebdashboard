@@ -217,7 +217,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
           </Popover>
         </div>
       </div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Filtros de séries do gráfico de visitantes e leads">
         {legendItems.map((item) => {
           const isActive = activeSeries[item.key];
 
@@ -227,7 +227,8 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               type="button"
               onClick={() => toggleSeries(item.key)}
               aria-pressed={isActive}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <span
                 className="h-2.5 w-2.5 rounded-full transition-opacity"
