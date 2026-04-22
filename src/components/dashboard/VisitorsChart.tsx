@@ -48,6 +48,11 @@ interface VisitorsChartProps {
 
 type SeriesKey = "visitors" | "leads" | "prevVisitors";
 
+type KeyboardFocusState = {
+  index: number;
+  series: SeriesKey;
+};
+
 const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsChartProps) => {
   const { annotations, add, remove } = useAnnotations(projectId);
   const [showCompare, setShowCompare] = useState(false);
@@ -59,6 +64,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     leads: true,
     prevVisitors: true,
   });
+  const [keyboardFocus, setKeyboardFocus] = useState<KeyboardFocusState | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
   const legendButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -86,6 +92,50 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     setActiveSeries((current) => ({ ...current, [key]: !current[key] }));
   };
 
+  const getSeriesValue = (point: (typeof merged)[number], series: SeriesKey) => {
+    if (series === "prevVisitors") return point.prevVisitors;
+    return point[series];
+  };
+
+  const getDefaultFocusIndex = (series: SeriesKey) => {
+    for (let index = merged.length - 1; index >= 0; index -= 1) {
+      const value = getSeriesValue(merged[index], series);
+      if (typeof value === "number") return index;
+    }
+
+    return 0;
+  };
+
+  const setKeyboardFocusForSeries = (series: SeriesKey, preferredIndex?: number) => {
+    if (!merged.length) return;
+
+    const valueAtPreferredIndex =
+      preferredIndex !== undefined && preferredIndex >= 0 && preferredIndex < merged.length
+        ? getSeriesValue(merged[preferredIndex], series)
+        : undefined;
+
+    setKeyboardFocus({
+      series,
+      index: typeof valueAtPreferredIndex === "number" ? preferredIndex! : getDefaultFocusIndex(series),
+    });
+  };
+
+  const moveKeyboardFocusPoint = (series: SeriesKey, direction: number) => {
+    if (!merged.length) return;
+
+    const startIndex = keyboardFocus?.series === series ? keyboardFocus.index : getDefaultFocusIndex(series);
+
+    for (let step = 1; step <= merged.length; step += 1) {
+      const nextIndex = (startIndex + direction * step + merged.length) % merged.length;
+      const value = getSeriesValue(merged[nextIndex], series);
+
+      if (typeof value === "number") {
+        setKeyboardFocus({ series, index: nextIndex });
+        return;
+      }
+    }
+  };
+
   const handleLegendKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number, key: SeriesKey) => {
     if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
       event.preventDefault();
@@ -98,6 +148,13 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       toggleSeries(key);
+    }
+  };
+
+  const handleSeriesFocusKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, key: SeriesKey) => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      moveKeyboardFocusPoint(key, event.key === "ArrowRight" ? 1 : -1);
     }
   };
 
@@ -129,6 +186,21 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     prevVisitors: showCompare && activeSeries.prevVisitors ? item.prevVisitors ?? null : null,
   }));
 
+  const focusedPoint = keyboardFocus ? merged[keyboardFocus.index] : null;
+  const focusedValue = focusedPoint && keyboardFocus ? getSeriesValue(focusedPoint, keyboardFocus.series) : null;
+
+  const keyboardTooltip =
+    focusedPoint && keyboardFocus && typeof focusedValue === "number"
+      ? {
+          date: focusedPoint.date,
+          label: legendItems.find((item) => item.key === keyboardFocus.series)?.label ?? "",
+          color: legendItems.find((item) => item.key === keyboardFocus.series)?.color ?? "hsl(var(--foreground))",
+          value: focusedValue,
+        }
+      : null;
+
+  const focusableSeriesItems = legendItems.filter((item) => activeSeries[item.key]);
+
   const handleExportCsv = () => {
     downloadCsv(
       [
@@ -151,7 +223,15 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
   };
 
   return (
-    <div className="glass-card p-5 sm:p-6" ref={chartRef}>
+    <div
+      className="glass-card p-5 sm:p-6"
+      ref={chartRef}
+      onBlurCapture={(event) => {
+        if (!chartRef.current?.contains(event.relatedTarget as Node | null)) {
+          setKeyboardFocus(null);
+        }
+      }}
+    >
       <div className="flex items-center justify-between mb-5 gap-2 flex-wrap">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -247,6 +327,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                     type="button"
                     onClick={() => toggleSeries(item.key)}
                     onKeyDown={(event) => handleLegendKeyDown(event, index, item.key)}
+                    onFocus={() => setKeyboardFocusForSeries(item.key, keyboardFocus?.index)}
                     aria-pressed={isActive}
                     aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
@@ -267,7 +348,19 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
           );
         })}
       </div>
-      <div className="h-72">
+      <div className="relative h-72">
+        {keyboardTooltip && (
+          <div className="pointer-events-none absolute right-3 top-3 z-10 min-w-36 rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-xl">
+            <div className="mb-1 font-medium text-card-foreground">{keyboardTooltip.date}</div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: keyboardTooltip.color }} />
+                <span>{keyboardTooltip.label}</span>
+              </div>
+              <span className="font-medium text-card-foreground">{keyboardTooltip.value.toLocaleString("pt-BR")}</span>
+            </div>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={merged}>
             <defs>
@@ -327,6 +420,11 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               fill="url(#gradVisitors)"
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
+              dot={(props: any) =>
+                keyboardFocus?.series === "visitors" && keyboardFocus.index === props.index ? (
+                  <circle cx={props.cx} cy={props.cy} r={5} fill="hsl(var(--chart-blue))" stroke="hsl(var(--background))" strokeWidth={2} />
+                ) : null
+              }
             />
             <Area
               hide={!activeSeries.leads}
@@ -338,6 +436,11 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               fill="url(#gradLeads)"
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
+              dot={(props: any) =>
+                keyboardFocus?.series === "leads" && keyboardFocus.index === props.index ? (
+                  <circle cx={props.cx} cy={props.cy} r={5} fill="hsl(var(--chart-green))" stroke="hsl(var(--background))" strokeWidth={2} />
+                ) : null
+              }
             />
             {showCompare && prevSeries && activeSeries.prevVisitors && (
               <Line
@@ -348,6 +451,12 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 strokeWidth={1.5}
                 strokeDasharray="4 4"
                 dot={false}
+                activeDot={{ r: 4, strokeWidth: 0 }}
+                dot={(props: any) =>
+                  keyboardFocus?.series === "prevVisitors" && keyboardFocus.index === props.index ? (
+                    <circle cx={props.cx} cy={props.cy} r={5} fill="hsl(var(--muted-foreground))" stroke="hsl(var(--background))" strokeWidth={2} />
+                  ) : null
+                }
               />
             )}
             {annotationsInRange.map((a) => (
@@ -367,6 +476,21 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      {focusableSeriesItems.length > 0 && (
+        <div className="sr-only" aria-label="Navegação por teclado pelas séries do gráfico">
+          {focusableSeriesItems.map((item) => (
+            <button
+              key={`series-focus-${item.key}`}
+              type="button"
+              onFocus={() => setKeyboardFocusForSeries(item.key, keyboardFocus?.index)}
+              onKeyDown={(event) => handleSeriesFocusKeyDown(event, item.key)}
+              aria-label={`Série ${item.label}. Use seta para esquerda e direita para percorrer os pontos.`}
+            >
+              {`Focar série ${item.label}`}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
