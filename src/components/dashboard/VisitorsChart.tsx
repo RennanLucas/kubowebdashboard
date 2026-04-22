@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -65,6 +65,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     prevVisitors: true,
   });
   const [keyboardFocus, setKeyboardFocus] = useState<KeyboardFocusState | null>(null);
+  const [focusedLegendIndex, setFocusedLegendIndex] = useState(0);
   const chartRef = useRef<HTMLDivElement | null>(null);
   const legendButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -141,6 +142,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
       event.preventDefault();
       const direction = event.key === "ArrowRight" ? 1 : -1;
       const nextIndex = (index + direction + legendItems.length) % legendItems.length;
+      setFocusedLegendIndex(nextIndex);
       legendButtonRefs.current[nextIndex]?.focus();
       return;
     }
@@ -178,6 +180,13 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
       available: Boolean(prevSeries?.length) && showCompare,
     },
   ].filter((item) => item.available);
+
+  useEffect(() => {
+    if (!legendItems.length) return;
+    if (focusedLegendIndex >= legendItems.length) {
+      setFocusedLegendIndex(legendItems.length - 1);
+    }
+  }, [focusedLegendIndex, legendItems.length]);
 
   const exportRows = merged.map((item) => ({
     date: item.rawDate,
@@ -327,10 +336,14 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                     type="button"
                     onClick={() => toggleSeries(item.key)}
                     onKeyDown={(event) => handleLegendKeyDown(event, index, item.key)}
-                    onFocus={() => setKeyboardFocusForSeries(item.key, keyboardFocus?.index)}
+                    onFocus={() => {
+                      setFocusedLegendIndex(index);
+                      setKeyboardFocusForSeries(item.key, keyboardFocus?.index);
+                    }}
                     aria-pressed={isActive}
                     aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
+                    tabIndex={index === focusedLegendIndex ? 0 : -1}
                     className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span

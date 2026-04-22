@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink, Download, FileImage, FileText } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ const sourceCategory = (source: string): string => {
 
 const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRangeDays: number }) => {
   const [activeCategories, setActiveCategories] = useState<Record<string, boolean>>({});
+  const [focusedCategoryIndex, setFocusedCategoryIndex] = useState(0);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const categoryButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -60,6 +61,13 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
     () => Object.entries(categories).sort(([, a], [, b]) => b - a),
     [categories],
   );
+
+  useEffect(() => {
+    if (!categoryEntries.length) return;
+    if (focusedCategoryIndex >= categoryEntries.length) {
+      setFocusedCategoryIndex(categoryEntries.length - 1);
+    }
+  }, [categoryEntries.length, focusedCategoryIndex]);
 
   const hasAnyActiveFilter = categoryEntries.some(([cat]) => activeCategories[cat]);
 
@@ -92,6 +100,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       event.preventDefault();
       const direction = event.key === "ArrowRight" ? 1 : -1;
       const nextIndex = (index + direction + categoryEntries.length) % categoryEntries.length;
+      setFocusedCategoryIndex(nextIndex);
       categoryButtonRefs.current[nextIndex]?.focus();
       return;
     }
@@ -169,9 +178,11 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
                     type="button"
                     onClick={() => toggleCategory(cat)}
                     onKeyDown={(event) => handleCategoryKeyDown(event, index, cat)}
+                    onFocus={() => setFocusedCategoryIndex(index)}
                     aria-pressed={Boolean(activeCategories[cat])}
                     aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
+                    tabIndex={index === focusedCategoryIndex ? 0 : -1}
                     className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
