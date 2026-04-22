@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { usePlan } from "@/hooks/usePlan";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 interface DateRangePickerProps {
@@ -27,6 +28,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
   const [open, setOpen] = useState(false);
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
   const plan = usePlan();
+  const isMobile = useIsMobile();
 
   const tryApply = (days: number) => {
     if (days > plan.maxHistoryDays) {
@@ -68,9 +70,12 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
           <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <div className="flex">
-          <div className="border-r border-border p-2 flex flex-col gap-1 min-w-[180px]">
+      <PopoverContent
+        className="w-[calc(100vw-2rem)] max-w-[22rem] p-0 sm:w-auto sm:max-w-none"
+        align={isMobile ? "center" : "end"}
+      >
+        <div className="flex flex-col sm:flex-row">
+          <div className="border-b border-border p-2 flex flex-col gap-1 sm:min-w-[180px] sm:border-b-0 sm:border-r">
             {allPresets.map((p) => {
               const locked = p.days > plan.maxHistoryDays;
               return (
@@ -112,7 +117,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
               </Link>
             )}
           </div>
-          <div className="p-2">
+          <div className="p-2 overflow-x-auto">
             <div className="text-[11px] font-medium text-muted-foreground px-2 pt-1 pb-2">
               Período customizado
             </div>
@@ -120,9 +125,9 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
               mode="range"
               selected={customRange}
               onSelect={applyCustom}
-              numberOfMonths={2}
+              numberOfMonths={isMobile ? 1 : 2}
               locale={ptBR}
-              className={cn("pointer-events-auto")}
+              className={cn("pointer-events-auto mx-auto")}
             />
           </div>
         </div>
