@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
 
@@ -32,13 +33,47 @@ const sourceCategory = (source: string): string => {
 };
 
 const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
-  const totalVisitors = data.reduce((s, d) => s + d.visitors, 0);
+  const [activeCategories, setActiveCategories] = useState<Record<string, boolean>>({});
 
-  const categories: Record<string, number> = {};
-  for (const s of data) {
-    const cat = sourceCategory(s.source);
-    categories[cat] = (categories[cat] || 0) + s.visitors;
-  }
+  const categories = useMemo(() => {
+    const grouped: Record<string, number> = {};
+    for (const s of data) {
+      const cat = sourceCategory(s.source);
+      grouped[cat] = (grouped[cat] || 0) + s.visitors;
+    }
+    return grouped;
+  }, [data]);
+
+  const categoryEntries = useMemo(
+    () => Object.entries(categories).sort(([, a], [, b]) => b - a),
+    [categories],
+  );
+
+  const hasAnyActiveFilter = categoryEntries.some(([cat]) => activeCategories[cat]);
+
+  const filteredData = useMemo(() => {
+    if (!hasAnyActiveFilter) return data;
+    return data.filter((item) => activeCategories[sourceCategory(item.source)]);
+  }, [activeCategories, data, hasAnyActiveFilter]);
+
+  const totalVisitors = filteredData.reduce((s, d) => s + d.visitors, 0);
+  const allVisitors = data.reduce((sum, item) => sum + item.visitors, 0);
+
+  const displayData = useMemo(
+    () =>
+      filteredData.map((item) => ({
+        ...item,
+        percentage: totalVisitors > 0 ? Math.round((item.visitors / totalVisitors) * 100) : 0,
+      })),
+    [filteredData, totalVisitors],
+  );
+
+  const toggleCategory = (category: string) => {
+    setActiveCategories((current) => ({
+      ...current,
+      [category]: !current[category],
+    }));
+  };
 
   return (
     <div className="glass-card p-5">
@@ -54,25 +89,38 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
 
       {/* Category summary chips */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {Object.entries(categories)
-          .sort(([, a], [, b]) => b - a)
-          .map(([cat, count]) => (
-            <span
+        {categoryEntries.map(([cat, count]) => {
+          const isActive = hasAnyActiveFilter ? Boolean(activeCategories[cat]) : true;
+
+          return (
+            <button
               key={cat}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground"
+              type="button"
+              onClick={() => toggleCategory(cat)}
+              aria-pressed={Boolean(activeCategories[cat])}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent"
+              title={`Filtrar ${cat}`}
             >
-              {cat}
-              <span className="text-foreground font-medium">
-                {totalVisitors > 0 ? Math.round((count / totalVisitors) * 100) : 0}%
+              <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
+              <span className="font-medium text-foreground">
+                {allVisitors > 0
+                  ? Math.round((count / allVisitors) * 100)
+                  : 0}
+                %
               </span>
-            </span>
-          ))}
+            </button>
+          );
+        })}
       </div>
 
       {/* Detailed sources */}
       <div className="space-y-3">
-        {data.map((s, i) => (
-          <div key={s.source} className="group">
+        {displayData.map((s, i) => (
+          <div
+            key={s.source}
+            className="group"
+            title={`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
+          >
             <div className="flex items-center justify-between text-sm mb-1">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-150">
@@ -85,7 +133,7 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
                 <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
               </div>
             </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${s.percentage}%`, backgroundColor: s.color, opacity: 1 - i * 0.06 }}
@@ -95,7 +143,7 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
         ))}
       </div>
 
-      {data.length === 0 && (
+      {filteredData.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">Sem dados de tráfego ainda</p>
       )}
     </div>
