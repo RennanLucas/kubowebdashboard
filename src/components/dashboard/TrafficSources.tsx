@@ -57,6 +57,16 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
   }, [activeCategories, data, hasAnyActiveFilter]);
 
   const totalVisitors = filteredData.reduce((s, d) => s + d.visitors, 0);
+  const allVisitors = data.reduce((sum, item) => sum + item.visitors, 0);
+
+  const displayData = useMemo(
+    () =>
+      filteredData.map((item) => ({
+        ...item,
+        percentage: totalVisitors > 0 ? Math.round((item.visitors / totalVisitors) * 100) : 0,
+      })),
+    [filteredData, totalVisitors],
+  );
 
   const toggleCategory = (category: string) => {
     setActiveCategories((current) => ({
@@ -93,8 +103,8 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
             >
               <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
               <span className="font-medium text-foreground">
-                {data.reduce((sum, item) => sum + item.visitors, 0) > 0
-                  ? Math.round((count / data.reduce((sum, item) => sum + item.visitors, 0)) * 100)
+                {allVisitors > 0
+                  ? Math.round((count / allVisitors) * 100)
                   : 0}
                 %
               </span>
@@ -105,8 +115,12 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
 
       {/* Detailed sources */}
       <div className="space-y-3">
-        {filteredData.map((s, i) => (
-          <div key={s.source} className="group">
+        {displayData.map((s, i) => (
+          <div
+            key={s.source}
+            className="group"
+            title={`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
+          >
             <div className="flex items-center justify-between text-sm mb-1">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-150">
@@ -119,10 +133,7 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
                 <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
               </div>
             </div>
-            <div
-              className="h-1.5 rounded-full bg-muted overflow-hidden"
-              title={`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
-            >
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${s.percentage}%`, backgroundColor: s.color, opacity: 1 - i * 0.06 }}
