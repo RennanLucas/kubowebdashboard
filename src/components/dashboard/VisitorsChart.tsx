@@ -418,7 +418,6 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               stroke="hsl(var(--chart-blue))"
               strokeWidth={2}
               fill="url(#gradVisitors)"
-              dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
               dot={(props: any) =>
                 keyboardFocus?.series === "visitors" && keyboardFocus.index === props.index ? (
@@ -434,7 +433,6 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               stroke="hsl(var(--chart-green))"
               strokeWidth={2}
               fill="url(#gradLeads)"
-              dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
               dot={(props: any) =>
                 keyboardFocus?.series === "leads" && keyboardFocus.index === props.index ? (
@@ -450,7 +448,6 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 stroke="hsl(var(--muted-foreground))"
                 strokeWidth={1.5}
                 strokeDasharray="4 4"
-                dot={false}
                 activeDot={{ r: 4, strokeWidth: 0 }}
                 dot={(props: any) =>
                   keyboardFocus?.series === "prevVisitors" && keyboardFocus.index === props.index ? (
