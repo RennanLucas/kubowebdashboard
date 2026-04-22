@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { buildExportFilename, downloadCsv, exportElementAsPng } from "@/lib/chart-export";
 import { toast } from "sonner";
 
@@ -144,23 +145,30 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
           const isActive = hasAnyActiveFilter ? Boolean(activeCategories[cat]) : true;
 
           return (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => toggleCategory(cat)}
-              aria-pressed={Boolean(activeCategories[cat])}
-              aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              title={`Filtrar ${cat}`}
-            >
-              <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
-              <span className="font-medium text-foreground">
-                {allVisitors > 0
-                  ? Math.round((count / allVisitors) * 100)
-                  : 0}
-                %
-              </span>
-            </button>
+            <TooltipProvider key={cat} delayDuration={120}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(cat)}
+                    aria-pressed={Boolean(activeCategories[cat])}
+                    aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>
+                    <span className="font-medium text-foreground">
+                      {allVisitors > 0
+                        ? Math.round((count / allVisitors) * 100)
+                        : 0}
+                      %
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  {Boolean(activeCategories[cat]) ? `Remover filtro de ${cat}` : `Filtrar por ${cat}`}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         })}
       </div>
@@ -168,32 +176,39 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       {/* Detailed sources */}
       <div className="space-y-3">
         {displayData.map((s, i) => (
-          <div
-            key={s.source}
-            className="group"
-            title={`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
-            tabIndex={0}
-            aria-label={`${s.source}, ${s.visitors.toLocaleString("pt-BR")} visitas, ${s.percentage}% do tráfego no período filtrado`}
-          >
-            <div className="flex items-center justify-between text-sm mb-1">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-150">
-                  {sourceIcons[s.source] || <ExternalLink className="h-3.5 w-3.5" />}
+          <TooltipProvider key={s.source} delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="group"
+                  tabIndex={0}
+                  aria-label={`${s.source}, ${s.visitors.toLocaleString("pt-BR")} visitas, ${s.percentage}% do tráfego no período filtrado`}
+                >
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-md bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-150">
+                        {sourceIcons[s.source] || <ExternalLink className="h-3.5 w-3.5" />}
+                      </div>
+                      <span className="text-card-foreground font-medium truncate">{s.source}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <span className="text-card-foreground font-medium text-xs">{s.visitors.toLocaleString("pt-BR")}</span>
+                      <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${s.percentage}%`, backgroundColor: s.color, opacity: 1 - i * 0.06 }}
+                    />
+                  </div>
                 </div>
-                <span className="text-card-foreground font-medium truncate">{s.source}</span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                <span className="text-card-foreground font-medium text-xs">{s.visitors.toLocaleString("pt-BR")}</span>
-                <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
-              </div>
-            </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${s.percentage}%`, backgroundColor: s.color, opacity: 1 - i * 0.06 }}
-              />
-            </div>
-          </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {`${s.source}: ${s.visitors.toLocaleString("pt-BR")} visitas (${s.percentage}%)`}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ))}
       </div>
 
