@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   ReferenceLine,
   Line,
 } from "recharts";
@@ -37,12 +36,19 @@ interface VisitorsChartProps {
   prevSeries?: number[]; // previous-period visitors aligned to data length
 }
 
+type SeriesKey = "visitors" | "leads" | "prevVisitors";
+
 const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
   const { annotations, add, remove } = useAnnotations(projectId);
   const [showCompare, setShowCompare] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeSeries, setActiveSeries] = useState<Record<SeriesKey, boolean>>({
+    visitors: true,
+    leads: true,
+    prevVisitors: true,
+  });
 
   const merged = useMemo(() => {
     return data.map((d, i) => ({
@@ -63,6 +69,31 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
     setNewLabel("");
     setOpen(false);
   };
+
+  const toggleSeries = (key: SeriesKey) => {
+    setActiveSeries((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const legendItems = [
+    {
+      key: "visitors" as const,
+      label: "Visitantes",
+      color: "hsl(var(--chart-blue))",
+      available: true,
+    },
+    {
+      key: "leads" as const,
+      label: "Leads",
+      color: "hsl(var(--chart-green))",
+      available: true,
+    },
+    {
+      key: "prevVisitors" as const,
+      label: "Período anterior",
+      color: "hsl(var(--muted-foreground))",
+      available: Boolean(prevSeries?.length) && showCompare,
+    },
+  ].filter((item) => item.available);
 
   return (
     <div className="glass-card p-5 sm:p-6">
@@ -130,6 +161,27 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
           </Popover>
         </div>
       </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {legendItems.map((item) => {
+          const isActive = activeSeries[item.key];
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => toggleSeries(item.key)}
+              aria-pressed={isActive}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full transition-opacity"
+                style={{ backgroundColor: item.color, opacity: isActive ? 1 : 0.35 }}
+              />
+              <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={merged}>
@@ -147,20 +199,62 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "10px",
-                fontSize: 12,
-                padding: "8px 10px",
-                boxShadow: "0 8px 24px -8px rgba(16,24,40,0.12)",
-              }}
               cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+
+                const visibleItems = payload.filter(
+                  (item) => item.dataKey && activeSeries[item.dataKey as SeriesKey] && typeof item.value === "number",
+                );
+
+                if (!visibleItems.length) return null;
+
+                return (
+                  <div className="min-w-40 rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-xl">
+                    <div className="mb-2 font-medium text-card-foreground">{label}</div>
+                    <div className="space-y-1.5">
+                      {visibleItems.map((item) => (
+                        <div key={`${item.dataKey}`} className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <span
+                              className="h-2.5 w-2.5 rounded-full"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span>{item.name}</span>
+                          </div>
+                          <span className="font-medium text-card-foreground">
+                            {Number(item.value).toLocaleString("pt-BR")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }}
             />
-            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />
-            <Area name="Visitantes" type="monotone" dataKey="visitors" stroke="hsl(var(--chart-blue))" strokeWidth={2} fill="url(#gradVisitors)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Area name="Leads" type="monotone" dataKey="leads" stroke="hsl(var(--chart-green))" strokeWidth={2} fill="url(#gradLeads)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            {showCompare && prevSeries && (
+            <Area
+              hide={!activeSeries.visitors}
+              name="Visitantes"
+              type="monotone"
+              dataKey="visitors"
+              stroke="hsl(var(--chart-blue))"
+              strokeWidth={2}
+              fill="url(#gradVisitors)"
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
+            />
+            <Area
+              hide={!activeSeries.leads}
+              name="Leads"
+              type="monotone"
+              dataKey="leads"
+              stroke="hsl(var(--chart-green))"
+              strokeWidth={2}
+              fill="url(#gradLeads)"
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
+            />
+            {showCompare && prevSeries && activeSeries.prevVisitors && (
               <Line
                 name="Período anterior"
                 type="monotone"
