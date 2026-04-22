@@ -100,6 +100,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       event.preventDefault();
       const direction = event.key === "ArrowRight" ? 1 : -1;
       const nextIndex = (index + direction + categoryEntries.length) % categoryEntries.length;
+      setFocusedCategoryIndex(nextIndex);
       categoryButtonRefs.current[nextIndex]?.focus();
       return;
     }
@@ -177,9 +178,11 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
                     type="button"
                     onClick={() => toggleCategory(cat)}
                     onKeyDown={(event) => handleCategoryKeyDown(event, index, cat)}
+                    onFocus={() => setFocusedCategoryIndex(index)}
                     aria-pressed={Boolean(activeCategories[cat])}
                     aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
+                    tabIndex={index === focusedCategoryIndex ? 0 : -1}
                     className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{cat}</span>

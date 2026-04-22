@@ -142,6 +142,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
       event.preventDefault();
       const direction = event.key === "ArrowRight" ? 1 : -1;
       const nextIndex = (index + direction + legendItems.length) % legendItems.length;
+      setFocusedLegendIndex(nextIndex);
       legendButtonRefs.current[nextIndex]?.focus();
       return;
     }
@@ -335,10 +336,14 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                     type="button"
                     onClick={() => toggleSeries(item.key)}
                     onKeyDown={(event) => handleLegendKeyDown(event, index, item.key)}
-                    onFocus={() => setKeyboardFocusForSeries(item.key, keyboardFocus?.index)}
+                    onFocus={() => {
+                      setFocusedLegendIndex(index);
+                      setKeyboardFocusForSeries(item.key, keyboardFocus?.index);
+                    }}
                     aria-pressed={isActive}
                     aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
+                    tabIndex={index === focusedLegendIndex ? 0 : -1}
                     className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span
