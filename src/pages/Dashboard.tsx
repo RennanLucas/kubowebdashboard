@@ -262,9 +262,9 @@ const Dashboard = () => {
             {/* Chart + Traffic Sources */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
-                <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} />
+                <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
               </div>
-              <TrafficSources data={trafficSources ?? []} />
+              <TrafficSources data={trafficSources ?? []} dateRangeDays={dateRange} />
             </div>
 
             {/* Goals + Heatmap */}
