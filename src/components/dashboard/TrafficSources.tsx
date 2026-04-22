@@ -45,6 +45,7 @@ const sourceCategory = (source: string): string => {
 const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRangeDays: number }) => {
   const [activeCategories, setActiveCategories] = useState<Record<string, boolean>>({});
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const categoryButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const categories = useMemo(() => {
     const grouped: Record<string, number> = {};
@@ -84,6 +85,21 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       ...current,
       [category]: !current[category],
     }));
+  };
+
+  const handleCategoryKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number, category: string) => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (index + direction + categoryEntries.length) % categoryEntries.length;
+      categoryButtonRefs.current[nextIndex]?.focus();
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleCategory(category);
+    }
   };
 
   const handleExportCsv = () => {
@@ -141,7 +157,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
 
       {/* Category summary chips */}
       <div className="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="Filtros de categoria das fontes de tráfego">
-        {categoryEntries.map(([cat, count]) => {
+        {categoryEntries.map(([cat, count], index) => {
           const isActive = hasAnyActiveFilter ? Boolean(activeCategories[cat]) : true;
 
           return (
@@ -149,9 +165,12 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
+                    ref={(element) => (categoryButtonRefs.current[index] = element)}
                     type="button"
                     onClick={() => toggleCategory(cat)}
+                    onKeyDown={(event) => handleCategoryKeyDown(event, index, cat)}
                     aria-pressed={Boolean(activeCategories[cat])}
+                    aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${Boolean(activeCategories[cat]) ? "Remover filtro de" : "Filtrar por"} ${cat}`}
                     className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >

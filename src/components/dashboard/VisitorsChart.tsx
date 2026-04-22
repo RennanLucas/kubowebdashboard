@@ -60,6 +60,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     prevVisitors: true,
   });
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const legendButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const merged = useMemo(() => {
     return data.map((d, i) => ({
@@ -83,6 +84,21 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
 
   const toggleSeries = (key: SeriesKey) => {
     setActiveSeries((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const handleLegendKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number, key: SeriesKey) => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (index + direction + legendItems.length) % legendItems.length;
+      legendButtonRefs.current[nextIndex]?.focus();
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleSeries(key);
+    }
   };
 
   const legendItems = [
@@ -227,9 +243,12 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
+                    ref={(element) => (legendButtonRefs.current[index] = element)}
                     type="button"
                     onClick={() => toggleSeries(item.key)}
+                    onKeyDown={(event) => handleLegendKeyDown(event, index, item.key)}
                     aria-pressed={isActive}
+                    aria-keyshortcuts="ArrowLeft ArrowRight Enter Space"
                     aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
                     className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
