@@ -5,7 +5,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   ReferenceLine,
   Line,
@@ -28,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { buildExportFilename, downloadCsv, exportElementAsPng } from "@/lib/chart-export";
 import { toast } from "sonner";
 
@@ -222,20 +223,28 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
           const isActive = activeSeries[item.key];
 
           return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => toggleSeries(item.key)}
-              aria-pressed={isActive}
-              aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <span
-                className="h-2.5 w-2.5 rounded-full transition-opacity"
-                style={{ backgroundColor: item.color, opacity: isActive ? 1 : 0.35 }}
-              />
-              <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{item.label}</span>
-            </button>
+            <TooltipProvider key={item.key} delayDuration={120}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => toggleSeries(item.key)}
+                    aria-pressed={isActive}
+                    aria-label={`${isActive ? "Ocultar" : "Mostrar"} série ${item.label}`}
+                    className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full transition-opacity"
+                      style={{ backgroundColor: item.color, opacity: isActive ? 1 : 0.35 }}
+                    />
+                    <span className={isActive ? "text-foreground" : "text-muted-foreground"}>{item.label}</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  {isActive ? `Ocultar ${item.label}` : `Mostrar ${item.label}`}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         })}
       </div>
@@ -255,7 +264,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-            <Tooltip
+            <RechartsTooltip
               cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
