@@ -1,6 +1,15 @@
-import { useMemo, useState } from "react";
-import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink, Download, FileImage, FileText } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { buildExportFilename, downloadCsv, exportElementAsPng } from "@/lib/chart-export";
+import { toast } from "sonner";
 
 interface TrafficSource {
   source: string;
@@ -32,8 +41,9 @@ const sourceCategory = (source: string): string => {
   return "Referência";
 };
 
-const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
+const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRangeDays: number }) => {
   const [activeCategories, setActiveCategories] = useState<Record<string, boolean>>({});
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   const categories = useMemo(() => {
     const grouped: Record<string, number> = {};
@@ -75,16 +85,57 @@ const TrafficSources = ({ data }: { data: TrafficSource[] }) => {
     }));
   };
 
+  const handleExportCsv = () => {
+    downloadCsv(
+      [
+        ["Categoria", "Fonte", "Visitantes", "Percentual (%)"],
+        ...displayData.map((item) => [sourceCategory(item.source), item.source, item.visitors, item.percentage]),
+      ],
+      buildExportFilename("fontes-de-trafego", dateRangeDays, "csv"),
+    );
+    toast.success("CSV de fontes de tráfego baixado.");
+  };
+
+  const handleExportPng = async () => {
+    if (!cardRef.current) return;
+    try {
+      await exportElementAsPng(cardRef.current, buildExportFilename("fontes-de-trafego", dateRangeDays, "png"));
+      toast.success("PNG de fontes de tráfego baixado.");
+    } catch (error: any) {
+      toast.error(error?.message || "Erro ao exportar imagem.");
+    }
+  };
+
   return (
-    <div className="glass-card p-5">
+    <div className="glass-card p-5" ref={cardRef}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-card-foreground flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" /> Fontes de Tráfego
           <InfoTooltip content="De onde vêm seus visitantes. Agrupados em: Busca (Google, Bing), Social (Instagram, Facebook etc), Direto (digitaram a URL ou favoritos), Email e Referências (links de outros sites)." />
         </h3>
-        <span className="text-xs text-muted-foreground font-medium">
-          {totalVisitors.toLocaleString("pt-BR")} visitas
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground font-medium">
+            {totalVisitors.toLocaleString("pt-BR")} visitas
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
+                <Download className="h-3 w-3 mr-1" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportPng} className="gap-2 cursor-pointer">
+                <FileImage className="h-4 w-4 text-muted-foreground" />
+                PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCsv} className="gap-2 cursor-pointer">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Category summary chips */}

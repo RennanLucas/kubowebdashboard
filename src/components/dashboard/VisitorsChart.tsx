@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -10,7 +10,7 @@ import {
   ReferenceLine,
   Line,
 } from "recharts";
-import { Plus, X } from "lucide-react";
+import { Download, FileImage, FileText, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useAnnotations } from "@/hooks/useAnnotations";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { buildExportFilename, downloadCsv, exportElementAsPng } from "@/lib/chart-export";
+import { toast } from "sonner";
 
 interface ChartPoint {
   date: string;
@@ -34,11 +42,12 @@ interface VisitorsChartProps {
   data: ChartPoint[];
   projectId?: string;
   prevSeries?: number[]; // previous-period visitors aligned to data length
+  dateRangeDays: number;
 }
 
 type SeriesKey = "visitors" | "leads" | "prevVisitors";
 
-const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
+const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsChartProps) => {
   const { annotations, add, remove } = useAnnotations(projectId);
   const [showCompare, setShowCompare] = useState(false);
   const [newDate, setNewDate] = useState("");
@@ -49,6 +58,7 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
     leads: true,
     prevVisitors: true,
   });
+  const chartRef = useRef<HTMLDivElement | null>(null);
 
   const merged = useMemo(() => {
     return data.map((d, i) => ({
@@ -95,8 +105,36 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
     },
   ].filter((item) => item.available);
 
+  const exportRows = merged.map((item) => ({
+    date: item.rawDate,
+    visitors: activeSeries.visitors ? item.visitors : null,
+    leads: activeSeries.leads ? item.leads : null,
+    prevVisitors: showCompare && activeSeries.prevVisitors ? item.prevVisitors ?? null : null,
+  }));
+
+  const handleExportCsv = () => {
+    downloadCsv(
+      [
+        ["Data", "Visitantes", "Leads", "Período anterior"],
+        ...exportRows.map((row) => [row.date, row.visitors ?? "", row.leads ?? "", row.prevVisitors ?? ""]),
+      ],
+      buildExportFilename("visitantes-leads", dateRangeDays, "csv"),
+    );
+    toast.success("CSV do gráfico baixado.");
+  };
+
+  const handleExportPng = async () => {
+    if (!chartRef.current) return;
+    try {
+      await exportElementAsPng(chartRef.current, buildExportFilename("visitantes-leads", dateRangeDays, "png"));
+      toast.success("PNG do gráfico baixado.");
+    } catch (error: any) {
+      toast.error(error?.message || "Erro ao exportar imagem.");
+    }
+  };
+
   return (
-    <div className="glass-card p-5 sm:p-6">
+    <div className="glass-card p-5 sm:p-6" ref={chartRef}>
       <div className="flex items-center justify-between mb-5 gap-2 flex-wrap">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -106,6 +144,24 @@ const VisitorsChart = ({ data, projectId, prevSeries }: VisitorsChartProps) => {
           <p className="section-subtitle">Evolução diária no período selecionado</p>
         </div>
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
+                <Download className="h-3 w-3 mr-1" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportPng} className="gap-2 cursor-pointer">
+                <FileImage className="h-4 w-4 text-muted-foreground" />
+                PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCsv} className="gap-2 cursor-pointer">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {prevSeries && prevSeries.length > 0 && (
             <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
               <Switch checked={showCompare} onCheckedChange={setShowCompare} />
