@@ -834,14 +834,47 @@ export default function Insights() {
                                   {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
-                                      <ul className="mt-2 space-y-2">
-                                        {detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title)).map((source) => (
-                                          <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                            <span className="text-xs text-muted-foreground">{source.label}</span>
-                                            <span className="text-sm font-medium text-foreground">{source.value}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      {(() => {
+                                        const visibleSources = getVirtualizedSources(detail);
+
+                                        if (!visibleSources.virtualized) {
+                                          return (
+                                            <ul className="mt-2 space-y-2">
+                                              {visibleSources.sources.map((source) => (
+                                                <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                  <span className="text-xs text-muted-foreground">{source.label}</span>
+                                                  <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          );
+                                        }
+
+                                        return (
+                                          <div
+                                            className="mt-2 overflow-y-auto rounded-md"
+                                            style={{ maxHeight: `${VIRTUAL_SOURCE_VIEWPORT_HEIGHT}px` }}
+                                            onScroll={(event) => handleSourcesScroll(detail.title, event.currentTarget.scrollTop)}
+                                          >
+                                            <div className="relative" style={{ height: `${visibleSources.totalHeight}px` }}>
+                                              <ul
+                                                className="absolute inset-x-0 top-0"
+                                                style={{ transform: `translateY(${visibleSources.startIndex * VIRTUAL_SOURCE_ROW_HEIGHT}px)` }}
+                                              >
+                                                {visibleSources.sources.map((source) => (
+                                                  <li
+                                                    key={`${detail.title}-${source.label}`}
+                                                    className="flex min-h-12 flex-col justify-center gap-0.5 border-b border-border/60 px-1 py-1 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                                                  >
+                                                    <span className="text-xs text-muted-foreground">{source.label}</span>
+                                                    <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
                                       {detail.sources.length > getCurrentVisibleSourceCount(detail.title) && (
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                           <p className="text-xs text-muted-foreground">
