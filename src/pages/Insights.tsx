@@ -48,6 +48,7 @@ export default function Insights() {
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
+  const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
   const displayDetails = useMemo(() => {
@@ -88,13 +89,14 @@ export default function Insights() {
     setAnalysis(item.content);
     setAnalysisDetails(cachedDetails);
     setOpenSources({});
-    setVisibleSourceCounts({});
     setActiveInsightId(item.id);
     setCompareInsightId(null);
     setComparison(null);
     setAnalysisSource("history");
     setPeriodDays(item.period_days === 7 ? 7 : 30);
   };
+
+  const getCurrentVisibleSourceCount = (title: string) => visibleSourceCounts[getDetailSourceStateKey(title)] ?? DETAIL_SOURCES_PAGE_SIZE;
 
   const buildInsightDetails = async () => {
     const hourlyDistribution = await fetchHourly();
@@ -142,20 +144,24 @@ export default function Insights() {
   };
 
   const toggleSource = (title: string) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
     setOpenSources((current) => ({
       ...current,
-      [title]: !current[title],
+      [sourceStateKey]: !current[sourceStateKey],
     }));
     setVisibleSourceCounts((current) => ({
       ...current,
-      [title]: current[title] ?? DETAIL_SOURCES_PAGE_SIZE,
+      [sourceStateKey]: current[sourceStateKey] ?? DETAIL_SOURCES_PAGE_SIZE,
     }));
   };
 
   const loadMoreSources = (title: string) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
     setVisibleSourceCounts((current) => ({
       ...current,
-      [title]: (current[title] ?? DETAIL_SOURCES_PAGE_SIZE) + DETAIL_SOURCES_PAGE_SIZE,
+      [sourceStateKey]: (current[sourceStateKey] ?? DETAIL_SOURCES_PAGE_SIZE) + DETAIL_SOURCES_PAGE_SIZE,
     }));
   };
 
