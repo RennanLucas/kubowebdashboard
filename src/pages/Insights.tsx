@@ -239,9 +239,6 @@ export default function Insights() {
 
   const generate = async () => {
     setGenerating(true);
-    setAnalysis("");
-    setAnalysisDetails([]);
-    setOpenSources({});
     try {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
@@ -279,6 +276,9 @@ export default function Insights() {
       });
       setAnalysis(result);
       setAnalysisDetails(details);
+      setOpenSources({});
+      setCompareInsightId(null);
+      setComparison(null);
       setAnalysisSource("generated");
 
       if (user) {
@@ -410,15 +410,15 @@ export default function Insights() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-             <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
+            <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-               {generating ? "Processando análise com IA..." : analysis ? "Atualizar análise com IA" : "Gerar análise com IA"}
+               {generating ? "Atualizando com IA..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
             </Button>
           </div>
         </div>
 
         <p className="mb-4 text-xs text-muted-foreground">
-          Clique no botão para iniciar a leitura dos dados. Durante o processamento, o status aparece na tela; ao final, você verá um relatório completo com recomendações e poderá expandir os detalhes da IA.
+          A nova versão só é criada quando você clicar no botão. Enquanto a atualização roda, a versão atual continua visível e o histórico anterior é preservado.
         </p>
 
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
