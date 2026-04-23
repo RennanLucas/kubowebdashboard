@@ -154,10 +154,6 @@ export default function Insights() {
     }
   };
 
-  if ((error as Error | null)?.message === "AUTH_EXPIRED") {
-    return <Navigate to="/login" replace />;
-  }
-
   const fetchHourly = async (): Promise<HourlyPoint[]> => {
     const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id;
     if (!projectId) return [];
@@ -220,6 +216,10 @@ export default function Insights() {
     setPeriodDays(nextPeriod);
     setPendingAutoGenerate(true);
   };
+
+  if ((error as Error | null)?.message === "AUTH_EXPIRED") {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <AppLayout>
