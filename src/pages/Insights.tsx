@@ -8,6 +8,7 @@ import { InsightsHistoryPanel } from "@/components/insights/InsightsHistoryPanel
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -53,6 +54,7 @@ export default function Insights() {
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
   const [sourceScrollPositions, setSourceScrollPositions] = useState<Record<string, number>>({});
+  const [sourceSearchTerms, setSourceSearchTerms] = useState<Record<string, string>>({});
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -104,6 +106,30 @@ export default function Insights() {
 
   const getCurrentVisibleSourceCount = (title: string) => visibleSourceCounts[getDetailSourceStateKey(title)] ?? DETAIL_SOURCES_PAGE_SIZE;
 
+  const getFilteredSources = (detail: InsightDetail) => {
+    const sourceStateKey = getDetailSourceStateKey(detail.title);
+    const query = (sourceSearchTerms[sourceStateKey] ?? "").trim().toLowerCase();
+
+    if (!query) return detail.sources;
+
+    return detail.sources.filter((source) =>
+      `${source.label} ${source.value}`.toLowerCase().includes(query),
+    );
+  };
+
+  const handleSourceSearch = (title: string, value: string) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
+    setSourceSearchTerms((current) => ({
+      ...current,
+      [sourceStateKey]: value,
+    }));
+    setSourceScrollPositions((current) => ({
+      ...current,
+      [sourceStateKey]: 0,
+    }));
+  };
+
   const handleSourcesScroll = (title: string, scrollTop: number) => {
     const sourceStateKey = getDetailSourceStateKey(title);
 
@@ -115,7 +141,7 @@ export default function Insights() {
 
   const getVirtualizedSources = (detail: InsightDetail) => {
     const sourceStateKey = getDetailSourceStateKey(detail.title);
-    const sources = detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title));
+    const sources = getFilteredSources(detail).slice(0, getCurrentVisibleSourceCount(detail.title));
 
     if (sources.length <= VIRTUALIZATION_THRESHOLD) {
       return {
@@ -834,8 +860,20 @@ export default function Insights() {
                                   {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
+                                      {detail.sources.length > VIRTUALIZATION_THRESHOLD && (
+                                        <Input
+                                          value={sourceSearchTerms[getDetailSourceStateKey(detail.title)] ?? ""}
+                                          onChange={(event) => handleSourceSearch(detail.title, event.target.value)}
+                                          placeholder="Buscar métrica ou valor"
+                                          className="mt-3"
+                                        />
+                                      )}
                                       {(() => {
                                         const visibleSources = getVirtualizedSources(detail);
+
+                                        if (visibleSources.sources.length === 0) {
+                                          return <p className="mt-3 text-xs text-muted-foreground">Nenhuma métrica encontrada para essa busca.</p>;
+                                        }
 
                                         if (!visibleSources.virtualized) {
                                           return (
@@ -875,10 +913,10 @@ export default function Insights() {
                                           </div>
                                         );
                                       })()}
-                                      {detail.sources.length > getCurrentVisibleSourceCount(detail.title) && (
+                                      {getFilteredSources(detail).length > getCurrentVisibleSourceCount(detail.title) && (
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                           <p className="text-xs text-muted-foreground">
-                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), detail.sources.length)} de {detail.sources.length} fontes
+                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), getFilteredSources(detail).length)} de {getFilteredSources(detail).length} fontes
                                           </p>
                                           <Button
                                             type="button"
