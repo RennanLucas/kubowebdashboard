@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
-import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
+import { generateInsightDetails, generateLocalInsights, type HourlyPoint, type InsightDetail } from "@/lib/local-insights";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
@@ -23,6 +24,7 @@ export default function Insights() {
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
   const [analysis, setAnalysis] = useState<string>("");
+  const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [pendingAutoGenerate, setPendingAutoGenerate] = useState(false);
@@ -177,6 +179,7 @@ export default function Insights() {
   const generate = async () => {
     setGenerating(true);
     setAnalysis("");
+    setAnalysisDetails([]);
     try {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
@@ -196,7 +199,24 @@ export default function Insights() {
         countries: data?.countries ?? [],
         hourlyDistribution,
       });
+      const details = generateInsightDetails({
+        days: periodDays,
+        metrics: data?.metrics ?? [],
+        conversions: {
+          whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
+          form_submissions: data?.conversions?.form_submissions ?? 0,
+          button_clicks: data?.conversions?.button_clicks ?? 0,
+        },
+        trafficSources: data?.trafficSources ?? [],
+        topPages: data?.topPages ?? [],
+        engagement: data?.engagement,
+        comparison: data?.comparison,
+        devices: data?.devices ?? [],
+        countries: data?.countries ?? [],
+        hourlyDistribution,
+      });
       setAnalysis(result);
+      setAnalysisDetails(details);
     } catch (e: any) {
       toast.error(e?.message || "Erro ao gerar análise");
     } finally {
@@ -322,7 +342,33 @@ export default function Insights() {
         )}
 
         {analysis && !generating && (
-          <Card className="p-8 sm:p-10">
+          <Card className="p-8 sm:p-10 space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
+                <p className="text-sm text-muted-foreground">Expanda os detalhes para entender o motivo por trás de cada recomendação.</p>
+              </div>
+              <Accordion type="single" collapsible className="w-full sm:w-auto">
+                <AccordionItem value="details" className="border-none">
+                  <AccordionTrigger className="w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
+                    Ver detalhes da IA
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-3">
+                    <div className="rounded-lg border border-border bg-muted/20 p-4">
+                      <ul className="space-y-3">
+                        {analysisDetails.map((detail) => (
+                          <li key={detail.title} className="text-sm text-foreground/90">
+                            <p className="font-medium text-foreground">• {detail.title}</p>
+                            <p className="mt-1 text-muted-foreground">{detail.reason}</p>
+                            <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
             <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
               [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
               [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
