@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDashboardAnalytics, useClientData } from "@/hooks/useDashboardData";
+import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import { generateLocalInsights, type HourlyPoint } from "@/lib/local-insights";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,11 +20,12 @@ import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 
 export default function Insights() {
-  const { data, isLoading, error } = useDashboardAnalytics(30);
-  const { data: client } = useClientData();
+  const [periodDays, setPeriodDays] = useState<7 | 30>(30);
+  const { data, isLoading, error } = useDashboardAnalytics(periodDays);
   const [analysis, setAnalysis] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [pendingAutoGenerate, setPendingAutoGenerate] = useState(false);
   const reportRef = useRef<HTMLElement>(null);
 
   const exportMarkdown = () => {
@@ -102,10 +103,7 @@ export default function Insights() {
         pdf.line(margin, margin + headerHeight - 4, pageWidth - margin, margin + headerHeight - 4);
       };
 
-      const companyName =
-        (client as any)?.company_name ||
-        (client as any)?.clients?.[0]?.company_name ||
-        "Relatório de Performance";
+      const companyName = data?.client?.company_name || "Relatório de Performance";
 
       let renderedHeight = 0;
       let pageIndex = 0;
@@ -161,10 +159,10 @@ export default function Insights() {
   }
 
   const fetchHourly = async (): Promise<HourlyPoint[]> => {
-    const projectId = (client as any)?.projects?.[0]?.id;
+    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id;
     if (!projectId) return [];
     const since = new Date();
-    since.setDate(since.getDate() - 30);
+    since.setDate(since.getDate() - periodDays);
     const { data: rows, error: pvError } = await supabase
       .from("pageviews")
       .select("created_at")
@@ -187,7 +185,7 @@ export default function Insights() {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
       const result = generateLocalInsights({
-        days: 30,
+        days: periodDays,
         metrics: data?.metrics ?? [],
         conversions: {
           whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
@@ -210,6 +208,19 @@ export default function Insights() {
     }
   };
 
+  useEffect(() => {
+    if (!pendingAutoGenerate || isLoading || !data) return;
+
+    generate();
+    setPendingAutoGenerate(false);
+  }, [pendingAutoGenerate, isLoading, data]);
+
+  const handlePeriodChange = (nextPeriod: 7 | 30) => {
+    if (nextPeriod === periodDays) return;
+    setPeriodDays(nextPeriod);
+    setPendingAutoGenerate(true);
+  };
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -220,10 +231,29 @@ export default function Insights() {
               Insights com IA
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              A IA analisa tráfego, conversões, engajamento, origem dos acessos e sazonalidade para gerar recomendações acionáveis.
+              A IA analisa tráfego, conversões, engajamento, origem dos acessos e sazonalidade dos últimos {periodDays} dias para gerar recomendações acionáveis.
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
+              {[7, 30].map((days) => {
+                const isActive = periodDays === days;
+
+                return (
+                  <Button
+                    key={days}
+                    type="button"
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handlePeriodChange(days as 7 | 30)}
+                    disabled={generating || isLoading}
+                    className="min-w-12"
+                  >
+                    {days}d
+                  </Button>
+                );
+              })}
+            </div>
             {analysis && !generating && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -276,7 +306,7 @@ export default function Insights() {
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Gere seus insights com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Clique em "Gerar com IA" para cruzar os dados dos últimos 30 dias e receber um resumo com padrões, riscos, oportunidades e próximos passos.
+              Clique em "Gerar com IA" para cruzar os dados dos últimos {periodDays} dias e receber um resumo com padrões, riscos, oportunidades e próximos passos.
             </p>
           </Card>
         )}
@@ -286,7 +316,7 @@ export default function Insights() {
             <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Gerando insights com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              A IA está lendo tráfego, conversões, engajamento e origem dos acessos para montar um diagnóstico com os pontos mais relevantes.
+              A IA está lendo os dados dos últimos {periodDays} dias para montar um diagnóstico com os pontos mais relevantes de tráfego, conversões, engajamento e origem dos acessos.
             </p>
           </Card>
         )}
