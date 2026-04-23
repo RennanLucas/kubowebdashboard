@@ -251,7 +251,7 @@ export default function Insights() {
               Insights com IA
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              A IA analisa tráfego, conversões, engajamento, origem dos acessos e sazonalidade dos últimos {periodDays} dias para gerar recomendações acionáveis.
+              Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -296,10 +296,14 @@ export default function Insights() {
             )}
              <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-               {generating ? "Gerando com IA..." : analysis ? "Gerar novamente com IA" : "Gerar com IA"}
+               {generating ? "Processando análise com IA..." : analysis ? "Atualizar análise com IA" : "Gerar análise com IA"}
             </Button>
           </div>
         </div>
+
+        <p className="mb-4 text-xs text-muted-foreground">
+          Clique no botão para iniciar a leitura dos dados. Durante o processamento, o status aparece na tela; ao final, você verá um relatório completo com recomendações e poderá expandir os detalhes da IA.
+        </p>
 
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Nota sobre a IA</span>
@@ -371,9 +375,9 @@ export default function Insights() {
         {!analysis && !generating && (
           <Card className="p-12 text-center border-dashed">
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Gere seus insights com IA</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Clique em "Gerar com IA" para cruzar os dados dos últimos {periodDays} dias e receber um resumo com padrões, riscos, oportunidades e próximos passos.
+              Ao clicar em "Gerar análise com IA", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
             </p>
           </Card>
         )}
@@ -381,9 +385,12 @@ export default function Insights() {
         {generating && (
           <Card className="p-12 text-center">
             <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Gerando insights com IA</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              A IA está lendo os dados dos últimos {periodDays} dias para montar um diagnóstico com os pontos mais relevantes de tráfego, conversões, engajamento e origem dos acessos.
+              A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Status atual: coletando métricas, cruzando padrões e organizando os resultados.
             </p>
           </Card>
         )}
