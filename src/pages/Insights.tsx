@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 
 export default function Insights() {
+  const HISTORY_PAGE_SIZE = 8;
   const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
@@ -31,6 +32,8 @@ export default function Insights() {
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
   const [history, setHistory] = useState<InsightHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
+  const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [activeInsightId, setActiveInsightId] = useState<string | null>(null);
   const [compareInsightId, setCompareInsightId] = useState<string | null>(null);
   const [comparison, setComparison] = useState<InsightComparisonResult | null>(null);
@@ -206,10 +209,15 @@ export default function Insights() {
     return buckets.map((visitors, hour) => ({ hour, visitors }));
   };
 
-  const loadHistory = async () => {
+  const loadHistory = async (options?: { append?: boolean }) => {
     if (!user) return;
 
-    setHistoryLoading(true);
+    const append = options?.append ?? false;
+    const currentHistory = append ? history : [];
+    const nextOffset = append ? currentHistory.length : 0;
+
+    if (append) setHistoryLoadingMore(true);
+    else setHistoryLoading(true);
     const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
 
     let query = supabase
@@ -217,7 +225,7 @@ export default function Insights() {
       .select("id, content, created_at, period_days, model, project_id")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(12);
+      .range(nextOffset, nextOffset + HISTORY_PAGE_SIZE - 1);
 
     if (projectId) query = query.eq("project_id", projectId);
 
@@ -226,15 +234,19 @@ export default function Insights() {
     if (historyError) {
       toast.error("Erro ao carregar histórico de insights");
     } else if (rows) {
-      setHistory(rows);
-      const matchingPeriodHistory = rows.find((item) => item.period_days === periodDays);
-      const fallbackHistory = matchingPeriodHistory ?? rows[0];
+      const mergedRows = append ? [...currentHistory, ...rows] : rows;
+      setHistory(mergedRows);
+      setHasMoreHistory(rows.length === HISTORY_PAGE_SIZE);
 
-      if (!analysis && fallbackHistory) applyHistoryItem(fallbackHistory);
+      const matchingPeriodHistory = mergedRows.find((item) => item.period_days === periodDays);
+      const fallbackHistory = matchingPeriodHistory ?? mergedRows[0];
+
+      if (!append && !analysis && fallbackHistory) applyHistoryItem(fallbackHistory);
       else if (!activeInsightId && fallbackHistory) setActiveInsightId(fallbackHistory.id);
     }
 
-    setHistoryLoading(false);
+    if (append) setHistoryLoadingMore(false);
+    else setHistoryLoading(false);
   };
 
   const generate = async () => {
@@ -555,7 +567,10 @@ export default function Insights() {
               comparison={comparison}
               history={filteredHistory}
               loading={historyLoading}
+              loadingMore={historyLoadingMore}
+              hasMore={hasMoreHistory}
               onRestore={handleRestoreHistory}
+              onLoadMore={() => loadHistory({ append: true })}
               onToggleCompare={handleToggleCompare}
             />
 
