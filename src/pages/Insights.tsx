@@ -27,6 +27,10 @@ import { Navigate } from "react-router-dom";
 export default function Insights() {
   const HISTORY_PAGE_SIZE = 8;
   const DETAIL_SOURCES_PAGE_SIZE = 5;
+  const VIRTUAL_SOURCE_ROW_HEIGHT = 48;
+  const VIRTUAL_SOURCE_VIEWPORT_HEIGHT = 288;
+  const VIRTUAL_SOURCE_OVERSCAN = 4;
+  const VIRTUALIZATION_THRESHOLD = 12;
   const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
@@ -48,6 +52,7 @@ export default function Insights() {
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
+  const [sourceScrollPositions, setSourceScrollPositions] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -98,6 +103,45 @@ export default function Insights() {
   };
 
   const getCurrentVisibleSourceCount = (title: string) => visibleSourceCounts[getDetailSourceStateKey(title)] ?? DETAIL_SOURCES_PAGE_SIZE;
+
+  const handleSourcesScroll = (title: string, scrollTop: number) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
+    setSourceScrollPositions((current) => ({
+      ...current,
+      [sourceStateKey]: scrollTop,
+    }));
+  };
+
+  const getVirtualizedSources = (detail: InsightDetail) => {
+    const sourceStateKey = getDetailSourceStateKey(detail.title);
+    const sources = detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title));
+
+    if (sources.length <= VIRTUALIZATION_THRESHOLD) {
+      return {
+        sourceStateKey,
+        sources,
+        virtualized: false,
+        totalHeight: 0,
+        startIndex: 0,
+      };
+    }
+
+    const scrollTop = sourceScrollPositions[sourceStateKey] ?? 0;
+    const startIndex = Math.max(0, Math.floor(scrollTop / VIRTUAL_SOURCE_ROW_HEIGHT) - VIRTUAL_SOURCE_OVERSCAN);
+    const endIndex = Math.min(
+      sources.length,
+      Math.ceil((scrollTop + VIRTUAL_SOURCE_VIEWPORT_HEIGHT) / VIRTUAL_SOURCE_ROW_HEIGHT) + VIRTUAL_SOURCE_OVERSCAN,
+    );
+
+    return {
+      sourceStateKey,
+      sources: sources.slice(startIndex, endIndex),
+      virtualized: true,
+      totalHeight: sources.length * VIRTUAL_SOURCE_ROW_HEIGHT,
+      startIndex,
+    };
+  };
 
   const buildInsightDetails = async () => {
     const hourlyDistribution = await fetchHourly();
