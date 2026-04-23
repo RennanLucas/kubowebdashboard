@@ -8,6 +8,7 @@ import { InsightsHistoryPanel } from "@/components/insights/InsightsHistoryPanel
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -53,6 +54,7 @@ export default function Insights() {
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
   const [sourceScrollPositions, setSourceScrollPositions] = useState<Record<string, number>>({});
+  const [sourceSearchTerms, setSourceSearchTerms] = useState<Record<string, string>>({});
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -104,6 +106,30 @@ export default function Insights() {
 
   const getCurrentVisibleSourceCount = (title: string) => visibleSourceCounts[getDetailSourceStateKey(title)] ?? DETAIL_SOURCES_PAGE_SIZE;
 
+  const getFilteredSources = (detail: InsightDetail) => {
+    const sourceStateKey = getDetailSourceStateKey(detail.title);
+    const query = (sourceSearchTerms[sourceStateKey] ?? "").trim().toLowerCase();
+
+    if (!query) return detail.sources;
+
+    return detail.sources.filter((source) =>
+      `${source.label} ${source.value}`.toLowerCase().includes(query),
+    );
+  };
+
+  const handleSourceSearch = (title: string, value: string) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
+    setSourceSearchTerms((current) => ({
+      ...current,
+      [sourceStateKey]: value,
+    }));
+    setSourceScrollPositions((current) => ({
+      ...current,
+      [sourceStateKey]: 0,
+    }));
+  };
+
   const handleSourcesScroll = (title: string, scrollTop: number) => {
     const sourceStateKey = getDetailSourceStateKey(title);
 
@@ -115,7 +141,7 @@ export default function Insights() {
 
   const getVirtualizedSources = (detail: InsightDetail) => {
     const sourceStateKey = getDetailSourceStateKey(detail.title);
-    const sources = detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title));
+    const sources = getFilteredSources(detail).slice(0, getCurrentVisibleSourceCount(detail.title));
 
     if (sources.length <= VIRTUALIZATION_THRESHOLD) {
       return {
