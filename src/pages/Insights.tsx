@@ -36,6 +36,7 @@ export default function Insights() {
   const [comparison, setComparison] = useState<InsightComparisonResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [analysisSource, setAnalysisSource] = useState<"history" | "generated" | null>(null);
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const reportRef = useRef<HTMLElement>(null);
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -48,6 +49,7 @@ export default function Insights() {
     setActiveInsightId(item.id);
     setCompareInsightId(null);
     setComparison(null);
+    setAnalysisSource("history");
     setPeriodDays(item.period_days === 7 ? 7 : 30);
   };
 
@@ -277,6 +279,7 @@ export default function Insights() {
       });
       setAnalysis(result);
       setAnalysisDetails(details);
+      setAnalysisSource("generated");
 
       if (user) {
         const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
@@ -337,6 +340,7 @@ export default function Insights() {
       setComparison(null);
       setAnalysis("");
       setAnalysisDetails([]);
+      setAnalysisSource(null);
       setOpenSources({});
     }
   };
@@ -436,6 +440,28 @@ export default function Insights() {
             Os insights são gerados a partir dos dados exibidos no dashboard. Em ambientes de demonstração, parte da base ainda pode ser mockada.
           </p>
         </div>
+
+        <Card className="mb-6 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+            <div className="space-y-1 text-sm">
+              <p className="font-medium text-foreground">
+                {!hasHistoryForSelectedPeriod
+                  ? `Atualização com IA necessária para ${periodDays} dias`
+                  : analysisSource === "generated"
+                    ? `Análise de ${periodDays} dias atualizada com IA`
+                    : `Histórico de ${periodDays} dias carregado sem IA`}
+              </p>
+              <p className="text-muted-foreground">
+                {!hasHistoryForSelectedPeriod
+                  ? "Ainda não existe uma versão salva para esse período. Se quiser visualizar esse recorte, gere uma nova análise manualmente."
+                  : analysisSource === "generated"
+                    ? "Você está vendo uma versão recém-atualizada. Só será necessário rodar IA de novo se quiser renovar os insights."
+                    : "Você está vendo uma versão já salva no histórico. Só use a atualização com IA se quiser gerar uma leitura nova dos dados."}
+              </p>
+            </div>
+          </div>
+        </Card>
 
         <Card className="mb-6 p-5 sm:p-6">
           <div className="space-y-4">
