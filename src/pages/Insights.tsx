@@ -38,6 +38,8 @@ export default function Insights() {
   const [exporting, setExporting] = useState(false);
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const reportRef = useRef<HTMLElement>(null);
+  const filteredHistory = history.filter((item) => item.period_days === periodDays);
+  const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
 
   const applyHistoryItem = (item: InsightHistoryRecord) => {
     setAnalysis(item.content);
@@ -223,8 +225,11 @@ export default function Insights() {
       toast.error("Erro ao carregar histórico de insights");
     } else if (rows) {
       setHistory(rows);
-      if (!analysis && rows[0]) applyHistoryItem(rows[0]);
-      else if (!activeInsightId && rows[0]) setActiveInsightId(rows[0].id);
+      const matchingPeriodHistory = rows.find((item) => item.period_days === periodDays);
+      const fallbackHistory = matchingPeriodHistory ?? rows[0];
+
+      if (!analysis && fallbackHistory) applyHistoryItem(fallbackHistory);
+      else if (!activeInsightId && fallbackHistory) setActiveInsightId(fallbackHistory.id);
     }
 
     setHistoryLoading(false);
@@ -321,10 +326,18 @@ export default function Insights() {
 
   const handlePeriodChange = (nextPeriod: 7 | 30) => {
     if (nextPeriod === periodDays) return;
-    setPeriodDays(nextPeriod);
     const matchingHistory = history.find((item) => item.period_days === nextPeriod);
+    setPeriodDays(nextPeriod);
+
     if (matchingHistory) {
       applyHistoryItem(matchingHistory);
+    } else {
+      setActiveInsightId(null);
+      setCompareInsightId(null);
+      setComparison(null);
+      setAnalysis("");
+      setAnalysisDetails([]);
+      setOpenSources({});
     }
   };
 
@@ -471,6 +484,20 @@ export default function Insights() {
           </div>
         </Card>
 
+        {!generating && !historyLoading && !hasHistoryForSelectedPeriod && (
+          <Card className="mb-6 border-warning/30 bg-warning/5 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+              <div className="space-y-1 text-sm">
+                <p className="font-medium text-foreground">Nenhum histórico salvo para {periodDays} dias</p>
+                <p className="text-muted-foreground">
+                  Se você quiser esse período, gere uma nova análise manualmente. Enquanto isso, não vamos consumir IA automaticamente.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {!analysis && !generating && (
           <Card className="p-12 text-center border-dashed">
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
@@ -500,7 +527,7 @@ export default function Insights() {
               activeInsightId={activeInsightId}
               compareInsightId={compareInsightId}
               comparison={comparison}
-              history={history}
+              history={filteredHistory}
               loading={historyLoading}
               onRestore={handleRestoreHistory}
               onToggleCompare={handleToggleCompare}
