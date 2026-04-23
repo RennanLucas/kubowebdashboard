@@ -860,8 +860,20 @@ export default function Insights() {
                                   {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
+                                      {detail.sources.length > VIRTUALIZATION_THRESHOLD && (
+                                        <Input
+                                          value={sourceSearchTerms[getDetailSourceStateKey(detail.title)] ?? ""}
+                                          onChange={(event) => handleSourceSearch(detail.title, event.target.value)}
+                                          placeholder="Buscar métrica ou valor"
+                                          className="mt-3"
+                                        />
+                                      )}
                                       {(() => {
                                         const visibleSources = getVirtualizedSources(detail);
+
+                                        if (visibleSources.sources.length === 0) {
+                                          return <p className="mt-3 text-xs text-muted-foreground">Nenhuma métrica encontrada para essa busca.</p>;
+                                        }
 
                                         if (!visibleSources.virtualized) {
                                           return (
@@ -901,10 +913,10 @@ export default function Insights() {
                                           </div>
                                         );
                                       })()}
-                                      {detail.sources.length > getCurrentVisibleSourceCount(detail.title) && (
+                                      {getFilteredSources(detail).length > getCurrentVisibleSourceCount(detail.title) && (
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                           <p className="text-xs text-muted-foreground">
-                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), detail.sources.length)} de {detail.sources.length} fontes
+                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), getFilteredSources(detail).length)} de {getFilteredSources(detail).length} fontes
                                           </p>
                                           <Button
                                             type="button"
