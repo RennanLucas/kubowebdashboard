@@ -46,15 +46,29 @@ export default function Insights() {
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
   const displayDetails = useMemo(() => {
     if (analysisDetails.length > 0) return analysisDetails;
-    if (!analysis || analysisSource !== "history") return [];
+    if (!analysis) return [];
+
+    if (analysisSource === "history") {
+      return [
+        {
+          title: "Detalhes indisponíveis nesta versão",
+          reason: "Esta versão foi carregada do histórico salvo sem os detalhes estruturados exibidos no painel.",
+          recommendation: "Clique em “Atualizar com IA” quando quiser gerar uma nova leitura com o detalhamento completo desta análise.",
+          sources: [
+            { label: "Origem", value: "Histórico salvo" },
+            { label: "Período", value: `${periodDays} dias` },
+          ],
+        },
+      ];
+    }
 
     return [
       {
-        title: "Detalhes indisponíveis nesta versão",
-        reason: "Esta versão foi carregada do histórico salvo sem os detalhes estruturados exibidos no painel.",
-        recommendation: "Clique em “Atualizar com IA” quando quiser gerar uma nova leitura com o detalhamento completo desta análise.",
+        title: "Detalhes ainda não disponíveis",
+        reason: "Esta análise não possui o detalhamento estruturado necessário para preencher este painel no momento.",
+        recommendation: "Clique em “Atualizar com IA” para gerar uma nova versão com explicações detalhadas e fontes resumidas.",
         sources: [
-          { label: "Origem", value: "Histórico salvo" },
+          { label: "Origem", value: analysisSource === "generated" ? "Análise atual" : "Indefinida" },
           { label: "Período", value: `${periodDays} dias` },
         ],
       },
@@ -610,14 +624,16 @@ export default function Insights() {
                               <p className="mt-1 text-muted-foreground">{detail.reason}</p>
                               <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
                               <div className="mt-3 flex flex-col items-start gap-3">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => toggleSource(detail.title)}
-                                >
-                                  {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
-                                </Button>
+                                {detail.sources.length > 0 && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => toggleSource(detail.title)}
+                                  >
+                                    {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
+                                  </Button>
+                                )}
                                 {openSources[detail.title] && detail.sources.length > 0 && (
                                   <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                     <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
