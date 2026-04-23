@@ -33,6 +33,7 @@ export default function Insights() {
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
   const [history, setHistory] = useState<InsightHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
@@ -81,6 +82,7 @@ export default function Insights() {
 
   const applyHistoryItem = (item: InsightHistoryRecord) => {
     setDetailsLoading(true);
+    setDetailsError(null);
     setAnalysis(item.content);
     setAnalysisDetails([]);
     setOpenSources({});
@@ -91,6 +93,45 @@ export default function Insights() {
     setAnalysisSource("history");
     setPeriodDays(item.period_days === 7 ? 7 : 30);
     window.setTimeout(() => setDetailsLoading(false), 250);
+  };
+
+  const buildInsightDetails = async () => {
+    const hourlyDistribution = await fetchHourly();
+
+    return generateInsightDetails({
+      days: periodDays,
+      metrics: data?.metrics ?? [],
+      conversions: {
+        whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
+        form_submissions: data?.conversions?.form_submissions ?? 0,
+        button_clicks: data?.conversions?.button_clicks ?? 0,
+      },
+      trafficSources: data?.trafficSources ?? [],
+      topPages: data?.topPages ?? [],
+      engagement: data?.engagement,
+      comparison: data?.comparison,
+      devices: data?.devices ?? [],
+      countries: data?.countries ?? [],
+      hourlyDistribution,
+    });
+  };
+
+  const retryDetails = async () => {
+    if (!analysis || analysisSource !== "generated") return;
+
+    setDetailsLoading(true);
+    setDetailsError(null);
+
+    try {
+      const details = await buildInsightDetails();
+      setAnalysisDetails(details);
+      setOpenSources({});
+      setVisibleSourceCounts({});
+    } catch (e: any) {
+      setDetailsError(e?.message || "Não foi possível carregar os detalhes desta análise.");
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
   const toggleSource = (title: string) => {
@@ -300,6 +341,7 @@ export default function Insights() {
   const generate = async () => {
     setGenerating(true);
     setDetailsLoading(true);
+    setDetailsError(null);
     try {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
@@ -319,24 +361,29 @@ export default function Insights() {
         countries: data?.countries ?? [],
         hourlyDistribution,
       });
-      const details = generateInsightDetails({
-        days: periodDays,
-        metrics: data?.metrics ?? [],
-        conversions: {
-          whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
-          form_submissions: data?.conversions?.form_submissions ?? 0,
-          button_clicks: data?.conversions?.button_clicks ?? 0,
-        },
-        trafficSources: data?.trafficSources ?? [],
-        topPages: data?.topPages ?? [],
-        engagement: data?.engagement,
-        comparison: data?.comparison,
-        devices: data?.devices ?? [],
-        countries: data?.countries ?? [],
-        hourlyDistribution,
-      });
       setAnalysis(result);
-      setAnalysisDetails(details);
+      try {
+        const details = generateInsightDetails({
+          days: periodDays,
+          metrics: data?.metrics ?? [],
+          conversions: {
+            whatsapp_clicks: data?.conversions?.whatsapp_clicks ?? 0,
+            form_submissions: data?.conversions?.form_submissions ?? 0,
+            button_clicks: data?.conversions?.button_clicks ?? 0,
+          },
+          trafficSources: data?.trafficSources ?? [],
+          topPages: data?.topPages ?? [],
+          engagement: data?.engagement,
+          comparison: data?.comparison,
+          devices: data?.devices ?? [],
+          countries: data?.countries ?? [],
+          hourlyDistribution,
+        });
+        setAnalysisDetails(details);
+      } catch (detailsErr: any) {
+        setAnalysisDetails([]);
+        setDetailsError(detailsErr?.message || "Não foi possível carregar os detalhes desta análise.");
+      }
       setOpenSources({});
       setVisibleSourceCounts({});
       setCompareInsightId(null);
@@ -405,6 +452,7 @@ export default function Insights() {
       setAnalysis("");
       setAnalysisDetails([]);
       setDetailsLoading(false);
+      setDetailsError(null);
       setAnalysisSource(null);
       setOpenSources({});
       setVisibleSourceCounts({});
@@ -654,6 +702,21 @@ export default function Insights() {
                               <Skeleton className="h-4 w-full" />
                               <Skeleton className="h-4 w-10/12" />
                             </div>
+                          </div>
+                        ) : detailsError ? (
+                          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                            <p className="text-sm font-medium text-foreground">Não foi possível carregar os detalhes da IA</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{detailsError}</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={retryDetails}
+                              disabled={analysisSource !== "generated"}
+                              className="mt-3"
+                            >
+                              Tentar novamente
+                            </Button>
                           </div>
                         ) : (
                           <ul className="space-y-3">
