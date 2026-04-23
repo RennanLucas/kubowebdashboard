@@ -321,6 +321,53 @@ export default function Insights() {
           </p>
         </div>
 
+        <Card className="mb-6 p-5 sm:p-6">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">O que a IA analisa</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                A IA cruza os principais sinais do período para transformar números soltos em leitura de desempenho e oportunidades de ação.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  title: "Tráfego",
+                  description: "Volume de visitantes, evolução no período e tendências de alta ou queda.",
+                  example: "Ex.: crescimento acima da média nos últimos dias ou perda de volume em relação ao período anterior.",
+                },
+                {
+                  title: "Conversões",
+                  description: "Leads, cliques em WhatsApp, formulários e CTAs com mais resposta.",
+                  example: "Ex.: qual caminho gera mais conversões e onde existe fricção no funil.",
+                },
+                {
+                  title: "Origem dos acessos",
+                  description: "Canais e fontes que mais trazem visitantes para o site.",
+                  example: "Ex.: dependência excessiva de um canal ou oportunidade em busca orgânica e social.",
+                },
+                {
+                  title: "Engajamento",
+                  description: "Comportamento dos visitantes nas páginas, rejeição e qualidade da navegação.",
+                  example: "Ex.: páginas com muito acesso, mas pouco avanço para conversão.",
+                },
+                {
+                  title: "Sazonalidade",
+                  description: "Padrões por dia da semana e horários com maior atenção.",
+                  example: "Ex.: melhores janelas para publicar, anunciar ou reforçar ofertas.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-lg border border-border bg-muted/20 p-4">
+                  <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.example}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
         {!analysis && !generating && (
           <Card className="p-12 text-center border-dashed">
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
