@@ -166,7 +166,9 @@ export default function Insights() {
     }));
 
     await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
     });
 
     setVisibleSourceCounts((current) => ({
