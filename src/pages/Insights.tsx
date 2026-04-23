@@ -767,24 +767,24 @@ export default function Insights() {
                                       size="sm"
                                       onClick={() => toggleSource(detail.title)}
                                     >
-                                      {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
+                                      {openSources[getDetailSourceStateKey(detail.title)] ? "Ocultar fonte" : "Ver fonte"}
                                     </Button>
                                   )}
-                                  {openSources[detail.title] && detail.sources.length > 0 && (
+                                  {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
                                       <ul className="mt-2 space-y-2">
-                                        {detail.sources.slice(0, visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE).map((source) => (
+                                        {detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title)).map((source) => (
                                           <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                             <span className="text-xs text-muted-foreground">{source.label}</span>
                                             <span className="text-sm font-medium text-foreground">{source.value}</span>
                                           </li>
                                         ))}
                                       </ul>
-                                      {detail.sources.length > (visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE) && (
+                                      {detail.sources.length > getCurrentVisibleSourceCount(detail.title) && (
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                           <p className="text-xs text-muted-foreground">
-                                            Mostrando {Math.min(visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE, detail.sources.length)} de {detail.sources.length} fontes
+                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), detail.sources.length)} de {detail.sources.length} fontes
                                           </p>
                                           <Button
                                             type="button"
