@@ -26,6 +26,7 @@ import { Navigate } from "react-router-dom";
 
 export default function Insights() {
   const HISTORY_PAGE_SIZE = 8;
+  const DETAIL_SOURCES_PAGE_SIZE = 5;
   const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
@@ -43,6 +44,7 @@ export default function Insights() {
   const [exporting, setExporting] = useState(false);
   const [analysisSource, setAnalysisSource] = useState<"history" | "generated" | null>(null);
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
+  const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
@@ -82,6 +84,7 @@ export default function Insights() {
     setAnalysis(item.content);
     setAnalysisDetails([]);
     setOpenSources({});
+    setVisibleSourceCounts({});
     setActiveInsightId(item.id);
     setCompareInsightId(null);
     setComparison(null);
@@ -94,6 +97,17 @@ export default function Insights() {
     setOpenSources((current) => ({
       ...current,
       [title]: !current[title],
+    }));
+    setVisibleSourceCounts((current) => ({
+      ...current,
+      [title]: current[title] ?? DETAIL_SOURCES_PAGE_SIZE,
+    }));
+  };
+
+  const loadMoreSources = (title: string) => {
+    setVisibleSourceCounts((current) => ({
+      ...current,
+      [title]: (current[title] ?? DETAIL_SOURCES_PAGE_SIZE) + DETAIL_SOURCES_PAGE_SIZE,
     }));
   };
 
@@ -324,6 +338,7 @@ export default function Insights() {
       setAnalysis(result);
       setAnalysisDetails(details);
       setOpenSources({});
+      setVisibleSourceCounts({});
       setCompareInsightId(null);
       setComparison(null);
       setAnalysisSource("generated");
@@ -392,6 +407,7 @@ export default function Insights() {
       setDetailsLoading(false);
       setAnalysisSource(null);
       setOpenSources({});
+      setVisibleSourceCounts({});
     }
   };
 
@@ -661,13 +677,28 @@ export default function Insights() {
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
                                       <ul className="mt-2 space-y-2">
-                                        {detail.sources.map((source) => (
+                                        {detail.sources.slice(0, visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE).map((source) => (
                                           <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                             <span className="text-xs text-muted-foreground">{source.label}</span>
                                             <span className="text-sm font-medium text-foreground">{source.value}</span>
                                           </li>
                                         ))}
                                       </ul>
+                                      {detail.sources.length > (visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE) && (
+                                        <div className="mt-3 flex items-center justify-between gap-3">
+                                          <p className="text-xs text-muted-foreground">
+                                            Mostrando {Math.min(visibleSourceCounts[detail.title] ?? DETAIL_SOURCES_PAGE_SIZE, detail.sources.length)} de {detail.sources.length} fontes
+                                          </p>
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => loadMoreSources(detail.title)}
+                                          >
+                                            Carregar mais
+                                          </Button>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
