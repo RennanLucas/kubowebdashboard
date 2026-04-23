@@ -44,6 +44,7 @@ export default function Insights() {
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [analysisSource, setAnalysisSource] = useState<"history" | "generated" | null>(null);
+  const [detailsCache, setDetailsCache] = useState<Record<string, InsightDetail[]>>({});
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
@@ -81,10 +82,11 @@ export default function Insights() {
   }, [analysis, analysisDetails, analysisSource, periodDays]);
 
   const applyHistoryItem = (item: InsightHistoryRecord) => {
+    const cachedDetails = detailsCache[item.id] ?? [];
     setDetailsLoading(true);
     setDetailsError(null);
     setAnalysis(item.content);
-    setAnalysisDetails([]);
+    setAnalysisDetails(cachedDetails);
     setOpenSources({});
     setVisibleSourceCounts({});
     setActiveInsightId(item.id);
@@ -124,6 +126,12 @@ export default function Insights() {
     try {
       const details = await buildInsightDetails();
       setAnalysisDetails(details);
+      if (activeInsightId) {
+        setDetailsCache((current) => ({
+          ...current,
+          [activeInsightId]: details,
+        }));
+      }
       setOpenSources({});
       setVisibleSourceCounts({});
     } catch (e: any) {
@@ -361,6 +369,7 @@ export default function Insights() {
         hourlyDistribution,
       });
       setAnalysis(result);
+      let generatedDetails: InsightDetail[] = [];
       try {
         const details = generateInsightDetails({
           days: periodDays,
@@ -378,6 +387,7 @@ export default function Insights() {
           countries: data?.countries ?? [],
           hourlyDistribution,
         });
+        generatedDetails = details;
         setAnalysisDetails(details);
       } catch (detailsErr: any) {
         setAnalysisDetails([]);
@@ -407,6 +417,12 @@ export default function Insights() {
         if (insertError) {
           toast.error("Erro ao salvar a geração no histórico");
         } else if (insertedInsight) {
+          if (generatedDetails.length > 0) {
+            setDetailsCache((current) => ({
+              ...current,
+              [insertedInsight.id]: generatedDetails,
+            }));
+          }
           setActiveInsightId(insertedInsight.id);
           setCompareInsightId(null);
           setComparison(null);
