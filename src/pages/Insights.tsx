@@ -8,6 +8,7 @@ import { InsightsHistoryPanel } from "@/components/insights/InsightsHistoryPanel
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,7 @@ export default function Insights() {
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [history, setHistory] = useState<InsightHistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
@@ -76,6 +78,7 @@ export default function Insights() {
   }, [analysis, analysisDetails, analysisSource, periodDays]);
 
   const applyHistoryItem = (item: InsightHistoryRecord) => {
+    setDetailsLoading(true);
     setAnalysis(item.content);
     setAnalysisDetails([]);
     setOpenSources({});
@@ -84,6 +87,7 @@ export default function Insights() {
     setComparison(null);
     setAnalysisSource("history");
     setPeriodDays(item.period_days === 7 ? 7 : 30);
+    window.setTimeout(() => setDetailsLoading(false), 250);
   };
 
   const toggleSource = (title: string) => {
@@ -281,6 +285,7 @@ export default function Insights() {
 
   const generate = async () => {
     setGenerating(true);
+    setDetailsLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
@@ -322,6 +327,7 @@ export default function Insights() {
       setCompareInsightId(null);
       setComparison(null);
       setAnalysisSource("generated");
+      setDetailsLoading(false);
 
       if (user) {
         const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
@@ -350,6 +356,7 @@ export default function Insights() {
     } catch (e: any) {
       toast.error(e?.message || "Erro ao gerar análise");
     } finally {
+      setDetailsLoading(false);
       setGenerating(false);
     }
   };
@@ -382,6 +389,7 @@ export default function Insights() {
       setComparison(null);
       setAnalysis("");
       setAnalysisDetails([]);
+      setDetailsLoading(false);
       setAnalysisSource(null);
       setOpenSources({});
     }
@@ -617,40 +625,56 @@ export default function Insights() {
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
                       <div className="rounded-lg border border-border bg-muted/20 p-4">
-                        <ul className="space-y-3">
-                          {displayDetails.map((detail) => (
-                            <li key={detail.title} className="rounded-lg border border-border bg-background p-4 text-sm text-foreground/90">
-                              <p className="font-medium text-foreground">• {detail.title}</p>
-                              <p className="mt-1 text-muted-foreground">{detail.reason}</p>
-                              <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
-                              <div className="mt-3 flex flex-col items-start gap-3">
-                                {detail.sources.length > 0 && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => toggleSource(detail.title)}
-                                  >
-                                    {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
-                                  </Button>
-                                )}
-                                {openSources[detail.title] && detail.sources.length > 0 && (
-                                  <div className="w-full rounded-md border border-border bg-muted/30 p-3">
-                                    <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
-                                    <ul className="mt-2 space-y-2">
-                                      {detail.sources.map((source) => (
-                                        <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                          <span className="text-xs text-muted-foreground">{source.label}</span>
-                                          <span className="text-sm font-medium text-foreground">{source.value}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
+                        {detailsLoading ? (
+                          <div className="space-y-3">
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+                              <Skeleton className="h-4 w-40" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-11/12" />
+                              <Skeleton className="h-9 w-28" />
+                            </div>
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-10/12" />
+                            </div>
+                          </div>
+                        ) : (
+                          <ul className="space-y-3">
+                            {displayDetails.map((detail) => (
+                              <li key={detail.title} className="rounded-lg border border-border bg-background p-4 text-sm text-foreground/90">
+                                <p className="font-medium text-foreground">• {detail.title}</p>
+                                <p className="mt-1 text-muted-foreground">{detail.reason}</p>
+                                <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
+                                <div className="mt-3 flex flex-col items-start gap-3">
+                                  {detail.sources.length > 0 && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => toggleSource(detail.title)}
+                                    >
+                                      {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
+                                    </Button>
+                                  )}
+                                  {openSources[detail.title] && detail.sources.length > 0 && (
+                                    <div className="w-full rounded-md border border-border bg-muted/30 p-3">
+                                      <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
+                                      <ul className="mt-2 space-y-2">
+                                        {detail.sources.map((source) => (
+                                          <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                            <span className="text-xs text-muted-foreground">{source.label}</span>
+                                            <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
