@@ -27,6 +27,10 @@ import { Navigate } from "react-router-dom";
 export default function Insights() {
   const HISTORY_PAGE_SIZE = 8;
   const DETAIL_SOURCES_PAGE_SIZE = 5;
+  const VIRTUAL_SOURCE_ROW_HEIGHT = 48;
+  const VIRTUAL_SOURCE_VIEWPORT_HEIGHT = 288;
+  const VIRTUAL_SOURCE_OVERSCAN = 4;
+  const VIRTUALIZATION_THRESHOLD = 12;
   const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
@@ -48,6 +52,7 @@ export default function Insights() {
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
+  const [sourceScrollPositions, setSourceScrollPositions] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -98,6 +103,45 @@ export default function Insights() {
   };
 
   const getCurrentVisibleSourceCount = (title: string) => visibleSourceCounts[getDetailSourceStateKey(title)] ?? DETAIL_SOURCES_PAGE_SIZE;
+
+  const handleSourcesScroll = (title: string, scrollTop: number) => {
+    const sourceStateKey = getDetailSourceStateKey(title);
+
+    setSourceScrollPositions((current) => ({
+      ...current,
+      [sourceStateKey]: scrollTop,
+    }));
+  };
+
+  const getVirtualizedSources = (detail: InsightDetail) => {
+    const sourceStateKey = getDetailSourceStateKey(detail.title);
+    const sources = detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title));
+
+    if (sources.length <= VIRTUALIZATION_THRESHOLD) {
+      return {
+        sourceStateKey,
+        sources,
+        virtualized: false,
+        totalHeight: 0,
+        startIndex: 0,
+      };
+    }
+
+    const scrollTop = sourceScrollPositions[sourceStateKey] ?? 0;
+    const startIndex = Math.max(0, Math.floor(scrollTop / VIRTUAL_SOURCE_ROW_HEIGHT) - VIRTUAL_SOURCE_OVERSCAN);
+    const endIndex = Math.min(
+      sources.length,
+      Math.ceil((scrollTop + VIRTUAL_SOURCE_VIEWPORT_HEIGHT) / VIRTUAL_SOURCE_ROW_HEIGHT) + VIRTUAL_SOURCE_OVERSCAN,
+    );
+
+    return {
+      sourceStateKey,
+      sources: sources.slice(startIndex, endIndex),
+      virtualized: true,
+      totalHeight: sources.length * VIRTUAL_SOURCE_ROW_HEIGHT,
+      startIndex,
+    };
+  };
 
   const buildInsightDetails = async () => {
     const hourlyDistribution = await fetchHourly();
@@ -790,14 +834,47 @@ export default function Insights() {
                                   {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
                                     <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                       <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
-                                      <ul className="mt-2 space-y-2">
-                                        {detail.sources.slice(0, getCurrentVisibleSourceCount(detail.title)).map((source) => (
-                                          <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                            <span className="text-xs text-muted-foreground">{source.label}</span>
-                                            <span className="text-sm font-medium text-foreground">{source.value}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      {(() => {
+                                        const visibleSources = getVirtualizedSources(detail);
+
+                                        if (!visibleSources.virtualized) {
+                                          return (
+                                            <ul className="mt-2 space-y-2">
+                                              {visibleSources.sources.map((source) => (
+                                                <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                  <span className="text-xs text-muted-foreground">{source.label}</span>
+                                                  <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          );
+                                        }
+
+                                        return (
+                                          <div
+                                            className="mt-2 overflow-y-auto rounded-md"
+                                            style={{ maxHeight: `${VIRTUAL_SOURCE_VIEWPORT_HEIGHT}px` }}
+                                            onScroll={(event) => handleSourcesScroll(detail.title, event.currentTarget.scrollTop)}
+                                          >
+                                            <div className="relative" style={{ height: `${visibleSources.totalHeight}px` }}>
+                                              <ul
+                                                className="absolute inset-x-0 top-0"
+                                                style={{ transform: `translateY(${visibleSources.startIndex * VIRTUAL_SOURCE_ROW_HEIGHT}px)` }}
+                                              >
+                                                {visibleSources.sources.map((source) => (
+                                                  <li
+                                                    key={`${detail.title}-${source.label}`}
+                                                    className="flex min-h-12 flex-col justify-center gap-0.5 border-b border-border/60 px-1 py-1 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                                                  >
+                                                    <span className="text-xs text-muted-foreground">{source.label}</span>
+                                                    <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
                                       {detail.sources.length > getCurrentVisibleSourceCount(detail.title) && (
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                           <p className="text-xs text-muted-foreground">
