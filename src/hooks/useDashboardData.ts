@@ -4,6 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "./usePlan";
 import { useAuth } from "@/contexts/AuthContext";
 
+const decodeJwtPayload = (token: string) => {
+  try {
+    const base64 = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/");
+    if (!base64) return null;
+    return JSON.parse(window.atob(base64));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenStale = (token?: string | null, bufferSeconds = 60) => {
+  if (!token) return true;
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return true;
+  return payload.exp <= Math.floor(Date.now() / 1000) + bufferSeconds;
+};
+
 interface BreakdownItem {
   name: string;
   count: number;
@@ -112,15 +129,10 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
     enabled: !authLoading && !!session?.access_token && !plan.loading,
     queryFn: async () => {
       const days = cappedDays;
-      let activeSession = session;
+      const { data: sessionData } = await supabase.auth.getSession();
+      let activeSession = sessionData.session ?? session;
 
-      if (activeSession?.access_token) {
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData.user) {
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          activeSession = refreshData.session;
-        }
-      } else {
+      if (isTokenStale(activeSession?.access_token)) {
         const { data: refreshData } = await supabase.auth.refreshSession();
         activeSession = refreshData.session;
       }
