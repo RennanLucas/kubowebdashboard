@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -248,6 +249,26 @@ export default function Insights() {
               {analysis ? "Regenerar" : "Gerar análise"}
             </Button>
           </div>
+        </div>
+
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Nota sobre a IA</span>
+          <InfoTooltip
+            side="right"
+            content={
+              <div className="space-y-2">
+                <p>
+                  A IA interpreta métricas de tráfego, conversões, dispositivos, origens, páginas e padrões por horário para sugerir oportunidades e riscos.
+                </p>
+                <p>
+                  No momento, os resultados podem usar dados simulados em partes do ambiente de demonstração. As recomendações devem servir como apoio à análise, não como decisão automática.
+                </p>
+              </div>
+            }
+          />
+          <p className="leading-relaxed">
+            Os insights são gerados a partir dos dados exibidos no dashboard. Em ambientes de demonstração, parte da base ainda pode ser mockada.
+          </p>
         </div>
 
         {!analysis && !generating && (
