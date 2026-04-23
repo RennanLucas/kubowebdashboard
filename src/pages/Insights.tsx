@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { InsightsHistoryPanel } from "@/components/insights/InsightsHistoryPanel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,17 +15,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useAuth } from "@/contexts/AuthContext";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import { generateInsightDetails, generateLocalInsights, type HourlyPoint, type InsightDetail } from "@/lib/local-insights";
+import { compareInsightVersions, type InsightComparisonResult, type InsightHistoryRecord } from "@/lib/insight-history";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
 
 export default function Insights() {
+  const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
+  const [history, setHistory] = useState<InsightHistoryRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [activeInsightId, setActiveInsightId] = useState<string | null>(null);
+  const [compareInsightId, setCompareInsightId] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<InsightComparisonResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [pendingAutoGenerate, setPendingAutoGenerate] = useState(false);

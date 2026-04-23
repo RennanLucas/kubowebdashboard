@@ -55,7 +55,7 @@ export function compareInsightVersions(currentContent: string, compareContent: s
   const sections = titles.map((title) => {
     const current = currentSections.find((section) => section.title === title);
     const compare = compareSections.find((section) => section.title === title);
-    const status = current?.normalized === compare?.normalized ? "same" : "changed";
+    const status: InsightSectionDiff["status"] = current?.normalized === compare?.normalized ? "same" : "changed";
 
     return {
       title,
