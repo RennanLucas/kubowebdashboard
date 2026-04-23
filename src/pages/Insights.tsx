@@ -244,9 +244,9 @@ export default function Insights() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
+             <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              {analysis ? "Regenerar" : "Gerar análise"}
+               {generating ? "Gerando com IA..." : analysis ? "Gerar novamente com IA" : "Gerar com IA"}
             </Button>
           </div>
         </div>
@@ -274,9 +274,9 @@ export default function Insights() {
         {!analysis && !generating && (
           <Card className="p-12 text-center border-dashed">
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Entenda o que a IA vai analisar</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Gere seus insights com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Clique em "Gerar análise" para a IA cruzar seus dados dos últimos 30 dias e entregar um resumo com padrões, riscos, oportunidades e próximos passos para melhorar resultados.
+              Clique em "Gerar com IA" para cruzar os dados dos últimos 30 dias e receber um resumo com padrões, riscos, oportunidades e próximos passos.
             </p>
           </Card>
         )}
@@ -284,7 +284,10 @@ export default function Insights() {
         {generating && (
           <Card className="p-12 text-center">
             <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">A IA está processando seus dados e estruturando os principais insights...</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">Gerando insights com IA</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              A IA está lendo tráfego, conversões, engajamento e origem dos acessos para montar um diagnóstico com os pontos mais relevantes.
+            </p>
           </Card>
         )}
 
