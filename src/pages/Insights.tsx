@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
@@ -44,6 +44,22 @@ export default function Insights() {
   const reportRef = useRef<HTMLElement>(null);
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
+  const displayDetails = useMemo(() => {
+    if (analysisDetails.length > 0) return analysisDetails;
+    if (!analysis || analysisSource !== "history") return [];
+
+    return [
+      {
+        title: "Detalhes indisponíveis nesta versão",
+        reason: "Esta versão foi carregada do histórico salvo sem os detalhes estruturados exibidos no painel.",
+        recommendation: "Clique em “Atualizar com IA” quando quiser gerar uma nova leitura com o detalhamento completo desta análise.",
+        sources: [
+          { label: "Origem", value: "Histórico salvo" },
+          { label: "Período", value: `${periodDays} dias` },
+        ],
+      },
+    ];
+  }, [analysis, analysisDetails, analysisSource, periodDays]);
 
   const applyHistoryItem = (item: InsightHistoryRecord) => {
     setAnalysis(item.content);
@@ -588,7 +604,7 @@ export default function Insights() {
                     <AccordionContent className="pt-3">
                       <div className="rounded-lg border border-border bg-muted/20 p-4">
                         <ul className="space-y-3">
-                          {analysisDetails.map((detail) => (
+                          {displayDetails.map((detail) => (
                             <li key={detail.title} className="rounded-lg border border-border bg-background p-4 text-sm text-foreground/90">
                               <p className="font-medium text-foreground">• {detail.title}</p>
                               <p className="mt-1 text-muted-foreground">{detail.reason}</p>
@@ -602,7 +618,7 @@ export default function Insights() {
                                 >
                                   {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
                                 </Button>
-                                {openSources[detail.title] && (
+                                {openSources[detail.title] && detail.sources.length > 0 && (
                                   <div className="w-full rounded-md border border-border bg-muted/30 p-3">
                                     <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
                                     <ul className="mt-2 space-y-2">
