@@ -47,6 +47,7 @@ export default function Insights() {
   const [detailsCache, setDetailsCache] = useState<Record<string, InsightDetail[]>>({});
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
+  const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
@@ -156,12 +157,28 @@ export default function Insights() {
     }));
   };
 
-  const loadMoreSources = (title: string) => {
+  const loadMoreSources = async (title: string) => {
     const sourceStateKey = getDetailSourceStateKey(title);
+
+    setLoadingMoreSources((current) => ({
+      ...current,
+      [sourceStateKey]: true,
+    }));
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
 
     setVisibleSourceCounts((current) => ({
       ...current,
       [sourceStateKey]: (current[sourceStateKey] ?? DETAIL_SOURCES_PAGE_SIZE) + DETAIL_SOURCES_PAGE_SIZE,
+    }));
+
+    setLoadingMoreSources((current) => ({
+      ...current,
+      [sourceStateKey]: false,
     }));
   };
 
@@ -791,8 +808,16 @@ export default function Insights() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => loadMoreSources(detail.title)}
+                                            disabled={loadingMoreSources[getDetailSourceStateKey(detail.title)]}
                                           >
-                                            Carregar mais
+                                            {loadingMoreSources[getDetailSourceStateKey(detail.title)] ? (
+                                              <>
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                Carregando...
+                                              </>
+                                            ) : (
+                                              "Carregar mais"
+                                            )}
                                           </Button>
                                         </div>
                                       )}
