@@ -36,9 +36,18 @@ export default function Insights() {
   const [comparison, setComparison] = useState<InsightComparisonResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [pendingAutoGenerate, setPendingAutoGenerate] = useState(false);
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const reportRef = useRef<HTMLElement>(null);
+
+  const applyHistoryItem = (item: InsightHistoryRecord) => {
+    setAnalysis(item.content);
+    setAnalysisDetails([]);
+    setOpenSources({});
+    setActiveInsightId(item.id);
+    setCompareInsightId(null);
+    setComparison(null);
+    setPeriodDays(item.period_days === 7 ? 7 : 30);
+  };
 
   const toggleSource = (title: string) => {
     setOpenSources((current) => ({
@@ -214,7 +223,8 @@ export default function Insights() {
       toast.error("Erro ao carregar histórico de insights");
     } else if (rows) {
       setHistory(rows);
-      if (!activeInsightId && rows[0]) setActiveInsightId(rows[0].id);
+      if (!analysis && rows[0]) applyHistoryItem(rows[0]);
+      else if (!activeInsightId && rows[0]) setActiveInsightId(rows[0].id);
     }
 
     setHistoryLoading(false);
@@ -295,13 +305,6 @@ export default function Insights() {
   };
 
   useEffect(() => {
-    if (!pendingAutoGenerate || isLoading || !data) return;
-
-    generate();
-    setPendingAutoGenerate(false);
-  }, [pendingAutoGenerate, isLoading, data]);
-
-  useEffect(() => {
     if (!user || !data) return;
     loadHistory();
   }, [user?.id, data?.client?.project?.id]);
@@ -319,15 +322,14 @@ export default function Insights() {
   const handlePeriodChange = (nextPeriod: 7 | 30) => {
     if (nextPeriod === periodDays) return;
     setPeriodDays(nextPeriod);
-    setPendingAutoGenerate(true);
+    const matchingHistory = history.find((item) => item.period_days === nextPeriod);
+    if (matchingHistory) {
+      applyHistoryItem(matchingHistory);
+    }
   };
 
   const handleRestoreHistory = (item: InsightHistoryRecord) => {
-    setAnalysis(item.content);
-    setActiveInsightId(item.id);
-    setCompareInsightId(null);
-    setComparison(null);
-    setPeriodDays(item.period_days === 7 ? 7 : 30);
+    applyHistoryItem(item);
   };
 
   const handleToggleCompare = (itemId: string) => {
