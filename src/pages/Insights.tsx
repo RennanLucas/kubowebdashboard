@@ -719,16 +719,16 @@ export default function Insights() {
                       <div className="rounded-lg border border-border bg-muted/20 p-4">
                         {detailsLoading ? (
                           <div className="space-y-3">
-                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
-                              <Skeleton className="h-4 w-40" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-11/12" />
-                              <Skeleton className="h-9 w-28" />
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
+                              <Skeleton className="h-4 w-40 shimmer" />
+                              <Skeleton className="h-4 w-full shimmer" />
+                              <Skeleton className="h-4 w-11/12 shimmer" />
+                              <Skeleton className="h-9 w-28 shimmer" />
                             </div>
-                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
-                              <Skeleton className="h-4 w-32" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-10/12" />
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
+                              <Skeleton className="h-4 w-32 shimmer" />
+                              <Skeleton className="h-4 w-full shimmer" />
+                              <Skeleton className="h-4 w-10/12 shimmer" />
                             </div>
                           </div>
                         ) : detailsError ? (
