@@ -43,11 +43,16 @@ export function InsightsHistoryPanel({
 
   const filteredHistory = useMemo(() => {
     const normalizedQuery = searchTerm.trim().toLowerCase();
+    const fromBoundary = fromDate ? new Date(fromDate) : null;
+    const toBoundary = toDate ? new Date(toDate) : null;
+
+    if (fromBoundary) fromBoundary.setHours(0, 0, 0, 0);
+    if (toBoundary) toBoundary.setHours(23, 59, 59, 999);
 
     return history.filter((item) => {
       const createdAt = new Date(item.created_at);
-      const startsAfterFrom = !fromDate || createdAt >= new Date(fromDate.setHours(0, 0, 0, 0));
-      const endsBeforeTo = !toDate || createdAt <= new Date(toDate.setHours(23, 59, 59, 999));
+      const startsAfterFrom = !fromBoundary || createdAt >= fromBoundary;
+      const endsBeforeTo = !toBoundary || createdAt <= toBoundary;
       const matchesQuery =
         !normalizedQuery ||
         item.content.toLowerCase().includes(normalizedQuery) ||
