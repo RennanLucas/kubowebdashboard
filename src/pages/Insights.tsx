@@ -92,7 +92,6 @@ export default function Insights() {
     setComparison(null);
     setAnalysisSource("history");
     setPeriodDays(item.period_days === 7 ? 7 : 30);
-    window.setTimeout(() => setDetailsLoading(false), 250);
   };
 
   const buildInsightDetails = async () => {
@@ -437,6 +436,19 @@ export default function Insights() {
     const compareTarget = history.find((item) => item.id === compareInsightId);
     setComparison(compareTarget ? compareInsightVersions(analysis, compareTarget.content) : null);
   }, [compareInsightId, history, analysis]);
+
+  useEffect(() => {
+    if (!detailsLoading) return;
+
+    if (analysisSource === "history" && analysis) {
+      setDetailsLoading(false);
+      return;
+    }
+
+    if (analysisSource === "generated" && (analysisDetails.length > 0 || detailsError)) {
+      setDetailsLoading(false);
+    }
+  }, [analysis, analysisDetails.length, analysisSource, detailsError, detailsLoading]);
 
   const handlePeriodChange = (nextPeriod: 7 | 30) => {
     if (nextPeriod === periodDays) return;
