@@ -37,7 +37,15 @@ export default function Insights() {
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [pendingAutoGenerate, setPendingAutoGenerate] = useState(false);
+  const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
   const reportRef = useRef<HTMLElement>(null);
+
+  const toggleSource = (title: string) => {
+    setOpenSources((current) => ({
+      ...current,
+      [title]: !current[title],
+    }));
+  };
 
   const exportMarkdown = () => {
     const blob = new Blob([analysis], { type: "text/markdown;charset=utf-8" });
@@ -216,6 +224,7 @@ export default function Insights() {
     setGenerating(true);
     setAnalysis("");
     setAnalysisDetails([]);
+    setOpenSources({});
     try {
       await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
@@ -510,10 +519,33 @@ export default function Insights() {
                       <div className="rounded-lg border border-border bg-muted/20 p-4">
                         <ul className="space-y-3">
                           {analysisDetails.map((detail) => (
-                            <li key={detail.title} className="text-sm text-foreground/90">
+                            <li key={detail.title} className="rounded-lg border border-border bg-background p-4 text-sm text-foreground/90">
                               <p className="font-medium text-foreground">• {detail.title}</p>
                               <p className="mt-1 text-muted-foreground">{detail.reason}</p>
                               <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
+                              <div className="mt-3 flex flex-col items-start gap-3">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => toggleSource(detail.title)}
+                                >
+                                  {openSources[detail.title] ? "Ocultar fonte" : "Ver fonte"}
+                                </Button>
+                                {openSources[detail.title] && (
+                                  <div className="w-full rounded-md border border-border bg-muted/30 p-3">
+                                    <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
+                                    <ul className="mt-2 space-y-2">
+                                      {detail.sources.map((source) => (
+                                        <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                          <span className="text-xs text-muted-foreground">{source.label}</span>
+                                          <span className="text-sm font-medium text-foreground">{source.value}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
                             </li>
                           ))}
                         </ul>

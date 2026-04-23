@@ -34,6 +34,10 @@ export interface InsightDetail {
   title: string;
   reason: string;
   recommendation: string;
+  sources: Array<{
+    label: string;
+    value: string;
+  }>;
 }
 
 const DAY_NAMES = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -391,6 +395,11 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
         topSourceShare > 60
           ? `Reduza a dependência de ${topSource.source} testando pelo menos um canal complementar com orçamento e conteúdo dedicados.`
           : `Use ${topSource.source} como referência para replicar campanhas e criativos que já estão puxando volume de acesso.`,
+      sources: [
+        { label: "Canal líder", value: topSource.source },
+        { label: "Visitantes do canal", value: fmt(topSource.visitors) },
+        { label: "Participação no tráfego", value: `${topSourceShare.toFixed(1)}%` },
+      ],
     });
   }
 
@@ -399,6 +408,11 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
       title: `Página mais relevante: ${topPagePath}`,
       reason: `Ela liderou o período com ${fmt(topPageViews)} visualizações, sinalizando maior interesse ou melhor distribuição de tráfego.`,
       recommendation: `Priorize essa página para testar novos CTAs, reforçar prova social e melhorar a conversão acima da dobra.`,
+      sources: [
+        { label: "Página com mais tráfego", value: topPagePath },
+        { label: "Visualizações", value: fmt(topPageViews) },
+        { label: "Período analisado", value: `${input.days} dias` },
+      ],
     });
   }
 
@@ -416,6 +430,12 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
       title: `Conversão mais forte: ${leadingChannel.label}`,
       reason: `${leadingChannel.label} respondeu pela maior parte das interações de conversão entre ${fmt(totalConversions)} eventos rastreados.`,
       recommendation: `Destaque esse caminho de conversão nas páginas com mais tráfego e reduza fricção nas etapas anteriores ao clique.`,
+      sources: [
+        { label: "Conversões totais", value: fmt(totalConversions) },
+        { label: "WhatsApp", value: fmt(whatsapp) },
+        { label: "Formulários", value: fmt(forms) },
+        { label: "CTAs", value: fmt(buttons) },
+      ],
     });
   }
 
@@ -424,6 +444,11 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
       title: `Dispositivo dominante: ${topDeviceName}`,
       reason: `A maior fatia da audiência atual acessa por ${topDeviceName}, então a experiência principal precisa funcionar melhor nesse contexto.`,
       recommendation: `Revise velocidade, legibilidade, espaçamento e facilidade de toque com prioridade para ${topDeviceName}.`,
+      sources: [
+        { label: "Dispositivo principal", value: topDeviceName },
+        { label: "Visitantes totais", value: fmt(totalVisitors) },
+        { label: "Leads gerados", value: fmt(totalLeads) },
+      ],
     });
   }
 
@@ -442,6 +467,12 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
       title: performanceTitle,
       reason: performanceReason,
       recommendation: performanceRecommendation,
+      sources: [
+        { label: "Taxa de conversão", value: `${conversionRate.toFixed(2)}%` },
+        { label: "Taxa de rejeição", value: bounce > 0 ? `${bounce.toFixed(1)}%` : "Sem dados" },
+        { label: "Visitantes", value: fmt(totalVisitors) },
+        { label: "Leads", value: fmt(totalLeads) },
+      ],
     });
   }
 
@@ -453,6 +484,11 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
         visitorsChange < 0 || leadsChange < 0
           ? "Revise mudanças recentes em campanhas, conteúdo e tracking para identificar o que impactou a queda."
           : "Mapeie as ações recentes que coincidiram com a alta para repetir esse padrão nas próximas semanas.",
+      sources: [
+        { label: "Variação de tráfego", value: pct(visitorsChange) },
+        { label: "Variação de leads", value: pct(leadsChange) },
+        { label: "Janela comparada", value: `${input.days} dias` },
+      ],
     });
   }
 
@@ -463,6 +499,11 @@ export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
         title: `Janela de maior atenção: ${String(topHour.hour).padStart(2, "0")}h`,
         reason: `Esse horário concentrou o maior volume de visitas dentro da distribuição horária analisada.`,
         recommendation: `Publique conteúdo, ative campanhas ou concentre ofertas perto desse horário para capturar mais demanda.`,
+        sources: [
+          { label: "Hora de pico", value: `${String(topHour.hour).padStart(2, "0")}h` },
+          { label: "Visitas nessa hora", value: fmt(topHour.visitors) },
+          { label: "Amostra horária", value: `${input.hourlyDistribution.length} faixas` },
+        ],
       });
     }
   }
