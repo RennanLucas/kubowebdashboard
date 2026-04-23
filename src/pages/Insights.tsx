@@ -219,7 +219,7 @@ export default function Insights() {
               Insights com IA
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Análise com IA dos seus dados dos últimos 30 dias
+              A IA analisa tráfego, conversões, engajamento, origem dos acessos e sazonalidade para gerar recomendações acionáveis.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -253,10 +253,9 @@ export default function Insights() {
         {!analysis && !generating && (
           <Card className="p-12 text-center border-dashed">
             <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Análise com IA dos seus dados</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Entenda o que a IA vai analisar</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Clique em "Gerar análise" para receber recomendações com IA
-              sobre tráfego, conversões, sazonalidade e oportunidades de crescimento.
+              Clique em "Gerar análise" para a IA cruzar seus dados dos últimos 30 dias e entregar um resumo com padrões, riscos, oportunidades e próximos passos para melhorar resultados.
             </p>
           </Card>
         )}
@@ -264,7 +263,7 @@ export default function Insights() {
         {generating && (
           <Card className="p-12 text-center">
             <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">Analisando seus dados...</p>
+            <p className="text-sm text-muted-foreground">A IA está processando seus dados e estruturando os principais insights...</p>
           </Card>
         )}
 
