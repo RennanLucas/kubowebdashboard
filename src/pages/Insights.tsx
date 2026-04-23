@@ -185,6 +185,33 @@ export default function Insights() {
     return buckets.map((visitors, hour) => ({ hour, visitors }));
   };
 
+  const loadHistory = async () => {
+    if (!user) return;
+
+    setHistoryLoading(true);
+    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
+
+    let query = supabase
+      .from("ai_insights")
+      .select("id, content, created_at, period_days, model, project_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (projectId) query = query.eq("project_id", projectId);
+
+    const { data: rows, error: historyError } = await query;
+
+    if (historyError) {
+      toast.error("Erro ao carregar histórico de insights");
+    } else if (rows) {
+      setHistory(rows);
+      if (!activeInsightId && rows[0]) setActiveInsightId(rows[0].id);
+    }
+
+    setHistoryLoading(false);
+  };
+
   const generate = async () => {
     setGenerating(true);
     setAnalysis("");
@@ -226,6 +253,31 @@ export default function Insights() {
       });
       setAnalysis(result);
       setAnalysisDetails(details);
+
+      if (user) {
+        const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
+        const { data: insertedInsight, error: insertError } = await supabase
+          .from("ai_insights")
+          .insert({
+            content: result,
+            model: "kuboweb-local-insights",
+            period_days: periodDays,
+            project_id: projectId,
+            user_id: user.id,
+          })
+          .select("id, content, created_at, period_days, model, project_id")
+          .single();
+
+        if (insertError) {
+          toast.error("Erro ao salvar a geração no histórico");
+        } else if (insertedInsight) {
+          setActiveInsightId(insertedInsight.id);
+          setCompareInsightId(null);
+          setComparison(null);
+        }
+
+        await loadHistory();
+      }
     } catch (e: any) {
       toast.error(e?.message || "Erro ao gerar análise");
     } finally {
@@ -240,10 +292,37 @@ export default function Insights() {
     setPendingAutoGenerate(false);
   }, [pendingAutoGenerate, isLoading, data]);
 
+  useEffect(() => {
+    if (!user || !data) return;
+    loadHistory();
+  }, [user?.id, data?.client?.project?.id]);
+
+  useEffect(() => {
+    if (!compareInsightId || !analysis) {
+      setComparison(null);
+      return;
+    }
+
+    const compareTarget = history.find((item) => item.id === compareInsightId);
+    setComparison(compareTarget ? compareInsightVersions(analysis, compareTarget.content) : null);
+  }, [compareInsightId, history, analysis]);
+
   const handlePeriodChange = (nextPeriod: 7 | 30) => {
     if (nextPeriod === periodDays) return;
     setPeriodDays(nextPeriod);
     setPendingAutoGenerate(true);
+  };
+
+  const handleRestoreHistory = (item: InsightHistoryRecord) => {
+    setAnalysis(item.content);
+    setActiveInsightId(item.id);
+    setCompareInsightId(null);
+    setComparison(null);
+    setPeriodDays(item.period_days === 7 ? 7 : 30);
+  };
+
+  const handleToggleCompare = (itemId: string) => {
+    setCompareInsightId((current) => (current === itemId ? null : itemId));
   };
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
@@ -405,34 +484,45 @@ export default function Insights() {
         )}
 
         {analysis && !generating && (
-          <Card className="p-8 sm:p-10 space-y-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
-                <p className="text-sm text-muted-foreground">Expanda os detalhes para entender o motivo por trás de cada recomendação.</p>
+          <div className="space-y-6">
+            <InsightsHistoryPanel
+              activeInsightId={activeInsightId}
+              compareInsightId={compareInsightId}
+              comparison={comparison}
+              history={history}
+              loading={historyLoading}
+              onRestore={handleRestoreHistory}
+              onToggleCompare={handleToggleCompare}
+            />
+
+            <Card className="p-8 sm:p-10 space-y-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
+                  <p className="text-sm text-muted-foreground">Expanda os detalhes para entender o motivo por trás de cada recomendação.</p>
+                </div>
+                <Accordion type="single" collapsible className="w-full sm:w-auto">
+                  <AccordionItem value="details" className="border-none">
+                    <AccordionTrigger className="w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
+                      Ver detalhes da IA
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-3">
+                      <div className="rounded-lg border border-border bg-muted/20 p-4">
+                        <ul className="space-y-3">
+                          {analysisDetails.map((detail) => (
+                            <li key={detail.title} className="text-sm text-foreground/90">
+                              <p className="font-medium text-foreground">• {detail.title}</p>
+                              <p className="mt-1 text-muted-foreground">{detail.reason}</p>
+                              <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
-              <Accordion type="single" collapsible className="w-full sm:w-auto">
-                <AccordionItem value="details" className="border-none">
-                  <AccordionTrigger className="w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
-                    Ver detalhes da IA
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-3">
-                    <div className="rounded-lg border border-border bg-muted/20 p-4">
-                      <ul className="space-y-3">
-                        {analysisDetails.map((detail) => (
-                          <li key={detail.title} className="text-sm text-foreground/90">
-                            <p className="font-medium text-foreground">• {detail.title}</p>
-                            <p className="mt-1 text-muted-foreground">{detail.reason}</p>
-                            <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-            <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
+              <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
               [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
               [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
               [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
@@ -451,9 +541,10 @@ export default function Insights() {
               [&_tr:hover]:bg-muted/30
               [&_hr]:my-6 [&_hr]:border-border
               [&_em]:text-muted-foreground [&_em]:text-xs [&_em]:not-italic [&_em]:block">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{analysis}</ReactMarkdown>
-            </article>
-          </Card>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{analysis}</ReactMarkdown>
+              </article>
+            </Card>
+          </div>
         )}
 
         {!data?.metrics?.length && !isLoading && (
