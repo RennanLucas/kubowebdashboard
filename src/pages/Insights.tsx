@@ -26,6 +26,7 @@ import { Navigate } from "react-router-dom";
 
 export default function Insights() {
   const HISTORY_PAGE_SIZE = 8;
+  const DETAIL_SOURCES_PAGE_SIZE = 5;
   const { user } = useAuth();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
@@ -43,6 +44,7 @@ export default function Insights() {
   const [exporting, setExporting] = useState(false);
   const [analysisSource, setAnalysisSource] = useState<"history" | "generated" | null>(null);
   const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
+  const [visibleSourceCounts, setVisibleSourceCounts] = useState<Record<string, number>>({});
   const reportRef = useRef<HTMLElement>(null);
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
@@ -82,6 +84,7 @@ export default function Insights() {
     setAnalysis(item.content);
     setAnalysisDetails([]);
     setOpenSources({});
+    setVisibleSourceCounts({});
     setActiveInsightId(item.id);
     setCompareInsightId(null);
     setComparison(null);
@@ -94,6 +97,17 @@ export default function Insights() {
     setOpenSources((current) => ({
       ...current,
       [title]: !current[title],
+    }));
+    setVisibleSourceCounts((current) => ({
+      ...current,
+      [title]: current[title] ?? DETAIL_SOURCES_PAGE_SIZE,
+    }));
+  };
+
+  const loadMoreSources = (title: string) => {
+    setVisibleSourceCounts((current) => ({
+      ...current,
+      [title]: (current[title] ?? DETAIL_SOURCES_PAGE_SIZE) + DETAIL_SOURCES_PAGE_SIZE,
     }));
   };
 
@@ -324,6 +338,7 @@ export default function Insights() {
       setAnalysis(result);
       setAnalysisDetails(details);
       setOpenSources({});
+      setVisibleSourceCounts({});
       setCompareInsightId(null);
       setComparison(null);
       setAnalysisSource("generated");
@@ -392,6 +407,7 @@ export default function Insights() {
       setDetailsLoading(false);
       setAnalysisSource(null);
       setOpenSources({});
+      setVisibleSourceCounts({});
     }
   };
 
