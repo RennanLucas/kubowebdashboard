@@ -30,6 +30,12 @@ export interface InsightsInput {
   hourlyDistribution?: HourlyPoint[];
 }
 
+export interface InsightDetail {
+  title: string;
+  reason: string;
+  recommendation: string;
+}
+
 const DAY_NAMES = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const fmt = (n: number) =>
@@ -348,4 +354,118 @@ export function generateLocalInsights(input: InsightsInput): string {
     `---`,
     `_Análise gerada automaticamente com base nos dados de tracking proprietário. Revise os indicadores com sua equipe antes de tomar decisões estratégicas._`,
   ].join("\n");
+}
+
+export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
+  const totalVisitors = input.metrics.reduce((sum, metric) => sum + (metric.visitors || 0), 0);
+  const totalLeads = input.metrics.reduce((sum, metric) => sum + (metric.leads || 0), 0);
+  const conversionRate = totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0;
+  const totalConversions =
+    (input.conversions?.whatsapp_clicks || 0) +
+    (input.conversions?.form_submissions || 0) +
+    (input.conversions?.button_clicks || 0);
+
+  const topSource = input.trafficSources?.[0];
+  const totalSourceVisitors = (input.trafficSources || []).reduce((sum, source) => sum + (source.visitors || 0), 0);
+  const topSourceShare = topSource && totalSourceVisitors > 0
+    ? (topSource.visitors / totalSourceVisitors) * 100
+    : 0;
+
+  const topPage: any = input.topPages?.[0];
+  const topPagePath = topPage?.page_path || topPage?.path || topPage?.name || "página principal";
+  const topPageViews = topPage?.views ?? topPage?.visitors ?? 0;
+  const topDevice: any = input.devices?.[0];
+  const topDeviceName = topDevice?.device || topDevice?.name || topDevice?.label || "dispositivo principal";
+
+  const visitorsChange = input.comparison?.visitorsChange ?? 0;
+  const leadsChange = input.comparison?.leadsChange ?? 0;
+  const bounce = input.engagement?.bounce_rate ?? input.engagement?.bounceRate ?? 0;
+
+  const details: InsightDetail[] = [];
+
+  if (topSource) {
+    details.push({
+      title: `Canal principal: ${topSource.source}`,
+      reason: `Esse canal concentrou ${topSourceShare.toFixed(1)}% do tráfego monitorado no período, com ${fmt(topSource.visitors)} visitantes.`,
+      recommendation:
+        topSourceShare > 60
+          ? `Reduza a dependência de ${topSource.source} testando pelo menos um canal complementar com orçamento e conteúdo dedicados.`
+          : `Use ${topSource.source} como referência para replicar campanhas e criativos que já estão puxando volume de acesso.`,
+    });
+  }
+
+  if (topPage) {
+    details.push({
+      title: `Página mais relevante: ${topPagePath}`,
+      reason: `Ela liderou o período com ${fmt(topPageViews)} visualizações, sinalizando maior interesse ou melhor distribuição de tráfego.`,
+      recommendation: `Priorize essa página para testar novos CTAs, reforçar prova social e melhorar a conversão acima da dobra.`,
+    });
+  }
+
+  if (totalConversions > 0) {
+    const whatsapp = input.conversions?.whatsapp_clicks || 0;
+    const forms = input.conversions?.form_submissions || 0;
+    const buttons = input.conversions?.button_clicks || 0;
+    const leadingChannel = [
+      { label: "WhatsApp", value: whatsapp },
+      { label: "Formulários", value: forms },
+      { label: "CTAs", value: buttons },
+    ].sort((a, b) => b.value - a.value)[0];
+
+    details.push({
+      title: `Conversão mais forte: ${leadingChannel.label}`,
+      reason: `${leadingChannel.label} respondeu pela maior parte das interações de conversão entre ${fmt(totalConversions)} eventos rastreados.`,
+      recommendation: `Destaque esse caminho de conversão nas páginas com mais tráfego e reduza fricção nas etapas anteriores ao clique.`,
+    });
+  }
+
+  if (topDeviceName) {
+    details.push({
+      title: `Dispositivo dominante: ${topDeviceName}`,
+      reason: `A maior fatia da audiência atual acessa por ${topDeviceName}, então a experiência principal precisa funcionar melhor nesse contexto.`,
+      recommendation: `Revise velocidade, legibilidade, espaçamento e facilidade de toque com prioridade para ${topDeviceName}.`,
+    });
+  }
+
+  if (bounce > 0 || conversionRate > 0) {
+    const performanceTitle = bounce > 70 || conversionRate < 1
+      ? "Sinal de fricção no funil"
+      : "Eficiência do funil monitorada";
+    const performanceReason = bounce > 70
+      ? `A taxa de rejeição está em ${bounce.toFixed(1)}%, indicando saída rápida antes de interação relevante.`
+      : `A taxa de conversão atual é ${conversionRate.toFixed(2)}%, com ${fmt(totalLeads)} leads gerados a partir de ${fmt(totalVisitors)} visitantes.`;
+    const performanceRecommendation = bounce > 70 || conversionRate < 1
+      ? "Teste headline, oferta, CTA e consistência entre anúncio e landing page para reduzir perda logo na entrada."
+      : "Use as páginas e fontes com melhor taxa de resposta como base para replicar padrões que já estão funcionando.";
+
+    details.push({
+      title: performanceTitle,
+      reason: performanceReason,
+      recommendation: performanceRecommendation,
+    });
+  }
+
+  if (visitorsChange !== 0 || leadsChange !== 0) {
+    details.push({
+      title: "Variação em relação ao período anterior",
+      reason: `O tráfego variou ${pct(visitorsChange)} e os leads variaram ${pct(leadsChange)} versus a janela anterior equivalente.`,
+      recommendation:
+        visitorsChange < 0 || leadsChange < 0
+          ? "Revise mudanças recentes em campanhas, conteúdo e tracking para identificar o que impactou a queda."
+          : "Mapeie as ações recentes que coincidiram com a alta para repetir esse padrão nas próximas semanas.",
+    });
+  }
+
+  if (input.hourlyDistribution && input.hourlyDistribution.length > 0) {
+    const topHour = [...input.hourlyDistribution].sort((a, b) => b.visitors - a.visitors)[0];
+    if (topHour && topHour.visitors > 0) {
+      details.push({
+        title: `Janela de maior atenção: ${String(topHour.hour).padStart(2, "0")}h`,
+        reason: `Esse horário concentrou o maior volume de visitas dentro da distribuição horária analisada.`,
+        recommendation: `Publique conteúdo, ative campanhas ou concentre ofertas perto desse horário para capturar mais demanda.`,
+      });
+    }
+  }
+
+  return details.slice(0, 6);
 }
