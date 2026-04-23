@@ -13,8 +13,11 @@ interface InsightsHistoryPanelProps {
   activeInsightId: string | null;
   compareInsightId: string | null;
   comparison: InsightComparisonResult | null;
+  hasMore: boolean;
   history: InsightHistoryRecord[];
   loading: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
   onRestore: (item: InsightHistoryRecord) => void;
   onToggleCompare: (itemId: string) => void;
 }
@@ -32,8 +35,11 @@ export function InsightsHistoryPanel({
   activeInsightId,
   compareInsightId,
   comparison,
+  hasMore,
   history,
   loading,
+  loadingMore,
+  onLoadMore,
   onRestore,
   onToggleCompare,
 }: InsightsHistoryPanelProps) {
@@ -194,6 +200,14 @@ export function InsightsHistoryPanel({
               </div>
             );
           })}
+
+          {hasMore && (
+            <div className="flex justify-center pt-1">
+              <Button type="button" variant="outline" onClick={onLoadMore} disabled={loadingMore} className="gap-2">
+                {loadingMore ? "Carregando..." : "Carregar mais"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
