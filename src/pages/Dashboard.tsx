@@ -18,7 +18,6 @@ import { GoalsCard } from "@/components/dashboard/GoalsCard";
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
-import { AIWeeklyInsights } from "@/components/dashboard/AIWeeklyInsights";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
@@ -244,11 +243,6 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            {/* AI Weekly Insights */}
-            <div className="mb-6">
-              <AIWeeklyInsights />
-            </div>
-
             {/* KPIs + Active Visitors */}
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
               <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} sparkline={visitorsSeries} sparklineColor="hsl(var(--chart-blue))" tooltip="Número de pessoas únicas que acessaram seu site no período. Cada visitante é contado uma vez, mesmo que retorne." />
