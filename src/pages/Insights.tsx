@@ -594,18 +594,18 @@ export default function Insights() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Insights com IA
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
               {[7, 30].map((days) => {
                 const isActive = periodDays === days;
@@ -628,7 +628,7 @@ export default function Insights() {
             {analysis && !generating && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={exporting} className="gap-2">
+                  <Button variant="outline" size="sm" disabled={exporting} className="gap-2 sm:size-default">
                     {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                     Exportar
                   </Button>
@@ -645,9 +645,9 @@ export default function Insights() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
+            <Button onClick={generate} size="sm" disabled={generating || isLoading} className="gap-2 flex-1 sm:flex-none sm:size-default">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-               {generating ? "Atualizando com IA..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
+               {generating ? "Atualizando..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
             </Button>
           </div>
         </div>
