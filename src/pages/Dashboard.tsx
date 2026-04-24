@@ -38,6 +38,7 @@ const Dashboard = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId);
 
+  const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
   const metrics = data?.metrics;
   const trafficSources = data?.trafficSources;
@@ -47,6 +48,21 @@ const Dashboard = () => {
 
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
+
+  useEffect(() => {
+    if (!clientData?.id) return;
+    let cancelled = false;
+    supabase
+      .from("clients")
+      .select("monthly_ad_spend")
+      .eq("id", clientData.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setMonthlyAdSpend(Number((data as any)?.monthly_ad_spend ?? 0));
+      });
+    return () => { cancelled = true; };
+  }, [clientData?.id]);
 
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
   const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
