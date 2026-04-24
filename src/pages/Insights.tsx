@@ -594,18 +594,18 @@ export default function Insights() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Insights com IA
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
               {[7, 30].map((days) => {
                 const isActive = periodDays === days;
@@ -628,7 +628,7 @@ export default function Insights() {
             {analysis && !generating && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={exporting} className="gap-2">
+                  <Button variant="outline" size="sm" disabled={exporting} className="gap-2 sm:size-default">
                     {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                     Exportar
                   </Button>
@@ -645,9 +645,9 @@ export default function Insights() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button onClick={generate} disabled={generating || isLoading} className="gap-2">
+            <Button onClick={generate} size="sm" disabled={generating || isLoading} className="gap-2 flex-1 sm:flex-none sm:size-default">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-               {generating ? "Atualizando com IA..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
+               {generating ? "Atualizando..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
             </Button>
           </div>
         </div>
@@ -698,7 +698,7 @@ export default function Insights() {
           </div>
         </Card>
 
-        <Card className="mb-6 p-5 sm:p-6">
+        <Card className="mb-6 p-4 sm:p-6">
           <div className="space-y-4">
             <div>
               <h2 className="text-base font-semibold text-foreground">O que a IA analisa</h2>
@@ -760,9 +760,9 @@ export default function Insights() {
         )}
 
         {!analysis && !generating && (
-          <Card className="p-12 text-center border-dashed">
-            <Sparkles className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
+          <Card className="p-6 sm:p-12 text-center border-dashed">
+            <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-primary/30 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
               Ao clicar em "Gerar análise com IA", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
             </p>
@@ -770,9 +770,9 @@ export default function Insights() {
         )}
 
         {generating && (
-          <Card className="p-12 text-center">
-            <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
+          <Card className="p-6 sm:p-12 text-center">
+            <Loader2 className="h-9 w-9 sm:h-10 sm:w-10 text-primary animate-spin mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
             </p>
@@ -797,7 +797,7 @@ export default function Insights() {
               onToggleCompare={handleToggleCompare}
             />
 
-            <Card className="p-8 sm:p-10 space-y-6">
+            <Card className="p-4 sm:p-8 lg:p-10 space-y-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
@@ -805,11 +805,11 @@ export default function Insights() {
                 </div>
                 <Accordion type="single" collapsible className="w-full sm:w-auto">
                   <AccordionItem value="details" className="border-none">
-                    <AccordionTrigger className="w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
+                    <AccordionTrigger className="w-full rounded-md border border-border px-3 sm:px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
                       Ver detalhes da IA
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
-                      <div className="rounded-lg border border-border bg-muted/20 p-4">
+                      <div className="rounded-lg border border-border bg-muted/20 p-3 sm:p-4">
                         {detailsLoading ? (
                           <div className="space-y-3">
                             <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
@@ -949,8 +949,8 @@ export default function Insights() {
                 </Accordion>
               </div>
               <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
-              [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
-              [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
+              [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
+              [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-6 sm:[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
               [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
               [&_p]:text-sm [&_p]:text-foreground/90 [&_p]:leading-relaxed
               [&_strong]:text-foreground [&_strong]:font-semibold
@@ -960,10 +960,10 @@ export default function Insights() {
               [&_ol]:space-y-2 [&_ol]:my-3 [&_ol]:pl-5 [&_ol]:list-decimal
               [&_ol>li]:text-sm [&_ol>li]:text-foreground/90 [&_ol>li]:pl-1
               [&_code]:bg-muted [&_code]:text-foreground [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
-              [&_table]:w-full [&_table]:my-4 [&_table]:text-sm [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:overflow-hidden
+              [&_table]:w-full [&_table]:my-4 [&_table]:text-xs sm:[&_table]:text-sm [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:block [&_table]:overflow-x-auto sm:[&_table]:table
               [&_thead]:bg-muted/50
-              [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide
-              [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90
+              [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide [&_th]:whitespace-nowrap
+              [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90 [&_td]:whitespace-nowrap
               [&_tr:hover]:bg-muted/30
               [&_hr]:my-6 [&_hr]:border-border
               [&_em]:text-muted-foreground [&_em]:text-xs [&_em]:not-italic [&_em]:block">
