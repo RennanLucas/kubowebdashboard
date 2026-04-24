@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, AlertTriangle, Download, FileText, FileType, BookOpen } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { InsightsHistoryPanel } from "@/components/insights/InsightsHistoryPanel";
