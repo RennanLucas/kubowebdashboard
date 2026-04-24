@@ -949,8 +949,8 @@ export default function Insights() {
                 </Accordion>
               </div>
               <article ref={reportRef} className="text-foreground leading-relaxed space-y-4 bg-card
-              [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
-              [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
+              [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0
+              [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:mt-6 sm:[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border
               [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2
               [&_p]:text-sm [&_p]:text-foreground/90 [&_p]:leading-relaxed
               [&_strong]:text-foreground [&_strong]:font-semibold
@@ -960,10 +960,10 @@ export default function Insights() {
               [&_ol]:space-y-2 [&_ol]:my-3 [&_ol]:pl-5 [&_ol]:list-decimal
               [&_ol>li]:text-sm [&_ol>li]:text-foreground/90 [&_ol>li]:pl-1
               [&_code]:bg-muted [&_code]:text-foreground [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
-              [&_table]:w-full [&_table]:my-4 [&_table]:text-sm [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:overflow-hidden
+              [&_table]:w-full [&_table]:my-4 [&_table]:text-xs sm:[&_table]:text-sm [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:block [&_table]:overflow-x-auto sm:[&_table]:table
               [&_thead]:bg-muted/50
-              [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide
-              [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90
+              [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide [&_th]:whitespace-nowrap
+              [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90 [&_td]:whitespace-nowrap
               [&_tr:hover]:bg-muted/30
               [&_hr]:my-6 [&_hr]:border-border
               [&_em]:text-muted-foreground [&_em]:text-xs [&_em]:not-italic [&_em]:block">
