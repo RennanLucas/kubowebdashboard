@@ -807,9 +807,20 @@ export default function Insights() {
 
             <Card className="p-4 sm:p-8 lg:p-10 space-y-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+                <div className="flex flex-col gap-2">
                   <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
                   <p className="text-sm text-muted-foreground">Expanda os detalhes para entender o motivo por trás de cada recomendação.</p>
+                  <Button
+                    type="button"
+                    variant={readingMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setReadingMode((v) => !v)}
+                    className="gap-2 self-start sm:hidden"
+                    aria-pressed={readingMode}
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    {readingMode ? "Modo leitura ativo" : "Modo leitura"}
+                  </Button>
                 </div>
                 <Accordion type="single" collapsible className="w-full sm:w-auto">
                   <AccordionItem value="details" className="border-none">
