@@ -275,6 +275,37 @@ const Dashboard = () => {
               <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
             </div>
 
+            {/* Resumo + Score + Recorrentes + Custo por Lead */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <DailySummaryCard
+                visitors={totalVisitors}
+                leads={totalLeads}
+                topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
+                topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
+                trafficChangePct={comparison?.visitors ?? 0}
+                conversionRate={avgConversion}
+              />
+              <HealthScoreCard
+                visitors={totalVisitors}
+                conversionRate={avgConversion}
+                bounceRate={data?.engagement?.bounceRate ?? 50}
+                trafficChangePct={comparison?.visitors ?? 0}
+              />
+              <ReturningVisitorsCard projectId={activeProjectId} days={dateRange} />
+              <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
+            </div>
+
+            {/* Metas + Alertas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <GoalsProgressCard
+                projectId={activeProjectId}
+                visitors={totalVisitors}
+                leads={totalLeads}
+                revenue={totalValue}
+              />
+              <CriticalAlertsCard projectId={activeProjectId} />
+            </div>
+
             {/* Chart + Traffic Sources */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
