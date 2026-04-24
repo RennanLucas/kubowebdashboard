@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Users, TrendingUp, DollarSign, BarChart3, Eye, Percent } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -19,6 +19,12 @@ import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
+import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
+import { ReturningVisitorsCard } from "@/components/dashboard/ReturningVisitorsCard";
+import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
+import { DailySummaryCard } from "@/components/dashboard/DailySummaryCard";
+import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
+import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
