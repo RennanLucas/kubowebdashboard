@@ -605,8 +605,8 @@ export default function Insights() {
               Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:gap-2">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1 self-stretch sm:self-auto">
               {[7, 30].map((days) => {
                 const isActive = periodDays === days;
 
@@ -618,7 +618,7 @@ export default function Insights() {
                     size="sm"
                     onClick={() => handlePeriodChange(days as 7 | 30)}
                     disabled={generating || isLoading}
-                    className="min-w-12"
+                    className="flex-1 sm:flex-none min-w-12"
                   >
                     {days}d
                   </Button>
@@ -628,7 +628,7 @@ export default function Insights() {
             {analysis && !generating && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" disabled={exporting} className="gap-2 sm:size-default">
+                  <Button variant="outline" disabled={exporting} className="w-full justify-center gap-2 sm:w-auto">
                     {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                     Exportar
                   </Button>
@@ -645,7 +645,7 @@ export default function Insights() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button onClick={generate} size="sm" disabled={generating || isLoading} className="gap-2 flex-1 sm:flex-none sm:size-default">
+            <Button onClick={generate} disabled={generating || isLoading} className="w-full justify-center gap-2 sm:w-auto">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                {generating ? "Atualizando..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
             </Button>
