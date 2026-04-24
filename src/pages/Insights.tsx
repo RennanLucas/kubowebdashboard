@@ -55,6 +55,14 @@ export default function Insights() {
   const [loadingMoreSources, setLoadingMoreSources] = useState<Record<string, boolean>>({});
   const [sourceScrollPositions, setSourceScrollPositions] = useState<Record<string, number>>({});
   const [sourceSearchTerms, setSourceSearchTerms] = useState<Record<string, string>>({});
+  const [readingMode, setReadingMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("insights:readingMode") === "1";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("insights:readingMode", readingMode ? "1" : "0");
+  }, [readingMode]);
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
