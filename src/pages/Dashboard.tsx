@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Users, TrendingUp, DollarSign, BarChart3, Eye, Percent } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -19,6 +19,12 @@ import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
+import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
+import { ReturningVisitorsCard } from "@/components/dashboard/ReturningVisitorsCard";
+import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
+import { DailySummaryCard } from "@/components/dashboard/DailySummaryCard";
+import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
+import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
@@ -32,6 +38,7 @@ const Dashboard = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId);
 
+  const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
   const metrics = data?.metrics;
   const trafficSources = data?.trafficSources;
@@ -41,6 +48,21 @@ const Dashboard = () => {
 
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
+
+  useEffect(() => {
+    if (!clientData?.id) return;
+    let cancelled = false;
+    supabase
+      .from("clients")
+      .select("monthly_ad_spend")
+      .eq("id", clientData.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setMonthlyAdSpend(Number((data as any)?.monthly_ad_spend ?? 0));
+      });
+    return () => { cancelled = true; };
+  }, [clientData?.id]);
 
   const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
   const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
@@ -251,6 +273,37 @@ const Dashboard = () => {
               <KPICard title="Conversão" value={`${avgConversion}%`} change={comparison?.conversionRate ?? null} changeUnit="pp" icon={<Percent className="h-4 w-4" />} sparkline={conversionSeries} sparklineColor="hsl(var(--chart-orange))" tooltip="Percentual de visitantes que viraram leads. Calculado como Leads ÷ Visitantes × 100. Média de mercado: 1-3%." />
               <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={comparison?.estimatedValue ?? null} icon={<DollarSign className="h-4 w-4" />} sparkline={valueSeries} sparklineColor="hsl(var(--chart-green))" tooltip="Valor potencial gerado pelos leads no período. Calculado multiplicando o número de leads pelo valor configurado por lead em Configurações." />
               <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
+            </div>
+
+            {/* Resumo + Score + Recorrentes + Custo por Lead */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <DailySummaryCard
+                visitors={totalVisitors}
+                leads={totalLeads}
+                topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
+                topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
+                trafficChangePct={comparison?.visitors ?? 0}
+                conversionRate={avgConversion}
+              />
+              <HealthScoreCard
+                visitors={totalVisitors}
+                conversionRate={avgConversion}
+                bounceRate={data?.engagement?.bounceRate ?? 50}
+                trafficChangePct={comparison?.visitors ?? 0}
+              />
+              <ReturningVisitorsCard projectId={activeProjectId} days={dateRange} />
+              <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
+            </div>
+
+            {/* Metas + Alertas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <GoalsProgressCard
+                projectId={activeProjectId}
+                visitors={totalVisitors}
+                leads={totalLeads}
+                revenue={totalValue}
+              />
+              <CriticalAlertsCard projectId={activeProjectId} />
             </div>
 
             {/* Chart + Traffic Sources */}
