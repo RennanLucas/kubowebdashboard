@@ -134,6 +134,7 @@ export type Database = {
           domain: string | null
           id: string
           lead_value: number
+          monthly_ad_spend: number
           user_id: string
         }
         Insert: {
@@ -143,6 +144,7 @@ export type Database = {
           domain?: string | null
           id?: string
           lead_value?: number
+          monthly_ad_spend?: number
           user_id: string
         }
         Update: {
@@ -152,6 +154,31 @@ export type Database = {
           domain?: string | null
           id?: string
           lead_value?: number
+          monthly_ad_spend?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dashboard_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          layout: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          layout?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          layout?: Json
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -273,6 +300,39 @@ export type Database = {
           page_path?: string
           project_id?: string
           session_id?: string | null
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          created_at: string
+          id: string
+          leads_target: number
+          month: string
+          project_id: string
+          revenue_target: number
+          updated_at: string
+          visitors_target: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          leads_target?: number
+          month: string
+          project_id: string
+          revenue_target?: number
+          updated_at?: string
+          visitors_target?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          leads_target?: number
+          month?: string
+          project_id?: string
+          revenue_target?: number
+          updated_at?: string
+          visitors_target?: number
         }
         Relationships: []
       }
@@ -563,6 +623,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      web_vitals: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          metric_name: string
+          page_path: string
+          project_id: string
+          rating: string | null
+          session_id: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metric_name: string
+          page_path?: string
+          project_id: string
+          rating?: string | null
+          session_id?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metric_name?: string
+          page_path?: string
+          project_id?: string
+          rating?: string | null
+          session_id?: string | null
+          value?: number
         }
         Relationships: []
       }
