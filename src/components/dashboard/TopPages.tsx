@@ -34,14 +34,14 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
         <p className="text-xs text-muted-foreground mt-1">Os dados aparecem assim que houver visitas.</p>
       </div>
     ) : (
-      <div className="overflow-x-auto -mx-1">
-        <table className="w-full">
+      <div className="-mx-5 sm:mx-0 overflow-x-auto overscroll-x-contain scroll-smooth [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+        <table className="w-full min-w-[480px] px-5 sm:min-w-0 sm:px-0">
           <thead>
             <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
-              <th className="text-left pb-2.5 px-1 font-semibold">Página</th>
-              <th className="text-right pb-2.5 px-1 font-semibold">Visitas</th>
-              <th className="text-right pb-2.5 px-1 font-semibold hidden sm:table-cell">Tempo</th>
-              <th className="text-right pb-2.5 px-1 font-semibold hidden sm:table-cell">Rejeição</th>
+              <th className="text-left pb-2.5 pl-5 pr-2 sm:pl-1 font-semibold sticky left-0 bg-card z-10">Página</th>
+              <th className="text-right pb-2.5 px-2 sm:px-1 font-semibold whitespace-nowrap">Visitas</th>
+              <th className="text-right pb-2.5 px-2 sm:px-1 font-semibold whitespace-nowrap">Tempo</th>
+              <th className="text-right pb-2.5 pl-2 pr-5 sm:pr-1 font-semibold whitespace-nowrap">Rejeição</th>
             </tr>
           </thead>
           <tbody>
@@ -50,17 +50,17 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
                 key={page.path}
                 className="border-b border-border/40 last:border-0 transition-colors duration-150 hover:bg-muted/40"
               >
-                <td className="py-3 px-1">
-                  <p className="text-sm font-medium text-card-foreground truncate max-w-[200px]">{page.name}</p>
-                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">{page.path}</p>
+                <td className="py-3 pl-5 pr-2 sm:pl-1 sticky left-0 bg-card z-10">
+                  <p className="text-sm font-medium text-card-foreground truncate max-w-[180px] sm:max-w-[240px]">{page.name}</p>
+                  <p className="text-xs text-muted-foreground truncate max-w-[180px] sm:max-w-[240px]">{page.path}</p>
                 </td>
-                <td className="text-right text-sm font-semibold text-card-foreground px-1 tabular-nums">
+                <td className="text-right text-sm font-semibold text-card-foreground px-2 sm:px-1 tabular-nums whitespace-nowrap">
                   {page.views.toLocaleString("pt-BR")}
                 </td>
-                <td className="text-right text-sm text-muted-foreground hidden sm:table-cell px-1 tabular-nums">
+                <td className="text-right text-sm text-muted-foreground px-2 sm:px-1 tabular-nums whitespace-nowrap">
                   {page.avgTime}
                 </td>
-                <td className="text-right text-sm hidden sm:table-cell px-1">
+                <td className="text-right text-sm pl-2 pr-5 sm:pr-1 whitespace-nowrap">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
                     page.bounceRate > 40
                       ? "bg-destructive/10 text-destructive"
