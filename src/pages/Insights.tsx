@@ -797,7 +797,7 @@ export default function Insights() {
               onToggleCompare={handleToggleCompare}
             />
 
-            <Card className="p-8 sm:p-10 space-y-6">
+            <Card className="p-4 sm:p-8 lg:p-10 space-y-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
@@ -805,7 +805,7 @@ export default function Insights() {
                 </div>
                 <Accordion type="single" collapsible className="w-full sm:w-auto">
                   <AccordionItem value="details" className="border-none">
-                    <AccordionTrigger className="w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
+                    <AccordionTrigger className="w-full rounded-md border border-border px-3 sm:px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
                       Ver detalhes da IA
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
