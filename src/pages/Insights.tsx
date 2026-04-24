@@ -809,7 +809,7 @@ export default function Insights() {
                       Ver detalhes da IA
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
-                      <div className="rounded-lg border border-border bg-muted/20 p-4">
+                      <div className="rounded-lg border border-border bg-muted/20 p-3 sm:p-4">
                         {detailsLoading ? (
                           <div className="space-y-3">
                             <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
