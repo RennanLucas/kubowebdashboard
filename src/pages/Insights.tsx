@@ -698,7 +698,7 @@ export default function Insights() {
           </div>
         </Card>
 
-        <Card className="mb-6 p-5 sm:p-6">
+        <Card className="mb-6 p-4 sm:p-6">
           <div className="space-y-4">
             <div>
               <h2 className="text-base font-semibold text-foreground">O que a IA analisa</h2>
