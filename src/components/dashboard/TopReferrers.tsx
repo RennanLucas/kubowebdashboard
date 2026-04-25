@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "@/components/dashboard/SectionCard";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ReferrerStat } from "@/hooks/useHourlyHeatmap";
 
 interface Props {
@@ -9,15 +10,11 @@ interface Props {
 
 export const TopReferrers = ({ data, isLoading }: Props) => {
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-4">
-        <div className="flex items-center gap-1.5">
-          <h3 className="section-title">Top sites de origem</h3>
-          <InfoTooltip content="Sites que mais enviam visitantes para você, com taxa de conversão por origem. Útil para identificar parcerias valiosas e priorizar canais de aquisição." />
-        </div>
-        <p className="section-subtitle">Conversão por canal de aquisição</p>
-      </div>
-
+    <SectionCard
+      title="Top sites de origem"
+      subtitle="Conversão por canal de aquisição"
+      tooltip="Sites que mais enviam visitantes para você, com taxa de conversão por origem. Útil para identificar parcerias valiosas e priorizar canais de aquisição."
+    >
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -25,13 +22,11 @@ export const TopReferrers = ({ data, isLoading }: Props) => {
           ))}
         </div>
       ) : data.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="h-12 w-12 rounded-full bg-muted/70 flex items-center justify-center mb-3">
-            <ExternalLink className="h-5 w-5 text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium text-foreground">Sem dados de referência ainda</p>
-          <p className="text-xs text-muted-foreground mt-1">Mostraremos os sites assim que chegarem visitas.</p>
-        </div>
+        <EmptyState
+          icon={<ExternalLink className="h-5 w-5" />}
+          title="Sem dados de referência ainda"
+          description="Mostraremos os sites assim que chegarem visitas."
+        />
       ) : (
         <div className="space-y-1">
           <div className="grid grid-cols-12 text-[10px] uppercase tracking-wider text-muted-foreground pb-2 border-b border-border font-semibold">
@@ -65,6 +60,6 @@ export const TopReferrers = ({ data, isLoading }: Props) => {
           ))}
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };

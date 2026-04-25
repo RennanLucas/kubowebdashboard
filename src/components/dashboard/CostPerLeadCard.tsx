@@ -1,6 +1,6 @@
 import { DollarSign, Settings as SettingsIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "@/components/dashboard/SectionCard";
 
 interface Props {
   monthlyAdSpend: number;
@@ -18,17 +18,15 @@ export const CostPerLeadCard = ({ monthlyAdSpend, leads, days }: Props) => {
   const benchColor = cpl <= 50 ? "hsl(var(--success))" : cpl <= 150 ? "hsl(var(--chart-blue))" : "hsl(var(--destructive))";
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-3 flex items-center gap-1.5">
-        <h3 className="section-title">Custo por Lead</h3>
-        <InfoTooltip content={
-          <div className="space-y-1 text-xs">
-            <p>Quanto você está pagando por cada lead gerado.</p>
-            <p>Calculado: investimento mensal proporcional ao período ÷ leads.</p>
-          </div>
-        } />
-      </div>
-
+    <SectionCard
+      title="Custo por Lead"
+      tooltip={
+        <div className="space-y-1 text-xs">
+          <p>Quanto você está pagando por cada lead gerado.</p>
+          <p>Calculado: investimento mensal proporcional ao período ÷ leads.</p>
+        </div>
+      }
+    >
       {!hasSpend ? (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
@@ -66,6 +64,6 @@ export const CostPerLeadCard = ({ monthlyAdSpend, leads, days }: Props) => {
           )}
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };
