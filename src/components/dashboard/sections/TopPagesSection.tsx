@@ -5,7 +5,7 @@ import { WidgetBoundary } from "@/components/dashboard/WidgetBoundary";
 import type { ReferrerStat } from "@/hooks/useHourlyHeatmap";
 
 interface Props {
-  topPages: Array<{ name: string; views: number; bounceRate?: number; avgTime?: number }>;
+  topPages: any[];
   referrers: ReferrerStat[];
   activeProjectId?: string;
   heatmapLoading: boolean;

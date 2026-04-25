@@ -8,7 +8,7 @@ import type { HeatmapCell, ReferrerStat } from "@/hooks/useHourlyHeatmap";
 interface Props {
   chartData: Array<{ date: string; visitors: number; leads: number; rawDate: string }>;
   prevSeries: number[];
-  trafficSources: Array<{ source: string; visitors: number; percentage: number }>;
+  trafficSources: any[];
   heatmap: HeatmapCell[];
   referrers: ReferrerStat[];
   totalVisitors: number;
