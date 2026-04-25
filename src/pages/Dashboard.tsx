@@ -249,8 +249,8 @@ const DashboardContent = () => {
           onDateRangeChange={setDateRange}
           clientName={clientData?.company_name}
           projectName={currentProject?.name || clientData?.project?.name}
-          projects={clientData?.projects}
-          selectedProjectId={selectedProjectId || clientData?.project?.id}
+          projects={headerProjects}
+          selectedProjectId={effectiveProjectId}
           onProjectChange={setSelectedProjectId}
           onExportPDF={hasData ? handleExportPDF : undefined}
           onExportCSV={hasData ? handleExportCSV : undefined}
