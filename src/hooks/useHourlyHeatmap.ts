@@ -18,6 +18,8 @@ interface HookResult {
   heatmap: HeatmapCell[];
   referrers: ReferrerStat[];
   isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
 }
 
 const extractDomain = (url: string | null) => {
@@ -34,96 +36,102 @@ export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
   const [heatmap, setHeatmap] = useState<HeatmapCell[]>([]);
   const [referrers, setReferrers] = useState<ReferrerStat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!projectId) return;
     let cancelled = false;
     setIsLoading(true);
+    setError(null);
 
     (async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - days);
-      const sinceIso = since.toISOString();
+      try {
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+        const sinceIso = since.toISOString();
 
-      // Pageviews for heatmap + referrers
-      const { data: pvs } = await supabase
-        .from("pageviews")
-        .select("created_at, referrer, session_id")
-        .eq("project_id", projectId)
-        .gte("created_at", sinceIso)
-        .limit(10000);
+        const { data: pvs, error: pvErr } = await supabase
+          .from("pageviews")
+          .select("created_at, referrer, session_id")
+          .eq("project_id", projectId)
+          .gte("created_at", sinceIso)
+          .limit(10000);
+        if (pvErr) throw pvErr;
 
-      // Conversion events for referrer conversion rate
-      const { data: evs } = await supabase
-        .from("events")
-        .select("created_at, session_id")
-        .eq("project_id", projectId)
-        .gte("created_at", sinceIso)
-        .in("event_type", ["whatsapp_click", "form_submit", "button_click"])
-        .limit(5000);
+        const { data: evs, error: evErr } = await supabase
+          .from("events")
+          .select("created_at, session_id")
+          .eq("project_id", projectId)
+          .gte("created_at", sinceIso)
+          .in("event_type", ["whatsapp_click", "form_submit", "button_click"])
+          .limit(5000);
+        if (evErr) throw evErr;
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      // Build heatmap
-      const cells = new Map<string, number>();
-      (pvs ?? []).forEach((p) => {
-        const d = new Date(p.created_at);
-        const key = `${d.getDay()}-${d.getHours()}`;
-        cells.set(key, (cells.get(key) ?? 0) + 1);
-      });
-      const out: HeatmapCell[] = [];
-      for (let day = 0; day < 7; day++) {
-        for (let hour = 0; hour < 24; hour++) {
-          out.push({ day, hour, count: cells.get(`${day}-${hour}`) ?? 0 });
+        const cells = new Map<string, number>();
+        (pvs ?? []).forEach((p) => {
+          const d = new Date(p.created_at);
+          const key = `${d.getDay()}-${d.getHours()}`;
+          cells.set(key, (cells.get(key) ?? 0) + 1);
+        });
+        const out: HeatmapCell[] = [];
+        for (let day = 0; day < 7; day++) {
+          for (let hour = 0; hour < 24; hour++) {
+            out.push({ day, hour, count: cells.get(`${day}-${hour}`) ?? 0 });
+          }
         }
+
+        const refMap = new Map<string, { visitors: Set<string>; conversionSessions: Set<string> }>();
+        (pvs ?? []).forEach((p) => {
+          const dom = extractDomain(p.referrer);
+          if (!refMap.has(dom)) refMap.set(dom, { visitors: new Set(), conversionSessions: new Set() });
+          if (p.session_id) refMap.get(dom)!.visitors.add(p.session_id);
+        });
+        const sessionToRef = new Map<string, string>();
+        (pvs ?? []).forEach((p) => {
+          if (p.session_id && !sessionToRef.has(p.session_id)) {
+            sessionToRef.set(p.session_id, extractDomain(p.referrer));
+          }
+        });
+        (evs ?? []).forEach((e) => {
+          if (!e.session_id) return;
+          const dom = sessionToRef.get(e.session_id);
+          if (dom && refMap.has(dom)) {
+            refMap.get(dom)!.conversionSessions.add(e.session_id);
+          }
+        });
+
+        const refs: ReferrerStat[] = Array.from(refMap.entries())
+          .map(([domain, v]) => {
+            const visitors = v.visitors.size;
+            const conversions = v.conversionSessions.size;
+            return {
+              domain,
+              visitors,
+              conversions,
+              conversionRate: visitors > 0 ? (conversions / visitors) * 100 : 0,
+            };
+          })
+          .filter((r) => r.visitors > 0)
+          .sort((a, b) => b.visitors - a.visitors)
+          .slice(0, 10);
+
+        setHeatmap(out);
+        setReferrers(refs);
+        setIsLoading(false);
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(e instanceof Error ? e : new Error(String(e?.message ?? e)));
+        setIsLoading(false);
       }
-
-      // Build referrers
-      const refMap = new Map<string, { visitors: Set<string>; conversionSessions: Set<string> }>();
-      (pvs ?? []).forEach((p) => {
-        const dom = extractDomain(p.referrer);
-        if (!refMap.has(dom)) refMap.set(dom, { visitors: new Set(), conversionSessions: new Set() });
-        if (p.session_id) refMap.get(dom)!.visitors.add(p.session_id);
-      });
-      // Map session_id → referrer domain (first touch)
-      const sessionToRef = new Map<string, string>();
-      (pvs ?? []).forEach((p) => {
-        if (p.session_id && !sessionToRef.has(p.session_id)) {
-          sessionToRef.set(p.session_id, extractDomain(p.referrer));
-        }
-      });
-      (evs ?? []).forEach((e) => {
-        if (!e.session_id) return;
-        const dom = sessionToRef.get(e.session_id);
-        if (dom && refMap.has(dom)) {
-          refMap.get(dom)!.conversionSessions.add(e.session_id);
-        }
-      });
-
-      const refs: ReferrerStat[] = Array.from(refMap.entries())
-        .map(([domain, v]) => {
-          const visitors = v.visitors.size;
-          const conversions = v.conversionSessions.size;
-          return {
-            domain,
-            visitors,
-            conversions,
-            conversionRate: visitors > 0 ? (conversions / visitors) * 100 : 0,
-          };
-        })
-        .filter((r) => r.visitors > 0)
-        .sort((a, b) => b.visitors - a.visitors)
-        .slice(0, 10);
-
-      setHeatmap(out);
-      setReferrers(refs);
-      setIsLoading(false);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [projectId, days]);
+  }, [projectId, days, reloadKey]);
 
-  return { heatmap, referrers, isLoading };
+  return { heatmap, referrers, isLoading, error, refetch: () => setReloadKey((k) => k + 1) };
 };
