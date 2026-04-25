@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Filter, X, Globe, Smartphone } from "lucide-react";
+import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -7,21 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DateRangePicker } from "./DateRangePicker";
-import {
-  useDashboardFilters,
-  SOURCE_OPTIONS,
-  DEVICE_OPTIONS,
-  type SourceFilter,
-  type DeviceFilter,
-} from "@/contexts/DashboardFiltersContext";
 
 interface Project {
   id: string;
