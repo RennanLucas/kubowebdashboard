@@ -288,41 +288,74 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 Anotar
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-64">
-              <div className="space-y-2">
+            <PopoverContent align="end" className="w-72">
+              <div className="space-y-2.5">
                 <div>
                   <Label className="text-xs">Data</Label>
                   <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className="h-8 text-sm mt-1" />
                 </div>
                 <div>
-                  <Label className="text-xs">Evento</Label>
+                  <Label className="text-xs">Categoria</Label>
+                  <Select value={newCategory} onValueChange={(v) => setNewCategory(v as AnnotationCategory)}>
+                    <SelectTrigger className="h-8 text-sm mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ANNOTATION_CATEGORIES.map((c) => (
+                        <SelectItem key={c.key} value={c.key} className="text-sm">
+                          <span className="inline-flex items-center gap-2">
+                            <span>{c.emoji}</span>
+                            <span>{c.label}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Título</Label>
                   <Input
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     className="h-8 text-sm mt-1"
-                    placeholder="Ex: Campanha Black Friday"
-                    maxLength={60}
+                    placeholder="Ex: Black Friday"
+                    maxLength={80}
                   />
                 </div>
-                <Button size="sm" className="w-full h-8 text-xs" onClick={handleAdd}>
-                  Adicionar
+                <div>
+                  <Label className="text-xs">Notas (opcional)</Label>
+                  <Textarea
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    className="text-sm mt-1 min-h-[60px]"
+                    placeholder="Detalhes da campanha, canal, investimento..."
+                    maxLength={500}
+                  />
+                </div>
+                <Button size="sm" className="w-full h-8 text-xs" onClick={handleAdd} disabled={!newDate || !newLabel.trim()}>
+                  Adicionar anotação
                 </Button>
                 {annotations.length > 0 && (
-                  <div className="border-t border-border pt-2 space-y-1 max-h-40 overflow-auto">
-                    {annotations.map((a) => (
-                      <div key={a.id} className="flex items-center justify-between text-xs">
-                        <span className="truncate">
-                          <span className="text-muted-foreground">{a.date}</span> — {a.label}
-                        </span>
-                        <button
-                          onClick={() => remove(a.id)}
-                          className="text-muted-foreground hover:text-destructive ml-1 shrink-0"
-                          aria-label="Remover"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+                  <div className="border-t border-border pt-2 space-y-1.5 max-h-44 overflow-auto">
+                    {annotations.map((a) => {
+                      const meta = getCategoryMeta(a.category);
+                      return (
+                        <div key={a.id} className="flex items-center justify-between text-xs gap-2">
+                          <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: meta.color }} aria-hidden />
+                            <span className="text-muted-foreground tabular-nums shrink-0">{a.date}</span>
+                            <span className="truncate">{a.label}</span>
+                          </span>
+                          <button
+                            onClick={() => remove(a.id)}
+                            className="text-muted-foreground hover:text-destructive shrink-0"
+                            aria-label="Remover"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
