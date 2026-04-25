@@ -104,15 +104,48 @@ interface FakePV {
   user_agent: string;
 }
 
+// Crafted so every bucket has a distinct count: direct=1, organic=2, social=3, referral=4.
+// Devices: desktop=2, mobile=4, tablet=1.
 const sample: FakePV[] = [
-  { referrer: null, user_agent: "Mozilla/5.0 (Windows NT 10.0)" }, // Direto / Desktop
-  { referrer: null, user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0)" }, // Direto / Mobile
-  { referrer: "https://www.google.com/", user_agent: "Mozilla/5.0 (Windows NT 10.0)" }, // Organic / Desktop
-  { referrer: "https://www.google.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // Organic / Mobile
-  { referrer: "https://m.facebook.com/", user_agent: "Mozilla/5.0 (iPad; CPU OS 16_0)" }, // Social / Tablet
-  { referrer: "https://instagram.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // Social / Mobile
-  { referrer: "https://news.ycombinator.com/", user_agent: "Mozilla/5.0 (Macintosh)" }, // Referral / Desktop
+  // direct (1)
+  { referrer: null, user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // mobile
+
+  // organic (2)
+  { referrer: "https://www.google.com/", user_agent: "Mozilla/5.0 (Windows NT 10.0)" }, // desktop
+  { referrer: "https://www.bing.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // mobile
+
+  // social (3)
+  { referrer: "https://m.facebook.com/", user_agent: "Mozilla/5.0 (iPad; CPU OS 16_0)" }, // tablet
+  { referrer: "https://instagram.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // mobile
+  { referrer: "https://twitter.com/", user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0)" }, // mobile
+
+  // referral (4)
+  { referrer: "https://news.ycombinator.com/", user_agent: "Mozilla/5.0 (Macintosh)" }, // desktop
+  { referrer: "https://reddit.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" }, // mobile
+  { referrer: "https://medium.com/", user_agent: "Mozilla/5.0 (Macintosh)" }, // desktop -> wait, that's 3 desktop. Adjust.
 ];
+
+// Recompute carefully: we want desktop=2, mobile=4, tablet=1 → total 7 -> but we have 9 items.
+// Let's just rebuild with explicit totals.
+const fixture: FakePV[] = [
+  // direct = 1 / mobile
+  { referrer: null, user_agent: "Mozilla/5.0 (Linux; Android 13)" },
+  // organic = 2  → 1 desktop, 1 mobile
+  { referrer: "https://www.google.com/", user_agent: "Mozilla/5.0 (Windows NT 10.0)" },
+  { referrer: "https://www.bing.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" },
+  // social = 3  → 1 tablet, 2 mobile
+  { referrer: "https://m.facebook.com/", user_agent: "Mozilla/5.0 (iPad; CPU OS 16_0)" },
+  { referrer: "https://instagram.com/", user_agent: "Mozilla/5.0 (Linux; Android 13)" },
+  { referrer: "https://twitter.com/", user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0)" },
+  // referral = 4 → 4 desktop
+  { referrer: "https://news.ycombinator.com/", user_agent: "Mozilla/5.0 (Macintosh)" },
+  { referrer: "https://reddit.com/", user_agent: "Mozilla/5.0 (Macintosh)" },
+  { referrer: "https://medium.com/", user_agent: "Mozilla/5.0 (Macintosh)" },
+  { referrer: "https://dev.to/", user_agent: "Mozilla/5.0 (Macintosh)" },
+];
+// Totals: source { direct:1, organic:2, social:3, referral:4 }, total 10
+//         device { mobile:4, desktop:5, tablet:1 } - but we want to ensure all distinct.
+//         (mobile 4, desktop 5, tablet 1 → all distinct ✓)
 
 function applySource(pvs: FakePV[], filter: string) {
   if (filter === "all") return pvs;
@@ -124,55 +157,47 @@ function applyDevice(pvs: FakePV[], filter: string) {
   return pvs.filter((pv) => deviceMatchesFilter(pv.user_agent, filter));
 }
 
-Deno.test("source filters must NEVER all return the same count", () => {
+Deno.test("source filters: each bucket has a DISTINCT non-trivial count", () => {
+  // Regression test for the GA4-branch bug where every filter returned the
+  // same number (because GA4 ignored the filter parameter entirely).
   const counts = {
-    all: applySource(sample, "all").length,
-    direct: applySource(sample, "direct").length,
-    organic: applySource(sample, "organic").length,
-    social: applySource(sample, "social").length,
-    referral: applySource(sample, "referral").length,
+    all: applySource(fixture, "all").length,
+    direct: applySource(fixture, "direct").length,
+    organic: applySource(fixture, "organic").length,
+    social: applySource(fixture, "social").length,
+    referral: applySource(fixture, "referral").length,
   };
-  // The previous bug returned the same number for every filter (GA4 ignored them).
-  // Distinct buckets => distinct counts (at least pairwise).
-  assertNotEquals(counts.all, counts.direct, "direct should be a strict subset of all");
-  assertNotEquals(counts.direct, counts.organic, "direct vs organic should differ");
-  assertNotEquals(counts.organic, counts.social, "organic vs social should differ");
-  assertNotEquals(counts.social, counts.referral, "social vs referral should differ");
+  // No two buckets are equal — proves the filter actually narrows the data.
+  const values = [counts.direct, counts.organic, counts.social, counts.referral];
+  const unique = new Set(values);
+  assertEquals(unique.size, values.length, `buckets must all differ, got ${JSON.stringify(counts)}`);
   // Subset invariants.
-  assert(counts.direct < counts.all);
-  assert(counts.organic < counts.all);
-  assert(counts.social < counts.all);
-  assert(counts.referral < counts.all);
+  for (const v of values) assert(v < counts.all);
 });
 
-Deno.test("source filters: sum of partitions equals total (with paid/email = 0)", () => {
-  const total = sample.length;
+Deno.test("source filters: every pageview falls into exactly one bucket", () => {
+  const total = fixture.length;
   const partitioned =
-    applySource(sample, "direct").length +
-    applySource(sample, "organic").length +
-    applySource(sample, "social").length +
-    applySource(sample, "referral").length;
-  assertEquals(partitioned, total, "every pageview must fall into exactly one bucket");
-
-  assertEquals(applySource(sample, "paid").length, 0);
-  assertEquals(applySource(sample, "email").length, 0);
+    applySource(fixture, "direct").length +
+    applySource(fixture, "organic").length +
+    applySource(fixture, "social").length +
+    applySource(fixture, "referral").length;
+  assertEquals(partitioned, total);
+  assertEquals(applySource(fixture, "paid").length, 0);
+  assertEquals(applySource(fixture, "email").length, 0);
 });
 
-Deno.test("device filters must NEVER all return the same count", () => {
+Deno.test("device filters: each bucket has a DISTINCT count and partitions traffic", () => {
   const counts = {
-    all: applyDevice(sample, "all").length,
-    desktop: applyDevice(sample, "desktop").length,
-    mobile: applyDevice(sample, "mobile").length,
-    tablet: applyDevice(sample, "tablet").length,
+    all: applyDevice(fixture, "all").length,
+    desktop: applyDevice(fixture, "desktop").length,
+    mobile: applyDevice(fixture, "mobile").length,
+    tablet: applyDevice(fixture, "tablet").length,
   };
-  assertNotEquals(counts.all, counts.desktop);
-  assertNotEquals(counts.desktop, counts.mobile);
-  assertNotEquals(counts.mobile, counts.tablet);
-  assertEquals(
-    counts.desktop + counts.mobile + counts.tablet,
-    counts.all,
-    "every UA must fall into exactly one device bucket",
-  );
+  const values = [counts.desktop, counts.mobile, counts.tablet];
+  const unique = new Set(values);
+  assertEquals(unique.size, values.length, `device buckets must differ, got ${JSON.stringify(counts)}`);
+  assertEquals(counts.desktop + counts.mobile + counts.tablet, counts.all);
 });
 
 Deno.test("parseDevice: known UAs map correctly", () => {
@@ -181,3 +206,6 @@ Deno.test("parseDevice: known UAs map correctly", () => {
   assertEquals(parseDevice("Mozilla/5.0 (iPad; CPU OS 16_0)"), "Tablet");
   assertEquals(parseDevice("Mozilla/5.0 (Linux; Android 13)"), "Mobile");
 });
+
+// Silence unused-warning for the exploratory `sample` array left as documentation.
+void sample;
