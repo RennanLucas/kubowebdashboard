@@ -238,7 +238,7 @@ const DashboardContent = () => {
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
   const engagedVisitors = data?.engagement
     ? Math.round(totalVisitors * (1 - data.engagement.bounceRate / 100))
-    : Math.round(totalVisitors * 0.6);
+    : 0;
 
   return (
     <AppLayout>
@@ -313,7 +313,7 @@ const DashboardContent = () => {
               totalLeads={totalLeads}
               totalValue={totalValue}
               avgConversion={avgConversion}
-              bounceRate={data?.engagement?.bounceRate ?? 50}
+              bounceRate={data?.engagement?.bounceRate ?? 0}
               trafficChangePct={comparison?.visitors ?? 0}
               topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
               topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
