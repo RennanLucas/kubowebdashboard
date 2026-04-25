@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "@/components/dashboard/SectionCard";
+import { EmptyState } from "@/components/dashboard/EmptyState";
 
 interface PageData {
   path: string;
@@ -10,29 +11,23 @@ interface PageData {
 }
 
 const TopPages = ({ pages }: { pages: PageData[] }) => (
-  <div className="glass-card p-5 sm:p-6">
-    <div className="mb-4">
-      <div className="flex items-center gap-1.5">
-        <h3 className="section-title">Páginas Mais Visitadas</h3>
-        <InfoTooltip content={
-          <div className="space-y-1">
-            <p>Ranking das páginas mais acessadas do seu site.</p>
-            <p><strong>Tempo Médio:</strong> quanto tempo o visitante fica na página.</p>
-            <p><strong>Rejeição:</strong> % que sai sem visitar outras páginas. Acima de 40% pode indicar conteúdo pouco relevante.</p>
-          </div>
-        } />
+  <SectionCard
+    title="Páginas Mais Visitadas"
+    subtitle={`Top ${pages.length || 0} páginas por visualizações`}
+    tooltip={
+      <div className="space-y-1">
+        <p>Ranking das páginas mais acessadas do seu site.</p>
+        <p><strong>Tempo Médio:</strong> quanto tempo o visitante fica na página.</p>
+        <p><strong>Rejeição:</strong> % que sai sem visitar outras páginas. Acima de 40% pode indicar conteúdo pouco relevante.</p>
       </div>
-      <p className="section-subtitle">Top {pages.length || 0} páginas por visualizações</p>
-    </div>
-
+    }
+  >
     {pages.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-10 text-center">
-        <div className="h-12 w-12 rounded-full bg-muted/70 flex items-center justify-center mb-3">
-          <FileText className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <p className="text-sm font-medium text-foreground">Sem páginas registradas ainda</p>
-        <p className="text-xs text-muted-foreground mt-1">Os dados aparecem assim que houver visitas.</p>
-      </div>
+      <EmptyState
+        icon={<FileText className="h-5 w-5" />}
+        title="Sem páginas registradas ainda"
+        description="Os dados aparecem assim que houver visitas."
+      />
     ) : (
       <div className="-mx-5 sm:mx-0 overflow-x-auto overscroll-x-contain scroll-smooth [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
         <table className="w-full min-w-[480px] px-5 sm:min-w-0 sm:px-0">
