@@ -310,45 +310,79 @@ const Dashboard = () => {
 
             {/* Qualidade do tráfego */}
             <div className="grid grid-cols-1 gap-4 mb-6">
-              <SuspiciousTrafficCard
-                referrers={referrers}
-                totalVisitors={totalVisitors}
+              <WidgetBoundary
                 isLoading={heatmapLoading}
-              />
+                error={heatmapError}
+                onRetry={refetchHeatmap}
+                title="Não foi possível analisar a qualidade do tráfego"
+                skeletonHeight={120}
+              >
+                <SuspiciousTrafficCard
+                  referrers={referrers}
+                  totalVisitors={totalVisitors}
+                />
+              </WidgetBoundary>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
-                <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
+                <WidgetBoundary title="Não foi possível carregar o gráfico de visitantes" skeletonHeight={280}>
+                  <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
+                </WidgetBoundary>
               </div>
-              <TrafficSources data={trafficSources ?? []} dateRangeDays={dateRange} />
+              <WidgetBoundary title="Não foi possível carregar as origens de tráfego">
+                <TrafficSources data={trafficSources ?? []} dateRangeDays={dateRange} />
+              </WidgetBoundary>
             </div>
 
             {/* Heatmap */}
             <div className="grid grid-cols-1 gap-4 mb-6">
-              <HourlyHeatmap data={heatmap} isLoading={heatmapLoading} />
+              <WidgetBoundary
+                isLoading={heatmapLoading}
+                error={heatmapError}
+                onRetry={refetchHeatmap}
+                title="Não foi possível carregar o heatmap"
+                skeletonHeight={200}
+              >
+                <HourlyHeatmap data={heatmap} isLoading={false} />
+              </WidgetBoundary>
             </div>
 
             {/* Funnel + Conversions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <ConversionFunnel
-                visitors={totalVisitors}
-                engaged={engagedVisitors}
-                clicks={totalButtons + totalWhatsapp}
-                conversions={totalConversionsAll || totalLeads}
-              />
-              <ConversionsCard data={{
-                whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
-                formSubmissions: { value: conversions?.form_submissions ?? totalForms, change: conversions?.changes.forms ?? 0 },
-                buttonClicks: { value: conversions?.button_clicks ?? totalButtons, change: conversions?.changes.buttons ?? 0 },
-                recentEvents: conversions?.recent ?? [],
-              }} />
+              <WidgetBoundary title="Funil indisponível">
+                <ConversionFunnel
+                  visitors={totalVisitors}
+                  engaged={engagedVisitors}
+                  clicks={totalButtons + totalWhatsapp}
+                  conversions={totalConversionsAll || totalLeads}
+                />
+              </WidgetBoundary>
+              <WidgetBoundary title="Não foi possível carregar conversões">
+                <ConversionsCard data={{
+                  whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
+                  formSubmissions: { value: conversions?.form_submissions ?? totalForms, change: conversions?.changes.forms ?? 0 },
+                  buttonClicks: { value: conversions?.button_clicks ?? totalButtons, change: conversions?.changes.buttons ?? 0 },
+                  recentEvents: conversions?.recent ?? [],
+                }} />
+              </WidgetBoundary>
             </div>
 
             {/* Top Pages + Top Referrers + Live Feed */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              <TopPages pages={topPages ?? []} />
-              <TopReferrers data={referrers} isLoading={heatmapLoading} />
-              <LiveFeedCard projectId={activeProjectId ?? null} compact />
+              <WidgetBoundary title="Não foi possível carregar páginas">
+                <TopPages pages={topPages ?? []} />
+              </WidgetBoundary>
+              <WidgetBoundary
+                isLoading={heatmapLoading}
+                error={heatmapError}
+                onRetry={refetchHeatmap}
+                title="Não foi possível carregar referrers"
+              >
+                <TopReferrers data={referrers} isLoading={false} />
+              </WidgetBoundary>
+              <WidgetBoundary title="Feed ao vivo indisponível">
+                <LiveFeedCard projectId={activeProjectId ?? null} compact />
+              </WidgetBoundary>
             </div>
 
             {/* Engagement + Devices + Geo */}
