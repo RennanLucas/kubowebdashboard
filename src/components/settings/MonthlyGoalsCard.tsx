@@ -222,9 +222,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="numeric"
                 placeholder="ex.: 5000"
                 value={form.visitors}
-                onChange={(e) => setForm((f) => ({ ...f, visitors: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("visitors", e.target.value)}
+                aria-invalid={!!errors.visitors}
+                aria-describedby={errors.visitors ? "goal-visitors-error" : undefined}
+                className={cn("h-11", errors.visitors && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.visitors && (
+                <p id="goal-visitors-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.visitors}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -239,9 +246,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="numeric"
                 placeholder="ex.: 100"
                 value={form.leads}
-                onChange={(e) => setForm((f) => ({ ...f, leads: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("leads", e.target.value)}
+                aria-invalid={!!errors.leads}
+                aria-describedby={errors.leads ? "goal-leads-error" : undefined}
+                className={cn("h-11", errors.leads && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.leads && (
+                <p id="goal-leads-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.leads}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -256,9 +270,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="decimal"
                 placeholder="ex.: 10000"
                 value={form.revenue}
-                onChange={(e) => setForm((f) => ({ ...f, revenue: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("revenue", e.target.value)}
+                aria-invalid={!!errors.revenue}
+                aria-describedby={errors.revenue ? "goal-revenue-error" : undefined}
+                className={cn("h-11", errors.revenue && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.revenue && (
+                <p id="goal-revenue-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.revenue}
+                </p>
+              )}
             </div>
           </div>
 
