@@ -1,6 +1,6 @@
 import { DollarSign, Settings as SettingsIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "@/components/dashboard/SectionCard";
 
 interface Props {
   monthlyAdSpend: number;
