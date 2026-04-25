@@ -27,6 +27,7 @@ interface Project {
   id: string;
   name: string;
   url: string | null;
+  clientName?: string;
 }
 
 interface DashboardHeaderProps {
@@ -41,6 +42,15 @@ interface DashboardHeaderProps {
   onExportCSV?: () => void;
   onExportExcel?: () => void;
 }
+
+const formatHost = (url?: string | null) => {
+  if (!url) return null;
+  try {
+    return new URL(url).host.replace(/^www\./, "");
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  }
+};
 
 const DashboardHeader = ({
   dateRange,
@@ -77,21 +87,40 @@ const DashboardHeader = ({
             {hasMultipleProjects ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 mt-0.5">
-                    <span className="truncate max-w-[200px]">{projectName || "Selecionar projeto"}</span>
-                    <ChevronDown className="h-3 w-3 shrink-0" />
+                  <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 mt-0.5 group">
+                    <span className="truncate max-w-[260px]">
+                      {projectName || "Selecionar projeto"}
+                    </span>
+                    <ChevronDown className="h-3 w-3 shrink-0 opacity-70 group-hover:opacity-100" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {projects.map((p) => (
-                    <DropdownMenuItem
-                      key={p.id}
-                      onClick={() => onProjectChange?.(p.id)}
-                      className={p.id === selectedProjectId ? "bg-accent" : ""}
-                    >
-                      {p.name}
-                    </DropdownMenuItem>
-                  ))}
+                <DropdownMenuContent align="start" className="w-[320px] max-h-[400px] overflow-y-auto">
+                  {projects.map((p) => {
+                    const host = formatHost(p.url);
+                    const isActive = p.id === selectedProjectId;
+                    return (
+                      <DropdownMenuItem
+                        key={p.id}
+                        onClick={() => onProjectChange?.(p.id)}
+                        className={`flex flex-col items-start gap-0.5 py-2 ${isActive ? "bg-accent" : ""}`}
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <span className="font-medium text-sm truncate flex-1">{p.name}</span>
+                          {p.clientName && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider shrink-0">
+                              {p.clientName}
+                            </span>
+                          )}
+                        </div>
+                        {host && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Globe className="h-3 w-3" />
+                            <span className="truncate">{host}</span>
+                          </div>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

@@ -15,6 +15,7 @@ import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonSt
 import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
 import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useAllUserProjects } from "@/hooks/useAllUserProjects";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ const DashboardContent = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
+  const { data: allProjects } = useAllUserProjects();
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
@@ -225,7 +227,13 @@ const DashboardContent = () => {
     }
   };
 
-  const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
+  const effectiveProjectId = selectedProjectId || clientData?.project?.id;
+  const currentProjectFromAll = allProjects?.find(p => p.id === effectiveProjectId);
+  const currentProject = currentProjectFromAll
+    ?? clientData?.projects?.find(p => p.id === effectiveProjectId);
+  const headerProjects = (allProjects && allProjects.length > 0)
+    ? allProjects.map(p => ({ id: p.id, name: p.name, url: p.url, clientName: p.clientName }))
+    : clientData?.projects;
 
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
   const engagedVisitors = data?.engagement
@@ -241,8 +249,8 @@ const DashboardContent = () => {
           onDateRangeChange={setDateRange}
           clientName={clientData?.company_name}
           projectName={currentProject?.name || clientData?.project?.name}
-          projects={clientData?.projects}
-          selectedProjectId={selectedProjectId || clientData?.project?.id}
+          projects={headerProjects}
+          selectedProjectId={effectiveProjectId}
           onProjectChange={setSelectedProjectId}
           onExportPDF={hasData ? handleExportPDF : undefined}
           onExportCSV={hasData ? handleExportCSV : undefined}
