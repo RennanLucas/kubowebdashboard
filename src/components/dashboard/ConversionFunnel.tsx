@@ -88,7 +88,7 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
             </div>
           );
         })}
-    </SectionCard>
+      </div>
 
       <div className="mt-6 pt-4 border-t border-border">
         <div className="flex items-center justify-between">
@@ -98,6 +98,6 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
           </span>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }
