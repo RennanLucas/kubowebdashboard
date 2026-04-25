@@ -274,9 +274,20 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           </SelectContent>
         </Select>
         {selectedOption && (
-          <p className="text-xs text-muted-foreground">
-            Editando metas de <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>
-            {existingId ? " (registro existente)" : " (novo registro)"}.
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            {loading ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                Carregando metas de{" "}
+                <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>...
+              </>
+            ) : (
+              <>
+                Editando metas de{" "}
+                <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>
+                {existingId ? " (registro existente)" : " (novo registro)"}.
+              </>
+            )}
           </p>
         )}
       </div>
