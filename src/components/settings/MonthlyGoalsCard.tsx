@@ -1,8 +1,15 @@
-import { useEffect, useState } from "react";
-import { Target, Save, Users, Zap, DollarSign } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Target, Save, Users, Zap, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,17 +17,43 @@ interface Props {
   projectId: string;
 }
 
-const currentMonthDate = () => {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
-};
+const toMonthDate = (year: number, monthIndex: number) =>
+  new Date(year, monthIndex, 1).toISOString().slice(0, 10);
 
-const monthLabel = () => {
-  const d = new Date();
+const formatMonthLabel = (year: number, monthIndex: number) => {
+  const d = new Date(year, monthIndex, 1);
   return d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 };
 
+interface MonthOption {
+  value: string; // YYYY-MM-DD (first day)
+  label: string;
+  hint: string;
+}
+
+const buildMonthOptions = (): MonthOption[] => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const offsets = [-1, 0, 1, 2, 3];
+  return offsets.map((offset) => {
+    const d = new Date(y, m + offset, 1);
+    const value = toMonthDate(d.getFullYear(), d.getMonth());
+    const label = formatMonthLabel(d.getFullYear(), d.getMonth());
+    let hint = "";
+    if (offset === -1) hint = "Mês passado";
+    else if (offset === 0) hint = "Este mês";
+    else if (offset === 1) hint = "Próximo mês";
+    else hint = `Em ${offset} meses`;
+    return { value, label, hint };
+  });
+};
+
 const MonthlyGoalsCard = ({ projectId }: Props) => {
+  const monthOptions = useMemo(buildMonthOptions, []);
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    monthOptions.find((o) => o.hint === "Este mês")?.value ?? monthOptions[0].value,
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ visitors: "", leads: "", revenue: "" });
@@ -30,12 +63,11 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const month = currentMonthDate();
       const { data, error } = await supabase
         .from("goals")
         .select("id, visitors_target, leads_target, revenue_target")
         .eq("project_id", projectId)
-        .eq("month", month)
+        .eq("month", selectedMonth)
         .maybeSingle();
       if (cancelled) return;
       if (error) {
@@ -57,7 +89,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, selectedMonth]);
 
   const handleSave = async () => {
     const visitors = Math.max(0, Math.floor(Number(form.visitors) || 0));
@@ -74,10 +106,9 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
     }
 
     setSaving(true);
-    const month = currentMonthDate();
     const payload = {
       project_id: projectId,
-      month,
+      month: selectedMonth,
       visitors_target: visitors,
       leads_target: leads,
       revenue_target: revenue,
@@ -97,6 +128,8 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
     toast.success("Metas salvas com sucesso!");
   };
 
+  const selectedOption = monthOptions.find((o) => o.value === selectedMonth);
+
   return (
     <div className="glass-card rounded-xl p-6 space-y-4">
       <div>
@@ -104,8 +137,33 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           <Target className="h-4 w-4 text-primary" /> Metas mensais
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Defina os objetivos para <span className="font-medium capitalize text-foreground">{monthLabel()}</span>. Eles serão exibidos no card "Progresso das metas" do dashboard.
+          Defina objetivos por mês. Eles serão exibidos no card "Progresso das metas" do dashboard quando o mês estiver vigente.
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="goal-month" className="flex items-center gap-2 text-xs">
+          <Calendar className="h-3.5 w-3.5 text-primary" /> Mês de referência
+        </Label>
+        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <SelectTrigger id="goal-month" className="h-11">
+            <SelectValue placeholder="Selecione o mês" />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                <span className="capitalize">{opt.label}</span>
+                <span className="text-muted-foreground ml-2 text-xs">· {opt.hint}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedOption && (
+          <p className="text-xs text-muted-foreground">
+            Editando metas de <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>
+            {existingId ? " (registro existente)" : " (novo registro)"}.
+          </p>
+        )}
       </div>
 
       {loading ? (
@@ -170,7 +228,8 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
               <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-primary-foreground" />
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Salvar metas do mês
+                <Save className="mr-2 h-4 w-4" />
+                {existingId ? "Atualizar metas" : "Salvar metas"}
               </>
             )}
           </Button>
