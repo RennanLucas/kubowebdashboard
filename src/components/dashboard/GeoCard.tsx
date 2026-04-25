@@ -1,5 +1,6 @@
 import { MapPin } from "lucide-react";
 import { useState } from "react";
+import { SectionCard } from "./SectionCard";
 
 interface GeoItem {
   name: string;
@@ -32,12 +33,12 @@ const GeoCard = ({ countries, cities = [] }: GeoCardProps) => {
   const maxCount = items.length > 0 ? items[0].count : 1;
 
   return (
-    <div className="glass-card p-5">
-      <h3 className="text-sm font-medium text-card-foreground mb-3 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-primary" /> Localização dos Visitantes
-      </h3>
-
-      {/* Tabs */}
+    <SectionCard
+      icon={<MapPin className="h-4 w-4 text-primary" />}
+      title="Localização dos Visitantes"
+      tooltip="De onde estão vindo os seus visitantes — alterne entre cidades e países."
+      compact
+    >
       <div className="flex gap-1 mb-4 p-0.5 bg-muted rounded-lg">
         <button
           onClick={() => setTab("cities")}
@@ -85,7 +86,7 @@ const GeoCard = ({ countries, cities = [] }: GeoCardProps) => {
           ))}
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };
 

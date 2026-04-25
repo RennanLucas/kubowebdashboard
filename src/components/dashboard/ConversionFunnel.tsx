@@ -1,5 +1,5 @@
 import { TrendingDown } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface FunnelStep {
   label: string;
@@ -25,25 +25,22 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
   const max = Math.max(visitors, 1);
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-5">
-        <div className="flex items-center gap-1.5">
-          <h3 className="section-title">Funil de Conversão</h3>
-          <InfoTooltip content={
-            <div className="space-y-1.5">
-              <p>Mostra a jornada do visitante em 4 etapas:</p>
-              <ul className="list-disc pl-3 space-y-0.5">
-                <li><strong>Visitantes:</strong> total de pessoas que entraram</li>
-                <li><strong>Engajados:</strong> visitantes que não saíram imediatamente (ficaram navegando)</li>
-                <li><strong>Cliques em CTA:</strong> clicaram em botões ou WhatsApp</li>
-                <li><strong>Conversões:</strong> completaram uma ação (lead)</li>
-              </ul>
-              <p className="pt-1">A queda entre etapas mostra onde você está perdendo público.</p>
-            </div>
-          } />
+    <SectionCard
+      title="Funil de Conversão"
+      subtitle="Jornada do visitante até a conversão"
+      tooltip={
+        <div className="space-y-1.5">
+          <p>Mostra a jornada do visitante em 4 etapas:</p>
+          <ul className="list-disc pl-3 space-y-0.5">
+            <li><strong>Visitantes:</strong> total de pessoas que entraram</li>
+            <li><strong>Engajados:</strong> visitantes que não saíram imediatamente (ficaram navegando)</li>
+            <li><strong>Cliques em CTA:</strong> clicaram em botões ou WhatsApp</li>
+            <li><strong>Conversões:</strong> completaram uma ação (lead)</li>
+          </ul>
+          <p className="pt-1">A queda entre etapas mostra onde você está perdendo público.</p>
         </div>
-        <p className="section-subtitle">Jornada do visitante até a conversão</p>
-      </div>
+      }
+    >
 
       <div className="space-y-4">
         {steps.map((step, i) => {
@@ -101,6 +98,6 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
           </span>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }

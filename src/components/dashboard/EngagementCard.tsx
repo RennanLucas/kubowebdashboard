@@ -1,5 +1,5 @@
 import { Activity, Clock, ArrowDownUp, Layers } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface EngagementData {
   bounceRate: number;
@@ -14,45 +14,25 @@ const EngagementCard = ({ data }: { data: EngagementData }) => {
   const durationStr = `${mins}:${String(secs).padStart(2, "0")}`;
 
   const items = [
-    {
-      label: "Taxa de Rejeição",
-      value: `${data.bounceRate}%`,
-      icon: <ArrowDownUp className="h-4 w-4" />,
-      description: "Visitantes que saíram sem interagir",
-    },
-    {
-      label: "Duração Média",
-      value: durationStr,
-      icon: <Clock className="h-4 w-4" />,
-      description: "Tempo médio por sessão",
-    },
-    {
-      label: "Sessões Totais",
-      value: data.totalSessions.toLocaleString("pt-BR"),
-      icon: <Activity className="h-4 w-4" />,
-      description: "Número de sessões no período",
-    },
-    {
-      label: "Páginas/Sessão",
-      value: data.pagesPerSession.toString(),
-      icon: <Layers className="h-4 w-4" />,
-      description: "Média de páginas por sessão",
-    },
+    { label: "Taxa de Rejeição", value: `${data.bounceRate}%`, icon: <ArrowDownUp className="h-4 w-4" />, description: "Visitantes que saíram sem interagir" },
+    { label: "Duração Média", value: durationStr, icon: <Clock className="h-4 w-4" />, description: "Tempo médio por sessão" },
+    { label: "Sessões Totais", value: data.totalSessions.toLocaleString("pt-BR"), icon: <Activity className="h-4 w-4" />, description: "Número de sessões no período" },
+    { label: "Páginas/Sessão", value: data.pagesPerSession.toString(), icon: <Layers className="h-4 w-4" />, description: "Média de páginas por sessão" },
   ];
 
   return (
-    <div className="glass-card p-5">
-      <div className="flex items-center gap-1.5 mb-4">
-        <h3 className="text-sm font-medium text-card-foreground">Engajamento</h3>
-        <InfoTooltip content={
-          <div className="space-y-1">
-            <p><strong>Rejeição:</strong> % que saiu sem clicar em nada. Quanto menor, melhor.</p>
-            <p><strong>Duração média:</strong> tempo médio que cada visitante passa no site.</p>
-            <p><strong>Sessões:</strong> total de visitas (uma pessoa pode gerar várias).</p>
-            <p><strong>Páginas/sessão:</strong> quantas páginas o visitante navega em média.</p>
-          </div>
-        } />
-      </div>
+    <SectionCard
+      title="Engajamento"
+      tooltip={
+        <div className="space-y-1">
+          <p><strong>Rejeição:</strong> % que saiu sem clicar em nada. Quanto menor, melhor.</p>
+          <p><strong>Duração média:</strong> tempo médio que cada visitante passa no site.</p>
+          <p><strong>Sessões:</strong> total de visitas (uma pessoa pode gerar várias).</p>
+          <p><strong>Páginas/sessão:</strong> quantas páginas o visitante navega em média.</p>
+        </div>
+      }
+      compact
+    >
       <div className="grid grid-cols-2 gap-4">
         {items.map((item) => (
           <div key={item.label} className="space-y-1">
@@ -65,7 +45,7 @@ const EngagementCard = ({ data }: { data: EngagementData }) => {
           </div>
         ))}
       </div>
-    </div>
+    </SectionCard>
   );
 };
 

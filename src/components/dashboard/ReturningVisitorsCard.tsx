@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Repeat } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { InfoTooltip } from "@/components/InfoTooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SectionCard } from "./SectionCard";
 
 interface Props {
   projectId?: string;
@@ -37,7 +37,6 @@ export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
         return;
       }
 
-      // Group by session_id and count visits
       const sessionVisits = new Map<string, number>();
       for (const row of data) {
         if (!row.session_id) continue;
@@ -56,17 +55,15 @@ export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
   }, [projectId, days]);
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-3 flex items-center gap-1.5">
-        <h3 className="section-title">Visitantes Recorrentes</h3>
-        <InfoTooltip content={
-          <div className="space-y-1 text-xs">
-            <p>Percentual de sessões que voltaram ao site no período.</p>
-            <p>Acima de 30% indica boa retenção e marca em construção.</p>
-          </div>
-        } />
-      </div>
-
+    <SectionCard
+      title="Visitantes Recorrentes"
+      tooltip={
+        <div className="space-y-1 text-xs">
+          <p>Percentual de sessões que voltaram ao site no período.</p>
+          <p>Acima de 30% indica boa retenção e marca em construção.</p>
+        </div>
+      }
+    >
       {loading ? (
         <div className="space-y-2">
           <Skeleton className="h-8 w-24" />
@@ -90,6 +87,6 @@ export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
           </div>
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };

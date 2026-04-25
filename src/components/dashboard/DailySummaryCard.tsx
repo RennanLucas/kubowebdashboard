@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface Props {
   visitors: number;
@@ -51,7 +51,6 @@ export const DailySummaryCard = ({
 
   const summary = buildSummary();
 
-  // Render markdown-style **bold**
   const renderText = (text: string) => {
     const parts = text.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
@@ -63,13 +62,13 @@ export const DailySummaryCard = ({
   };
 
   return (
-    <div className="glass-card p-5 sm:p-6 bg-gradient-to-br from-primary/5 to-transparent">
-      <div className="mb-3 flex items-center gap-1.5">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <h3 className="section-title">Resumo do Período</h3>
-        <InfoTooltip content="Resumo automático em linguagem natural baseado nos dados do período selecionado." />
-      </div>
+    <SectionCard
+      icon={<Sparkles className="h-4 w-4 text-primary" />}
+      title="Resumo do Período"
+      tooltip="Resumo automático em linguagem natural baseado nos dados do período selecionado."
+      className="bg-gradient-to-br from-primary/5 to-transparent"
+    >
       <p className="text-sm text-muted-foreground leading-relaxed">{renderText(summary)}</p>
-    </div>
+    </SectionCard>
   );
 };

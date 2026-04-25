@@ -1,7 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { Clock } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
 import { HeatmapCell } from "@/hooks/useHourlyHeatmap";
+import { SectionCard } from "./SectionCard";
 
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -19,19 +18,17 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
   };
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Clock className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-medium text-card-foreground">Mapa de calor — dia × hora</h3>
-        <InfoTooltip content="Visualização do volume de visitas por dia da semana e hora do dia. Quanto mais escura a célula, mais visitantes naquele horário. Use para identificar os melhores momentos para publicar conteúdo ou rodar anúncios." />
-      </div>
-
+    <SectionCard
+      icon={<Clock className="h-4 w-4 text-primary" />}
+      title="Mapa de calor — dia × hora"
+      tooltip="Visualização do volume de visitas por dia da semana e hora do dia. Quanto mais escura a célula, mais visitantes naquele horário. Use para identificar os melhores momentos para publicar conteúdo ou rodar anúncios."
+      compact
+    >
       {isLoading ? (
         <div className="h-48 flex items-center justify-center text-xs text-muted-foreground">Carregando...</div>
       ) : (
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
-            {/* Hour header */}
             <div className="flex">
               <div className="w-10" />
               {Array.from({ length: 24 }).map((_, h) => (
@@ -71,6 +68,6 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
           </div>
         </div>
       )}
-    </Card>
+    </SectionCard>
   );
 };

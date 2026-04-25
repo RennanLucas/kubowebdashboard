@@ -1,6 +1,6 @@
 import { MessageCircle, FileText, MousePointerClick, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface RecentEvent {
   type: string;
@@ -35,18 +35,18 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
   const recentEvents = data.recentEvents || [];
 
   return (
-    <div className="glass-card p-5">
-      <div className="flex items-center gap-1.5 mb-4">
-        <h3 className="text-sm font-medium text-card-foreground">Conversões</h3>
-        <InfoTooltip content={
-          <div className="space-y-1">
-            <p>Ações de conversão registradas no site:</p>
-            <p><strong>WhatsApp:</strong> cliques em botões/links que abrem o WhatsApp.</p>
-            <p><strong>Formulários:</strong> envios bem-sucedidos de formulários.</p>
-            <p><strong>Botões:</strong> cliques em botões marcados como CTA.</p>
-          </div>
-        } />
-      </div>
+    <SectionCard
+      title="Conversões"
+      tooltip={
+        <div className="space-y-1">
+          <p>Ações de conversão registradas no site:</p>
+          <p><strong>WhatsApp:</strong> cliques em botões/links que abrem o WhatsApp.</p>
+          <p><strong>Formulários:</strong> envios bem-sucedidos de formulários.</p>
+          <p><strong>Botões:</strong> cliques em botões marcados como CTA.</p>
+        </div>
+      }
+      compact
+    >
       <div className="space-y-4">
         {items.map((item) => {
           const isPositive = item.change >= 0;
@@ -95,7 +95,7 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
           </div>
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };
 

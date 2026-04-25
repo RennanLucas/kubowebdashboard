@@ -1,4 +1,5 @@
 import { Monitor, Smartphone, Tablet, Globe } from "lucide-react";
+import { SectionCard } from "./SectionCard";
 
 interface DeviceItem {
   name: string;
@@ -28,12 +29,12 @@ const barColors = [
 
 const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBrowsersCardProps) => {
   return (
-    <div className="glass-card p-5">
-      <h3 className="text-sm font-medium text-card-foreground mb-4 flex items-center gap-2">
-        <Globe className="h-4 w-4 text-primary" /> Dispositivos & Navegadores
-      </h3>
-
-      {/* Devices */}
+    <SectionCard
+      icon={<Globe className="h-4 w-4 text-primary" />}
+      title="Dispositivos & Navegadores"
+      tooltip="Distribuição dos visitantes por tipo de dispositivo, navegador e sistema operacional."
+      compact
+    >
       <div className="mb-4">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Dispositivos</p>
         <div className="space-y-2">
@@ -49,7 +50,6 @@ const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBro
         </div>
       </div>
 
-      {/* Browsers */}
       <div className="mb-4 pt-3 border-t border-border">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Navegadores</p>
         <div className="space-y-2">
@@ -68,7 +68,6 @@ const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBro
         </div>
       </div>
 
-      {/* OS */}
       <div className="pt-3 border-t border-border">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Sistemas Operacionais</p>
         <div className="flex flex-wrap gap-2">
@@ -80,7 +79,7 @@ const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBro
           {operatingSystems.length === 0 && <p className="text-xs text-muted-foreground">Sem dados</p>}
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 };
 
