@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { ShieldAlert, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SectionCard } from "./SectionCard";
 import type { ReferrerStat } from "@/hooks/useHourlyHeatmap";
 
 interface Props {
@@ -13,7 +13,6 @@ interface Props {
   isLoading?: boolean;
 }
 
-// Padrões conhecidos de referrer spam / bots / search hijackers
 const SUSPICIOUS_PATTERNS: Array<{ pattern: RegExp; reason: string; category: string }> = [
   { pattern: /syndicatedsearch\.goog/i, reason: "Rede de busca sindicada — geralmente sequestradores de busca em navegadores", category: "Search hijacker" },
   { pattern: /doubleclick\.net/i, reason: "Cliques de rede de display — pode incluir bots ou cliques acidentais", category: "Ad network" },
@@ -48,26 +47,24 @@ export const SuspiciousTrafficCard = ({ referrers, totalVisitors, isLoading }: P
 
   if (isLoading) {
     return (
-      <Card className="p-5">
-        <div className="h-5 w-40 bg-muted rounded animate-pulse mb-3" />
-        <div className="h-20 bg-muted rounded animate-pulse" />
-      </Card>
+      <SectionCard title="Qualidade do tráfego" compact>
+        <Skeleton className="h-20 w-full" />
+      </SectionCard>
     );
   }
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className={`h-4 w-4 ${severityStyles.color}`} />
-          <h3 className="text-sm font-medium text-card-foreground">Qualidade do tráfego</h3>
-          <InfoTooltip content="Detecta automaticamente referrers conhecidos de bots, spam e sequestradores de busca. Esses visitantes raramente convertem e poluem suas métricas." />
-        </div>
+    <SectionCard
+      icon={<ShieldAlert className={`h-4 w-4 ${severityStyles.color}`} />}
+      title="Qualidade do tráfego"
+      tooltip="Detecta automaticamente referrers conhecidos de bots, spam e sequestradores de busca. Esses visitantes raramente convertem e poluem suas métricas."
+      actions={
         <Badge variant="outline" className={`text-xs ${severityStyles.color} ${severityStyles.bg} border-transparent`}>
           {severityStyles.label}
         </Badge>
-      </div>
-
+      }
+      compact
+    >
       {flagged.length === 0 ? (
         <div className="py-4 text-center">
           <p className="text-sm text-muted-foreground">
@@ -139,6 +136,6 @@ export const SuspiciousTrafficCard = ({ referrers, totalVisitors, isLoading }: P
           </div>
         </>
       )}
-    </Card>
+    </SectionCard>
   );
 };
