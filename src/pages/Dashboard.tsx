@@ -17,6 +17,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
+import { SuspiciousTrafficCard } from "@/components/dashboard/SuspiciousTrafficCard";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
@@ -306,7 +307,14 @@ const Dashboard = () => {
               <CriticalAlertsCard projectId={activeProjectId} />
             </div>
 
-            {/* Chart + Traffic Sources */}
+            {/* Qualidade do tráfego */}
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              <SuspiciousTrafficCard
+                referrers={referrers}
+                totalVisitors={totalVisitors}
+                isLoading={heatmapLoading}
+              />
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
               <div className="lg:col-span-2">
                 <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
