@@ -168,8 +168,14 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
       }
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Erro ao buscar dados");
+        let message = `Erro ao buscar dados (${response.status})`;
+        try {
+          const err = await response.json();
+          message = err.error || err.message || message;
+        } catch {
+          // resposta não-JSON (ex.: 503 do runtime) — mantém a mensagem padrão
+        }
+        throw new Error(message);
       }
 
       return (await response.json()) as AnalyticsResponse;
