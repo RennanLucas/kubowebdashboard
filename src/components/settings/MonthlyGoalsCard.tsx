@@ -127,18 +127,22 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   }, [projectId, selectedMonth]);
 
   const handleSave = async () => {
-    const visitors = Math.max(0, Math.floor(Number(form.visitors) || 0));
-    const leads = Math.max(0, Math.floor(Number(form.leads) || 0));
-    const revenue = Math.max(0, Number(form.revenue) || 0);
-
-    if (
-      !Number.isFinite(visitors) ||
-      !Number.isFinite(leads) ||
-      !Number.isFinite(revenue)
-    ) {
-      toast.error("Valores inválidos");
+    const result = goalsSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as FieldKey | undefined;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      toast.error("Corrija os campos destacados antes de salvar");
       return;
     }
+
+    setErrors({});
+    const visitors = Math.floor(Number(result.data.visitors));
+    const leads = Math.floor(Number(result.data.leads));
+    const revenue = Number(result.data.revenue.replace(",", "."));
 
     setSaving(true);
     const payload = {
