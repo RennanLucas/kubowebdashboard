@@ -103,6 +103,7 @@ const DashboardHeader = ({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
+          <GlobalFilters />
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
