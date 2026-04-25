@@ -184,14 +184,6 @@ async function fetchGA4Report(
 // --- User agent / source filtering helpers (extracted to _filters.ts so they
 // can be unit tested without booting the HTTP handler). ---
 
-import {
-  parseDevice,
-  classifySource,
-  sourceMatchesFilter,
-  deviceMatchesFilter,
-  shouldUseGA4,
-} from "./_filters.ts";
-
 function parseBrowser(ua: string): string {
   if (!ua) return "Outro";
   if (ua.includes("Edg/") || ua.includes("Edge/")) return "Edge";
