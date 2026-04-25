@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Target, Save, Users, Zap, DollarSign, Calendar } from "lucide-react";
+import { Target, Save, Users, Zap, DollarSign, Calendar, AlertCircle } from "lucide-react";
+import { z } from "zod";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +51,32 @@ const buildMonthOptions = (): MonthOption[] => {
   });
 };
 
+type FieldKey = "visitors" | "leads" | "revenue";
+type FormErrors = Partial<Record<FieldKey, string>>;
+
+const positiveIntField = (label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, { message: `Informe a meta de ${label}` })
+    .refine((v) => !Number.isNaN(Number(v)), { message: "Use apenas números" })
+    .refine((v) => Number(v) >= 0, { message: "Não é permitido valor negativo" })
+    .refine((v) => Number.isInteger(Number(v)), { message: "Use um número inteiro" })
+    .refine((v) => Number(v) <= 10_000_000, { message: "Valor muito alto" });
+
+const goalsSchema = z.object({
+  visitors: positiveIntField("visitas"),
+  leads: positiveIntField("leads"),
+  revenue: z
+    .string()
+    .trim()
+    .min(1, { message: "Informe a meta de receita" })
+    .refine((v) => !Number.isNaN(Number(v.replace(",", ".")))
+      , { message: "Use apenas números" })
+    .refine((v) => Number(v.replace(",", ".")) >= 0, { message: "Não é permitido valor negativo" })
+    .refine((v) => Number(v.replace(",", ".")) <= 1_000_000_000, { message: "Valor muito alto" }),
+});
+
 const MonthlyGoalsCard = ({ projectId }: Props) => {
   const monthOptions = useMemo(buildMonthOptions, []);
   const [selectedMonth, setSelectedMonth] = useState<string>(
@@ -57,7 +85,13 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ visitors: "", leads: "", revenue: "" });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [existingId, setExistingId] = useState<string | null>(null);
+
+  const setField = (key: FieldKey, value: string) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    setErrors((e) => (e[key] ? { ...e, [key]: undefined } : e));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +118,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         setExistingId(null);
         setForm({ visitors: "", leads: "", revenue: "" });
       }
+      setErrors({});
       setLoading(false);
     })();
     return () => {
@@ -92,18 +127,22 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   }, [projectId, selectedMonth]);
 
   const handleSave = async () => {
-    const visitors = Math.max(0, Math.floor(Number(form.visitors) || 0));
-    const leads = Math.max(0, Math.floor(Number(form.leads) || 0));
-    const revenue = Math.max(0, Number(form.revenue) || 0);
-
-    if (
-      !Number.isFinite(visitors) ||
-      !Number.isFinite(leads) ||
-      !Number.isFinite(revenue)
-    ) {
-      toast.error("Valores inválidos");
+    const result = goalsSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as FieldKey | undefined;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      toast.error("Corrija os campos destacados antes de salvar");
       return;
     }
+
+    setErrors({});
+    const visitors = Math.floor(Number(result.data.visitors));
+    const leads = Math.floor(Number(result.data.leads));
+    const revenue = Number(result.data.revenue.replace(",", "."));
 
     setSaving(true);
     const payload = {
@@ -183,9 +222,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="numeric"
                 placeholder="ex.: 5000"
                 value={form.visitors}
-                onChange={(e) => setForm((f) => ({ ...f, visitors: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("visitors", e.target.value)}
+                aria-invalid={!!errors.visitors}
+                aria-describedby={errors.visitors ? "goal-visitors-error" : undefined}
+                className={cn("h-11", errors.visitors && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.visitors && (
+                <p id="goal-visitors-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.visitors}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -200,9 +246,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="numeric"
                 placeholder="ex.: 100"
                 value={form.leads}
-                onChange={(e) => setForm((f) => ({ ...f, leads: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("leads", e.target.value)}
+                aria-invalid={!!errors.leads}
+                aria-describedby={errors.leads ? "goal-leads-error" : undefined}
+                className={cn("h-11", errors.leads && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.leads && (
+                <p id="goal-leads-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.leads}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -217,9 +270,16 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                 inputMode="decimal"
                 placeholder="ex.: 10000"
                 value={form.revenue}
-                onChange={(e) => setForm((f) => ({ ...f, revenue: e.target.value }))}
-                className="h-11"
+                onChange={(e) => setField("revenue", e.target.value)}
+                aria-invalid={!!errors.revenue}
+                aria-describedby={errors.revenue ? "goal-revenue-error" : undefined}
+                className={cn("h-11", errors.revenue && "border-destructive focus-visible:ring-destructive")}
               />
+              {errors.revenue && (
+                <p id="goal-revenue-error" className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.revenue}
+                </p>
+              )}
             </div>
           </div>
 
