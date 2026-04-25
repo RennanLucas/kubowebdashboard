@@ -11,9 +11,10 @@ interface KPICardProps {
   sparkline?: number[];
   sparklineColor?: string;
   tooltip?: React.ReactNode;
+  previousValue?: string;
 }
 
-const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, sparklineColor, tooltip }: KPICardProps) => {
+const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, sparklineColor, tooltip, previousValue }: KPICardProps) => {
   const hasChange = change !== null && change !== undefined && change !== 0;
   const isPositive = hasChange && change >= 0;
 
@@ -36,7 +37,7 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
       </div>
 
       {hasChange ? (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span
             className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tabular-nums ${
               isPositive
@@ -49,12 +50,14 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
             {change}
             {changeUnit === "pp" ? " pp" : "%"}
           </span>
-          <span className="text-[11px] text-muted-foreground">vs anterior</span>
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {previousValue ? <>vs <span className="font-medium text-foreground/80">{previousValue}</span></> : "vs anterior"}
+          </span>
         </div>
       ) : (
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
           <Minus className="h-3 w-3" />
-          <span>sem variação</span>
+          <span>{previousValue ? <>vs <span className="font-medium text-foreground/80 tabular-nums">{previousValue}</span></> : "sem variação"}</span>
         </div>
       )}
 

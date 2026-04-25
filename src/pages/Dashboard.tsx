@@ -11,6 +11,7 @@ import { TrafficSection } from "@/components/dashboard/sections/TrafficSection";
 import { ConversionsSection } from "@/components/dashboard/sections/ConversionsSection";
 import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection";
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
+import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
@@ -251,6 +252,27 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
+            <PeriodComparisonStrip
+              dateRange={dateRange}
+              items={[
+                { label: "Visitantes", current: totalVisitors, previous: comparison?.prevVisitors ?? 0 },
+                { label: "Leads", current: totalLeads, previous: comparison?.prevLeads ?? 0 },
+                {
+                  label: "Conversão",
+                  current: avgConversion,
+                  previous: comparison?.prevConversionRate ?? 0,
+                  format: (v) => v.toFixed(2),
+                  unit: "%",
+                },
+                {
+                  label: "Valor estimado",
+                  current: totalValue,
+                  previous: comparison?.prevEstimatedValue ?? 0,
+                  format: (v) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+                },
+              ]}
+            />
+
             <KPIsSection
               totalVisitors={totalVisitors}
               totalViews={totalViews}
