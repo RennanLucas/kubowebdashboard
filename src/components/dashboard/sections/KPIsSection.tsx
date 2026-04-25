@@ -42,6 +42,7 @@ export const KPIsSection = ({
   activeVisitors,
   comparison,
   visitorsSeries,
+  viewsSeries,
   leadsSeries,
   valueSeries,
   conversionSeries,
