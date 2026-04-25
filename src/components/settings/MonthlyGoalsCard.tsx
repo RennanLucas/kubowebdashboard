@@ -205,7 +205,31 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       return;
     }
     toast.success("Metas salvas com sucesso!");
+    setBaseline({
+      visitors: String(visitors),
+      leads: String(leads),
+      revenue: String(revenue),
+    });
     loadRecentGoals();
+  };
+
+  const isDirty =
+    form.visitors !== baseline.visitors ||
+    form.leads !== baseline.leads ||
+    form.revenue !== baseline.revenue;
+
+  const requestMonthChange = (newMonth: string) => {
+    if (newMonth === selectedMonth) return;
+    if (isDirty && !loading) {
+      setPendingMonth(newMonth);
+      return;
+    }
+    setSelectedMonth(newMonth);
+  };
+
+  const confirmDiscard = () => {
+    if (pendingMonth) setSelectedMonth(pendingMonth);
+    setPendingMonth(null);
   };
 
   const selectedOption = monthOptions.find((o) => o.value === selectedMonth);
