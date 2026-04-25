@@ -24,7 +24,8 @@ import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState(30);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
-  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId);
+  const { source, device } = useDashboardFilters();
+  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
