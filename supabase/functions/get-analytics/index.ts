@@ -489,10 +489,37 @@ Deno.serve(async (req) => {
         .lte("created_at", `${prevEndStr}T23:59:59Z`),
     ]);
 
-    const pvData = pvRes.data;
-    const pvPrevData = pvPrevRes.data;
-    const evData = evRes.data || [];
-    const evPrevData = evPrevRes.data || [];
+    let pvData = pvRes.data;
+    let pvPrevData = pvPrevRes.data;
+    let evData = evRes.data || [];
+    let evPrevData = evPrevRes.data || [];
+
+    // Apply global filters (source/device) BEFORE aggregation so every widget
+    // (KPIs, chart, top pages, traffic sources, devices, geo, conversions, comparison)
+    // reflects the same scoped slice. Project isolation is already enforced by
+    // .eq("project_id", projectId) above + RLS on the table.
+    if (hasSourceFilter || hasDeviceFilter) {
+      const filterPV = (rows: any[] | null) =>
+        (rows || []).filter((pv) => {
+          if (hasSourceFilter && !sourceMatchesFilter(classifySource(pv.referrer), sourceFilter)) return false;
+          if (hasDeviceFilter && !deviceMatchesFilter(pv.user_agent, deviceFilter)) return false;
+          return true;
+        });
+
+      pvData = filterPV(pvData);
+      pvPrevData = filterPV(pvPrevData);
+
+      // Restrict events to sessions that survived the pageview filter so
+      // conversions/leads stay coherent with the filtered traffic.
+      const currentSessions = new Set<string>(
+        pvData.map((pv: any) => pv.session_id || pv.id).filter(Boolean),
+      );
+      const previousSessions = new Set<string>(
+        pvPrevData.map((pv: any) => pv.session_id || pv.id).filter(Boolean),
+      );
+      evData = evData.filter((ev) => !ev.session_id || currentSessions.has(ev.session_id));
+      evPrevData = evPrevData.filter((ev) => !ev.session_id || previousSessions.has(ev.session_id));
+    }
 
     if (!pvRes.error && pvData && pvData.length > 0) {
       function aggregatePV(data: any[]) {
