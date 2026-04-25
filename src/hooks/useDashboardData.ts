@@ -103,10 +103,22 @@ interface AnalyticsResponse {
   activeVisitors: number | null;
 }
 
-const fetchAnalytics = async (days: number, projectId: string | undefined, accessToken: string) => {
+interface FetchOptions {
+  source?: string;
+  device?: string;
+}
+
+const fetchAnalytics = async (
+  days: number,
+  projectId: string | undefined,
+  accessToken: string,
+  opts: FetchOptions = {},
+) => {
   const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
   if (projectId) url += `&project_id=${projectId}`;
+  if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
+  if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;
 
   return fetch(url, {
     headers: {
