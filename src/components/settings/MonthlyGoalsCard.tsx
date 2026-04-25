@@ -85,8 +85,10 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ visitors: "", leads: "", revenue: "" });
+  const [baseline, setBaseline] = useState({ visitors: "", leads: "", revenue: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [existingId, setExistingId] = useState<string | null>(null);
+  const [pendingMonth, setPendingMonth] = useState<string | null>(null);
   const [recentGoals, setRecentGoals] = useState<Array<{
     id: string;
     month: string;
