@@ -18,6 +18,8 @@ interface HookResult {
   heatmap: HeatmapCell[];
   referrers: ReferrerStat[];
   isLoading: boolean;
+  error: Error | null;
+  refetch: () => void;
 }
 
 const extractDomain = (url: string | null) => {
