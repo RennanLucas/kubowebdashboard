@@ -199,6 +199,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       return;
     }
     toast.success("Metas salvas com sucesso!");
+    loadRecentGoals();
   };
 
   const selectedOption = monthOptions.find((o) => o.value === selectedMonth);
