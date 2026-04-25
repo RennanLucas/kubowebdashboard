@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Filter, X, Globe, Smartphone } from "lucide-react";
+import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -7,21 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DateRangePicker } from "./DateRangePicker";
-import {
-  useDashboardFilters,
-  SOURCE_OPTIONS,
-  DEVICE_OPTIONS,
-  type SourceFilter,
-  type DeviceFilter,
-} from "@/contexts/DashboardFiltersContext";
 
 interface Project {
   id: string;
@@ -132,7 +118,7 @@ const DashboardHeader = ({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
-          <GlobalFilters />
+          
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -169,56 +155,4 @@ const DashboardHeader = ({
     </header>
   );
 };
-
-const GlobalFilters = () => {
-  const { source, device, setSource, setDevice, hasActiveFilters, reset } = useDashboardFilters();
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      <Select value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
-        <SelectTrigger
-          className="h-9 w-[150px] text-xs rounded-lg shadow-sm gap-1.5"
-          aria-label="Filtrar por origem"
-        >
-          <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {SOURCE_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select value={device} onValueChange={(v) => setDevice(v as DeviceFilter)}>
-        <SelectTrigger
-          className="h-9 w-[150px] text-xs rounded-lg shadow-sm gap-1.5"
-          aria-label="Filtrar por dispositivo"
-        >
-          <Smartphone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {DEVICE_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className="text-xs">
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {hasActiveFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={reset}
-          className="h-9 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-3 w-3" />
-          Limpar
-        </Button>
-      )}
-    </div>
-  );
-};
-
 export default DashboardHeader;
