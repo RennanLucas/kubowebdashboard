@@ -15,6 +15,7 @@ import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonSt
 import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
 import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useAllUserProjects } from "@/hooks/useAllUserProjects";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
 import { toast } from "sonner";
