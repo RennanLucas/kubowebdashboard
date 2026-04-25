@@ -227,7 +227,13 @@ const DashboardContent = () => {
     }
   };
 
-  const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
+  const effectiveProjectId = selectedProjectId || clientData?.project?.id;
+  const currentProjectFromAll = allProjects?.find(p => p.id === effectiveProjectId);
+  const currentProject = currentProjectFromAll
+    ?? clientData?.projects?.find(p => p.id === effectiveProjectId);
+  const headerProjects = (allProjects && allProjects.length > 0)
+    ? allProjects.map(p => ({ id: p.id, name: p.name, url: p.url, clientName: p.clientName }))
+    : clientData?.projects;
 
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
   const engagedVisitors = data?.engagement
