@@ -656,6 +656,7 @@ Deno.serve(async (req) => {
           const visitors = d.visitors.size;
           return {
             date, visitors,
+            views: d.views,
             leads: dayLeads,
             conversion_rate: visitors > 0 ? Number(((dayLeads / visitors) * 100).toFixed(2)) : 0,
             estimated_value: dayLeads * LEAD_VALUE,
