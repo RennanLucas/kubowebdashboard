@@ -406,7 +406,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                     type="button"
                     variant={isSelected ? "secondary" : "outline"}
                     size="sm"
-                    onClick={() => setSelectedMonth(g.month)}
+                    onClick={() => requestMonthChange(g.month)}
                     className="shrink-0"
                   >
                     <Pencil className="mr-1.5 h-3.5 w-3.5" />
