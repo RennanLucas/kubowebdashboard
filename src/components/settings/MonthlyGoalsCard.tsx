@@ -12,6 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -85,8 +95,10 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ visitors: "", leads: "", revenue: "" });
+  const [baseline, setBaseline] = useState({ visitors: "", leads: "", revenue: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [existingId, setExistingId] = useState<string | null>(null);
+  const [pendingMonth, setPendingMonth] = useState<string | null>(null);
   const [recentGoals, setRecentGoals] = useState<Array<{
     id: string;
     month: string;
@@ -143,14 +155,18 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       }
       if (data) {
         setExistingId(data.id);
-        setForm({
+        const loaded = {
           visitors: String(data.visitors_target ?? 0),
           leads: String(data.leads_target ?? 0),
           revenue: String(data.revenue_target ?? 0),
-        });
+        };
+        setForm(loaded);
+        setBaseline(loaded);
       } else {
         setExistingId(null);
-        setForm({ visitors: "", leads: "", revenue: "" });
+        const empty = { visitors: "", leads: "", revenue: "" };
+        setForm(empty);
+        setBaseline(empty);
       }
       setErrors({});
       setLoading(false);
@@ -199,7 +215,31 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       return;
     }
     toast.success("Metas salvas com sucesso!");
+    setBaseline({
+      visitors: String(visitors),
+      leads: String(leads),
+      revenue: String(revenue),
+    });
     loadRecentGoals();
+  };
+
+  const isDirty =
+    form.visitors !== baseline.visitors ||
+    form.leads !== baseline.leads ||
+    form.revenue !== baseline.revenue;
+
+  const requestMonthChange = (newMonth: string) => {
+    if (newMonth === selectedMonth) return;
+    if (isDirty && !loading) {
+      setPendingMonth(newMonth);
+      return;
+    }
+    setSelectedMonth(newMonth);
+  };
+
+  const confirmDiscard = () => {
+    if (pendingMonth) setSelectedMonth(pendingMonth);
+    setPendingMonth(null);
   };
 
   const selectedOption = monthOptions.find((o) => o.value === selectedMonth);
@@ -219,7 +259,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         <Label htmlFor="goal-month" className="flex items-center gap-2 text-xs">
           <Calendar className="h-3.5 w-3.5 text-primary" /> Mês de referência
         </Label>
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+        <Select value={selectedMonth} onValueChange={requestMonthChange}>
           <SelectTrigger id="goal-month" className="h-11">
             <SelectValue placeholder="Selecione o mês" />
           </SelectTrigger>
@@ -376,7 +416,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
                     type="button"
                     variant={isSelected ? "secondary" : "outline"}
                     size="sm"
-                    onClick={() => setSelectedMonth(g.month)}
+                    onClick={() => requestMonthChange(g.month)}
                     className="shrink-0"
                   >
                     <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -388,6 +428,27 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           </ul>
         )}
       </div>
+
+      <AlertDialog open={!!pendingMonth} onOpenChange={(open) => !open && setPendingMonth(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar alterações?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem alterações não salvas nas metas de{" "}
+              <span className="capitalize font-medium text-foreground">
+                {selectedOption?.label}
+              </span>
+              . Se trocar de mês agora, essas alterações serão perdidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDiscard}>
+              Descartar e trocar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
