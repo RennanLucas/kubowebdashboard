@@ -306,6 +306,10 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
     const selectedProjectId = url.searchParams.get("project_id") || null;
+    const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
+    const deviceFilter = (url.searchParams.get("device") || "all").toLowerCase();
+    const hasSourceFilter = sourceFilter !== "all";
+    const hasDeviceFilter = deviceFilter !== "all";
 
     // Get client data
     const { data: clientData, error: clientError } = await supabaseAdmin
