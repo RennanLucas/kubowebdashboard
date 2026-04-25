@@ -145,14 +145,18 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       }
       if (data) {
         setExistingId(data.id);
-        setForm({
+        const loaded = {
           visitors: String(data.visitors_target ?? 0),
           leads: String(data.leads_target ?? 0),
           revenue: String(data.revenue_target ?? 0),
-        });
+        };
+        setForm(loaded);
+        setBaseline(loaded);
       } else {
         setExistingId(null);
-        setForm({ visitors: "", leads: "", revenue: "" });
+        const empty = { visitors: "", leads: "", revenue: "" };
+        setForm(empty);
+        setBaseline(empty);
       }
       setErrors({});
       setLoading(false);
