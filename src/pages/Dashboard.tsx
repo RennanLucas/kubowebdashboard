@@ -346,7 +346,11 @@ const DashboardContent = () => {
             />
 
             <div className="grid grid-cols-1 gap-4 mb-6">
-              <AnnotationsHistoryCard projectId={activeProjectId} dateRangeDays={dateRange} />
+              <AnnotationsHistoryCard
+                projectId={activeProjectId}
+                projectName={currentProject?.name || clientData?.project?.name}
+                dateRangeDays={dateRange}
+              />
             </div>
 
             <InsightsSection
