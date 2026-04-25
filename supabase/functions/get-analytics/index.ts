@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
     const serviceAccountJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
     let ga4Data: Awaited<ReturnType<typeof fetchGA4Report>> | null = null;
 
-    if (serviceAccountJson && analyticsPropertyId) {
+    if (serviceAccountJson && analyticsPropertyId && !hasSourceFilter && !hasDeviceFilter) {
       try {
         const serviceAccount = JSON.parse(serviceAccountJson);
         const accessToken = await getGoogleAccessToken(serviceAccount);
