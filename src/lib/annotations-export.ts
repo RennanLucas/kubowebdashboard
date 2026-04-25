@@ -83,49 +83,68 @@ export const exportAnnotationsPDF = (ctx: AnnotationsExportContext) => {
 
   doc.setTextColor(0);
 
+  const contentWidth = pageWidth - marginX * 2;
+  const bottomLimit = pageHeight - 50;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > bottomLimit) {
+      doc.addPage();
+      y = 50;
+    }
+  };
+
+  const writeLines = (lines: string[], lineHeight: number) => {
+    for (const line of lines) {
+      ensureSpace(lineHeight);
+      doc.text(line, marginX, y);
+      y += lineHeight;
+    }
+  };
+
   if (ctx.annotations.length === 0) {
     doc.setFontSize(11);
     doc.text("Nenhuma anotação encontrada no período selecionado.", marginX, y);
   } else {
     const sorted = [...ctx.annotations].sort((a, b) => (a.date < b.date ? 1 : -1));
-    sorted.forEach((a) => {
+    sorted.forEach((a, idx) => {
       const meta = getCategoryMeta(a.category);
       const dateLabel = format(parseISO(a.date), "dd 'de' MMM, yyyy", { locale: ptBR });
 
-      const labelLines = doc.splitTextToSize(a.label, pageWidth - marginX * 2);
-      const noteLines = a.notes ? doc.splitTextToSize(a.notes, pageWidth - marginX * 2) : [];
-      const blockHeight = 16 + labelLines.length * 14 + (noteLines.length ? 4 + noteLines.length * 12 : 0) + 14;
-
-      if (y + blockHeight > pageHeight - 50) {
-        doc.addPage();
-        y = 50;
-      }
-
+      // Header line for the entry
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(120);
-      doc.text(`${meta.label.toUpperCase()}  •  ${dateLabel}`, marginX, y);
+      const headerLine = `${meta.label.toUpperCase()}  •  ${dateLabel}`;
+      // Keep header + at least one line of label together
+      ensureSpace(14 + 14);
+      doc.text(headerLine, marginX, y);
       y += 14;
 
+      // Label (bold 11pt) — split AFTER setting font so wrapping uses correct metrics
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(20);
-      doc.text(labelLines, marginX, y);
-      y += labelLines.length * 14;
+      const labelLines = doc.splitTextToSize(a.label, contentWidth) as string[];
+      writeLines(labelLines, 14);
 
-      if (noteLines.length) {
+      // Notes (normal 10pt)
+      if (a.notes) {
         y += 4;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
         doc.setTextColor(80);
-        doc.text(noteLines, marginX, y);
-        y += noteLines.length * 12;
+        const noteLines = doc.splitTextToSize(a.notes, contentWidth) as string[];
+        writeLines(noteLines, 12);
       }
 
-      y += 8;
-      doc.setDrawColor(235);
-      doc.line(marginX, y, pageWidth - marginX, y);
-      y += 12;
+      // Divider between entries (skip after the last)
+      if (idx < sorted.length - 1) {
+        y += 8;
+        ensureSpace(12);
+        doc.setDrawColor(235);
+        doc.line(marginX, y, pageWidth - marginX, y);
+        y += 12;
+      }
     });
   }
 
