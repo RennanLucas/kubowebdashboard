@@ -12,6 +12,7 @@ import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle, Cred
 import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
+import MonthlyGoalsCard from "@/components/settings/MonthlyGoalsCard";
 import { useSubscription } from "@/hooks/useSubscription";
 
 
@@ -228,6 +229,11 @@ const Settings = () => {
 
           {/* Meus Projetos */}
           {clientData?.id && <ProjectsManager clientId={clientData.id} />}
+
+          {/* Metas Mensais */}
+          {clientData?.projects?.[0]?.id && (
+            <MonthlyGoalsCard projectId={clientData.projects[0].id} />
+          )}
 
           {/* Tracking Snippet */}
           {clientData?.projects?.[0]?.id && (
