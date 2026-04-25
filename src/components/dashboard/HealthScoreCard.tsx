@@ -1,5 +1,5 @@
 import { Activity } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface Props {
   visitors: number;
@@ -9,7 +9,6 @@ interface Props {
 }
 
 export const HealthScoreCard = ({ visitors, conversionRate, bounceRate, trafficChangePct }: Props) => {
-  // Subscores 0-100
   const trafficScore = Math.max(0, Math.min(100, 50 + trafficChangePct));
   const conversionScore = Math.max(0, Math.min(100, (conversionRate / 5) * 100));
   const engagementScore = Math.max(0, Math.min(100, 100 - bounceRate));
@@ -30,17 +29,15 @@ export const HealthScoreCard = ({ visitors, conversionRate, bounceRate, trafficC
   const offset = circumference - (score / 100) * circumference;
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-4 flex items-center gap-1.5">
-        <h3 className="section-title">Score de Saúde</h3>
-        <InfoTooltip content={
-          <div className="space-y-1 text-xs">
-            <p>Indicador único combinando tráfego, conversão e engajamento.</p>
-            <p><strong>≥75:</strong> Excelente · <strong>50-74:</strong> Bom · <strong>30-49:</strong> Atenção · <strong>&lt;30:</strong> Crítico</p>
-          </div>
-        } />
-      </div>
-
+    <SectionCard
+      title="Score de Saúde"
+      tooltip={
+        <div className="space-y-1 text-xs">
+          <p>Indicador único combinando tráfego, conversão e engajamento.</p>
+          <p><strong>≥75:</strong> Excelente · <strong>50-74:</strong> Bom · <strong>30-49:</strong> Atenção · <strong>&lt;30:</strong> Crítico</p>
+        </div>
+      }
+    >
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
           <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90">
@@ -69,6 +66,6 @@ export const HealthScoreCard = ({ visitors, conversionRate, bounceRate, trafficC
           </ul>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 };
