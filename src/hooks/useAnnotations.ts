@@ -70,6 +70,30 @@ export const useAnnotations = (projectId?: string) => {
     [projectId, refresh],
   );
 
+  const update = useCallback(
+    async (
+      id: string,
+      input: { date: string; label: string; category: AnnotationCategory; notes?: string },
+    ) => {
+      const { error } = await supabase
+        .from("annotations")
+        .update({
+          date: input.date,
+          label: input.label.trim().slice(0, 80),
+          category: input.category,
+          notes: input.notes?.trim() || null,
+        })
+        .eq("id", id);
+      if (error) {
+        toast.error("Não foi possível atualizar: " + error.message);
+        return;
+      }
+      toast.success("Anotação atualizada.");
+      await refresh();
+    },
+    [refresh],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       const { error } = await supabase.from("annotations").delete().eq("id", id);
@@ -83,5 +107,5 @@ export const useAnnotations = (projectId?: string) => {
     [refresh],
   );
 
-  return { annotations, loading, add, remove, refresh };
+  return { annotations, loading, add, update, remove, refresh };
 };

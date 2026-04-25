@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Trash2, Filter } from "lucide-react";
+import { CalendarDays, Trash2, Filter, Pencil } from "lucide-react";
+import { AnnotationEditDialog } from "./AnnotationEditDialog";
+import type { Annotation } from "@/hooks/useAnnotations";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SectionCard } from "./SectionCard";
@@ -26,8 +28,9 @@ interface Props {
 }
 
 export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
-  const { annotations, loading, remove } = useAnnotations(projectId);
+  const { annotations, loading, remove, update } = useAnnotations(projectId);
   const [filter, setFilter] = useState<AnnotationCategory | "all">("all");
+  const [editing, setEditing] = useState<Annotation | null>(null);
 
   const visible = useMemo(() => {
     const since = new Date();
@@ -115,21 +118,38 @@ export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => remove(a.id)}
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
-                    aria-label="Remover anotação"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditing(a)}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      aria-label="Editar anotação"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(a.id)}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      aria-label="Remover anotação"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </li>
             );
           })}
         </ul>
       )}
+      <AnnotationEditDialog
+        annotation={editing}
+        open={!!editing}
+        onOpenChange={(o) => !o && setEditing(null)}
+        onSave={update}
+      />
     </SectionCard>
   );
 };
