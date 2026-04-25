@@ -67,7 +67,7 @@ const DashboardContent = () => {
   const totalWhatsapp = metrics?.reduce((s, m) => s + m.whatsapp_clicks, 0) ?? 0;
   const totalForms = metrics?.reduce((s, m) => s + m.form_submissions, 0) ?? 0;
   const totalButtons = metrics?.reduce((s, m) => s + m.button_clicks, 0) ?? 0;
-  const totalViews = metrics?.reduce((s, m) => s + (m.visitors || 0), 0) ?? 0;
+  const totalViews = metrics?.reduce((s, m) => s + (m.views ?? m.visitors ?? 0), 0) ?? 0;
 
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
@@ -75,7 +75,7 @@ const DashboardContent = () => {
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - (dateRange - 1));
-    const result: Array<{ date: string; visitors: number; leads: number; rawDate: string }> = [];
+    const result: Array<{ date: string; visitors: number; views: number; leads: number; rawDate: string }> = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = d.toISOString().split("T")[0];
       const m = metricsMap.get(key);
@@ -83,6 +83,7 @@ const DashboardContent = () => {
         date: format(new Date(key), "dd/MM"),
         rawDate: key,
         visitors: m?.visitors ?? 0,
+        views: m?.views ?? m?.visitors ?? 0,
         leads: m?.leads ?? 0,
       });
     }
@@ -90,6 +91,7 @@ const DashboardContent = () => {
   }, [metrics, dateRange]);
 
   const visitorsSeries = chartData.map((d) => d.visitors);
+  const viewsSeries = chartData.map((d) => d.views);
   const leadsSeries = chartData.map((d) => d.leads);
   const valueSeries = useMemo(() => {
     if (!metrics) return [];
