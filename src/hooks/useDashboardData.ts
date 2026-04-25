@@ -142,7 +142,13 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
         throw new Error("AUTH_EXPIRED");
       }
 
+      // Edge runtime ocasionalmente retorna 503 quando a função "boota" a frio.
+      // Tentamos novamente com backoff curto antes de propagar o erro.
       let response = await fetchAnalytics(days, projectId, activeSession.access_token);
+      for (let attempt = 0; attempt < 2 && response.status >= 500; attempt++) {
+        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        response = await fetchAnalytics(days, projectId, activeSession.access_token);
+      }
 
       if (response.status === 401) {
         const { data: refreshData } = await supabase.auth.refreshSession();
@@ -162,8 +168,14 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
       }
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Erro ao buscar dados");
+        let message = `Erro ao buscar dados (${response.status})`;
+        try {
+          const err = await response.json();
+          message = err.error || err.message || message;
+        } catch {
+          // resposta não-JSON (ex.: 503 do runtime) — mantém a mensagem padrão
+        }
+        throw new Error(message);
       }
 
       return (await response.json()) as AnalyticsResponse;
