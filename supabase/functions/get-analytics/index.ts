@@ -195,6 +195,59 @@ function parseBrowser(ua: string): string {
   return "Outro";
 }
 
+// Source classification: must match the inline logic used in aggregatePV.
+// Returns the canonical source label given a referrer URL (or null/empty for Direct).
+function classifySource(referrer: string | null | undefined): string {
+  if (!referrer) return "Direto";
+  try {
+    const refHost = new URL(referrer).hostname.replace(/^www\./, "");
+    if (refHost.includes("google")) return "Google";
+    if (refHost.includes("bing")) return "Bing";
+    if (refHost.includes("yahoo")) return "Yahoo";
+    if (refHost.includes("facebook") || refHost.includes("fb")) return "Facebook";
+    if (refHost.includes("instagram")) return "Instagram";
+    if (refHost.includes("twitter") || refHost.includes("x.")) return "X (Twitter)";
+    if (refHost.includes("linkedin")) return "LinkedIn";
+    if (refHost.includes("tiktok")) return "TikTok";
+    if (refHost.includes("youtube")) return "YouTube";
+    if (refHost.includes("pinterest")) return "Pinterest";
+    if (refHost.includes("lovable") || refHost.includes("lovableproject")) return "Direto";
+    return refHost;
+  } catch {
+    return "Outro";
+  }
+}
+
+// Maps the global filter "source" value (Direct/Organic/Social/Paid/Referral/Email)
+// to the set of canonical source labels that should pass the filter.
+function sourceMatchesFilter(canonical: string, filter: string): boolean {
+  switch (filter) {
+    case "direct":
+      return canonical === "Direto";
+    case "organic":
+      return ["Google", "Bing", "Yahoo"].includes(canonical);
+    case "social":
+      return ["Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Pinterest"].includes(canonical);
+    case "referral":
+      // Anything else with a referrer that isn't direct/organic/social
+      return (
+        canonical !== "Direto" &&
+        !["Google", "Bing", "Yahoo", "Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Pinterest"].includes(canonical)
+      );
+    case "paid":
+    case "email":
+      // Not yet detectable from referrer alone — empty set so user sees no data.
+      return false;
+    default:
+      return true;
+  }
+}
+
+function deviceMatchesFilter(ua: string | null | undefined, filter: string): boolean {
+  const d = parseDevice(ua || "").toLowerCase();
+  return d === filter.toLowerCase();
+}
+
 function parseOS(ua: string): string {
   if (!ua) return "Outro";
   if (ua.includes("Windows")) return "Windows";
@@ -253,6 +306,10 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
     const selectedProjectId = url.searchParams.get("project_id") || null;
+    const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
+    const deviceFilter = (url.searchParams.get("device") || "all").toLowerCase();
+    const hasSourceFilter = sourceFilter !== "all";
+    const hasDeviceFilter = deviceFilter !== "all";
 
     // Get client data
     const { data: clientData, error: clientError } = await supabaseAdmin
@@ -432,10 +489,37 @@ Deno.serve(async (req) => {
         .lte("created_at", `${prevEndStr}T23:59:59Z`),
     ]);
 
-    const pvData = pvRes.data;
-    const pvPrevData = pvPrevRes.data;
-    const evData = evRes.data || [];
-    const evPrevData = evPrevRes.data || [];
+    let pvData = pvRes.data;
+    let pvPrevData = pvPrevRes.data;
+    let evData = evRes.data || [];
+    let evPrevData = evPrevRes.data || [];
+
+    // Apply global filters (source/device) BEFORE aggregation so every widget
+    // (KPIs, chart, top pages, traffic sources, devices, geo, conversions, comparison)
+    // reflects the same scoped slice. Project isolation is already enforced by
+    // .eq("project_id", projectId) above + RLS on the table.
+    if (hasSourceFilter || hasDeviceFilter) {
+      const filterPV = (rows: any[] | null) =>
+        (rows || []).filter((pv) => {
+          if (hasSourceFilter && !sourceMatchesFilter(classifySource(pv.referrer), sourceFilter)) return false;
+          if (hasDeviceFilter && !deviceMatchesFilter(pv.user_agent, deviceFilter)) return false;
+          return true;
+        });
+
+      pvData = filterPV(pvData);
+      pvPrevData = filterPV(pvPrevData);
+
+      // Restrict events to sessions that survived the pageview filter so
+      // conversions/leads stay coherent with the filtered traffic.
+      const currentSessions = new Set<string>(
+        pvData.map((pv: any) => pv.session_id || pv.id).filter(Boolean),
+      );
+      const previousSessions = new Set<string>(
+        pvPrevData.map((pv: any) => pv.session_id || pv.id).filter(Boolean),
+      );
+      evData = evData.filter((ev) => !ev.session_id || currentSessions.has(ev.session_id));
+      evPrevData = evPrevData.filter((ev) => !ev.session_id || previousSessions.has(ev.session_id));
+    }
 
     if (!pvRes.error && pvData && pvData.length > 0) {
       function aggregatePV(data: any[]) {

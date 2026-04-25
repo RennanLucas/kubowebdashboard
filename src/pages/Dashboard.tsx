@@ -13,6 +13,7 @@ import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
 import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
 import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
+import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
@@ -20,10 +21,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const [dateRange, setDateRange] = useState(30);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
-  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId);
+  const { source, device } = useDashboardFilters();
+  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
@@ -35,6 +37,13 @@ const Dashboard = () => {
 
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
+
+  // Remember last active project so filters can be hydrated correctly on next load.
+  useEffect(() => {
+    if (activeProjectId && typeof window !== "undefined") {
+      window.localStorage.setItem("dashboard:last-project-id", activeProjectId);
+    }
+  }, [activeProjectId]);
 
   useEffect(() => {
     if (!clientData?.id) return;
@@ -353,6 +362,19 @@ const Dashboard = () => {
         )}
       </div>
     </AppLayout>
+  );
+};
+
+const Dashboard = () => {
+  // Project-scoped filters; localStorage key is updated when active project resolves.
+  const activeProjectKey =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("dashboard:last-project-id") ?? undefined
+      : undefined;
+  return (
+    <DashboardFiltersProvider projectId={activeProjectKey}>
+      <DashboardContent />
+    </DashboardFiltersProvider>
   );
 };
 
