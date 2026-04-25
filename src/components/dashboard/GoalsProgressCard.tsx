@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { InfoTooltip } from "@/components/InfoTooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SectionCard } from "./SectionCard";
 
 interface Goal {
   visitors_target: number;
@@ -55,13 +55,11 @@ export const GoalsProgressCard = ({ projectId, visitors, leads, revenue }: Props
     : [];
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-3 flex items-center gap-1.5">
-        <Target className="h-4 w-4 text-primary" />
-        <h3 className="section-title">Metas do Mês</h3>
-        <InfoTooltip content="Progresso vs metas mensais configuradas em Configurações." />
-      </div>
-
+    <SectionCard
+      icon={<Target className="h-4 w-4 text-primary" />}
+      title="Metas do Mês"
+      tooltip="Progresso vs metas mensais configuradas em Configurações."
+    >
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -103,6 +101,6 @@ export const GoalsProgressCard = ({ projectId, visitors, leads, revenue }: Props
           })}
         </div>
       )}
-    </div>
+    </SectionCard>
   );
 };
