@@ -1,5 +1,5 @@
 import { TrendingDown } from "lucide-react";
-import { InfoTooltip } from "@/components/InfoTooltip";
+import { SectionCard } from "./SectionCard";
 
 interface FunnelStep {
   label: string;
