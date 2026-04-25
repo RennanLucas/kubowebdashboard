@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Trash2, Filter, Pencil } from "lucide-react";
+import { CalendarDays, Trash2, Filter, Pencil, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { AnnotationEditDialog } from "./AnnotationEditDialog";
 import type { Annotation } from "@/hooks/useAnnotations";
 import { format, parseISO } from "date-fns";
@@ -21,13 +21,22 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportAnnotationsCSV, exportAnnotationsPDF } from "@/lib/annotations-export";
+import { toast } from "sonner";
 
 interface Props {
   projectId?: string;
+  projectName?: string;
   dateRangeDays: number;
 }
 
-export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
+export const AnnotationsHistoryCard = ({ projectId, projectName, dateRangeDays }: Props) => {
   const { annotations, loading, remove, update } = useAnnotations(projectId);
   const [filter, setFilter] = useState<AnnotationCategory | "all">("all");
   const [editing, setEditing] = useState<Annotation | null>(null);
@@ -66,6 +75,39 @@ export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
               ))}
             </SelectContent>
           </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs gap-1"
+                disabled={visible.length === 0}
+              >
+                <Download className="h-3 w-3" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  exportAnnotationsCSV({ projectName, periodDays: dateRangeDays, annotations: visible });
+                  toast.success(`${visible.length} anotação(ões) exportada(s) em CSV`);
+                }}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  exportAnnotationsPDF({ projectName, periodDays: dateRangeDays, annotations: visible });
+                  toast.success(`${visible.length} anotação(ões) exportada(s) em PDF`);
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       }
     >
