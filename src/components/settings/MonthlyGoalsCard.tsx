@@ -249,7 +249,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         <Label htmlFor="goal-month" className="flex items-center gap-2 text-xs">
           <Calendar className="h-3.5 w-3.5 text-primary" /> Mês de referência
         </Label>
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+        <Select value={selectedMonth} onValueChange={requestMonthChange}>
           <SelectTrigger id="goal-month" className="h-11">
             <SelectValue placeholder="Selecione o mês" />
           </SelectTrigger>
