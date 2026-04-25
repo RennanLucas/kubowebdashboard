@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, AlertCircle, Info, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { InfoTooltip } from "@/components/InfoTooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SectionCard } from "./SectionCard";
+import { EmptyState } from "./EmptyState";
 
 interface Alert {
   id: string;
@@ -58,29 +59,26 @@ export const CriticalAlertsCard = ({ projectId }: Props) => {
   };
 
   return (
-    <div className="glass-card p-5 sm:p-6">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <h3 className="section-title">Alertas Recentes</h3>
-          <InfoTooltip content="Os 3 alertas mais recentes não lidos do projeto." />
-        </div>
-        <Link to="/alerts" className="text-xs font-medium text-primary hover:underline shrink-0">
+    <SectionCard
+      title="Alertas Recentes"
+      tooltip="Os 3 alertas mais recentes não lidos do projeto."
+      actions={
+        <Link to="/alerts" className="text-xs font-medium text-primary hover:underline">
           Ver todos
         </Link>
-      </div>
-
+      }
+    >
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
         </div>
       ) : alerts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-6 text-center">
-          <div className="h-10 w-10 rounded-full bg-[hsl(var(--success))]/10 flex items-center justify-center mb-2">
-            <Info className="h-4 w-4 text-[hsl(var(--success))]" />
-          </div>
-          <p className="text-sm font-medium text-foreground">Nenhum alerta crítico</p>
-          <p className="text-xs text-muted-foreground mt-1">Tudo funcionando como esperado.</p>
-        </div>
+        <EmptyState
+          icon={<Info className="h-4 w-4 text-[hsl(var(--success))]" />}
+          title="Nenhum alerta crítico"
+          description="Tudo funcionando como esperado."
+          className="py-6"
+        />
       ) : (
         <ul className="space-y-2.5">
           {alerts.map((alert) => (
@@ -106,6 +104,6 @@ export const CriticalAlertsCard = ({ projectId }: Props) => {
           </li>
         </ul>
       )}
-    </div>
+    </SectionCard>
   );
 };
