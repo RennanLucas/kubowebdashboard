@@ -15,12 +15,22 @@ interface Props {
     leads?: number | null;
     conversionRate?: number | null;
     estimatedValue?: number | null;
+    prevVisitors?: number;
+    prevViews?: number;
+    prevLeads?: number;
+    prevConversionRate?: number;
+    prevEstimatedValue?: number;
   } | null;
   visitorsSeries: number[];
   leadsSeries: number[];
   valueSeries: number[];
   conversionSeries: number[];
 }
+
+const fmtNum = (n?: number) => (n ?? 0).toLocaleString("pt-BR");
+const fmtCur = (n?: number) =>
+  `R$ ${(n ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+const fmtPct = (n?: number) => `${(n ?? 0).toFixed(2)}%`;
 
 export const KPIsSection = ({
   totalVisitors,
@@ -38,8 +48,9 @@ export const KPIsSection = ({
   <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
     <KPICard
       title="Visitantes"
-      value={totalVisitors.toLocaleString("pt-BR")}
+      value={fmtNum(totalVisitors)}
       change={comparison?.visitors ?? null}
+      previousValue={comparison?.prevVisitors !== undefined ? fmtNum(comparison.prevVisitors) : undefined}
       icon={<Users className="h-4 w-4" />}
       sparkline={visitorsSeries}
       sparklineColor="hsl(var(--chart-blue))"
@@ -47,8 +58,9 @@ export const KPIsSection = ({
     />
     <KPICard
       title="Pageviews"
-      value={totalViews.toLocaleString("pt-BR")}
+      value={fmtNum(totalViews)}
       change={comparison?.views ?? null}
+      previousValue={comparison?.prevViews !== undefined ? fmtNum(comparison.prevViews) : undefined}
       icon={<Eye className="h-4 w-4" />}
       sparkline={visitorsSeries}
       sparklineColor="hsl(var(--chart-purple))"
@@ -56,8 +68,9 @@ export const KPIsSection = ({
     />
     <KPICard
       title="Leads"
-      value={totalLeads.toLocaleString("pt-BR")}
+      value={fmtNum(totalLeads)}
       change={comparison?.leads ?? null}
+      previousValue={comparison?.prevLeads !== undefined ? fmtNum(comparison.prevLeads) : undefined}
       icon={<TrendingUp className="h-4 w-4" />}
       sparkline={leadsSeries}
       sparklineColor="hsl(var(--chart-green))"
@@ -68,6 +81,7 @@ export const KPIsSection = ({
       value={`${avgConversion}%`}
       change={comparison?.conversionRate ?? null}
       changeUnit="pp"
+      previousValue={comparison?.prevConversionRate !== undefined ? fmtPct(comparison.prevConversionRate) : undefined}
       icon={<Percent className="h-4 w-4" />}
       sparkline={conversionSeries}
       sparklineColor="hsl(var(--chart-orange))"
@@ -75,8 +89,9 @@ export const KPIsSection = ({
     />
     <KPICard
       title="Valor Estimado"
-      value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+      value={fmtCur(totalValue)}
       change={comparison?.estimatedValue ?? null}
+      previousValue={comparison?.prevEstimatedValue !== undefined ? fmtCur(comparison.prevEstimatedValue) : undefined}
       icon={<DollarSign className="h-4 w-4" />}
       sparkline={valueSeries}
       sparklineColor="hsl(var(--chart-green))"
