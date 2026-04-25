@@ -126,6 +126,42 @@ export type Database = {
           },
         ]
       }
+      annotations: {
+        Row: {
+          category: Database["public"]["Enums"]["annotation_category"]
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          label: string
+          notes: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["annotation_category"]
+          created_at?: string
+          created_by: string
+          date: string
+          id?: string
+          label: string
+          notes?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["annotation_category"]
+          created_at?: string
+          created_by?: string
+          date?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           analytics_property_id: string | null
@@ -755,6 +791,7 @@ export type Database = {
       }
     }
     Enums: {
+      annotation_category: "campaign" | "launch" | "event" | "other"
       app_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -883,6 +920,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      annotation_category: ["campaign", "launch", "event", "other"],
       app_role: ["admin", "user"],
     },
   },

@@ -12,6 +12,7 @@ import { ConversionsSection } from "@/components/dashboard/sections/ConversionsS
 import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection";
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
 import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
+import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
@@ -334,6 +335,10 @@ const Dashboard = () => {
               heatmapError={heatmapError}
               refetchHeatmap={refetchHeatmap}
             />
+
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              <AnnotationsHistoryCard projectId={activeProjectId} dateRangeDays={dateRange} />
+            </div>
 
             <InsightsSection
               engagement={data?.engagement}
