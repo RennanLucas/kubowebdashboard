@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
-const Dashboard = () => {
+const DashboardContent = () => {
   const [dateRange, setDateRange] = useState(30);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const { source, device } = useDashboardFilters();
