@@ -118,21 +118,38 @@ export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => remove(a.id)}
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
-                    aria-label="Remover anotação"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditing(a)}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      aria-label="Editar anotação"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(a.id)}
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      aria-label="Remover anotação"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </li>
             );
           })}
         </ul>
       )}
+      <AnnotationEditDialog
+        annotation={editing}
+        open={!!editing}
+        onOpenChange={(o) => !o && setEditing(null)}
+        onSave={update}
+      />
     </SectionCard>
   );
 };
