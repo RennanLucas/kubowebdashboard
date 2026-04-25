@@ -28,8 +28,9 @@ interface Props {
 }
 
 export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
-  const { annotations, loading, remove } = useAnnotations(projectId);
+  const { annotations, loading, remove, update } = useAnnotations(projectId);
   const [filter, setFilter] = useState<AnnotationCategory | "all">("all");
+  const [editing, setEditing] = useState<Annotation | null>(null);
 
   const visible = useMemo(() => {
     const since = new Date();
