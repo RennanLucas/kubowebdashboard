@@ -428,6 +428,27 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           </ul>
         )}
       </div>
+
+      <AlertDialog open={!!pendingMonth} onOpenChange={(open) => !open && setPendingMonth(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar alterações?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem alterações não salvas nas metas de{" "}
+              <span className="capitalize font-medium text-foreground">
+                {selectedOption?.label}
+              </span>
+              . Se trocar de mês agora, essas alterações serão perdidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDiscard}>
+              Descartar e trocar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
