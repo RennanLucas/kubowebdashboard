@@ -358,4 +358,17 @@ const DashboardContent = () => {
   );
 };
 
+const Dashboard = () => {
+  // Project-scoped filters; localStorage key is updated when active project resolves.
+  const activeProjectKey =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("dashboard:last-project-id") ?? undefined
+      : undefined;
+  return (
+    <DashboardFiltersProvider projectId={activeProjectKey}>
+      <DashboardContent />
+    </DashboardFiltersProvider>
+  );
+};
+
 export default Dashboard;
