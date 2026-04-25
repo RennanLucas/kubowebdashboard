@@ -87,6 +87,40 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
   const [form, setForm] = useState({ visitors: "", leads: "", revenue: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [existingId, setExistingId] = useState<string | null>(null);
+  const [recentGoals, setRecentGoals] = useState<Array<{
+    id: string;
+    month: string;
+    visitors_target: number;
+    leads_target: number;
+    revenue_target: number;
+  }>>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
+
+  const loadRecentGoals = async () => {
+    setRecentLoading(true);
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    const cutoff = toMonthDate(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth());
+    const { data, error } = await supabase
+      .from("goals")
+      .select("id, month, visitors_target, leads_target, revenue_target")
+      .eq("project_id", projectId)
+      .gte("month", cutoff)
+      .order("month", { ascending: false })
+      .limit(6);
+    if (error) {
+      console.error("Erro ao listar metas recentes:", error);
+      setRecentGoals([]);
+    } else {
+      setRecentGoals(data ?? []);
+    }
+    setRecentLoading(false);
+  };
+
+  useEffect(() => {
+    loadRecentGoals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   const setField = (key: FieldKey, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
