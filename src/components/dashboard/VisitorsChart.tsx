@@ -509,20 +509,23 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 }
               />
             )}
-            {annotationsInRange.map((a) => (
-              <ReferenceLine
-                key={a.id}
-                x={a.x}
-                stroke="hsl(var(--chart-orange))"
-                strokeDasharray="3 3"
-                label={{
-                  value: a.label,
-                  position: "top",
-                  fill: "hsl(var(--chart-orange))",
-                  fontSize: 10,
-                }}
-              />
-            ))}
+            {annotationsInRange.map((a) => {
+              const meta = getCategoryMeta(a.category);
+              return (
+                <ReferenceLine
+                  key={a.id}
+                  x={a.x}
+                  stroke={meta.color}
+                  strokeDasharray="3 3"
+                  label={{
+                    value: `${meta.emoji} ${a.label}`,
+                    position: "top",
+                    fill: meta.color,
+                    fontSize: 10,
+                  }}
+                />
+              );
+            })}
           </AreaChart>
         </ResponsiveContainer>
       </div>
