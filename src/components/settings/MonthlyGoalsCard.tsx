@@ -118,6 +118,7 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         setExistingId(null);
         setForm({ visitors: "", leads: "", revenue: "" });
       }
+      setErrors({});
       setLoading(false);
     })();
     return () => {
