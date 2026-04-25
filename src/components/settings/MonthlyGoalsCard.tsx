@@ -330,6 +330,64 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           </Button>
         </>
       )}
+
+      <div className="pt-4 border-t border-border space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <History className="h-4 w-4 text-primary" /> Metas dos últimos 6 meses
+          </h3>
+          {!recentLoading && recentGoals.length > 0 && (
+            <span className="text-xs text-muted-foreground">{recentGoals.length} registro(s)</span>
+          )}
+        </div>
+
+        {recentLoading ? (
+          <div className="h-20 animate-pulse rounded-lg bg-muted/40" />
+        ) : recentGoals.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Nenhuma meta salva nos últimos 6 meses. Defina uma acima para começar.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {recentGoals.map((g) => {
+              const [y, m] = g.month.split("-").map(Number);
+              const label = formatMonthLabel(y, m - 1);
+              const isSelected = g.month === selectedMonth;
+              return (
+                <li
+                  key={g.id}
+                  className={cn(
+                    "flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 text-sm transition-colors",
+                    isSelected && "border-primary/50 bg-primary/5",
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground capitalize truncate">{label}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {g.visitors_target.toLocaleString("pt-BR")} visitas ·{" "}
+                      {g.leads_target.toLocaleString("pt-BR")} leads ·{" "}
+                      {g.revenue_target.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant={isSelected ? "secondary" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedMonth(g.month)}
+                    className="shrink-0"
+                  >
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                    {isSelected ? "Editando" : "Editar"}
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
