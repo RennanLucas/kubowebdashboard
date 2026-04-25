@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Trash2, Filter } from "lucide-react";
+import { CalendarDays, Trash2, Filter, Pencil } from "lucide-react";
+import { AnnotationEditDialog } from "./AnnotationEditDialog";
+import type { Annotation } from "@/hooks/useAnnotations";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SectionCard } from "./SectionCard";
