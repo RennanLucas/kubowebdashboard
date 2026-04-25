@@ -176,7 +176,7 @@ async function fetchGA4Report(
 
 // --- User agent parsing helpers ---
 
-function parseDevice(ua: string): string {
+export function parseDevice(ua: string): string {
   if (!ua) return "Desconhecido";
   const lower = ua.toLowerCase();
   if (lower.includes("mobile") || lower.includes("android") || lower.includes("iphone"))
@@ -197,7 +197,7 @@ function parseBrowser(ua: string): string {
 
 // Source classification: must match the inline logic used in aggregatePV.
 // Returns the canonical source label given a referrer URL (or null/empty for Direct).
-function classifySource(referrer: string | null | undefined): string {
+export function classifySource(referrer: string | null | undefined): string {
   if (!referrer) return "Direto";
   try {
     const refHost = new URL(referrer).hostname.replace(/^www\./, "");
@@ -220,7 +220,7 @@ function classifySource(referrer: string | null | undefined): string {
 
 // Maps the global filter "source" value (Direct/Organic/Social/Paid/Referral/Email)
 // to the set of canonical source labels that should pass the filter.
-function sourceMatchesFilter(canonical: string, filter: string): boolean {
+export function sourceMatchesFilter(canonical: string, filter: string): boolean {
   switch (filter) {
     case "direct":
       return canonical === "Direto";
@@ -243,7 +243,7 @@ function sourceMatchesFilter(canonical: string, filter: string): boolean {
   }
 }
 
-function deviceMatchesFilter(ua: string | null | undefined, filter: string): boolean {
+export function deviceMatchesFilter(ua: string | null | undefined, filter: string): boolean {
   const d = parseDevice(ua || "").toLowerCase();
   return d === filter.toLowerCase();
 }
