@@ -294,6 +294,7 @@ const DashboardContent = () => {
               activeVisitors={data?.activeVisitors ?? 0}
               comparison={comparison}
               visitorsSeries={visitorsSeries}
+              viewsSeries={viewsSeries}
               leadsSeries={leadsSeries}
               valueSeries={valueSeries}
               conversionSeries={conversionSeries}
