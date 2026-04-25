@@ -22,6 +22,7 @@ interface Props {
     prevEstimatedValue?: number;
   } | null;
   visitorsSeries: number[];
+  viewsSeries?: number[];
   leadsSeries: number[];
   valueSeries: number[];
   conversionSeries: number[];
