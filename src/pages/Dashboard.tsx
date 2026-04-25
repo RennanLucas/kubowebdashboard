@@ -1,33 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Users, TrendingUp, DollarSign, BarChart3, Eye, Percent } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import KPICard from "@/components/dashboard/KPICard";
-import VisitorsChart from "@/components/dashboard/VisitorsChart";
-import TrafficSources from "@/components/dashboard/TrafficSources";
-import ConversionsCard from "@/components/dashboard/ConversionsCard";
-import TopPages from "@/components/dashboard/TopPages";
-import InsightsSection from "@/components/dashboard/InsightsSection";
-import DevicesBrowsersCard from "@/components/dashboard/DevicesBrowsersCard";
-import GeoCard from "@/components/dashboard/GeoCard";
-import EngagementCard from "@/components/dashboard/EngagementCard";
-import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
-import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
-
-import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
-import { TopReferrers } from "@/components/dashboard/TopReferrers";
-import { SuspiciousTrafficCard } from "@/components/dashboard/SuspiciousTrafficCard";
-import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
-import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
-import { ReturningVisitorsCard } from "@/components/dashboard/ReturningVisitorsCard";
-import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
-import { DailySummaryCard } from "@/components/dashboard/DailySummaryCard";
-import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
-import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
-import { WidgetBoundary } from "@/components/dashboard/WidgetBoundary";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { KPIsSection } from "@/components/dashboard/sections/KPIsSection";
+import { OverviewSection } from "@/components/dashboard/sections/OverviewSection";
+import { TrafficSection } from "@/components/dashboard/sections/TrafficSection";
+import { ConversionsSection } from "@/components/dashboard/sections/ConversionsSection";
+import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection";
+import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
@@ -95,7 +78,6 @@ const Dashboard = () => {
     return result;
   }, [metrics, dateRange]);
 
-  // Series for sparklines
   const visitorsSeries = chartData.map((d) => d.visitors);
   const leadsSeries = chartData.map((d) => d.leads);
   const valueSeries = useMemo(() => {
@@ -120,23 +102,26 @@ const Dashboard = () => {
     return chartData.map((d) => Math.round((d.visitors / totalCurrent) * comparison.prevVisitors));
   }, [chartData, comparison]);
 
-  const insights = [];
-  if (totalVisitors > 0) {
-    if (avgConversion > 3) {
-      insights.push({ type: "growth" as const, title: "Conversão Forte", message: `Sua taxa de conversão de ${avgConversion}% está acima da média do mercado de 2,5%.` });
+  const insights = useMemo(() => {
+    const out: Array<{ type: "growth" | "drop" | "info" | "warning"; title: string; message: string }> = [];
+    if (totalVisitors > 0) {
+      if (avgConversion > 3) {
+        out.push({ type: "growth", title: "Conversão Forte", message: `Sua taxa de conversão de ${avgConversion}% está acima da média do mercado de 2,5%.` });
+      }
+      if (trafficSources && trafficSources.length > 0) {
+        out.push({ type: "info", title: "Canal Principal", message: `${trafficSources[0].source} é o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do tráfego.` });
+      }
+      if (comparison && comparison.visitors !== 0) {
+        const dir = comparison.visitors > 0 ? "cresceu" : "caiu";
+        out.push({
+          type: comparison.visitors > 0 ? "growth" : "warning",
+          title: "Comparação com Período Anterior",
+          message: `O tráfego ${dir} ${Math.abs(comparison.visitors)}% comparado ao período anterior (${comparison.prevVisitors} visitantes).`,
+        });
+      }
     }
-    if (trafficSources && trafficSources.length > 0) {
-      insights.push({ type: "info" as const, title: "Canal Principal", message: `${trafficSources[0].source} é o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do tráfego.` });
-    }
-    if (comparison && comparison.visitors !== 0) {
-      const dir = comparison.visitors > 0 ? "cresceu" : "caiu";
-      insights.push({
-        type: comparison.visitors > 0 ? "growth" as const : "warning" as const,
-        title: "Comparação com Período Anterior",
-        message: `O tráfego ${dir} ${Math.abs(comparison.visitors)}% comparado ao período anterior (${comparison.prevVisitors} visitantes).`,
-      });
-    }
-  }
+    return out;
+  }, [totalVisitors, avgConversion, trafficSources, comparison]);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -229,7 +214,6 @@ const Dashboard = () => {
 
   const currentProject = clientData?.projects?.find(p => p.id === (selectedProjectId || clientData?.project?.id));
 
-  // Funnel stages
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
   const engagedVisitors = data?.engagement
     ? Math.round(totalVisitors * (1 - data.engagement.bounceRate / 100))
@@ -267,138 +251,77 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            {/* KPIs + Active Visitors */}
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-              <KPICard title="Visitantes" value={totalVisitors.toLocaleString("pt-BR")} change={comparison?.visitors ?? null} icon={<Users className="h-4 w-4" />} sparkline={visitorsSeries} sparklineColor="hsl(var(--chart-blue))" tooltip="Número de pessoas únicas que acessaram seu site no período. Cada visitante é contado uma vez, mesmo que retorne." />
-              <KPICard title="Pageviews" value={totalViews.toLocaleString("pt-BR")} change={comparison?.views ?? null} icon={<Eye className="h-4 w-4" />} sparkline={visitorsSeries} sparklineColor="hsl(var(--chart-purple))" tooltip="Total de páginas visualizadas. Inclui recargas e navegação entre páginas — um visitante pode gerar várias visualizações." />
-              <KPICard title="Leads" value={totalLeads.toLocaleString("pt-BR")} change={comparison?.leads ?? null} icon={<TrendingUp className="h-4 w-4" />} sparkline={leadsSeries} sparklineColor="hsl(var(--chart-green))" tooltip="Visitantes que realizaram uma ação de conversão (clique no WhatsApp, envio de formulário ou clique em botão de contato)." />
-              <KPICard title="Conversão" value={`${avgConversion}%`} change={comparison?.conversionRate ?? null} changeUnit="pp" icon={<Percent className="h-4 w-4" />} sparkline={conversionSeries} sparklineColor="hsl(var(--chart-orange))" tooltip="Percentual de visitantes que viraram leads. Calculado como Leads ÷ Visitantes × 100. Média de mercado: 1-3%." />
-              <KPICard title="Valor Estimado" value={`R$ ${totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} change={comparison?.estimatedValue ?? null} icon={<DollarSign className="h-4 w-4" />} sparkline={valueSeries} sparklineColor="hsl(var(--chart-green))" tooltip="Valor potencial gerado pelos leads no período. Calculado multiplicando o número de leads pelo valor configurado por lead em Configurações." />
-              <ActiveVisitorsCard count={data?.activeVisitors ?? 0} />
-            </div>
+            <KPIsSection
+              totalVisitors={totalVisitors}
+              totalViews={totalViews}
+              totalLeads={totalLeads}
+              avgConversion={avgConversion}
+              totalValue={totalValue}
+              activeVisitors={data?.activeVisitors ?? 0}
+              comparison={comparison}
+              visitorsSeries={visitorsSeries}
+              leadsSeries={leadsSeries}
+              valueSeries={valueSeries}
+              conversionSeries={conversionSeries}
+            />
 
-            {/* Resumo + Score + Recorrentes + Custo por Lead */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <DailySummaryCard
-                visitors={totalVisitors}
-                leads={totalLeads}
-                topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
-                topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
-                trafficChangePct={comparison?.visitors ?? 0}
-                conversionRate={avgConversion}
-              />
-              <HealthScoreCard
-                visitors={totalVisitors}
-                conversionRate={avgConversion}
-                bounceRate={data?.engagement?.bounceRate ?? 50}
-                trafficChangePct={comparison?.visitors ?? 0}
-              />
-              <ReturningVisitorsCard projectId={activeProjectId} days={dateRange} />
-              <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
-            </div>
+            <OverviewSection
+              totalVisitors={totalVisitors}
+              totalLeads={totalLeads}
+              totalValue={totalValue}
+              avgConversion={avgConversion}
+              bounceRate={data?.engagement?.bounceRate ?? 50}
+              trafficChangePct={comparison?.visitors ?? 0}
+              topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
+              topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
+              activeProjectId={activeProjectId}
+              dateRange={dateRange}
+              monthlyAdSpend={monthlyAdSpend}
+            />
 
-            {/* Metas + Alertas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <GoalsProgressCard
-                projectId={activeProjectId}
-                visitors={totalVisitors}
-                leads={totalLeads}
-                revenue={totalValue}
-              />
-              <CriticalAlertsCard projectId={activeProjectId} />
-            </div>
+            <TrafficSection
+              chartData={chartData}
+              prevSeries={prevSeries}
+              trafficSources={trafficSources ?? []}
+              heatmap={heatmap}
+              referrers={referrers}
+              totalVisitors={totalVisitors}
+              activeProjectId={activeProjectId}
+              dateRange={dateRange}
+              heatmapLoading={heatmapLoading}
+              heatmapError={heatmapError}
+              refetchHeatmap={refetchHeatmap}
+            />
 
-            {/* Qualidade do tráfego */}
-            <div className="grid grid-cols-1 gap-4 mb-6">
-              <WidgetBoundary
-                isLoading={heatmapLoading}
-                error={heatmapError}
-                onRetry={refetchHeatmap}
-                title="Não foi possível analisar a qualidade do tráfego"
-                skeletonHeight={120}
-              >
-                <SuspiciousTrafficCard
-                  referrers={referrers}
-                  totalVisitors={totalVisitors}
-                />
-              </WidgetBoundary>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              <div className="lg:col-span-2">
-                <WidgetBoundary title="Não foi possível carregar o gráfico de visitantes" skeletonHeight={280}>
-                  <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
-                </WidgetBoundary>
-              </div>
-              <WidgetBoundary title="Não foi possível carregar as origens de tráfego">
-                <TrafficSources data={trafficSources ?? []} dateRangeDays={dateRange} />
-              </WidgetBoundary>
-            </div>
+            <ConversionsSection
+              totalVisitors={totalVisitors}
+              engagedVisitors={engagedVisitors}
+              totalButtons={totalButtons}
+              totalWhatsapp={totalWhatsapp}
+              totalForms={totalForms}
+              totalLeads={totalLeads}
+              totalConversionsAll={totalConversionsAll}
+              conversions={conversions}
+            />
 
-            {/* Heatmap */}
-            <div className="grid grid-cols-1 gap-4 mb-6">
-              <WidgetBoundary
-                isLoading={heatmapLoading}
-                error={heatmapError}
-                onRetry={refetchHeatmap}
-                title="Não foi possível carregar o heatmap"
-                skeletonHeight={200}
-              >
-                <HourlyHeatmap data={heatmap} isLoading={false} />
-              </WidgetBoundary>
-            </div>
+            <TopPagesSection
+              topPages={topPages ?? []}
+              referrers={referrers}
+              activeProjectId={activeProjectId}
+              heatmapLoading={heatmapLoading}
+              heatmapError={heatmapError}
+              refetchHeatmap={refetchHeatmap}
+            />
 
-            {/* Funnel + Conversions */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <WidgetBoundary title="Funil indisponível">
-                <ConversionFunnel
-                  visitors={totalVisitors}
-                  engaged={engagedVisitors}
-                  clicks={totalButtons + totalWhatsapp}
-                  conversions={totalConversionsAll || totalLeads}
-                />
-              </WidgetBoundary>
-              <WidgetBoundary title="Não foi possível carregar conversões">
-                <ConversionsCard data={{
-                  whatsappClicks: { value: conversions?.whatsapp_clicks ?? totalWhatsapp, change: conversions?.changes.whatsapp ?? 0 },
-                  formSubmissions: { value: conversions?.form_submissions ?? totalForms, change: conversions?.changes.forms ?? 0 },
-                  buttonClicks: { value: conversions?.button_clicks ?? totalButtons, change: conversions?.changes.buttons ?? 0 },
-                  recentEvents: conversions?.recent ?? [],
-                }} />
-              </WidgetBoundary>
-            </div>
-
-            {/* Top Pages + Top Referrers + Live Feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              <WidgetBoundary title="Não foi possível carregar páginas">
-                <TopPages pages={topPages ?? []} />
-              </WidgetBoundary>
-              <WidgetBoundary
-                isLoading={heatmapLoading}
-                error={heatmapError}
-                onRetry={refetchHeatmap}
-                title="Não foi possível carregar referrers"
-              >
-                <TopReferrers data={referrers} isLoading={false} />
-              </WidgetBoundary>
-              <WidgetBoundary title="Feed ao vivo indisponível">
-                <LiveFeedCard projectId={activeProjectId ?? null} compact />
-              </WidgetBoundary>
-            </div>
-
-            {/* Engagement + Devices + Geo */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              {data?.engagement && (
-                <EngagementCard data={data.engagement} />
-              )}
-              <DevicesBrowsersCard
-                devices={data?.devices ?? []}
-                browsers={data?.browsers ?? []}
-                operatingSystems={data?.operatingSystems ?? []}
-              />
-              <GeoCard countries={data?.countries ?? []} cities={data?.cities ?? []} />
-            </div>
-
-            {insights.length > 0 && <InsightsSection insights={insights} />}
+            <InsightsSection
+              engagement={data?.engagement}
+              devices={data?.devices ?? []}
+              browsers={data?.browsers ?? []}
+              operatingSystems={data?.operatingSystems ?? []}
+              countries={data?.countries ?? []}
+              cities={data?.cities ?? []}
+              insights={insights}
+            />
           </>
         )}
       </div>
