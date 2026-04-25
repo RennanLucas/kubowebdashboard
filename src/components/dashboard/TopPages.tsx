@@ -70,7 +70,7 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
         </table>
       </div>
     )}
-  </div>
+  </SectionCard>
 );
 
 export default TopPages;
