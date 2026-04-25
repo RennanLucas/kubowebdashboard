@@ -20,7 +20,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAnnotations } from "@/hooks/useAnnotations";
+import { ANNOTATION_CATEGORIES, getCategoryMeta, type AnnotationCategory } from "@/lib/annotation-categories";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import {
   DropdownMenu,
@@ -58,6 +61,8 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
   const [showCompare, setShowCompare] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newLabel, setNewLabel] = useState("");
+  const [newCategory, setNewCategory] = useState<AnnotationCategory>("campaign");
+  const [newNotes, setNewNotes] = useState("");
   const [open, setOpen] = useState(false);
   const [activeSeries, setActiveSeries] = useState<Record<SeriesKey, boolean>>({
     visitors: true,
@@ -81,11 +86,13 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
     return annotations.filter((a) => dateMap.has(a.date)).map((a) => ({ ...a, x: dateMap.get(a.date)! }));
   }, [annotations, data]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newDate || !newLabel.trim()) return;
-    add(newDate, newLabel);
+    await add({ date: newDate, label: newLabel, category: newCategory, notes: newNotes });
     setNewDate("");
     setNewLabel("");
+    setNewNotes("");
+    setNewCategory("campaign");
     setOpen(false);
   };
 
