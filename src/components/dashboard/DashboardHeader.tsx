@@ -27,6 +27,7 @@ interface Project {
   id: string;
   name: string;
   url: string | null;
+  clientName?: string;
 }
 
 interface DashboardHeaderProps {
@@ -41,6 +42,15 @@ interface DashboardHeaderProps {
   onExportCSV?: () => void;
   onExportExcel?: () => void;
 }
+
+const formatHost = (url?: string | null) => {
+  if (!url) return null;
+  try {
+    return new URL(url).host.replace(/^www\./, "");
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  }
+};
 
 const DashboardHeader = ({
   dateRange,
