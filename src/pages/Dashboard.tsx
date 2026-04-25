@@ -13,6 +13,7 @@ import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
 import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
 import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
+import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
