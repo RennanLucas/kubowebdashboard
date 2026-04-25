@@ -293,7 +293,18 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       </div>
 
       {loading ? (
-        <div className="h-32 animate-pulse rounded-lg bg-muted/40" />
+        <div aria-busy="true" aria-live="polite" className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3.5 w-20" />
+                <Skeleton className="h-11 w-full" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-11 w-full sm:w-44" />
+          <span className="sr-only">Carregando metas do mês selecionado…</span>
+        </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
