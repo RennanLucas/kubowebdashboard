@@ -195,6 +195,59 @@ function parseBrowser(ua: string): string {
   return "Outro";
 }
 
+// Source classification: must match the inline logic used in aggregatePV.
+// Returns the canonical source label given a referrer URL (or null/empty for Direct).
+function classifySource(referrer: string | null | undefined): string {
+  if (!referrer) return "Direto";
+  try {
+    const refHost = new URL(referrer).hostname.replace(/^www\./, "");
+    if (refHost.includes("google")) return "Google";
+    if (refHost.includes("bing")) return "Bing";
+    if (refHost.includes("yahoo")) return "Yahoo";
+    if (refHost.includes("facebook") || refHost.includes("fb")) return "Facebook";
+    if (refHost.includes("instagram")) return "Instagram";
+    if (refHost.includes("twitter") || refHost.includes("x.")) return "X (Twitter)";
+    if (refHost.includes("linkedin")) return "LinkedIn";
+    if (refHost.includes("tiktok")) return "TikTok";
+    if (refHost.includes("youtube")) return "YouTube";
+    if (refHost.includes("pinterest")) return "Pinterest";
+    if (refHost.includes("lovable") || refHost.includes("lovableproject")) return "Direto";
+    return refHost;
+  } catch {
+    return "Outro";
+  }
+}
+
+// Maps the global filter "source" value (Direct/Organic/Social/Paid/Referral/Email)
+// to the set of canonical source labels that should pass the filter.
+function sourceMatchesFilter(canonical: string, filter: string): boolean {
+  switch (filter) {
+    case "direct":
+      return canonical === "Direto";
+    case "organic":
+      return ["Google", "Bing", "Yahoo"].includes(canonical);
+    case "social":
+      return ["Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Pinterest"].includes(canonical);
+    case "referral":
+      // Anything else with a referrer that isn't direct/organic/social
+      return (
+        canonical !== "Direto" &&
+        !["Google", "Bing", "Yahoo", "Facebook", "Instagram", "X (Twitter)", "LinkedIn", "TikTok", "YouTube", "Pinterest"].includes(canonical)
+      );
+    case "paid":
+    case "email":
+      // Not yet detectable from referrer alone — empty set so user sees no data.
+      return false;
+    default:
+      return true;
+  }
+}
+
+function deviceMatchesFilter(ua: string | null | undefined, filter: string): boolean {
+  const d = parseDevice(ua || "").toLowerCase();
+  return d === filter.toLowerCase();
+}
+
 function parseOS(ua: string): string {
   if (!ua) return "Outro";
   if (ua.includes("Windows")) return "Windows";
