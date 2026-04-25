@@ -14,7 +14,7 @@ import EngagementCard from "@/components/dashboard/EngagementCard";
 import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
-import { GoalsCard } from "@/components/dashboard/GoalsCard";
+
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
@@ -314,17 +314,9 @@ const Dashboard = () => {
               <TrafficSources data={trafficSources ?? []} dateRangeDays={dateRange} />
             </div>
 
-            {/* Goals + Heatmap */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-              <GoalsCard
-                projectId={activeProjectId}
-                visitors={totalVisitors}
-                leads={totalLeads}
-                estimatedValue={totalValue}
-              />
-              <div className="lg:col-span-2">
-                <HourlyHeatmap data={heatmap} isLoading={heatmapLoading} />
-              </div>
+            {/* Heatmap */}
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              <HourlyHeatmap data={heatmap} isLoading={heatmapLoading} />
             </div>
 
             {/* Funnel + Conversions */}
