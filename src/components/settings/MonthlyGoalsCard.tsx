@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Target, Save, Users, Zap, DollarSign, Calendar, AlertCircle, History, Pencil } from "lucide-react";
+import { Target, Save, Users, Zap, DollarSign, Calendar, AlertCircle, History, Pencil, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -273,15 +274,37 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
           </SelectContent>
         </Select>
         {selectedOption && (
-          <p className="text-xs text-muted-foreground">
-            Editando metas de <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>
-            {existingId ? " (registro existente)" : " (novo registro)"}.
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            {loading ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                Carregando metas de{" "}
+                <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>...
+              </>
+            ) : (
+              <>
+                Editando metas de{" "}
+                <span className="capitalize font-medium text-foreground">{selectedOption.label}</span>
+                {existingId ? " (registro existente)" : " (novo registro)"}.
+              </>
+            )}
           </p>
         )}
       </div>
 
       {loading ? (
-        <div className="h-32 animate-pulse rounded-lg bg-muted/40" />
+        <div aria-busy="true" aria-live="polite" className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3.5 w-20" />
+                <Skeleton className="h-11 w-full" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-11 w-full sm:w-44" />
+          <span className="sr-only">Carregando metas do mês selecionado…</span>
+        </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -382,7 +405,20 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         </div>
 
         {recentLoading ? (
-          <div className="h-20 animate-pulse rounded-lg bg-muted/40" />
+          <ul className="space-y-2" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3"
+              >
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-8 w-20 shrink-0" />
+              </li>
+            ))}
+          </ul>
         ) : recentGoals.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             Nenhuma meta salva nos últimos 6 meses. Defina uma acima para começar.
