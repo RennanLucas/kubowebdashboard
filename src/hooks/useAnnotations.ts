@@ -107,5 +107,5 @@ export const useAnnotations = (projectId?: string) => {
     [refresh],
   );
 
-  return { annotations, loading, add, remove, refresh };
+  return { annotations, loading, add, update, remove, refresh };
 };
