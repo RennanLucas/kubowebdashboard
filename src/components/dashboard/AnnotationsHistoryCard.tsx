@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Trash2, Filter, Pencil } from "lucide-react";
+import { CalendarDays, Trash2, Filter, Pencil, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { AnnotationEditDialog } from "./AnnotationEditDialog";
 import type { Annotation } from "@/hooks/useAnnotations";
 import { format, parseISO } from "date-fns";
@@ -21,13 +21,22 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportAnnotationsCSV, exportAnnotationsPDF } from "@/lib/annotations-export";
+import { toast } from "sonner";
 
 interface Props {
   projectId?: string;
+  projectName?: string;
   dateRangeDays: number;
 }
 
-export const AnnotationsHistoryCard = ({ projectId, dateRangeDays }: Props) => {
+export const AnnotationsHistoryCard = ({ projectId, projectName, dateRangeDays }: Props) => {
   const { annotations, loading, remove, update } = useAnnotations(projectId);
   const [filter, setFilter] = useState<AnnotationCategory | "all">("all");
   const [editing, setEditing] = useState<Annotation | null>(null);
