@@ -38,6 +38,13 @@ const DashboardContent = () => {
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
+  // Remember last active project so filters can be hydrated correctly on next load.
+  useEffect(() => {
+    if (activeProjectId && typeof window !== "undefined") {
+      window.localStorage.setItem("dashboard:last-project-id", activeProjectId);
+    }
+  }, [activeProjectId]);
+
   useEffect(() => {
     if (!clientData?.id) return;
     let cancelled = false;
