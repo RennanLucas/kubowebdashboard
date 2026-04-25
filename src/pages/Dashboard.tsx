@@ -49,7 +49,7 @@ const Dashboard = () => {
   const conversions = data?.conversions;
 
   const activeProjectId = selectedProjectId || clientData?.project?.id;
-  const { heatmap, referrers, isLoading: heatmapLoading } = useHourlyHeatmap(activeProjectId, dateRange);
+  const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
   useEffect(() => {
     if (!clientData?.id) return;
