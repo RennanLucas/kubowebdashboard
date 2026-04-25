@@ -11,6 +11,7 @@ import { TrafficSection } from "@/components/dashboard/sections/TrafficSection";
 import { ConversionsSection } from "@/components/dashboard/sections/ConversionsSection";
 import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection";
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
+import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
