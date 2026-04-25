@@ -22,6 +22,7 @@ interface Props {
     prevEstimatedValue?: number;
   } | null;
   visitorsSeries: number[];
+  viewsSeries?: number[];
   leadsSeries: number[];
   valueSeries: number[];
   conversionSeries: number[];
@@ -41,6 +42,7 @@ export const KPIsSection = ({
   activeVisitors,
   comparison,
   visitorsSeries,
+  viewsSeries,
   leadsSeries,
   valueSeries,
   conversionSeries,
@@ -62,7 +64,7 @@ export const KPIsSection = ({
       change={comparison?.views ?? null}
       previousValue={comparison?.prevViews !== undefined ? fmtNum(comparison.prevViews) : undefined}
       icon={<Eye className="h-4 w-4" />}
-      sparkline={visitorsSeries}
+      sparkline={viewsSeries ?? visitorsSeries}
       sparklineColor="hsl(var(--chart-purple))"
       tooltip="Total de páginas visualizadas. Inclui recargas e navegação entre páginas — um visitante pode gerar várias visualizações."
     />

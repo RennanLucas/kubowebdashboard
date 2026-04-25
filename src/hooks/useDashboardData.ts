@@ -38,6 +38,7 @@ interface AnalyticsResponse {
   metrics: Array<{
     date: string;
     visitors: number;
+    views?: number;
     leads: number;
     conversion_rate: number;
     estimated_value: number;
