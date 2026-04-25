@@ -14,7 +14,7 @@ import EngagementCard from "@/components/dashboard/EngagementCard";
 import ActiveVisitorsCard from "@/components/dashboard/ActiveVisitorsCard";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
-import { GoalsCard } from "@/components/dashboard/GoalsCard";
+
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
