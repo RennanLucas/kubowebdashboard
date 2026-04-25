@@ -405,7 +405,20 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
         </div>
 
         {recentLoading ? (
-          <div className="h-20 animate-pulse rounded-lg bg-muted/40" />
+          <ul className="space-y-2" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3"
+              >
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-8 w-20 shrink-0" />
+              </li>
+            ))}
+          </ul>
         ) : recentGoals.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             Nenhuma meta salva nos últimos 6 meses. Defina uma acima para começar.
