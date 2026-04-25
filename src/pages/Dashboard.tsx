@@ -27,6 +27,7 @@ const DashboardContent = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
+  const { data: allProjects } = useAllUserProjects();
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
