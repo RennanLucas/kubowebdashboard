@@ -129,13 +129,18 @@ const fetchAnalytics = async (
   });
 };
 
-export const useDashboardAnalytics = (days: number, projectId?: string) => {
+export const useDashboardAnalytics = (
+  days: number,
+  projectId?: string,
+  filters?: { source?: string; device?: string },
+) => {
   const { session, loading: authLoading } = useAuth();
   const plan = usePlan(!!session);
-  // Capa o histórico ao máximo permitido pelo plano (Pro=90d, Pro+=365d)
   const cappedDays = Math.min(days, plan.maxHistoryDays);
+  const source = filters?.source ?? "all";
+  const device = filters?.device ?? "all";
   return useQuery({
-    queryKey: ["dashboard-analytics", cappedDays, projectId],
+    queryKey: ["dashboard-analytics", cappedDays, projectId, source, device],
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
     enabled: !authLoading && !!session?.access_token && !plan.loading,
@@ -154,12 +159,11 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
         throw new Error("AUTH_EXPIRED");
       }
 
-      // Edge runtime ocasionalmente retorna 503 quando a função "boota" a frio.
-      // Tentamos novamente com backoff curto antes de propagar o erro.
-      let response = await fetchAnalytics(days, projectId, activeSession.access_token);
+      const opts = { source, device };
+      let response = await fetchAnalytics(days, projectId, activeSession.access_token, opts);
       for (let attempt = 0; attempt < 2 && response.status >= 500; attempt++) {
         await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
-        response = await fetchAnalytics(days, projectId, activeSession.access_token);
+        response = await fetchAnalytics(days, projectId, activeSession.access_token, opts);
       }
 
       if (response.status === 401) {
@@ -171,7 +175,7 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
           throw new Error("AUTH_EXPIRED");
         }
 
-        response = await fetchAnalytics(days, projectId, refreshedToken);
+        response = await fetchAnalytics(days, projectId, refreshedToken, opts);
       }
 
       if (response.status === 401) {
@@ -185,7 +189,7 @@ export const useDashboardAnalytics = (days: number, projectId?: string) => {
           const err = await response.json();
           message = err.error || err.message || message;
         } catch {
-          // resposta não-JSON (ex.: 503 do runtime) — mantém a mensagem padrão
+          /* non-JSON */
         }
         throw new Error(message);
       }
