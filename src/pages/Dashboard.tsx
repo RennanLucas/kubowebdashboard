@@ -26,6 +26,7 @@ import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
 import { DailySummaryCard } from "@/components/dashboard/DailySummaryCard";
 import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
 import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
+import { WidgetBoundary } from "@/components/dashboard/WidgetBoundary";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
