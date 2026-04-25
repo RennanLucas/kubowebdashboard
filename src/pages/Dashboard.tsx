@@ -17,6 +17,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 
 import { HourlyHeatmap } from "@/components/dashboard/HourlyHeatmap";
 import { TopReferrers } from "@/components/dashboard/TopReferrers";
+import { SuspiciousTrafficCard } from "@/components/dashboard/SuspiciousTrafficCard";
 import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
 import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
