@@ -51,6 +51,32 @@ const buildMonthOptions = (): MonthOption[] => {
   });
 };
 
+type FieldKey = "visitors" | "leads" | "revenue";
+type FormErrors = Partial<Record<FieldKey, string>>;
+
+const positiveIntField = (label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, { message: `Informe a meta de ${label}` })
+    .refine((v) => !Number.isNaN(Number(v)), { message: "Use apenas números" })
+    .refine((v) => Number(v) >= 0, { message: "Não é permitido valor negativo" })
+    .refine((v) => Number.isInteger(Number(v)), { message: "Use um número inteiro" })
+    .refine((v) => Number(v) <= 10_000_000, { message: "Valor muito alto" });
+
+const goalsSchema = z.object({
+  visitors: positiveIntField("visitas"),
+  leads: positiveIntField("leads"),
+  revenue: z
+    .string()
+    .trim()
+    .min(1, { message: "Informe a meta de receita" })
+    .refine((v) => !Number.isNaN(Number(v.replace(",", ".")))
+      , { message: "Use apenas números" })
+    .refine((v) => Number(v.replace(",", ".")) >= 0, { message: "Não é permitido valor negativo" })
+    .refine((v) => Number(v.replace(",", ".")) <= 1_000_000_000, { message: "Valor muito alto" }),
+});
+
 const MonthlyGoalsCard = ({ projectId }: Props) => {
   const monthOptions = useMemo(buildMonthOptions, []);
   const [selectedMonth, setSelectedMonth] = useState<string>(
