@@ -134,7 +134,7 @@ const ResetPassword = () => {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Não foi possível redefinir a senha.");
+      toast.error(mapAuthError(err?.message || "") || "Não foi possível redefinir a senha.");
     } finally {
       setLoading(false);
     }
