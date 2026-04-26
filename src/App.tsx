@@ -20,6 +20,7 @@ import Compare from "./pages/Compare";
 import Presentation from "./pages/Presentation";
 import ResetPassword from "./pages/ResetPassword";
 import Live from "./pages/Live";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+            <Route path="/subscription" element={<ProtectedRoute requireSubscription><Subscription /></ProtectedRoute>} />
             <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute requireSubscription><Settings /></ProtectedRoute>} />
