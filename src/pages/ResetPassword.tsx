@@ -1,12 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
+
+// Schema de validação da nova senha
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "A senha deve ter no mínimo 8 caracteres." })
+      .max(72, { message: "A senha deve ter no máximo 72 caracteres." })
+      .regex(/[A-Za-z]/, { message: "Inclua pelo menos uma letra." })
+      .regex(/[0-9]/, { message: "Inclua pelo menos um número." }),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    path: ["confirm"],
+    message: "As senhas não coincidem.",
+  });
 
 const ResetPassword = () => {
   const navigate = useNavigate();
