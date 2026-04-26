@@ -342,8 +342,6 @@ export default function SubscriptionPage() {
                 </div>
               </CardContent>
             </Card>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardHeader>
