@@ -90,60 +90,100 @@ export default function Pricing() {
           </p>
         </div>
 
+        {plansError && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive mb-6">
+            Não foi possível carregar os planos no momento. Tente novamente em alguns instantes.
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 gap-6">
-          {plans.map((plan) => {
-            const isLoading = loadingPlan === plan.id;
-            return (
-              <div
-                key={plan.id}
-                className={cn(
-                  "rounded-xl border bg-card p-8 shadow-sm transition-all flex flex-col",
-                  plan.recommended ? "border-primary ring-2 ring-primary/30" : "border-border",
-                )}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
-                    <p className="text-sm text-muted-foreground mt-1">KUBOWEB Pro · tudo incluso</p>
+          {plansLoading
+            ? Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-border bg-card p-8">
+                  <Skeleton className="h-6 w-24 mb-4" />
+                  <Skeleton className="h-10 w-32 mb-6" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-6" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))
+            : plans.map((plan) => {
+                const isLoading = loadingPlan === plan.id;
+                const isCurrent = currentPlanId === plan.id && isActive;
+                const isDisabled = !plan.enabled || isCurrent;
+                const disabledLabel = isCurrent
+                  ? "Plano atual"
+                  : !plan.enabled
+                    ? plan.disabledReason || "Indisponível no momento"
+                    : null;
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={cn(
+                      "rounded-xl border bg-card p-8 shadow-sm transition-all flex flex-col",
+                      plan.recommended && !isDisabled
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-border",
+                      isDisabled && "opacity-70",
+                    )}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
+                        <p className="text-sm text-muted-foreground mt-1">{plan.tagline}</p>
+                      </div>
+                      {isCurrent ? (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                          Plano atual
+                        </span>
+                      ) : !plan.enabled ? (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                          Indisponível
+                        </span>
+                      ) : plan.recommended ? (
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                          Mais escolhido
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mb-6">
+                      <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                      <span className="text-muted-foreground">{plan.cadence}</span>
+                      <p className="text-sm text-primary font-medium mt-2">{plan.highlight}</p>
+                    </div>
+                    <ul className="space-y-3 mb-6 flex-1">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-sm">
+                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-foreground">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      disabled={isDisabled || isLoading || loadingPlan !== null}
+                      onClick={() => handleCheckout(plan.id)}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Redirecionando...
+                        </>
+                      ) : isDisabled ? (
+                        disabledLabel
+                      ) : (
+                        plan.cta
+                      )}
+                    </Button>
+                    {!plan.enabled && plan.disabledReason && (
+                      <p className="text-xs text-muted-foreground mt-4">{plan.disabledReason}</p>
+                    )}
                   </div>
-                  {plan.recommended && (
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
-                      Mais escolhido
-                    </span>
-                  )}
-                </div>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground">{plan.cadence}</span>
-                  <p className="text-sm text-primary font-medium mt-2">{plan.highlight}</p>
-                </div>
-                <ul className="space-y-3 mb-6 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span className="text-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  size="lg"
-                  className="w-full"
-                  disabled={isLoading || loadingPlan !== null}
-                  onClick={() => handleCheckout(plan.id)}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Redirecionando...
-                    </>
-                  ) : (
-                    plan.cta
-                  )}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-4">{plan.note}</p>
-              </div>
-            );
-          })}
+                );
+              })}
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
