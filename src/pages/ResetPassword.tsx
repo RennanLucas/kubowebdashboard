@@ -18,24 +18,59 @@ const ResetPassword = () => {
   const [validLink, setValidLink] = useState(false);
 
   useEffect(() => {
-    // O Supabase trata o hash (#access_token=...&type=recovery) e cria
-    // automaticamente uma sessão temporária via onAuthStateChange.
+    let cancelled = false;
+
+    const markValid = () => {
+      if (!cancelled) {
+        setValidLink(true);
+        setReady(true);
+      }
+    };
+    const finish = () => {
+      if (!cancelled) setReady(true);
+    };
+
+    // 1) Listener para PASSWORD_RECOVERY (formato hash legado)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (session && window.location.hash.includes("type=recovery"))) {
-        setValidLink(true);
-      }
-      setReady(true);
+      if (event === "PASSWORD_RECOVERY") markValid();
+      else if (session && window.location.hash.includes("type=recovery")) markValid();
     });
 
-    // Caso o evento já tenha disparado antes do listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery"))) {
-        setValidLink(true);
-      }
-      setReady(true);
-    });
+    // 2) Trata o formato novo (PKCE): ?code=...
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    const hasRecoveryHash =
+      window.location.hash.includes("type=recovery") ||
+      window.location.hash.includes("access_token");
 
-    return () => subscription.unsubscribe();
+    (async () => {
+      try {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          window.history.replaceState({}, "", window.location.pathname);
+          markValid();
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && hasRecoveryHash) {
+          markValid();
+          return;
+        }
+
+        // Pequeno delay para o listener disparar antes de declarar inválido
+        setTimeout(() => finish(), 800);
+      } catch (err) {
+        console.error("[reset-password] code exchange failed:", err);
+        finish();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
