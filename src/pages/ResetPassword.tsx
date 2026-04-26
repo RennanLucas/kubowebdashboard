@@ -209,17 +209,25 @@ const ResetPassword = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  maxLength={72}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
+                  aria-label={show ? "Ocultar senha" : "Mostrar senha"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <ul className="mt-2 space-y-1">
+                <Requirement ok={checks.length} label="Mínimo de 8 caracteres" />
+                <Requirement ok={checks.letter} label="Pelo menos uma letra" />
+                <Requirement ok={checks.number} label="Pelo menos um número" />
+              </ul>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirmar nova senha</Label>
@@ -229,11 +237,20 @@ const ResetPassword = () => {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={72}
+                autoComplete="new-password"
                 placeholder="••••••••"
+                aria-invalid={confirm.length > 0 && !checks.match}
+                className={cn(
+                  confirm.length > 0 && !checks.match && "border-destructive focus-visible:ring-destructive"
+                )}
               />
+              {confirm.length > 0 && !checks.match && (
+                <p className="text-xs text-destructive">As senhas não coincidem.</p>
+              )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !isFormValid}>
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
