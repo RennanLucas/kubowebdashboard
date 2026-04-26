@@ -247,14 +247,10 @@ export default function SubscriptionPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button onClick={() => navigate("/pricing")}>
-                    Trocar de plano
-                  </Button>
-
                   {!willCancel && isActive && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" disabled={canceling}>
+                        <Button variant="outline" disabled={canceling || !!switchingTo}>
                           {canceling ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -286,6 +282,66 @@ export default function SubscriptionPage() {
                     </AlertDialog>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Trocar de plano</CardTitle>
+                <CardDescription>
+                  Você será redirecionado para o checkout seguro do Mercado Pago. Sua conta atual
+                  será mantida e o novo plano substituirá o atual após a confirmação do pagamento.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {SWITCHABLE_PLANS.map((p) => {
+                    const isCurrent = planId === p.id;
+                    const isLoading = switchingTo === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        className={`rounded-lg border p-4 flex flex-col gap-2 ${
+                          isCurrent ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold text-foreground">{p.name}</div>
+                          {isCurrent && (
+                            <Badge variant="secondary" className="text-[10px]">
+                              Plano atual
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-foreground">{p.price}</div>
+                        <div className="text-xs text-muted-foreground">{p.highlight}</div>
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "outline" : "default"}
+                          className="mt-2"
+                          disabled={isCurrent || !!switchingTo || canceling}
+                          onClick={() => handleSwitchPlan(p.id)}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Redirecionando...
+                            </>
+                          ) : isCurrent ? (
+                            "Plano atual"
+                          ) : (
+                            <>
+                              Trocar para {p.name}
+                              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
               </CardContent>
             </Card>
 
