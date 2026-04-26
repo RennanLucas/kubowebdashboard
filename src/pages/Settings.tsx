@@ -334,10 +334,13 @@ const Settings = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="leadValue" className="flex items-center gap-2">
-                Valor em R$
-                <HelpTip text="Use vírgula ou ponto para decimais (ex.: 50 ou 50.00). O valor mínimo é 0." />
-              </Label>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <Label htmlFor="leadValue" className="flex items-center gap-2">
+                  Valor em R$
+                  <HelpTip text="Use vírgula ou ponto para decimais (ex.: 50 ou 50.00). O valor mínimo é 0." />
+                </Label>
+                <LeadValueSuggester onApply={(value) => setForm((f) => ({ ...f, leadValue: value }))} />
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                 <Input
