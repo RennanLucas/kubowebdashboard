@@ -11,3 +11,5 @@ project_id = "mgiwqgmgipyysbgmhyrh"
     verify_jwt = false
   [functions.tracker-script]
     verify_jwt = false
+  [functions.list-plans]
+    verify_jwt = false

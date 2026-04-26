@@ -20,8 +20,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePlans } from "@/hooks/usePlans";
 
-type SwitchablePlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
+type SwitchablePlanId = string;
 
 const PLAN_LABELS: Record<string, string> = {
   kuboweb_pro_monthly: "Pro · Mensal",
@@ -34,26 +35,6 @@ const PLAN_PRICES: Record<string, string> = {
   kuboweb_pro_plus_monthly: "R$ 49,99/mês",
   kuboweb_pro_yearly: "R$ 299,90/ano",
 };
-
-const SWITCHABLE_PLANS: Array<{
-  id: SwitchablePlanId;
-  name: string;
-  price: string;
-  highlight: string;
-}> = [
-  {
-    id: "kuboweb_pro_monthly",
-    name: "Pro",
-    price: "R$ 29,99/mês",
-    highlight: "3 projetos · 3 resumos IA/mês",
-  },
-  {
-    id: "kuboweb_pro_plus_monthly",
-    name: "Pro+",
-    price: "R$ 49,99/mês",
-    highlight: "Projetos ilimitados · 6 resumos IA · alertas",
-  },
-];
 
 const formatDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -76,6 +57,7 @@ const daysUntil = (iso: string | null) => {
 
 export default function SubscriptionPage() {
   const { subscription, loading, isActive, refresh } = useSubscription();
+  const { plans, loading: plansLoading } = usePlans();
   const [canceling, setCanceling] = useState(false);
   const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
   const navigate = useNavigate();
@@ -294,52 +276,74 @@ export default function SubscriptionPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {SWITCHABLE_PLANS.map((p) => {
-                    const isCurrent = planId === p.id;
-                    const isLoading = switchingTo === p.id;
-                    return (
-                      <div
-                        key={p.id}
-                        className={`rounded-lg border p-4 flex flex-col gap-2 ${
-                          isCurrent ? "border-primary/40 bg-primary/5" : "border-border bg-card"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="font-semibold text-foreground">{p.name}</div>
-                          {isCurrent && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              Plano atual
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-foreground">{p.price}</div>
-                        <div className="text-xs text-muted-foreground">{p.highlight}</div>
-                        <Button
-                          size="sm"
-                          variant={isCurrent ? "outline" : "default"}
-                          className="mt-2"
-                          disabled={isCurrent || !!switchingTo || canceling}
-                          onClick={() => handleSwitchPlan(p.id)}
+                {plansLoading ? (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <Skeleton key={i} className="h-32 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : plans.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">
+                    Nenhum plano disponível no momento.
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {plans.map((p) => {
+                      const isCurrent = planId === p.id;
+                      const isLoading = switchingTo === p.id;
+                      const isDisabled = !p.enabled || isCurrent;
+                      return (
+                        <div
+                          key={p.id}
+                          className={`rounded-lg border p-4 flex flex-col gap-2 ${
+                            isCurrent ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+                          } ${!p.enabled ? "opacity-70" : ""}`}
                         >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Redirecionando...
-                            </>
-                          ) : isCurrent ? (
-                            "Plano atual"
-                          ) : (
-                            <>
-                              Trocar para {p.name}
-                              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
+                          <div className="flex items-center justify-between">
+                            <div className="font-semibold text-foreground">{p.name}</div>
+                            {isCurrent ? (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Plano atual
+                              </Badge>
+                            ) : !p.enabled ? (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Indisponível
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <div className="text-sm text-foreground">
+                            {p.price}
+                            <span className="text-muted-foreground">{p.cadence}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">{p.highlight}</div>
+                          <Button
+                            size="sm"
+                            variant={isCurrent ? "outline" : "default"}
+                            className="mt-2"
+                            disabled={isDisabled || !!switchingTo || canceling}
+                            onClick={() => handleSwitchPlan(p.id)}
+                          >
+                            {isLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Redirecionando...
+                              </>
+                            ) : isCurrent ? (
+                              "Plano atual"
+                            ) : !p.enabled ? (
+                              p.disabledReason || "Indisponível"
+                            ) : (
+                              <>
+                                Trocar para {p.name}
+                                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
