@@ -160,7 +160,7 @@ const ResetPassword = () => {
         <p className="text-muted-foreground mb-8 text-center">
           {validLink
             ? "Escolha uma nova senha para sua conta."
-            : "Link inválido ou expirado. Solicite um novo email de recuperação."}
+            : errorReason || "Não foi possível validar o link de recuperação."}
         </p>
 
         {validLink ? (
