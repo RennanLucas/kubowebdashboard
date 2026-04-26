@@ -134,19 +134,29 @@ const ResetPassword = () => {
     };
   }, []);
 
+  // Validações em tempo real
+  const checks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      letter: /[A-Za-z]/.test(password),
+      number: /[0-9]/.test(password),
+      match: password.length > 0 && password === confirm,
+    }),
+    [password, confirm]
+  );
+
+  const isFormValid = checks.length && checks.letter && checks.number && checks.match;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres.");
-      return;
-    }
-    if (password !== confirm) {
-      toast.error("As senhas não coincidem.");
+    const result = passwordSchema.safeParse({ password, confirm });
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message || "Dados inválidos.");
       return;
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({ password: result.data.password });
       if (error) throw error;
       toast.success("Senha redefinida com sucesso!");
       await supabase.auth.signOut();
@@ -157,6 +167,13 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
+
+  const Requirement = ({ ok, label }: { ok: boolean; label: string }) => (
+    <li className={cn("flex items-center gap-2 text-xs", ok ? "text-primary" : "text-muted-foreground")}>
+      {ok ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+      <span>{label}</span>
+    </li>
+  );
 
   if (!ready) {
     return (
