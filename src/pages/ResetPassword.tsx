@@ -26,6 +26,12 @@ const passwordSchema = z
     message: "As senhas não coincidem.",
   });
 
+const emailSchema = z
+  .string()
+  .trim()
+  .email({ message: "Informe um email válido." })
+  .max(255, { message: "Email muito longo." });
+
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
