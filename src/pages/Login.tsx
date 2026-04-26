@@ -10,6 +10,42 @@ import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, Trendin
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
+async function ensureConfirmationEmailSent(email: string, signupStartedAt: string) {
+  // Aguarda alguns segundos para o webhook auth-email-hook enfileirar o email.
+  // Se nada aparecer no email_send_log, reenviamos via auth.resend como fallback.
+  const maxAttempts = 3;
+  const delayMs = 2500;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((r) => setTimeout(r, delayMs));
+
+    const { data, error } = await supabase
+      .from("email_send_log")
+      .select("id, status")
+      .eq("recipient_email", email)
+      .gte("created_at", signupStartedAt)
+      .in("status", ["pending", "sent"])
+      .limit(1);
+
+    if (!error && data && data.length > 0) return; // email já enfileirado/enviado
+  }
+
+  // Fallback: reenvia explicitamente o email de confirmação
+  const { error: resendError } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
+
+  if (resendError) {
+    console.error("[signup-fallback] resend failed:", resendError);
+    toast.error("Não conseguimos confirmar o envio do email. Tente reenviar pela tela de login.");
+    return;
+  }
+
+  toast.info("Reenviamos o email de confirmação. Verifique sua caixa de entrada e a pasta de spam.");
+}
+
 const Login = () => {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
