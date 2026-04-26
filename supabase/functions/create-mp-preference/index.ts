@@ -1,5 +1,8 @@
-// Cria checkout do Mercado Pago: preferência (anual à vista) ou preapproval (mensal recorrente)
+// Cria checkout do Mercado Pago: preapproval recorrente para os planos KUBOWEB.
+// Usa a definição compartilhada em _shared/plans.ts — desabilitar um plano lá
+// automaticamente bloqueia novos checkouts dele.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPlan, type PlanId } from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,27 +12,6 @@ const corsHeaders = {
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-const PLANS = {
-  kuboweb_pro_monthly: {
-    type: "preapproval" as const,
-    reason: "KUBOWEB Pro - Mensal",
-    amount: 29.99,
-    frequency: 1,
-    frequency_type: "months",
-    free_trial: { frequency: 7, frequency_type: "days" },
-  },
-  kuboweb_pro_plus_monthly: {
-    type: "preapproval" as const,
-    reason: "KUBOWEB Pro+ - Mensal",
-    amount: 49.99,
-    frequency: 1,
-    frequency_type: "months",
-    free_trial: { frequency: 7, frequency_type: "days" },
-  },
-} as const;
-
-type PlanId = keyof typeof PLANS;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
