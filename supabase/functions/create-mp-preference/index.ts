@@ -35,9 +35,16 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const planId = body.planId as PlanId | undefined;
     const returnUrl = (body.returnUrl as string | undefined) ?? "";
-    if (!planId || !PLANS[planId]) return json({ error: "Invalid planId" }, 400);
 
-    const plan = PLANS[planId];
+    const plan = planId ? getPlan(planId) : null;
+    if (!plan) return json({ error: "Invalid planId" }, 400);
+    if (!plan.enabled) {
+      return json(
+        { error: plan.disabledReason || "Este plano não está disponível no momento." },
+        409,
+      );
+    }
+
     const baseReturn = returnUrl || `${new URL(req.url).origin}/checkout/return`;
 
     // Assinatura recorrente (cartão) com 7 dias grátis
