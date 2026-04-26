@@ -392,14 +392,34 @@ const Settings = () => {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                 <Input
                   id="leadValue"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="25,00"
                   value={form.leadValue}
-                  onChange={(e) => setForm((f) => ({ ...f, leadValue: e.target.value }))}
-                  className="h-11 pl-10"
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^\d.,]/g, "");
+                    setForm((f) => ({ ...f, leadValue: cleaned }));
+                  }}
+                  onBlur={() => {
+                    const { value } = parseLeadValue(form.leadValue);
+                    if (value !== null) {
+                      setForm((f) => ({ ...f, leadValue: value.toFixed(2).replace(".", ",") }));
+                    }
+                  }}
+                  aria-invalid={!!leadValueError}
+                  aria-describedby={leadValueError ? "leadValue-error" : undefined}
+                  className={`h-11 pl-10 ${leadValueError ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
               </div>
+              {leadValueError ? (
+                <p id="leadValue-error" className="text-xs text-destructive">
+                  {leadValueError}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Aceita vírgula ou ponto. Máx. 2 casas decimais. Mín. R$ 0,00.
+                </p>
+              )}
             </div>
           </div>
 
