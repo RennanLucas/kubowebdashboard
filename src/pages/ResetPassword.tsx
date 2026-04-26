@@ -41,6 +41,40 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const [validLink, setValidLink] = useState(false);
   const [errorReason, setErrorReason] = useState<string | null>(null);
+  const [resendOpen, setResendOpen] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Cooldown timer para evitar spam de reenvios
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((v) => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = emailSchema.safeParse(resendEmail);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || "Email inválido.");
+      return;
+    }
+    setResending(true);
+    try {
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo });
+      if (error) throw error;
+      toast.success("Enviamos um novo link de recuperação. Verifique seu email.");
+      setResendCooldown(60);
+      setResendOpen(false);
+    } catch (err: any) {
+      toast.error(mapAuthError(err?.message || "") || "Não foi possível enviar o email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
 
   // Mapeia mensagens técnicas do Supabase para mensagens amigáveis em PT-BR
   const mapAuthError = (raw: string): string => {
