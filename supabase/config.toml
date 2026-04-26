@@ -13,3 +13,5 @@ project_id = "mgiwqgmgipyysbgmhyrh"
     verify_jwt = false
   [functions.list-plans]
     verify_jwt = false
+  [functions.get-subscription-status]
+    verify_jwt = false
