@@ -192,7 +192,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {!planEnabled && planInfo && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+                  <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
                     <div className="font-medium text-foreground mb-1">Plano descontinuado</div>
                     <p className="text-muted-foreground">
                       {planInfo.disabledReason ||
