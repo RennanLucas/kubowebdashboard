@@ -511,7 +511,7 @@ const Settings = () => {
             <Button variant="outline" className="flex-1 h-11" onClick={() => navigate("/dashboard")}>
               Cancelar
             </Button>
-            <Button className="flex-1 h-11" onClick={handleSave} disabled={saving || !form.companyName.trim()}>
+            <Button className="flex-1 h-11" onClick={handleSave} disabled={saving || !form.companyName.trim() || !!leadValueError}>
               {saving ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
               ) : (
