@@ -302,9 +302,57 @@ const ResetPassword = () => {
             </Button>
           </form>
         ) : (
-          <Button className="w-full" onClick={() => navigate("/login")}>
-            Voltar para login
-          </Button>
+          <div className="space-y-3">
+            {!resendOpen ? (
+              <>
+                <Button
+                  className="w-full"
+                  onClick={() => setResendOpen(true)}
+                  disabled={resendCooldown > 0}
+                >
+                  {resendCooldown > 0
+                    ? `Aguarde ${resendCooldown}s para reenviar`
+                    : "Reenviar link de recuperação"}
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => navigate("/login")}>
+                  Voltar para login
+                </Button>
+              </>
+            ) : (
+              <form onSubmit={handleResend} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="resend-email">Seu email</Label>
+                  <Input
+                    id="resend-email"
+                    type="email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    placeholder="voce@exemplo.com"
+                    autoComplete="email"
+                    maxLength={255}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={resending}>
+                  {resending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Enviar novo link"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setResendOpen(false)}
+                  disabled={resending}
+                >
+                  Cancelar
+                </Button>
+              </form>
+            )}
+          </div>
         )}
       </div>
     </div>
