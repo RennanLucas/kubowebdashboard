@@ -17,24 +17,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlans } from "@/hooks/usePlans";
 
 type SwitchablePlanId = string;
-
-const PLAN_LABELS: Record<string, string> = {
-  kuboweb_pro_monthly: "Pro · Mensal",
-  kuboweb_pro_plus_monthly: "Pro+ · Mensal",
-  kuboweb_pro_yearly: "Pro · Anual",
-};
-
-const PLAN_PRICES: Record<string, string> = {
-  kuboweb_pro_monthly: "R$ 29,99/mês",
-  kuboweb_pro_plus_monthly: "R$ 49,99/mês",
-  kuboweb_pro_yearly: "R$ 299,90/ano",
-};
 
 const formatDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -56,34 +44,38 @@ const daysUntil = (iso: string | null) => {
 };
 
 export default function SubscriptionPage() {
-  const { subscription, loading, isActive, refresh } = useSubscription();
+  const { status, loading, refresh } = useSubscriptionStatus();
   const { plans, loading: plansLoading } = usePlans();
   const [canceling, setCanceling] = useState(false);
   const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
   const navigate = useNavigate();
 
-  const planId = (subscription as any)?.plan_id as string | undefined;
-  const planName = planId ? PLAN_LABELS[planId] ?? "Plano KUBOWEB" : "—";
-  const planPrice = planId ? PLAN_PRICES[planId] ?? "—" : "—";
+  const subscription = status?.subscription ?? null;
+  const planInfo = status?.plan ?? null;
+  const planId = planInfo?.id ?? subscription?.plan_id ?? null;
+  const planName = planInfo?.name ?? "—";
+  const planPrice = planInfo ? `${planInfo.price}${planInfo.cadence}` : "—";
+  const planEnabled = planInfo?.enabled ?? true;
 
-  const status = subscription?.status ?? null;
-  const willCancel = !!subscription?.cancel_at_period_end;
-  const trialing = status === "trialing" ||
-    (subscription?.trial_end && new Date(subscription.trial_end) > new Date());
+  const isActive = !!status?.isActive;
+  const willCancel = !!status?.willCancel;
+  const trialing = !!status?.isTrialing;
+  const subStatus = subscription?.status ?? null;
 
   const statusBadge = useMemo(() => {
     if (!subscription) return { label: "Sem assinatura", variant: "secondary" as const, icon: XCircle };
     if (willCancel) return { label: "Cancelamento agendado", variant: "secondary" as const, icon: CalendarClock };
     if (trialing) return { label: "Período de teste", variant: "default" as const, icon: ShieldAlert };
     if (isActive) return { label: "Ativa", variant: "default" as const, icon: CheckCircle2 };
-    if (["canceled", "cancelled"].includes(status ?? "")) {
+    if (["canceled", "cancelled"].includes(subStatus ?? "")) {
       return { label: "Cancelada", variant: "destructive" as const, icon: XCircle };
     }
-    return { label: status ?? "—", variant: "secondary" as const, icon: ShieldAlert };
-  }, [subscription, isActive, willCancel, trialing, status]);
+    return { label: subStatus ?? "—", variant: "secondary" as const, icon: ShieldAlert };
+  }, [subscription, isActive, willCancel, trialing, subStatus]);
 
   const StatusIcon = statusBadge.icon;
-  const nextChargeDays = daysUntil(subscription?.current_period_end ?? null);
+  const referenceDate = status?.nextChargeAt ?? status?.accessUntil ?? subscription?.current_period_end ?? null;
+  const nextChargeDays = daysUntil(referenceDate);
 
   const handleCancel = async () => {
     setCanceling(true);
