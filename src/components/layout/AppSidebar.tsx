@@ -30,7 +30,7 @@ const mainItems = [
 
 const accountItems = [
   { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
-  { title: "Assinatura", url: "/pricing", icon: CreditCard, tour: "sidebar-pricing" },
+  { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
 ];
 
