@@ -20,8 +20,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePlans } from "@/hooks/usePlans";
 
-type SwitchablePlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
+type SwitchablePlanId = string;
 
 const PLAN_LABELS: Record<string, string> = {
   kuboweb_pro_monthly: "Pro · Mensal",
@@ -34,26 +35,6 @@ const PLAN_PRICES: Record<string, string> = {
   kuboweb_pro_plus_monthly: "R$ 49,99/mês",
   kuboweb_pro_yearly: "R$ 299,90/ano",
 };
-
-const SWITCHABLE_PLANS: Array<{
-  id: SwitchablePlanId;
-  name: string;
-  price: string;
-  highlight: string;
-}> = [
-  {
-    id: "kuboweb_pro_monthly",
-    name: "Pro",
-    price: "R$ 29,99/mês",
-    highlight: "3 projetos · 3 resumos IA/mês",
-  },
-  {
-    id: "kuboweb_pro_plus_monthly",
-    name: "Pro+",
-    price: "R$ 49,99/mês",
-    highlight: "Projetos ilimitados · 6 resumos IA · alertas",
-  },
-];
 
 const formatDate = (iso: string | null) => {
   if (!iso) return "—";
