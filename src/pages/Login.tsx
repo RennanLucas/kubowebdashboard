@@ -43,6 +43,7 @@ const Login = () => {
 
     try {
       if (isSignUp) {
+        const signupStartedAt = new Date().toISOString();
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -58,6 +59,9 @@ const Login = () => {
         }
 
         toast.success("Conta criada! Verifique seu email para confirmar a conta.");
+
+        // Fallback: se o webhook não disparar o email em ~6s, reenviamos via auth.resend
+        ensureConfirmationEmailSent(email, signupStartedAt);
         return;
       }
 
