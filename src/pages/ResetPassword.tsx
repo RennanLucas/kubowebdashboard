@@ -1,12 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
+
+// Schema de validação da nova senha
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "A senha deve ter no mínimo 8 caracteres." })
+      .max(72, { message: "A senha deve ter no máximo 72 caracteres." })
+      .regex(/[A-Za-z]/, { message: "Inclua pelo menos uma letra." })
+      .regex(/[0-9]/, { message: "Inclua pelo menos um número." }),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    path: ["confirm"],
+    message: "As senhas não coincidem.",
+  });
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -116,19 +134,29 @@ const ResetPassword = () => {
     };
   }, []);
 
+  // Validações em tempo real
+  const checks = useMemo(
+    () => ({
+      length: password.length >= 8,
+      letter: /[A-Za-z]/.test(password),
+      number: /[0-9]/.test(password),
+      match: password.length > 0 && password === confirm,
+    }),
+    [password, confirm]
+  );
+
+  const isFormValid = checks.length && checks.letter && checks.number && checks.match;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres.");
-      return;
-    }
-    if (password !== confirm) {
-      toast.error("As senhas não coincidem.");
+    const result = passwordSchema.safeParse({ password, confirm });
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message || "Dados inválidos.");
       return;
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({ password: result.data.password });
       if (error) throw error;
       toast.success("Senha redefinida com sucesso!");
       await supabase.auth.signOut();
@@ -139,6 +167,13 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
+
+  const Requirement = ({ ok, label }: { ok: boolean; label: string }) => (
+    <li className={cn("flex items-center gap-2 text-xs", ok ? "text-primary" : "text-muted-foreground")}>
+      {ok ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+      <span>{label}</span>
+    </li>
+  );
 
   if (!ready) {
     return (
@@ -174,17 +209,25 @@ const ResetPassword = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  maxLength={72}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
+                  aria-label={show ? "Ocultar senha" : "Mostrar senha"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <ul className="mt-2 space-y-1">
+                <Requirement ok={checks.length} label="Mínimo de 8 caracteres" />
+                <Requirement ok={checks.letter} label="Pelo menos uma letra" />
+                <Requirement ok={checks.number} label="Pelo menos um número" />
+              </ul>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirmar nova senha</Label>
@@ -194,11 +237,20 @@ const ResetPassword = () => {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
+                maxLength={72}
+                autoComplete="new-password"
                 placeholder="••••••••"
+                aria-invalid={confirm.length > 0 && !checks.match}
+                className={cn(
+                  confirm.length > 0 && !checks.match && "border-destructive focus-visible:ring-destructive"
+                )}
               />
+              {confirm.length > 0 && !checks.match && (
+                <p className="text-xs text-destructive">As senhas não coincidem.</p>
+              )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !isFormValid}>
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
