@@ -4,73 +4,22 @@ import { Check, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePlans } from "@/hooks/usePlans";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const baseFeatures = [
-  "Rastreamento ilimitado de visitantes",
-  "Conversões: WhatsApp, formulários e botões",
-  "Visitantes em tempo real",
-  "Geolocalização e dispositivos",
-  "Relatórios em PDF sob demanda",
-  "Até 3 projetos / sites",
-  "Histórico de 3 meses",
-  "3 resumos com IA por mês",
-];
-
-const proPlusFeatures = [
-  "Tudo do plano Pro, e mais:",
-  "6 resumos com IA por mês (o dobro)",
-  "Alertas inteligentes por email (quedas e metas)",
-  "Projetos / sites ilimitados",
-  "Histórico estendido de 12 meses",
-  "Suporte prioritário",
-];
-
-type PlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
-
-const plans: Array<{
-  id: PlanId;
-  name: string;
-  price: string;
-  cadence: string;
-  highlight: string;
-  note: string;
-  cta: string;
-  features: string[];
-  recommended?: boolean;
-}> = [
-  {
-    id: "kuboweb_pro_monthly",
-    name: "Pro",
-    price: "R$ 29,99",
-    cadence: "/mês",
-    highlight: "7 dias grátis · cancele a qualquer momento",
-    note: "Cobrança recorrente no cartão. Após os 7 dias grátis, R$ 29,99/mês até cancelar.",
-    cta: "Começar 7 dias grátis",
-    features: baseFeatures,
-  },
-  {
-    id: "kuboweb_pro_plus_monthly",
-    name: "Pro+",
-    price: "R$ 49,99",
-    cadence: "/mês",
-    highlight: "7 dias grátis · tudo incluso, sem limites",
-    note: "Cobrança recorrente no cartão. Após os 7 dias grátis, R$ 49,99/mês até cancelar.",
-    cta: "Começar 7 dias grátis",
-    features: proPlusFeatures,
-    recommended: true,
-  },
-];
-
 export default function Pricing() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isActive, loading: subLoading } = useSubscription();
+  const { isActive, subscription, loading: subLoading } = useSubscription();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
-  const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
+  const { plans, loading: plansLoading, error: plansError } = usePlans();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const currentPlanId = (subscription as any)?.plan_id as string | undefined;
 
   const handleSignOut = async () => {
     await signOut();
@@ -88,7 +37,7 @@ export default function Pricing() {
   if (!user) return <Navigate to="/login" replace />;
   if (isActive && !isAdmin) return <Navigate to="/dashboard" replace />;
 
-  const handleCheckout = async (planId: PlanId) => {
+  const handleCheckout = async (planId: string) => {
     setLoadingPlan(planId);
     try {
       const { data, error } = await supabase.functions.invoke("create-mp-preference", {
