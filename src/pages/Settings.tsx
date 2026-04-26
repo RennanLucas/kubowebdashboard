@@ -129,6 +129,49 @@ const LeadValueSuggester = ({ onApply }: { onApply: (value: string) => void }) =
   );
 };
 
+// Maximum sane lead value (R$ 1.000.000) — guards against typos / abuse
+const MAX_LEAD_VALUE = 1_000_000;
+
+/**
+ * Parse a lead value string accepting both "," and "." as decimal separator.
+ * Returns { value, error }. value is rounded to 2 decimal places.
+ */
+const parseLeadValue = (raw: string): { value: number | null; error: string | null } => {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return { value: null, error: "Informe um valor por lead" };
+
+  // Reject anything that isn't digits, comma, dot or a leading minus
+  if (!/^-?[\d.,]+$/.test(trimmed)) {
+    return { value: null, error: "Use apenas números, vírgula ou ponto" };
+  }
+
+  // Normalize: remove thousands separators, accept comma as decimal
+  // Strategy: keep only the LAST separator as the decimal point
+  const lastComma = trimmed.lastIndexOf(",");
+  const lastDot = trimmed.lastIndexOf(".");
+  const decimalPos = Math.max(lastComma, lastDot);
+
+  let normalized: string;
+  if (decimalPos === -1) {
+    normalized = trimmed;
+  } else {
+    const intPart = trimmed.slice(0, decimalPos).replace(/[.,]/g, "");
+    const decPart = trimmed.slice(decimalPos + 1);
+    normalized = `${intPart}.${decPart}`;
+  }
+
+  const num = Number(normalized);
+  if (!Number.isFinite(num)) return { value: null, error: "Valor inválido" };
+  if (num < 0) return { value: null, error: "O valor não pode ser negativo" };
+  if (num > MAX_LEAD_VALUE) {
+    return { value: null, error: `O valor máximo é R$ ${MAX_LEAD_VALUE.toLocaleString("pt-BR")}` };
+  }
+
+  // Limit to 2 decimal places
+  const rounded = Math.round(num * 100) / 100;
+  return { value: rounded, error: null };
+};
+
 const Settings = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -153,14 +196,18 @@ const Settings = () => {
     }
   }, [clientData]);
 
+  // Live validation of leadValue
+  const leadValidation = parseLeadValue(form.leadValue);
+  const leadValueError = leadValidation.error;
+
   const handleSave = async () => {
     setSaving(true);
     try {
       if (!clientData) return;
 
-      const leadVal = parseFloat(form.leadValue);
-      if (isNaN(leadVal) || leadVal < 0) {
-        toast.error("Valor por lead inválido");
+      const { value: leadVal, error: leadErr } = parseLeadValue(form.leadValue);
+      if (leadErr || leadVal === null) {
+        toast.error(leadErr ?? "Valor por lead inválido");
         setSaving(false);
         return;
       }
@@ -345,14 +392,34 @@ const Settings = () => {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                 <Input
                   id="leadValue"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="25,00"
                   value={form.leadValue}
-                  onChange={(e) => setForm((f) => ({ ...f, leadValue: e.target.value }))}
-                  className="h-11 pl-10"
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^\d.,]/g, "");
+                    setForm((f) => ({ ...f, leadValue: cleaned }));
+                  }}
+                  onBlur={() => {
+                    const { value } = parseLeadValue(form.leadValue);
+                    if (value !== null) {
+                      setForm((f) => ({ ...f, leadValue: value.toFixed(2).replace(".", ",") }));
+                    }
+                  }}
+                  aria-invalid={!!leadValueError}
+                  aria-describedby={leadValueError ? "leadValue-error" : undefined}
+                  className={`h-11 pl-10 ${leadValueError ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
               </div>
+              {leadValueError ? (
+                <p id="leadValue-error" className="text-xs text-destructive">
+                  {leadValueError}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Aceita vírgula ou ponto. Máx. 2 casas decimais. Mín. R$ 0,00.
+                </p>
+              )}
             </div>
           </div>
 
@@ -444,7 +511,7 @@ const Settings = () => {
             <Button variant="outline" className="flex-1 h-11" onClick={() => navigate("/dashboard")}>
               Cancelar
             </Button>
-            <Button className="flex-1 h-11" onClick={handleSave} disabled={saving || !form.companyName.trim()}>
+            <Button className="flex-1 h-11" onClick={handleSave} disabled={saving || !form.companyName.trim() || !!leadValueError}>
               {saving ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
               ) : (
