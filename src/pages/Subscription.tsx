@@ -176,7 +176,7 @@ export default function SubscriptionPage() {
                 </div>
 
                 {willCancel && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
                     <div className="font-medium text-foreground mb-1">Cancelamento agendado</div>
                     <p className="text-muted-foreground">
                       Sua assinatura foi cancelada e não será renovada. Você continua com acesso
