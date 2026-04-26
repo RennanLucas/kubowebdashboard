@@ -170,9 +170,7 @@ export default function SubscriptionPage() {
                       {willCancel ? "Acesso até" : trialing ? "Fim do período de teste" : "Próxima cobrança"}
                     </div>
                     <div className="text-lg font-semibold text-foreground">
-                      {formatDate(
-                        (trialing && subscription.trial_end) || subscription.current_period_end,
-                      )}
+                      {formatDate(referenceDate)}
                     </div>
                     {nextChargeDays !== null && nextChargeDays >= 0 && (
                       <div className="text-xs text-muted-foreground mt-1">
@@ -193,6 +191,16 @@ export default function SubscriptionPage() {
                   </div>
                 </div>
 
+                {!planEnabled && planInfo && (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+                    <div className="font-medium text-foreground mb-1">Plano descontinuado</div>
+                    <p className="text-muted-foreground">
+                      {planInfo.disabledReason ||
+                        "Este plano não está mais disponível para novas assinaturas. Seu acesso atual é mantido — escolha outro plano abaixo quando quiser trocar."}
+                    </p>
+                  </div>
+                )}
+
                 {willCancel && (
                   <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
                     <div className="font-medium text-foreground mb-1">Cancelamento agendado</div>
@@ -200,7 +208,7 @@ export default function SubscriptionPage() {
                       Sua assinatura foi cancelada e não será renovada. Você continua com acesso
                       completo até{" "}
                       <span className="text-foreground font-medium">
-                        {formatDate(subscription.current_period_end)}
+                        {formatDate(status?.accessUntil ?? subscription.current_period_end)}
                       </span>
                       .
                     </p>
