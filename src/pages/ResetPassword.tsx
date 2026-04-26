@@ -16,6 +16,27 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [validLink, setValidLink] = useState(false);
+  const [errorReason, setErrorReason] = useState<string | null>(null);
+
+  // Mapeia mensagens técnicas do Supabase para mensagens amigáveis em PT-BR
+  const mapAuthError = (raw: string): string => {
+    const msg = (raw || "").toLowerCase();
+    if (msg.includes("expired") || msg.includes("expirou"))
+      return "Este link de recuperação expirou. Solicite um novo email para redefinir sua senha.";
+    if (msg.includes("invalid") && (msg.includes("code") || msg.includes("token") || msg.includes("grant")))
+      return "Código de recuperação inválido. O link pode já ter sido usado. Solicite um novo email.";
+    if (msg.includes("already") && msg.includes("used"))
+      return "Este link já foi utilizado. Solicite um novo email de recuperação.";
+    if (msg.includes("otp") && msg.includes("expired"))
+      return "O código de verificação expirou. Solicite um novo email de recuperação.";
+    if (msg.includes("rate") || msg.includes("too many"))
+      return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    if (msg.includes("network") || msg.includes("failed to fetch"))
+      return "Erro de conexão. Verifique sua internet e tente novamente.";
+    if (msg.includes("flow_state") || msg.includes("pkce"))
+      return "Sessão de recuperação não encontrada. O link pode ter sido aberto em outro navegador. Abra o link diretamente do email neste mesmo dispositivo.";
+    return raw || "Não foi possível validar o link de recuperação.";
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -23,11 +44,16 @@ const ResetPassword = () => {
     const markValid = () => {
       if (!cancelled) {
         setValidLink(true);
+        setErrorReason(null);
         setReady(true);
       }
     };
-    const finish = () => {
-      if (!cancelled) setReady(true);
+    const failWith = (reason: string) => {
+      if (!cancelled) {
+        setErrorReason(reason);
+        setValidLink(false);
+        setReady(true);
+      }
     };
 
     // 1) Listener para PASSWORD_RECOVERY (formato hash legado)
@@ -39,12 +65,21 @@ const ResetPassword = () => {
     // 2) Trata o formato novo (PKCE): ?code=...
     const url = new URL(window.location.href);
     const code = url.searchParams.get("code");
+    const errParam = url.searchParams.get("error_description") || url.searchParams.get("error");
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const hashErr = hashParams.get("error_description") || hashParams.get("error");
     const hasRecoveryHash =
       window.location.hash.includes("type=recovery") ||
       window.location.hash.includes("access_token");
 
     (async () => {
       try {
+        // Erro vindo direto do Supabase na URL
+        if (errParam || hashErr) {
+          failWith(mapAuthError(decodeURIComponent(errParam || hashErr || "")));
+          return;
+        }
+
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
@@ -60,10 +95,18 @@ const ResetPassword = () => {
         }
 
         // Pequeno delay para o listener disparar antes de declarar inválido
-        setTimeout(() => finish(), 800);
-      } catch (err) {
+        setTimeout(() => {
+          if (!cancelled && !validLink) {
+            failWith(
+              !code && !hasRecoveryHash
+                ? "Link de recuperação ausente ou incompleto. Acesse a página através do link recebido por email."
+                : "Não foi possível validar o link de recuperação. Ele pode ter expirado ou já ter sido usado."
+            );
+          }
+        }, 800);
+      } catch (err: any) {
         console.error("[reset-password] code exchange failed:", err);
-        finish();
+        failWith(mapAuthError(err?.message || ""));
       }
     })();
 
@@ -91,7 +134,7 @@ const ResetPassword = () => {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Não foi possível redefinir a senha.");
+      toast.error(mapAuthError(err?.message || "") || "Não foi possível redefinir a senha.");
     } finally {
       setLoading(false);
     }
@@ -117,7 +160,7 @@ const ResetPassword = () => {
         <p className="text-muted-foreground mb-8 text-center">
           {validLink
             ? "Escolha uma nova senha para sua conta."
-            : "Link inválido ou expirado. Solicite um novo email de recuperação."}
+            : errorReason || "Não foi possível validar o link de recuperação."}
         </p>
 
         {validLink ? (
