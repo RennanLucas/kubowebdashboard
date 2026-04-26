@@ -52,9 +52,23 @@ export default function SubscriptionPage() {
 
   const subscription = status?.subscription ?? null;
   const planInfo = status?.plan ?? null;
-  const planId = planInfo?.id ?? subscription?.plan_id ?? null;
-  const planName = planInfo?.name ?? "—";
-  const planPrice = planInfo ? `${planInfo.price}${planInfo.cadence}` : "—";
+  // Fallback: se plan_id estiver vazio, infere o plano pelo valor (amount) cobrado.
+  const inferredPlanId = (() => {
+    if (planInfo?.id) return planInfo.id;
+    if (subscription?.plan_id) return subscription.plan_id;
+    const amount = subscription?.amount;
+    if (amount == null) return null;
+    const match = plans.find((p) => Math.abs(p.amount - Number(amount)) < 0.01);
+    return match?.id ?? null;
+  })();
+  const planId = inferredPlanId;
+  const planName = planInfo?.name ?? plans.find((p) => p.id === planId)?.name ?? "—";
+  const planPrice = planInfo
+    ? `${planInfo.price}${planInfo.cadence}`
+    : (() => {
+        const fallback = plans.find((p) => p.id === planId);
+        return fallback ? `${fallback.price}${fallback.cadence}` : "—";
+      })();
   const planEnabled = planInfo?.enabled ?? true;
 
   const isActive = !!status?.isActive;
