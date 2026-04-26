@@ -21,6 +21,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type SwitchablePlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
+
 const PLAN_LABELS: Record<string, string> = {
   kuboweb_pro_monthly: "Pro · Mensal",
   kuboweb_pro_plus_monthly: "Pro+ · Mensal",
@@ -32,6 +34,26 @@ const PLAN_PRICES: Record<string, string> = {
   kuboweb_pro_plus_monthly: "R$ 49,99/mês",
   kuboweb_pro_yearly: "R$ 299,90/ano",
 };
+
+const SWITCHABLE_PLANS: Array<{
+  id: SwitchablePlanId;
+  name: string;
+  price: string;
+  highlight: string;
+}> = [
+  {
+    id: "kuboweb_pro_monthly",
+    name: "Pro",
+    price: "R$ 29,99/mês",
+    highlight: "3 projetos · 3 resumos IA/mês",
+  },
+  {
+    id: "kuboweb_pro_plus_monthly",
+    name: "Pro+",
+    price: "R$ 49,99/mês",
+    highlight: "Projetos ilimitados · 6 resumos IA · alertas",
+  },
+];
 
 const formatDate = (iso: string | null) => {
   if (!iso) return "—";
@@ -55,6 +77,7 @@ const daysUntil = (iso: string | null) => {
 export default function SubscriptionPage() {
   const { subscription, loading, isActive, refresh } = useSubscription();
   const [canceling, setCanceling] = useState(false);
+  const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
   const navigate = useNavigate();
 
   const planId = (subscription as any)?.plan_id as string | undefined;
@@ -94,6 +117,27 @@ export default function SubscriptionPage() {
       toast.error((e as Error).message || "Não foi possível cancelar agora");
     } finally {
       setCanceling(false);
+    }
+  };
+
+  const handleSwitchPlan = async (newPlanId: SwitchablePlanId) => {
+    setSwitchingTo(newPlanId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-mp-preference", {
+        body: {
+          planId: newPlanId,
+          returnUrl: `${window.location.origin}/checkout/return?switched=1`,
+        },
+      });
+      if (error) throw new Error(error.message);
+      const url = (data as any)?.url;
+      if (!url) throw new Error((data as any)?.error || "Falha ao gerar checkout");
+      // Redireciona ao checkout do Mercado Pago.
+      // O backend já preserva o usuário em external_reference: `${userId}|${planId}`.
+      window.location.href = url;
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível trocar de plano agora");
+      setSwitchingTo(null);
     }
   };
 
@@ -203,14 +247,10 @@ export default function SubscriptionPage() {
                 )}
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button onClick={() => navigate("/pricing")}>
-                    Trocar de plano
-                  </Button>
-
                   {!willCancel && isActive && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" disabled={canceling}>
+                        <Button variant="outline" disabled={canceling || !!switchingTo}>
                           {canceling ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -241,6 +281,64 @@ export default function SubscriptionPage() {
                       </AlertDialogContent>
                     </AlertDialog>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Trocar de plano</CardTitle>
+                <CardDescription>
+                  Você será redirecionado para o checkout seguro do Mercado Pago. Sua conta atual
+                  será mantida e o novo plano substituirá o atual após a confirmação do pagamento.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {SWITCHABLE_PLANS.map((p) => {
+                    const isCurrent = planId === p.id;
+                    const isLoading = switchingTo === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        className={`rounded-lg border p-4 flex flex-col gap-2 ${
+                          isCurrent ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold text-foreground">{p.name}</div>
+                          {isCurrent && (
+                            <Badge variant="secondary" className="text-[10px]">
+                              Plano atual
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-foreground">{p.price}</div>
+                        <div className="text-xs text-muted-foreground">{p.highlight}</div>
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "outline" : "default"}
+                          className="mt-2"
+                          disabled={isCurrent || !!switchingTo || canceling}
+                          onClick={() => handleSwitchPlan(p.id)}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Redirecionando...
+                            </>
+                          ) : isCurrent ? (
+                            "Plano atual"
+                          ) : (
+                            <>
+                              Trocar para {p.name}
+                              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
