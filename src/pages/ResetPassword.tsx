@@ -26,6 +26,12 @@ const passwordSchema = z
     message: "As senhas não coincidem.",
   });
 
+const emailSchema = z
+  .string()
+  .trim()
+  .email({ message: "Informe um email válido." })
+  .max(255, { message: "Email muito longo." });
+
 const ResetPassword = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
@@ -35,6 +41,40 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const [validLink, setValidLink] = useState(false);
   const [errorReason, setErrorReason] = useState<string | null>(null);
+  const [resendOpen, setResendOpen] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Cooldown timer para evitar spam de reenvios
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((v) => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = emailSchema.safeParse(resendEmail);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || "Email inválido.");
+      return;
+    }
+    setResending(true);
+    try {
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo });
+      if (error) throw error;
+      toast.success("Enviamos um novo link de recuperação. Verifique seu email.");
+      setResendCooldown(60);
+      setResendOpen(false);
+    } catch (err: any) {
+      toast.error(mapAuthError(err?.message || "") || "Não foi possível enviar o email.");
+    } finally {
+      setResending(false);
+    }
+  };
+
 
   // Mapeia mensagens técnicas do Supabase para mensagens amigáveis em PT-BR
   const mapAuthError = (raw: string): string => {
@@ -262,9 +302,57 @@ const ResetPassword = () => {
             </Button>
           </form>
         ) : (
-          <Button className="w-full" onClick={() => navigate("/login")}>
-            Voltar para login
-          </Button>
+          <div className="space-y-3">
+            {!resendOpen ? (
+              <>
+                <Button
+                  className="w-full"
+                  onClick={() => setResendOpen(true)}
+                  disabled={resendCooldown > 0}
+                >
+                  {resendCooldown > 0
+                    ? `Aguarde ${resendCooldown}s para reenviar`
+                    : "Reenviar link de recuperação"}
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => navigate("/login")}>
+                  Voltar para login
+                </Button>
+              </>
+            ) : (
+              <form onSubmit={handleResend} className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="resend-email">Seu email</Label>
+                  <Input
+                    id="resend-email"
+                    type="email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    placeholder="voce@exemplo.com"
+                    autoComplete="email"
+                    maxLength={255}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={resending}>
+                  {resending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Enviar novo link"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setResendOpen(false)}
+                  disabled={resending}
+                >
+                  Cancelar
+                </Button>
+              </form>
+            )}
+          </div>
         )}
       </div>
     </div>
