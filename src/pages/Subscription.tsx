@@ -77,6 +77,7 @@ const daysUntil = (iso: string | null) => {
 export default function SubscriptionPage() {
   const { subscription, loading, isActive, refresh } = useSubscription();
   const [canceling, setCanceling] = useState(false);
+  const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
   const navigate = useNavigate();
 
   const planId = (subscription as any)?.plan_id as string | undefined;
@@ -116,6 +117,27 @@ export default function SubscriptionPage() {
       toast.error((e as Error).message || "Não foi possível cancelar agora");
     } finally {
       setCanceling(false);
+    }
+  };
+
+  const handleSwitchPlan = async (newPlanId: SwitchablePlanId) => {
+    setSwitchingTo(newPlanId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-mp-preference", {
+        body: {
+          planId: newPlanId,
+          returnUrl: `${window.location.origin}/checkout/return?switched=1`,
+        },
+      });
+      if (error) throw new Error(error.message);
+      const url = (data as any)?.url;
+      if (!url) throw new Error((data as any)?.error || "Falha ao gerar checkout");
+      // Redireciona ao checkout do Mercado Pago.
+      // O backend já preserva o usuário em external_reference: `${userId}|${planId}`.
+      window.location.href = url;
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível trocar de plano agora");
+      setSwitchingTo(null);
     }
   };
 
