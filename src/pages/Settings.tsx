@@ -196,14 +196,18 @@ const Settings = () => {
     }
   }, [clientData]);
 
+  // Live validation of leadValue
+  const leadValidation = parseLeadValue(form.leadValue);
+  const leadValueError = leadValidation.error;
+
   const handleSave = async () => {
     setSaving(true);
     try {
       if (!clientData) return;
 
-      const leadVal = parseFloat(form.leadValue);
-      if (isNaN(leadVal) || leadVal < 0) {
-        toast.error("Valor por lead inválido");
+      const { value: leadVal, error: leadErr } = parseLeadValue(form.leadValue);
+      if (leadErr || leadVal === null) {
+        toast.error(leadErr ?? "Valor por lead inválido");
         setSaving(false);
         return;
       }
