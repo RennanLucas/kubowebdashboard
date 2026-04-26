@@ -56,7 +56,6 @@ const daysUntil = (iso: string | null) => {
 };
 
 export default function SubscriptionPage() {
-export default function SubscriptionPage() {
   const { subscription, loading, isActive, refresh } = useSubscription();
   const { plans, loading: plansLoading } = usePlans();
   const [canceling, setCanceling] = useState(false);
