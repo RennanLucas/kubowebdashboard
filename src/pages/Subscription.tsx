@@ -282,67 +282,67 @@ export default function SubscriptionPage() {
                       <Skeleton key={i} className="h-32 w-full rounded-lg" />
                     ))}
                   </div>
-                ) : plans.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
-                    Nenhum plano disponível no momento.
-                  </div>
-                ) : (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {plans.map((p) => {
-                      const isCurrent = planId === p.id;
-                      const isLoading = switchingTo === p.id;
-                      const isDisabled = !p.enabled || isCurrent;
-                      return (
-                        <div
-                          key={p.id}
-                          className={`rounded-lg border p-4 flex flex-col gap-2 ${
-                            isCurrent ? "border-primary/40 bg-primary/5" : "border-border bg-card"
-                          } ${!p.enabled ? "opacity-70" : ""}`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="font-semibold text-foreground">{p.name}</div>
-                            {isCurrent ? (
-                              <Badge variant="secondary" className="text-[10px]">
-                                Plano atual
-                              </Badge>
-                            ) : !p.enabled ? (
-                              <Badge variant="secondary" className="text-[10px]">
-                                Indisponível
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <div className="text-sm text-foreground">
-                            {p.price}
-                            <span className="text-muted-foreground">{p.cadence}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">{p.highlight}</div>
-                          <Button
-                            size="sm"
-                            variant={isCurrent ? "outline" : "default"}
-                            className="mt-2"
-                            disabled={isDisabled || !!switchingTo || canceling}
-                            onClick={() => handleSwitchPlan(p.id)}
+                ) : (() => {
+                  const otherPlans = plans.filter((p) => p.id !== planId);
+                  if (otherPlans.length === 0) {
+                    return (
+                      <div className="text-sm text-muted-foreground">
+                        Não há outros planos disponíveis no momento.
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className={`grid gap-3 ${otherPlans.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                      {otherPlans.map((p) => {
+                        const isLoading = switchingTo === p.id;
+                        const isDisabled = !p.enabled;
+                        return (
+                          <div
+                            key={p.id}
+                            className={`rounded-lg border p-4 flex flex-col gap-2 border-border bg-card ${
+                              !p.enabled ? "opacity-70" : ""
+                            }`}
                           >
-                            {isLoading ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Redirecionando...
-                              </>
-                            ) : isCurrent ? (
-                              "Plano atual"
-                            ) : !p.enabled ? (
-                              p.disabledReason || "Indisponível"
-                            ) : (
-                              <>
-                                Trocar para {p.name}
-                                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <div className="flex items-center justify-between">
+                              <div className="font-semibold text-foreground">{p.name}</div>
+                              {!p.enabled ? (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  Indisponível
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <div className="text-sm text-foreground">
+                              {p.price}
+                              <span className="text-muted-foreground">{p.cadence}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">{p.highlight}</div>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="mt-2"
+                              disabled={isDisabled || !!switchingTo || canceling}
+                              onClick={() => handleSwitchPlan(p.id)}
+                            >
+                              {isLoading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Redirecionando...
+                                </>
+                              ) : !p.enabled ? (
+                                p.disabledReason || "Indisponível"
+                              ) : (
+                                <>
+                                  Trocar para {p.name}
+                                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
                 )}
               </CardContent>
             </Card>
