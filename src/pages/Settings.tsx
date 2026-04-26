@@ -190,22 +190,52 @@ const Settings = () => {
           <div className="glass-card rounded-xl p-6 space-y-4">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" /> Valor por Lead
-              <HelpTip text="Quanto vale, em média, cada lead gerado pelo seu site. O dashboard multiplica esse valor pela quantidade de conversões (cliques no WhatsApp + envios de formulário) para calcular o Valor Estimado." />
+              <HelpTip text="Quanto vale, em média, cada lead gerado pelo seu site. O dashboard multiplica esse valor pela quantidade de conversões para calcular o Valor Estimado." />
             </h2>
             <p className="text-sm text-muted-foreground">
-              Defina quanto vale cada lead gerado (clique no WhatsApp ou envio de formulário). Esse valor é usado para calcular o "Valor Estimado" no dashboard.
+              Diga ao sistema <span className="font-medium text-foreground">quanto vale, em média, um lead para o seu negócio</span>. Com isso, conseguimos transformar suas conversões em <span className="font-medium text-foreground">receita potencial</span> no dashboard.
             </p>
-            <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-2 text-sm">
-              <p className="font-medium text-foreground">Como funciona?</p>
-              <p className="text-muted-foreground leading-relaxed">
-                Cada conversão do seu site (clique no WhatsApp, envio de formulário ou clique em botão de contato) é contada como <span className="font-medium text-foreground">1 lead</span>. O dashboard multiplica a quantidade de leads pelo valor definido aqui para mostrar o <span className="font-medium text-foreground">"Valor Estimado"</span> gerado pelo site.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Exemplo:</span> R$ 25 por lead × 40 conversões no mês = <span className="font-medium text-foreground">R$ 1.000,00</span> de valor estimado.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Dica:</span> use o seu ticket médio multiplicado pela taxa de fechamento de leads (ex.: ticket de R$ 500 × 5% de fechamento = R$ 25 por lead).
-              </p>
+
+            <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-3 text-sm">
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">O que é um lead?</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  É qualquer pessoa que demonstrou interesse no seu site: clicou no botão do <span className="font-medium text-foreground">WhatsApp</span>, enviou um <span className="font-medium text-foreground">formulário</span> de contato ou clicou em um botão de <span className="font-medium text-foreground">contato/orçamento</span>. Cada uma dessas ações conta como <span className="font-medium text-foreground">1 lead</span>.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">Como o cálculo funciona?</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  <span className="font-mono text-foreground">Valor Estimado = nº de leads × valor por lead</span>
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  <span className="font-medium text-foreground">Exemplo:</span> R$ 25 por lead × 40 leads no mês = <span className="font-medium text-foreground">R$ 1.000,00</span> de receita potencial gerada pelo site.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">Como descobrir o valor ideal?</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Use a fórmula: <span className="font-mono text-foreground">ticket médio × taxa de fechamento</span>.
+                  <br />
+                  Ex.: vende um serviço de R$ 500 e fecha 1 a cada 20 leads (5%) → R$ 500 × 5% = <span className="font-medium text-foreground">R$ 25 por lead</span>.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">Referências por tipo de negócio</p>
+                <ul className="text-muted-foreground leading-relaxed list-disc pl-5 space-y-0.5">
+                  <li>Advocacia / consultoria: <span className="font-medium text-foreground">R$ 200 – R$ 800</span></li>
+                  <li>Imobiliária / construção: <span className="font-medium text-foreground">R$ 500 – R$ 2.000</span></li>
+                  <li>Estética / saúde: <span className="font-medium text-foreground">R$ 80 – R$ 300</span></li>
+                  <li>E-commerce / varejo: <span className="font-medium text-foreground">R$ 30 – R$ 100</span></li>
+                  <li>Infoprodutos / cursos: <span className="font-medium text-foreground">R$ 20 – R$ 80</span></li>
+                </ul>
+                <p className="text-xs text-muted-foreground/80 italic pt-1">
+                  São apenas referências. Ajuste com base no seu próprio histórico de vendas.
+                </p>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="leadValue" className="flex items-center gap-2">
