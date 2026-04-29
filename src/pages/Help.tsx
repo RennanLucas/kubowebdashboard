@@ -25,6 +25,66 @@ interface Section {
 
 const sections: Section[] = [
   {
+    title: "Funcionalidades da plataforma",
+    items: [
+      {
+        term: "Dashboard",
+        description:
+          "Visão geral do desempenho do seu site: KPIs principais (visitantes, leads, conversão, valor estimado), gráficos de evolução, funil de conversão, origens de tráfego, páginas mais acessadas e geolocalização. Permite filtrar por período e por projeto.",
+      },
+      {
+        term: "Live",
+        description:
+          "Monitoramento em tempo real de quem está navegando no seu site agora: visitantes ativos, páginas sendo vistas, origem do tráfego e localização. Atualiza automaticamente a cada poucos segundos.",
+      },
+      {
+        term: "IA / Insights",
+        description:
+          "Análises automáticas geradas por inteligência artificial sobre os dados do seu site. Identifica padrões, oportunidades de melhoria, sugestões de otimização e resumos semanais de desempenho.",
+      },
+      {
+        term: "Alertas",
+        description:
+          "Central de notificações inteligentes: detecta quedas bruscas de tráfego, picos anormais, baixa taxa de conversão, alta taxa de rejeição e dependência excessiva de um único canal de aquisição.",
+      },
+      {
+        term: "Comparar",
+        description:
+          "Compara o desempenho entre dois períodos diferentes (ex.: este mês vs. mês anterior) ou entre dois projetos. Mostra variações percentuais em todas as métricas para identificar evolução ou regressão.",
+      },
+      {
+        term: "Apresentação",
+        description:
+          "Modo tela cheia com os principais indicadores em destaque, ideal para exibir em monitores de equipe, reuniões com clientes ou apresentações de resultados.",
+      },
+      {
+        term: "Configurações",
+        description:
+          "Gerenciamento dos seus projetos (sites monitorados), código de rastreamento para instalar no site, metas mensais, valor por lead e preferências da conta.",
+      },
+      {
+        term: "Assinatura",
+        description:
+          "Gerencie seu plano atual, faça upgrade/downgrade, visualize limites de uso (projetos, eventos, retenção de dados) e acesse o histórico de pagamentos.",
+      },
+      {
+        term: "Instalar app",
+        description:
+          "Instruções passo a passo para instalar o KUBOWEB como aplicativo (PWA) no iPhone, Android ou computador, permitindo acesso rápido pela tela inicial e funcionamento offline.",
+      },
+      {
+        term: "Ajuda",
+        description:
+          "Esta página: glossário completo de métricas, descrição das funcionalidades e botão para refazer o tour guiado da plataforma.",
+      },
+      {
+        term: "Admin (apenas administradores)",
+        description:
+          "Painel administrativo para gestão de usuários, planos e configurações globais da plataforma. Visível apenas para contas com permissão de administrador.",
+      },
+    ],
+  },
+  {
     title: "Métricas principais (KPIs)",
     items: [
       {
