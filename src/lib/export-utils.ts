@@ -110,7 +110,8 @@ export const exportToCSV = (data: ExportData) => {
   downloadBlob(blob, `relatorio-${data.clientName}-${data.dateRange}d.csv`);
 };
 
-export const exportToExcel = (data: ExportData) => {
+export const exportToExcel = async (data: ExportData) => {
+  const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Métricas Diárias
