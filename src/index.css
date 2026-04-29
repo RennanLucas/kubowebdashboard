@@ -122,16 +122,20 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card border border-border/60 rounded-xl;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    @apply bg-card border border-border/70 rounded-[var(--radius)];
+    box-shadow: var(--shadow-sm);
   }
 
   .glass-card-hover {
     @apply transition-all duration-200 ease-out;
   }
   .glass-card-hover:hover {
-    box-shadow: 0 4px 6px -1px rgba(16, 24, 40, 0.06), 0 10px 24px -8px rgba(16, 24, 40, 0.10);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
+  }
+
+  .surface-elevated {
+    background: var(--gradient-surface);
   }
 
   .transition-default {
@@ -166,5 +170,20 @@
   }
   .section-subtitle {
     @apply text-xs text-muted-foreground mt-0.5;
+  }
+
+  /* Stripe-style page header */
+  .page-title {
+    @apply text-[22px] font-semibold tracking-tight text-foreground leading-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  /* Linear-like dense kbd */
+  .kbd {
+    @apply inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
+           rounded border border-border bg-muted text-[10px] font-mono
+           text-muted-foreground;
   }
 }
