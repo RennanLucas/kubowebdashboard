@@ -15,9 +15,9 @@ export const markTourCompleted = () => {
 const baseSteps: DriveStep[] = [
   {
     popover: {
-      title: "👋 Bem-vindo ao KUBOWEB Analytics!",
+      title: "Bem-vindo ao KUBOWEB Analytics",
       description:
-        "Este é um tour completo das funcionalidades. Vou te mostrar <b>cada área do app</b>, o que ela faz e como usar no dia a dia.<br/><br/>Pode pular a qualquer momento clicando no <b>X</b> e refazer depois em <b>Ajuda → Refazer tour</b>.",
+        "Esta é uma apresentação guiada da plataforma. Em poucos minutos você conhecerá <b>cada módulo do menu</b>, o objetivo de uso e os principais recursos disponíveis.<br/><br/>É possível encerrar o tour a qualquer momento e retomá-lo posteriormente em <b>Ajuda → Refazer tour</b>.",
       side: "over",
       align: "center",
     },
@@ -25,9 +25,9 @@ const baseSteps: DriveStep[] = [
   {
     element: "[data-tour='sidebar-dashboard']",
     popover: {
-      title: "📊 Dashboard — sua tela inicial",
+      title: "Dashboard — Visão geral consolidada",
       description:
-        "<b>O que é:</b> visão geral do desempenho do site no período escolhido.<br/><br/><b>Você vê:</b><br/>• KPIs (visitantes, leads, conversão, valor estimado)<br/>• Gráfico de evolução diária<br/>• Funil de conversão<br/>• Origens de tráfego e páginas mais acessadas<br/>• Mapa de calor por dia/hora<br/><br/><b>Como usar:</b> escolha o período no topo e o projeto no seletor para filtrar tudo.",
+        "<b>Objetivo:</b> apresentar, em uma única tela, o desempenho do site no período selecionado.<br/><br/><b>Principais blocos:</b><br/>• <b>KPIs</b>: visitantes únicos, sessões, leads, taxa de conversão e valor estimado em R$<br/>• <b>Gráfico de evolução</b> diária com comparação ao período anterior<br/>• <b>Funil de conversão</b>: visitantes → engajados → cliques em CTA → conversões<br/>• <b>Origens de tráfego</b> agrupadas (busca, social, direto, e-mail, referência)<br/>• <b>Top páginas</b> e <b>top referências</b><br/>• <b>Mapa de calor</b> por dia da semana e hora<br/>• <b>Geolocalização</b> de visitantes por país e cidade<br/><br/><b>Filtros disponíveis:</b> período personalizado, dispositivo, fonte de tráfego e projeto ativo.",
       side: "right",
       align: "start",
     },
@@ -35,98 +35,98 @@ const baseSteps: DriveStep[] = [
   {
     element: "[data-tour='sidebar-live']",
     popover: {
-      title: "🟢 Live — visitantes em tempo real",
+      title: "Live — Monitoramento em tempo real",
       description:
-        "<b>O que é:</b> mostra quem está navegando no seu site <b>agora</b>.<br/><br/><b>Você vê:</b><br/>• Número de visitantes ativos<br/>• Páginas que estão sendo vistas<br/>• Origem (Google, redes sociais, direto)<br/>• Cidade e país<br/><br/><b>Como usar:</b> ótimo para acompanhar lançamentos, campanhas ou anúncios em tempo real.",
+        "<b>Objetivo:</b> acompanhar a atividade do site no momento exato em que ela ocorre.<br/><br/><b>Recursos:</b><br/>• Contador de <b>visitantes ativos</b> com atualização automática a cada poucos segundos<br/>• Lista das <b>páginas em visualização</b> agora<br/>• <b>Origem do tráfego</b> de cada sessão ativa<br/>• <b>Localização aproximada</b> (cidade e país) do visitante<br/>• <b>Eventos recentes</b> (cliques em WhatsApp, envios de formulário)<br/><br/><b>Casos de uso:</b> monitoramento de lançamentos, campanhas pagas, posts em redes sociais e validação imediata de instalação do script.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-insights']",
     popover: {
-      title: "💡 IA / Insights — análises automáticas",
+      title: "IA / Insights — Análises automatizadas",
       description:
-        "<b>O que é:</b> resumos e recomendações geradas por IA com base nos seus dados.<br/><br/><b>Você vê:</b><br/>• Padrões de comportamento detectados<br/>• Oportunidades de otimização<br/>• Resumo semanal de desempenho<br/>• Sugestões de melhoria<br/><br/><b>Como usar:</b> abra após uma semana de tracking ativo para receber análises mais ricas.",
+        "<b>Objetivo:</b> transformar dados brutos em recomendações acionáveis utilizando inteligência artificial.<br/><br/><b>Recursos:</b><br/>• <b>Resumo semanal</b> de desempenho com destaques e pontos de atenção<br/>• Identificação de <b>padrões de comportamento</b> (horários de pico, páginas de maior conversão)<br/>• <b>Oportunidades de otimização</b> baseadas nas métricas atuais<br/>• <b>Histórico</b> de insights gerados anteriormente para comparação<br/><br/><b>Recomendação:</b> a qualidade das análises aumenta após uma semana de dados acumulados.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-alerts']",
     popover: {
-      title: "🔔 Alertas — fique sempre informado",
+      title: "Alertas — Detecção inteligente de eventos",
       description:
-        "<b>O que é:</b> central que detecta automaticamente problemas e oportunidades.<br/><br/><b>Detecta:</b><br/>• Quedas bruscas de tráfego<br/>• Picos anormais de visitantes<br/>• Baixa taxa de conversão<br/>• Alta taxa de rejeição<br/>• Dependência de um único canal<br/><br/><b>Como usar:</b> o sino no topo mostra o número de alertas ativos. Clique para ver detalhes.",
+        "<b>Objetivo:</b> notificar automaticamente sobre desvios relevantes no comportamento do site.<br/><br/><b>Tipos de alerta monitorados:</b><br/>• <b>Quedas bruscas</b> de tráfego em relação à média<br/>• <b>Picos anormais</b> de visitantes (possível campanha viral ou tráfego suspeito)<br/>• <b>Taxa de conversão abaixo</b> do histórico do projeto<br/>• <b>Taxa de rejeição elevada</b> (acima de 70%)<br/>• <b>Dependência excessiva</b> de um único canal de aquisição<br/>• <b>Tráfego suspeito</b> (bots, cliques inválidos)<br/><br/><b>Acesso rápido:</b> o sino no topo da tela exibe a contagem de alertas ativos em tempo real.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-compare']",
     popover: {
-      title: "📈 Comparar — evolução lado a lado",
+      title: "Comparar — Análise de variação entre períodos",
       description:
-        "<b>O que é:</b> compara dois períodos diferentes para medir evolução.<br/><br/><b>Exemplos:</b><br/>• Esta semana vs. semana passada<br/>• Este mês vs. mês anterior<br/>• Antes vs. depois de uma campanha<br/><br/><b>Como usar:</b> escolha os dois períodos e veja variação percentual em todas as métricas (visitantes, leads, conversão, valor).",
+        "<b>Objetivo:</b> mensurar evolução ou regressão do desempenho ao longo do tempo.<br/><br/><b>Modos de comparação:</b><br/>• <b>Período vs. período</b> (esta semana × semana anterior, mês × mês)<br/>• <b>Antes e depois</b> de um marco (campanha, redesign, lançamento)<br/>• <b>Projeto vs. projeto</b> para contas com múltiplos sites<br/><br/><b>Métricas comparadas:</b> visitantes, sessões, leads, taxa de conversão, valor estimado, origens de tráfego e páginas mais acessadas — todas com variação percentual e indicador visual de tendência.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-presentation']",
     popover: {
-      title: "🖥️ Apresentação — modo TV / reunião",
+      title: "Apresentação — Modo executivo",
       description:
-        "<b>O que é:</b> tela cheia com os principais indicadores em destaque.<br/><br/><b>Ideal para:</b><br/>• Monitor da equipe no escritório<br/>• Reuniões com clientes<br/>• Apresentação de resultados<br/><br/><b>Como usar:</b> abra em uma tela grande e deixe rodando — atualiza sozinho.",
+        "<b>Objetivo:</b> exibir indicadores em formato otimizado para telas grandes e reuniões.<br/><br/><b>Características:</b><br/>• <b>Tela cheia</b> sem distrações de navegação<br/>• <b>Tipografia ampliada</b> para leitura à distância<br/>• <b>Atualização automática</b> dos dados<br/>• <b>Rotação entre telas</b> (KPIs, gráficos, top páginas)<br/><br/><b>Aplicações:</b> monitor de equipe no escritório, reuniões de resultado com clientes, demonstrações comerciais.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-settings']",
     popover: {
-      title: "⚙️ Configurações — comece por aqui",
+      title: "Configurações — Centro de controle do projeto",
       description:
-        "<b>O coração do app.</b> É onde você:<br/><br/>• 📋 Pega o <b>script de tracking</b> para colar no seu site<br/>• 🌐 Cria e gerencia <b>projetos</b> (múltiplos sites na mesma conta)<br/>• 💰 Define o <b>valor por lead</b> para calcular o ROI<br/>• 🎯 Configura <b>metas mensais</b> de visitantes e leads<br/>• 🔔 Ajusta preferências de alertas<br/><br/><b>Importante:</b> sem instalar o script, nenhum dado aparece.",
+        "<b>Objetivo:</b> configurar todos os parâmetros operacionais da conta.<br/><br/><b>Seções disponíveis:</b><br/>• <b>Projetos</b>: criar, editar e excluir sites monitorados<br/>• <b>Script de tracking</b>: copiar o código de instalação e verificar status (ativo / sem dados)<br/>• <b>Valor por lead</b>: definir o valor monetário para o cálculo de ROI e valor estimado<br/>• <b>Metas mensais</b>: configurar objetivos de visitantes, leads e faturamento<br/>• <b>Preferências</b>: idioma, fuso horário e dados da conta<br/><br/><b>Importante:</b> o script de tracking deve ser instalado em todas as páginas do site para que os dados sejam coletados corretamente.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-pricing']",
     popover: {
-      title: "💳 Assinatura — gerencie seu plano",
+      title: "Assinatura — Gestão do plano",
       description:
-        "<b>O que é:</b> painel do seu plano atual.<br/><br/><b>Você pode:</b><br/>• Ver os limites de uso (projetos, eventos, retenção)<br/>• Fazer upgrade ou downgrade<br/>• Acessar o histórico de pagamentos<br/>• Cancelar a qualquer momento<br/><br/><b>Atenção:</b> sem assinatura ativa o dashboard fica bloqueado.",
+        "<b>Objetivo:</b> administrar o plano contratado e visualizar consumo.<br/><br/><b>Funcionalidades:</b><br/>• Visualização do <b>plano atual</b> e benefícios inclusos<br/>• <b>Limites de uso</b>: número de projetos, eventos mensais e período de retenção dos dados<br/>• <b>Upgrade ou downgrade</b> de plano com efeito imediato<br/>• <b>Histórico de pagamentos</b> e faturas<br/>• <b>Cancelamento</b> a qualquer momento (acesso mantido até o fim do período pago)<br/><br/><b>Atenção:</b> sem assinatura ativa o acesso ao Dashboard e demais módulos é restrito.",
       side: "right",
     },
   },
   {
     popover: {
-      title: "🔍 Busca rápida (⌘K / Ctrl+K)",
+      title: "Busca rápida — Atalho ⌘K / Ctrl+K",
       description:
-        "<b>O que é:</b> atalho de teclado para navegar entre páginas e ações sem usar o mouse.<br/><br/><b>Como usar:</b> aperte <kbd>⌘</kbd>+<kbd>K</kbd> (Mac) ou <kbd>Ctrl</kbd>+<kbd>K</kbd> (Windows) em qualquer tela.",
+        "<b>Objetivo:</b> agilizar a navegação entre módulos e ações sem uso do mouse.<br/><br/><b>Como utilizar:</b><br/>• Pressione <kbd>⌘</kbd>+<kbd>K</kbd> (macOS) ou <kbd>Ctrl</kbd>+<kbd>K</kbd> (Windows / Linux)<br/>• Digite o nome da página ou ação desejada<br/>• Selecione com as setas e confirme com <kbd>Enter</kbd><br/><br/>Disponível em qualquer tela da plataforma.",
       side: "over",
       align: "center",
     },
   },
   {
     popover: {
-      title: "📲 Instalar como app (PWA)",
+      title: "Instalar como aplicativo (PWA)",
       description:
-        "<b>O que é:</b> instala o KUBOWEB no seu celular ou computador como um aplicativo nativo.<br/><br/><b>Vantagens:</b><br/>• Ícone na tela inicial<br/>• Abre em tela cheia (sem barra do navegador)<br/>• Funciona offline (dados em cache)<br/>• Notificações de nova versão<br/><br/><b>Como:</b> menu <b>Conta → Instalar app</b> tem o passo a passo para iPhone, Android e PC.",
+        "<b>Objetivo:</b> utilizar a plataforma como um aplicativo nativo no dispositivo.<br/><br/><b>Benefícios:</b><br/>• <b>Ícone</b> na tela inicial do celular ou área de trabalho<br/>• Execução em <b>tela cheia</b>, sem barras do navegador<br/>• <b>Funcionamento offline</b> com dados em cache<br/>• <b>Notificações automáticas</b> de novas versões<br/>• <b>Carregamento mais rápido</b> em acessos recorrentes<br/><br/><b>Onde encontrar:</b> menu <b>Conta → Instalar app</b>, com instruções específicas para iPhone, Android e desktop.",
       side: "over",
       align: "center",
     },
   },
   {
     popover: {
-      title: "❓ Ajuda — glossário completo",
+      title: "Ajuda — Documentação completa",
       description:
-        "<b>O que é:</b> dicionário de todas as métricas e funcionalidades do app.<br/><br/><b>Você encontra:</b><br/>• Definição de cada KPI (com fórmula)<br/>• Descrição de cada funcionalidade<br/>• Botão para refazer este tour<br/><br/><b>Como acessar:</b> menu <b>Conta → Ajuda</b> ou o botão flutuante no canto inferior direito.",
+        "<b>Objetivo:</b> centralizar a documentação de uso da plataforma.<br/><br/><b>Conteúdo disponível:</b><br/>• <b>Glossário</b> com definição e fórmula de cada métrica (KPIs, engajamento, funil, geolocalização)<br/>• <b>Descrição detalhada</b> de cada funcionalidade do menu<br/>• <b>Botão para refazer este tour</b> a qualquer momento<br/><br/><b>Acesso:</b> menu <b>Conta → Ajuda</b> ou botão flutuante de ajuda no canto inferior direito da tela.",
       side: "over",
       align: "center",
     },
   },
   {
     popover: {
-      title: "🎯 Pronto para começar!",
+      title: "Próximos passos recomendados",
       description:
-        "<b>Seus próximos passos:</b><br/>1️⃣ Vá em <b>Configurações</b> e crie seu primeiro projeto<br/>2️⃣ Copie o <b>script de tracking</b> e cole no seu site<br/>3️⃣ Defina o <b>valor por lead</b> para calcular ROI<br/>4️⃣ Aguarde alguns minutos e volte ao <b>Dashboard</b><br/><br/>Pode refazer este tour quando quiser em <b>Ajuda → Refazer tour</b>. Bom trabalho! 🚀",
+        "Para começar a coletar dados imediatamente:<br/><br/>1. Acesse <b>Configurações</b> e crie seu primeiro projeto<br/>2. Copie o <b>script de tracking</b> e instale em todas as páginas do site<br/>3. Defina o <b>valor por lead</b> para habilitar o cálculo de ROI<br/>4. Configure suas <b>metas mensais</b> para acompanhamento de progresso<br/>5. Aguarde alguns minutos e retorne ao <b>Dashboard</b> para visualizar os primeiros dados<br/><br/>Em caso de dúvidas, a documentação completa está disponível em <b>Ajuda</b>.",
       side: "over",
       align: "center",
     },
