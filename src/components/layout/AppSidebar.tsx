@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb-white.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,7 @@ const mainItems = [
 const accountItems = [
   { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
   { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
+  { title: "Instalar app", url: "/install", icon: Download },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
 ];
 
