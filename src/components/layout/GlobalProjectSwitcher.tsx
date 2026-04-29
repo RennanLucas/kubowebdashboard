@@ -49,10 +49,6 @@ export const GlobalProjectSwitcher = () => {
     window.localStorage.setItem(STORAGE_KEY, id);
     window.dispatchEvent(new CustomEvent("project-changed", { detail: { id } }));
     setOpen(false);
-    // Force pages that read the value once on mount to refresh.
-    if (window.location.pathname === "/dashboard") {
-      window.location.reload();
-    }
   };
 
   const active = projects?.find((p) => p.id === activeId) ?? projects?.[0];
