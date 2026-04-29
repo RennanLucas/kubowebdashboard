@@ -24,7 +24,10 @@ import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
 const DashboardContent = () => {
   const [dateRange, setDateRange] = useState(30);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return window.localStorage.getItem("dashboard:last-project-id") ?? undefined;
+  });
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
   const { data: allProjects } = useAllUserProjects();
