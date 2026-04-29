@@ -29,17 +29,17 @@ const STEPS: Step[] = [
     key: "hasProject",
     title: "Criar seu primeiro projeto",
     description:
-      "Cadastre o site que deseja monitorar em Configurações. Você pode adicionar múltiplos projetos na mesma conta.",
-    cta: "Ir para Configurações",
-    ctaPath: "/settings",
+      "Cadastre o site que deseja monitorar. Você pode adicionar múltiplos projetos na mesma conta.",
+    cta: "Criar projeto",
+    ctaPath: "/onboarding",
   },
   {
     key: "hasEvents",
     title: "Instalar o script de tracking",
     description:
-      "Copie o snippet de rastreamento em Configurações e cole antes do </body> em todas as páginas do site. A confirmação é automática assim que o primeiro evento for recebido.",
+      "Copie o snippet de rastreamento e cole antes do </body> em todas as páginas do site. A confirmação é automática assim que o primeiro evento for recebido.",
     cta: "Copiar script",
-    ctaPath: "/settings",
+    ctaPath: "/onboarding",
   },
   {
     key: "hasLeadValue",
