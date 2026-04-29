@@ -35,6 +35,44 @@ const accountItems = [
   { title: "Ajuda", url: "/help", icon: HelpCircle },
 ];
 
+interface NavItemProps {
+  url: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tour?: string;
+  active: boolean;
+}
+
+const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
+  <SidebarMenuItem>
+    <SidebarMenuButton
+      asChild
+      isActive={active}
+      tooltip={title}
+      className={[
+        "relative h-9 rounded-md text-[13px] font-medium",
+        "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/70",
+        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground",
+        "transition-colors",
+      ].join(" ")}
+    >
+      <NavLink to={url} end data-tour={tour} className="flex items-center gap-2.5">
+        {/* Linear-style left indicator on active */}
+        <span
+          aria-hidden
+          className={[
+            "absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r-full",
+            "bg-sidebar-foreground/90 transition-opacity",
+            active ? "opacity-100" : "opacity-0",
+          ].join(" ")}
+        />
+        <Icon className="h-[15px] w-[15px] shrink-0" />
+        <span className="truncate">{title}</span>
+      </NavLink>
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+);
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -53,19 +91,19 @@ export function AppSidebar() {
   const initials = (user?.email || "U").slice(0, 2).toUpperCase();
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border"
+      style={{ background: "var(--gradient-sidebar)" }}
+    >
+      <SidebarHeader className="border-b border-sidebar-border/70">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (
             <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto" />
           ) : (
             <div className="flex items-center gap-2 min-w-0">
-              <img
-                src={logoKuboweb}
-                alt="KUBOWEB"
-                className="h-7 w-auto shrink-0"
-              />
-              <div className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
+              <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-auto shrink-0" />
+              <div className="text-[10px] text-sidebar-foreground/55 uppercase tracking-[0.12em] font-medium">
                 Analytics
               </div>
             </div>
@@ -73,75 +111,67 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-1.5 py-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">
+            Principal
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end data-tour={(item as any).tour}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <NavItem key={item.title} {...item} active={isActive(item.url)} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        <div className="my-2 mx-2 border-t border-sidebar-border/60" />
+
         <SidebarGroup>
-          <SidebarGroupLabel>Conta</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">
+            Conta
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {accountItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} end data-tour={(item as any).tour}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <NavItem key={item.title} {...item} active={isActive(item.url)} />
               ))}
               {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/admin")} tooltip="Admin">
-                    <NavLink to="/admin" end>
-                      <Shield className="h-4 w-4" />
-                      <span>Admin</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <NavItem
+                  url="/admin"
+                  title="Admin"
+                  icon={Shield}
+                  active={isActive("/admin")}
+                />
               )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="border-t border-sidebar-border/70 bg-sidebar/40">
         <div className="flex items-center gap-2 p-2">
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-sidebar-primary/15 text-sidebar-primary text-xs font-semibold">
+          <Avatar className="h-7 w-7 shrink-0 ring-1 ring-sidebar-border">
+            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-[11px] font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-sidebar-foreground truncate">
+                <div className="text-[12px] font-medium text-sidebar-foreground truncate leading-tight">
                   {user?.email}
                 </div>
                 {isAdmin && (
-                  <div className="text-[10px] text-sidebar-primary font-medium">Admin</div>
+                  <div className="text-[10px] text-sidebar-foreground/55 font-medium leading-tight mt-0.5">
+                    Administrador
+                  </div>
                 )}
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                className="h-7 w-7 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                 onClick={handleSignOut}
                 title="Sair"
               >
