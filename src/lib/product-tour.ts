@@ -17,7 +17,7 @@ const baseSteps: DriveStep[] = [
     popover: {
       title: "👋 Bem-vindo ao KUBOWEB Analytics!",
       description:
-        "Vou te mostrar em 1 minuto como acompanhar visitantes, leads e gerar insights com IA. Pode pular a qualquer momento.",
+        "Este é um tour completo das funcionalidades. Vou te mostrar <b>cada área do app</b>, o que ela faz e como usar no dia a dia.<br/><br/>Pode pular a qualquer momento clicando no <b>X</b> e refazer depois em <b>Ajuda → Refazer tour</b>.",
       side: "over",
       align: "center",
     },
@@ -25,9 +25,9 @@ const baseSteps: DriveStep[] = [
   {
     element: "[data-tour='sidebar-dashboard']",
     popover: {
-      title: "📊 Dashboard",
+      title: "📊 Dashboard — sua tela inicial",
       description:
-        "Aqui você vê os KPIs principais: visitantes, leads, taxa de conversão e valor estimado. É a sua tela inicial.",
+        "<b>O que é:</b> visão geral do desempenho do site no período escolhido.<br/><br/><b>Você vê:</b><br/>• KPIs (visitantes, leads, conversão, valor estimado)<br/>• Gráfico de evolução diária<br/>• Funil de conversão<br/>• Origens de tráfego e páginas mais acessadas<br/>• Mapa de calor por dia/hora<br/><br/><b>Como usar:</b> escolha o período no topo e o projeto no seletor para filtrar tudo.",
       side: "right",
       align: "start",
     },
@@ -35,70 +35,98 @@ const baseSteps: DriveStep[] = [
   {
     element: "[data-tour='sidebar-live']",
     popover: {
-      title: "🟢 Live",
+      title: "🟢 Live — visitantes em tempo real",
       description:
-        "Visitantes em tempo real no seu site — veja de onde vieram e o que estão acessando agora mesmo.",
+        "<b>O que é:</b> mostra quem está navegando no seu site <b>agora</b>.<br/><br/><b>Você vê:</b><br/>• Número de visitantes ativos<br/>• Páginas que estão sendo vistas<br/>• Origem (Google, redes sociais, direto)<br/>• Cidade e país<br/><br/><b>Como usar:</b> ótimo para acompanhar lançamentos, campanhas ou anúncios em tempo real.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-insights']",
     popover: {
-      title: "💡 Insights com IA",
+      title: "💡 IA / Insights — análises automáticas",
       description:
-        "Análises dos seus dados com IA — destaques, tendências e oportunidades calculadas no momento que você abre.",
+        "<b>O que é:</b> resumos e recomendações geradas por IA com base nos seus dados.<br/><br/><b>Você vê:</b><br/>• Padrões de comportamento detectados<br/>• Oportunidades de otimização<br/>• Resumo semanal de desempenho<br/>• Sugestões de melhoria<br/><br/><b>Como usar:</b> abra após uma semana de tracking ativo para receber análises mais ricas.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-alerts']",
     popover: {
-      title: "🔔 Alertas",
+      title: "🔔 Alertas — fique sempre informado",
       description:
-        "Receba avisos quando o tráfego cair/subir muito ou quando bater meta de leads. Configurável por projeto.",
+        "<b>O que é:</b> central que detecta automaticamente problemas e oportunidades.<br/><br/><b>Detecta:</b><br/>• Quedas bruscas de tráfego<br/>• Picos anormais de visitantes<br/>• Baixa taxa de conversão<br/>• Alta taxa de rejeição<br/>• Dependência de um único canal<br/><br/><b>Como usar:</b> o sino no topo mostra o número de alertas ativos. Clique para ver detalhes.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-compare']",
     popover: {
-      title: "📈 Comparar períodos",
+      title: "📈 Comparar — evolução lado a lado",
       description:
-        "Compare lado a lado dois períodos (ex: esta semana vs semana passada) pra ver evolução de visitantes, leads e conversões.",
+        "<b>O que é:</b> compara dois períodos diferentes para medir evolução.<br/><br/><b>Exemplos:</b><br/>• Esta semana vs. semana passada<br/>• Este mês vs. mês anterior<br/>• Antes vs. depois de uma campanha<br/><br/><b>Como usar:</b> escolha os dois períodos e veja variação percentual em todas as métricas (visitantes, leads, conversão, valor).",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-presentation']",
     popover: {
-      title: "🖥️ Modo Apresentação",
+      title: "🖥️ Apresentação — modo TV / reunião",
       description:
-        "Tela cheia em formato de slides — perfeito pra mostrar resultados em reuniões com cliente ou na sua TV do escritório.",
+        "<b>O que é:</b> tela cheia com os principais indicadores em destaque.<br/><br/><b>Ideal para:</b><br/>• Monitor da equipe no escritório<br/>• Reuniões com clientes<br/>• Apresentação de resultados<br/><br/><b>Como usar:</b> abra em uma tela grande e deixe rodando — atualiza sozinho.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-settings']",
     popover: {
-      title: "⚙️ Configurações",
+      title: "⚙️ Configurações — comece por aqui",
       description:
-        "O coração do app:<br/>• Pega o <b>script de tracking</b> pra colar no seu site<br/>• Cria e gerencia <b>projetos</b> (múltiplos sites)<br/>• Define o <b>valor por lead</b> pra calcular ROI<br/>• Ajusta preferências de alertas",
+        "<b>O coração do app.</b> É onde você:<br/><br/>• 📋 Pega o <b>script de tracking</b> para colar no seu site<br/>• 🌐 Cria e gerencia <b>projetos</b> (múltiplos sites na mesma conta)<br/>• 💰 Define o <b>valor por lead</b> para calcular o ROI<br/>• 🎯 Configura <b>metas mensais</b> de visitantes e leads<br/>• 🔔 Ajusta preferências de alertas<br/><br/><b>Importante:</b> sem instalar o script, nenhum dado aparece.",
       side: "right",
     },
   },
   {
     element: "[data-tour='sidebar-pricing']",
     popover: {
-      title: "💳 Assinatura",
-      description: "Gerencia seu plano. Sem assinatura ativa o dashboard fica bloqueado.",
+      title: "💳 Assinatura — gerencie seu plano",
+      description:
+        "<b>O que é:</b> painel do seu plano atual.<br/><br/><b>Você pode:</b><br/>• Ver os limites de uso (projetos, eventos, retenção)<br/>• Fazer upgrade ou downgrade<br/>• Acessar o histórico de pagamentos<br/>• Cancelar a qualquer momento<br/><br/><b>Atenção:</b> sem assinatura ativa o dashboard fica bloqueado.",
       side: "right",
     },
   },
   {
     popover: {
-      title: "🎯 Pronto pra começar!",
+      title: "🔍 Busca rápida (⌘K / Ctrl+K)",
       description:
-        "Próximos passos:<br/>1️⃣ Crie um projeto em <b>Configurações</b><br/>2️⃣ Cole o script de tracking no seu site<br/>3️⃣ Volte ao <b>Dashboard</b> em alguns minutos<br/><br/>Você pode reabrir esse tour clicando no botão <b>Ajuda</b> no canto inferior direito.",
+        "<b>O que é:</b> atalho de teclado para navegar entre páginas e ações sem usar o mouse.<br/><br/><b>Como usar:</b> aperte <kbd>⌘</kbd>+<kbd>K</kbd> (Mac) ou <kbd>Ctrl</kbd>+<kbd>K</kbd> (Windows) em qualquer tela.",
+      side: "over",
+      align: "center",
+    },
+  },
+  {
+    popover: {
+      title: "📲 Instalar como app (PWA)",
+      description:
+        "<b>O que é:</b> instala o KUBOWEB no seu celular ou computador como um aplicativo nativo.<br/><br/><b>Vantagens:</b><br/>• Ícone na tela inicial<br/>• Abre em tela cheia (sem barra do navegador)<br/>• Funciona offline (dados em cache)<br/>• Notificações de nova versão<br/><br/><b>Como:</b> menu <b>Conta → Instalar app</b> tem o passo a passo para iPhone, Android e PC.",
+      side: "over",
+      align: "center",
+    },
+  },
+  {
+    popover: {
+      title: "❓ Ajuda — glossário completo",
+      description:
+        "<b>O que é:</b> dicionário de todas as métricas e funcionalidades do app.<br/><br/><b>Você encontra:</b><br/>• Definição de cada KPI (com fórmula)<br/>• Descrição de cada funcionalidade<br/>• Botão para refazer este tour<br/><br/><b>Como acessar:</b> menu <b>Conta → Ajuda</b> ou o botão flutuante no canto inferior direito.",
+      side: "over",
+      align: "center",
+    },
+  },
+  {
+    popover: {
+      title: "🎯 Pronto para começar!",
+      description:
+        "<b>Seus próximos passos:</b><br/>1️⃣ Vá em <b>Configurações</b> e crie seu primeiro projeto<br/>2️⃣ Copie o <b>script de tracking</b> e cole no seu site<br/>3️⃣ Defina o <b>valor por lead</b> para calcular ROI<br/>4️⃣ Aguarde alguns minutos e volte ao <b>Dashboard</b><br/><br/>Pode refazer este tour quando quiser em <b>Ajuda → Refazer tour</b>. Bom trabalho! 🚀",
       side: "over",
       align: "center",
     },
