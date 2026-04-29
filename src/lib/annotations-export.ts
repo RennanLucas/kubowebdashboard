@@ -54,7 +54,8 @@ export const exportAnnotationsCSV = (ctx: AnnotationsExportContext) => {
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${fileBase(ctx)}.csv`);
 };
 
-export const exportAnnotationsPDF = (ctx: AnnotationsExportContext) => {
+export const exportAnnotationsPDF = async (ctx: AnnotationsExportContext) => {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
