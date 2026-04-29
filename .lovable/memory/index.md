@@ -3,13 +3,14 @@
 ## Core
 - KUBOWEB client portal for site performance metrics and lead gen.
 - Supabase multi-tenant with Auth & RLS. NEVER expose API keys in frontend; use Edge Functions only.
-- Clean SaaS design: Background #F8F9FB, Sidebar #0F1117, Accent #6366F1. Inter font (500 headings, 400 body).
+- Clean SaaS design (Linear+Stripe hybrid): Background #F8F9FB, Sidebar gradient #0F1117. Inter font. Soft shadows + 2px active rail in sidebar.
 - Auto-confirm emails (`auto_confirm_email: true`), auto-login after signup, and proactive token renewal.
 - App is an installable PWA. SW only registers in production (never in iframes/preview).
 
 ## Memories
 - [Multi-tenant Architecture](mem://tech/arquitetura) — Supabase multi-tenant setup and frontend security constraints
 - [Design System](mem://style/design-system) — Visual identity, colors, typography, and layout aesthetics
+- [SaaS Shell Layout](mem://style/saas-shell) — AppLayout with refined sidebar, breadcrumbs, GlobalProjectSwitcher, UserMenu, PageHeader
 - [Onboarding](mem://features/onboarding) — 3-step structured onboarding stepper
 - [Analytics Tracking](mem://features/custom-tracking) — Proprietary lightweight tracking script and edge function setup
 - [Conversion Tracking](mem://features/conversion-tracking) — Auto-tracking of WhatsApp clicks, form submits, and button interactions
