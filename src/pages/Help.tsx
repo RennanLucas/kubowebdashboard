@@ -225,11 +225,26 @@ export default function Help() {
     try {
       localStorage.removeItem(TOUR_STORAGE_KEY);
     } catch {}
+
+    const waitForSidebarAndStart = () => {
+      let attempts = 0;
+      const tryStart = () => {
+        const ready = document.querySelector("[data-tour='sidebar-dashboard']");
+        if (ready || attempts > 30) {
+          startProductTour();
+        } else {
+          attempts++;
+          setTimeout(tryStart, 100);
+        }
+      };
+      tryStart();
+    };
+
     if (window.location.pathname !== "/dashboard") {
       navigate("/dashboard");
-      setTimeout(() => startProductTour(), 500);
+      setTimeout(waitForSidebarAndStart, 200);
     } else {
-      startProductTour();
+      waitForSidebarAndStart();
     }
     toast.success("Tour iniciado!");
   };
