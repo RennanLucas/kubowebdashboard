@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download, Share, Plus, CheckCircle2, Smartphone } from "lucide-react";
+import { ArrowLeft, Download, Share, Plus, CheckCircle2, Smartphone, Apple, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { toast } from "sonner";
 
