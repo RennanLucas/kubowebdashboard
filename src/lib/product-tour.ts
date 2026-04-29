@@ -95,14 +95,6 @@ const baseSteps: DriveStep[] = [
     },
   },
   {
-    element: "[data-tour='sidebar-pricing']",
-    popover: {
-      title: "💳 Assinatura",
-      description: "Gerencia seu plano. Sem assinatura ativa o dashboard fica bloqueado.",
-      side: "right",
-    },
-  },
-  {
     popover: {
       title: "🎯 Pronto pra começar!",
       description:
