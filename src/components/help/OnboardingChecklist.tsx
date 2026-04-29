@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Circle, ChevronRight, Loader2, ListChecks } from "lucide-react";
+import { CheckCircle2, Circle, ChevronRight, Loader2, ListChecks, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -73,6 +73,7 @@ export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [state, setState] = useState<ChecklistState>({
     hasProject: false,
     hasEvents: false,
@@ -80,13 +81,16 @@ export function OnboardingChecklist() {
     hasGoals: false,
     hasAnnotation: false,
   });
+  const cancelledRef = useRef(false);
+  const inFlightRef = useRef(false);
 
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
+  const load = useCallback(
+    async (silent = false) => {
+      if (!user || inFlightRef.current) return;
+      inFlightRef.current = true;
+      if (silent) setRefreshing(true);
+      else setLoading(true);
 
-    const load = async () => {
-      setLoading(true);
       try {
         // 1. Cliente + valor por lead
         const { data: client } = await supabase
@@ -95,10 +99,11 @@ export function OnboardingChecklist() {
           .eq("user_id", user.id)
           .maybeSingle();
 
-        const hasLeadValue = !!client && Number(client.lead_value ?? 0) > 0 && Number(client.lead_value) !== 25;
+        const hasLeadValue =
+          !!client && Number(client.lead_value ?? 0) > 0 && Number(client.lead_value) !== 25;
 
         if (!client) {
-          if (!cancelled) {
+          if (!cancelledRef.current) {
             setState({
               hasProject: false,
               hasEvents: false,
@@ -120,7 +125,7 @@ export function OnboardingChecklist() {
         const hasProject = projectIds.length > 0;
 
         if (!hasProject) {
-          if (!cancelled) {
+          if (!cancelledRef.current) {
             setState({
               hasProject: false,
               hasEvents: false,
@@ -132,48 +137,72 @@ export function OnboardingChecklist() {
           return;
         }
 
-        // 3. Eventos / pageviews recebidos
-        const { count: pvCount } = await supabase
-          .from("pageviews")
-          .select("id", { count: "exact", head: true })
-          .in("project_id", projectIds)
-          .limit(1);
+        // 3..5 em paralelo
+        const [pv, gl, an] = await Promise.all([
+          supabase
+            .from("pageviews")
+            .select("id", { count: "exact", head: true })
+            .in("project_id", projectIds)
+            .limit(1),
+          supabase
+            .from("goals")
+            .select("id", { count: "exact", head: true })
+            .in("project_id", projectIds)
+            .limit(1),
+          supabase
+            .from("annotations")
+            .select("id", { count: "exact", head: true })
+            .in("project_id", projectIds)
+            .limit(1),
+        ]);
 
-        const hasEvents = (pvCount ?? 0) > 0;
+        const hasEvents = (pv.count ?? 0) > 0;
+        const hasGoals = (gl.count ?? 0) > 0;
+        const hasAnnotation = (an.count ?? 0) > 0;
 
-        // 4. Metas
-        const { count: goalsCount } = await supabase
-          .from("goals")
-          .select("id", { count: "exact", head: true })
-          .in("project_id", projectIds)
-          .limit(1);
-
-        const hasGoals = (goalsCount ?? 0) > 0;
-
-        // 5. Anotações
-        const { count: annCount } = await supabase
-          .from("annotations")
-          .select("id", { count: "exact", head: true })
-          .in("project_id", projectIds)
-          .limit(1);
-
-        const hasAnnotation = (annCount ?? 0) > 0;
-
-        if (!cancelled) {
+        if (!cancelledRef.current) {
           setState({ hasProject, hasEvents, hasLeadValue, hasGoals, hasAnnotation });
         }
       } catch (err) {
         console.error("[OnboardingChecklist] failed", err);
       } finally {
-        if (!cancelled) setLoading(false);
+        inFlightRef.current = false;
+        if (!cancelledRef.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
-    };
+    },
+    [user]
+  );
 
+  // Carga inicial
+  useEffect(() => {
+    cancelledRef.current = false;
     load();
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, [user]);
+  }, [load]);
+
+  // Atualização automática ao voltar para a aba/janela ou trocar de projeto
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") load(true);
+    };
+    const handleFocus = () => load(true);
+    const handleProjectChanged = () => load(true);
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("project-changed", handleProjectChanged as EventListener);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("project-changed", handleProjectChanged as EventListener);
+    };
+  }, [load]);
 
   const completed = useMemo(
     () => STEPS.filter((s) => state[s.key]).length,
@@ -213,21 +242,35 @@ export function OnboardingChecklist() {
             </p>
           </div>
         </div>
-        {allDone && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground"
-            onClick={() => {
-              try {
-                localStorage.setItem(STORAGE_KEY, "1");
-              } catch {}
-              window.location.reload();
-            }}
-          >
-            Ocultar
-          </Button>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          {!allDone && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs text-muted-foreground"
+              onClick={() => load(true)}
+              disabled={refreshing || loading}
+              title="Atualizar status"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+          )}
+          {allDone && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground"
+              onClick={() => {
+                try {
+                  localStorage.setItem(STORAGE_KEY, "1");
+                } catch {}
+                window.location.reload();
+              }}
+            >
+              Ocultar
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mb-4">
