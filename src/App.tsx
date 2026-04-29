@@ -22,6 +22,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Live from "./pages/Live";
 import Subscription from "./pages/Subscription";
 import Install from "./pages/Install";
+import PWAQA from "./pages/PWAQA";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/live" element={<ProtectedRoute requireSubscription><Live /></ProtectedRoute>} />
             <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+            <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

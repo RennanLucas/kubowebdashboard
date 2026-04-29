@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "qa:pwa": "node scripts/qa-pwa.mjs",
+    "qa:build": "vite build && node scripts/qa-pwa.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
