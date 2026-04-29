@@ -50,6 +50,16 @@ const DashboardContent = () => {
     }
   }, [activeProjectId]);
 
+  // React to project changes from the global topbar switcher.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) setSelectedProjectId(id);
+    };
+    window.addEventListener("project-changed", handler);
+    return () => window.removeEventListener("project-changed", handler);
+  }, []);
+
   useEffect(() => {
     if (!clientData?.id) return;
     let cancelled = false;
