@@ -263,6 +263,8 @@ export default function Help() {
           </p>
         </div>
 
+        <OnboardingChecklist />
+
         <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
           <div>
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
