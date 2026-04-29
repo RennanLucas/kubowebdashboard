@@ -1,4 +1,5 @@
-import jsPDF from "jspdf";
+// jspdf é importado dinamicamente dentro de exportAnnotationsPDF para
+// evitar carregar ~137KB no bundle inicial.
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Annotation } from "@/hooks/useAnnotations";
