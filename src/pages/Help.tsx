@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
+import { QuickStartGuide } from "@/components/help/QuickStartGuide";
 
 interface Entry {
   term: string;
@@ -264,6 +265,8 @@ export default function Help() {
         </div>
 
         <OnboardingChecklist />
+
+        <QuickStartGuide />
 
         <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
           <div>
