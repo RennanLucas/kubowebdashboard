@@ -128,11 +128,16 @@ if (existsSync(SW)) {
     warn("precache detectável", "não foi possível extrair o manifesto via regex");
   }
 
-  // Check denylist patterns are honored — workbox stringifies them as RegExp source
-  const denylistPatterns = ["~oauth", "/api", "/functions/"];
-  for (const p of denylistPatterns) {
-    if (swSource.includes(p)) pass(`denylist contém "${p}"`);
-    else fail(`denylist contém "${p}"`, "navigateFallbackDenylist não foi propagado");
+  // Check denylist patterns are honored — workbox escapes "/" as "\/" in RegExp source
+  const denylistPatterns = [
+    { label: "~oauth", needles: ["~oauth"] },
+    { label: "/api", needles: ["\\/api", "/api"] },
+    { label: "/functions/", needles: ["\\/functions\\/", "/functions/"] },
+  ];
+  for (const { label, needles } of denylistPatterns) {
+    const found = needles.some((n) => swSource.includes(n));
+    if (found) pass(`denylist contém "${label}"`);
+    else fail(`denylist contém "${label}"`, "navigateFallbackDenylist não foi propagado");
   }
 }
 
