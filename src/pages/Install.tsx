@@ -52,51 +52,105 @@ const Install = () => {
               Você está usando o KUBOWEB como aplicativo. Acesse pelo ícone na tela inicial.
             </p>
           </Card>
-        ) : platform === "ios" ? (
-          <Card className="p-5">
-            <h3 className="font-semibold mb-3 text-sm">No iPhone / iPad (Safari)</h3>
-            <ol className="space-y-3">
-              <Step n={1}>
-                Abra esta página no <strong>Safari</strong> (não funciona no Chrome no iOS).
-              </Step>
-              <Step n={2}>
-                Toque no botão <Share className="inline h-4 w-4 mx-1" /> <strong>Compartilhar</strong> na barra inferior.
-              </Step>
-              <Step n={3}>
-                Role e toque em <Plus className="inline h-4 w-4 mx-1" /> <strong>Adicionar à Tela de Início</strong>.
-              </Step>
-              <Step n={4}>
-                Confirme tocando em <strong>Adicionar</strong>. O ícone do KUBOWEB aparece na sua tela inicial.
-              </Step>
-            </ol>
-          </Card>
         ) : (
-          <Card className="p-5">
-            <h3 className="font-semibold mb-4 text-sm">
-              {platform === "android" ? "No Android (Chrome)" : "No computador (Chrome / Edge)"}
-            </h3>
+          <Tabs defaultValue={platform} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="ios" className="text-xs gap-1">
+                <Apple className="h-3.5 w-3.5" /> iPhone
+              </TabsTrigger>
+              <TabsTrigger value="android" className="text-xs gap-1">
+                <Smartphone className="h-3.5 w-3.5" /> Android
+              </TabsTrigger>
+              <TabsTrigger value="desktop" className="text-xs gap-1">
+                <Monitor className="h-3.5 w-3.5" /> PC
+              </TabsTrigger>
+            </TabsList>
 
-            {canPrompt ? (
-              <Button onClick={handleInstall} className="w-full mb-4" size="lg">
-                <Download className="h-4 w-4 mr-2" />
-                Instalar agora
-              </Button>
-            ) : (
-              <p className="text-xs text-muted-foreground mb-4">
-                Se o botão de instalação não aparecer automaticamente, siga os passos abaixo:
-              </p>
-            )}
+            <TabsContent value="ios">
+              <Card className="p-5">
+                <h3 className="font-semibold mb-3 text-sm">No iPhone / iPad (Safari)</h3>
+                <ol className="space-y-3">
+                  <Step n={1}>
+                    Abra esta página no <strong>Safari</strong> (não funciona no Chrome no iOS).
+                  </Step>
+                  <Step n={2}>
+                    Toque no botão <Share className="inline h-4 w-4 mx-1" /> <strong>Compartilhar</strong> na barra inferior.
+                  </Step>
+                  <Step n={3}>
+                    Role e toque em <Plus className="inline h-4 w-4 mx-1" /> <strong>Adicionar à Tela de Início</strong>.
+                  </Step>
+                  <Step n={4}>
+                    Confirme tocando em <strong>Adicionar</strong>. O ícone do KUBOWEB aparece na sua tela inicial.
+                  </Step>
+                </ol>
+              </Card>
+            </TabsContent>
 
-            <ol className="space-y-3">
-              <Step n={1}>
-                Abra o menu do navegador (3 pontinhos no canto superior direito).
-              </Step>
-              <Step n={2}>
-                Toque em <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.
-              </Step>
-              <Step n={3}>Confirme. O KUBOWEB ficará disponível como app independente.</Step>
-            </ol>
-          </Card>
+            <TabsContent value="android">
+              <Card className="p-5">
+                <h3 className="font-semibold mb-4 text-sm">No Android (Chrome)</h3>
+
+                {canPrompt && platform === "android" ? (
+                  <Button onClick={handleInstall} className="w-full mb-4" size="lg">
+                    <Download className="h-4 w-4 mr-2" />
+                    Instalar agora
+                  </Button>
+                ) : (
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Abra esta página no <strong>Chrome</strong> do Android. Se o botão de instalação não aparecer automaticamente, siga os passos:
+                  </p>
+                )}
+
+                <ol className="space-y-3">
+                  <Step n={1}>
+                    Toque no menu do Chrome (3 pontinhos no canto superior direito).
+                  </Step>
+                  <Step n={2}>
+                    Toque em <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.
+                  </Step>
+                  <Step n={3}>
+                    Confirme tocando em <strong>Instalar</strong>. O ícone do KUBOWEB aparece na sua tela inicial como um app.
+                  </Step>
+                  <Step n={4}>
+                    Abra pelo ícone — o app roda em tela cheia, sem barra do navegador.
+                  </Step>
+                </ol>
+
+                <p className="text-xs text-muted-foreground mt-4">
+                  💡 Funciona também no <strong>Samsung Internet</strong> e <strong>Edge</strong> no Android.
+                </p>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="desktop">
+              <Card className="p-5">
+                <h3 className="font-semibold mb-4 text-sm">No computador (Chrome / Edge)</h3>
+
+                {canPrompt && platform === "desktop" ? (
+                  <Button onClick={handleInstall} className="w-full mb-4" size="lg">
+                    <Download className="h-4 w-4 mr-2" />
+                    Instalar agora
+                  </Button>
+                ) : (
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Se o botão de instalação não aparecer automaticamente, siga os passos abaixo:
+                  </p>
+                )}
+
+                <ol className="space-y-3">
+                  <Step n={1}>
+                    Procure pelo ícone de instalação <Download className="inline h-4 w-4 mx-1" /> no canto direito da barra de endereço.
+                  </Step>
+                  <Step n={2}>
+                    Ou abra o menu (3 pontinhos) e clique em <strong>Instalar KUBOWEB</strong>.
+                  </Step>
+                  <Step n={3}>
+                    Confirme. O app abre em janela própria, separado do navegador.
+                  </Step>
+                </ol>
+              </Card>
+            </TabsContent>
+          </Tabs>
         )}
 
         <p className="text-xs text-muted-foreground text-center mt-6">
