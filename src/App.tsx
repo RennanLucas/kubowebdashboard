@@ -21,6 +21,7 @@ import Presentation from "./pages/Presentation";
 import ResetPassword from "./pages/ResetPassword";
 import Live from "./pages/Live";
 import Subscription from "./pages/Subscription";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute requireSubscription><Subscription /></ProtectedRoute>} />
             <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
