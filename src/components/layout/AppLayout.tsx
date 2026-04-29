@@ -3,6 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { Breadcrumbs } from "./Breadcrumbs";
+import { GlobalProjectSwitcher } from "./GlobalProjectSwitcher";
+import { UserMenu } from "./UserMenu";
 import { CommandPalette } from "@/components/CommandPalette";
 import { HelpButton } from "@/components/HelpButton";
 import { useAlertsCount } from "@/hooks/useAlertsCount";
@@ -14,12 +17,12 @@ interface AppLayoutProps {
   children: ReactNode;
 }
 
-const HeaderBadges = () => {
+const HeaderActions = () => {
   const { count, criticalCount } = useAlertsCount();
   const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
 
   return (
-    <div className="ml-auto mr-2 flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <Tooltip>
         <TooltipTrigger asChild>
           <button
@@ -33,14 +36,15 @@ const HeaderBadges = () => {
               });
               document.dispatchEvent(evt);
             }}
-            className="hidden sm:inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border/60 bg-muted/30 text-xs text-muted-foreground hover:bg-muted/60 transition-colors"
+            className="hidden sm:inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border/70 bg-background hover:bg-muted/60 text-[12px] text-muted-foreground transition-colors"
             aria-label="Buscar"
           >
             <Search className="h-3.5 w-3.5" />
             <span>Buscar</span>
-            <kbd className="ml-1 inline-flex items-center gap-0.5 font-mono text-[10px] text-muted-foreground/80">
-              {isMac ? "⌘" : "Ctrl"}<span>K</span>
-            </kbd>
+            <span className="ml-1 inline-flex items-center gap-0.5">
+              <kbd className="kbd">{isMac ? "⌘" : "Ctrl"}</kbd>
+              <kbd className="kbd">K</kbd>
+            </span>
           </button>
         </TooltipTrigger>
         <TooltipContent>Busca rápida ({isMac ? "⌘" : "Ctrl"}+K)</TooltipContent>
@@ -75,6 +79,9 @@ const HeaderBadges = () => {
           {count === 0 ? "Sem alertas" : `${count} alerta${count > 1 ? "s" : ""} ativo${count > 1 ? "s" : ""}`}
         </TooltipContent>
       </Tooltip>
+
+      <div className="hidden sm:block w-px h-5 bg-border/70 mx-1" />
+      <UserMenu />
     </div>
   );
 };
@@ -96,9 +103,18 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-            <SidebarTrigger className="ml-2" />
-            <HeaderBadges />
+          <header className="h-14 flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-4">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+            <div className="hidden sm:block w-px h-5 bg-border/70" />
+
+            {/* Left cluster: project switcher + breadcrumbs */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <GlobalProjectSwitcher />
+              <Breadcrumbs />
+            </div>
+
+            {/* Right cluster: search, alerts, user */}
+            <HeaderActions />
           </header>
           <main className="flex-1 min-w-0">{children}</main>
         </div>

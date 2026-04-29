@@ -42,19 +42,31 @@
     --chart-orange: 25 95% 53%;
     --chart-purple: 262 83% 58%;
 
-    --border: 220 13% 92%;
+    --border: 220 13% 91%;
+    --border-strong: 220 13% 85%;
     --input: 220 13% 92%;
     --ring: 225 24% 8%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
+
+    /* Stripe-like soft elevations */
+    --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.06), 0 10px 24px -8px rgba(16, 24, 40, 0.10);
+    --shadow-lg: 0 12px 24px -8px rgba(16, 24, 40, 0.12), 0 24px 48px -16px rgba(16, 24, 40, 0.14);
+    --shadow-glow: 0 0 0 4px hsl(var(--ring) / 0.08);
+
+    /* Linear-like subtle gradients for headers */
+    --gradient-surface: linear-gradient(180deg, hsl(220 20% 99%) 0%, hsl(220 20% 97.5%) 100%);
+    --gradient-sidebar: linear-gradient(180deg, hsl(228 25% 9%) 0%, hsl(228 25% 7%) 100%);
 
     --sidebar-background: 228 25% 8%;
-    --sidebar-foreground: 220 14% 80%;
+    --sidebar-foreground: 220 14% 78%;
     --sidebar-primary: 225 24% 8%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 20% 14%;
+    --sidebar-accent: 228 22% 13%;
     --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 228 20% 16%;
+    --sidebar-border: 228 22% 14%;
     --sidebar-ring: 225 24% 8%;
   }
 
@@ -110,16 +122,20 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card border border-border/60 rounded-xl;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    @apply bg-card border border-border/70 rounded-[var(--radius)];
+    box-shadow: var(--shadow-sm);
   }
 
   .glass-card-hover {
     @apply transition-all duration-200 ease-out;
   }
   .glass-card-hover:hover {
-    box-shadow: 0 4px 6px -1px rgba(16, 24, 40, 0.06), 0 10px 24px -8px rgba(16, 24, 40, 0.10);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
+  }
+
+  .surface-elevated {
+    background: var(--gradient-surface);
   }
 
   .transition-default {
@@ -154,5 +170,20 @@
   }
   .section-subtitle {
     @apply text-xs text-muted-foreground mt-0.5;
+  }
+
+  /* Stripe-style page header */
+  .page-title {
+    @apply text-[22px] font-semibold tracking-tight text-foreground leading-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  /* Linear-like dense kbd */
+  .kbd {
+    @apply inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
+           rounded border border-border bg-muted text-[10px] font-mono
+           text-muted-foreground;
   }
 }
