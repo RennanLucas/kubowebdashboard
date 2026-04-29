@@ -1,4 +1,6 @@
-import * as XLSX from "xlsx";
+// xlsx é importado dinamicamente dentro de exportToExcel para evitar
+// carregar ~184KB no bundle inicial. Só baixa quando o usuário clica
+// em "Exportar Excel".
 
 export interface ExportData {
   clientName: string;
