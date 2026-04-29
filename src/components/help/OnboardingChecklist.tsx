@@ -242,21 +242,35 @@ export function OnboardingChecklist() {
             </p>
           </div>
         </div>
-        {allDone && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground"
-            onClick={() => {
-              try {
-                localStorage.setItem(STORAGE_KEY, "1");
-              } catch {}
-              window.location.reload();
-            }}
-          >
-            Ocultar
-          </Button>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          {!allDone && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs text-muted-foreground"
+              onClick={() => load(true)}
+              disabled={refreshing || loading}
+              title="Atualizar status"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            </Button>
+          )}
+          {allDone && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground"
+              onClick={() => {
+                try {
+                  localStorage.setItem(STORAGE_KEY, "1");
+                } catch {}
+                window.location.reload();
+              }}
+            >
+              Ocultar
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mb-4">
