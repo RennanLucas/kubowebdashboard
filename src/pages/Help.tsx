@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
 
 interface Entry {
   term: string;
