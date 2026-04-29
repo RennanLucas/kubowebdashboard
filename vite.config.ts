@@ -69,4 +69,19 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  build: {
+    // Split heavy vendor libs into their own chunks so the initial
+    // bundle stays small and unused JS is deferred.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "query-vendor": ["@tanstack/react-query", "@tanstack/query-core"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "charts-vendor": ["recharts"],
+          "date-vendor": ["date-fns"],
+        },
+      },
+    },
+  },
 }));
