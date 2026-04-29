@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
 
 interface Entry {
   term: string;
@@ -261,6 +262,8 @@ export default function Help() {
             Entenda cada métrica, fórmula e recurso disponível na plataforma.
           </p>
         </div>
+
+        <OnboardingChecklist />
 
         <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
           <div>
