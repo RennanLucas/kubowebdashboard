@@ -1,4 +1,5 @@
 import { HelpCircle, PlayCircle } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,16 @@ import {
 } from "@/components/ui/accordion";
 import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
 import { QuickStartGuide } from "@/components/help/QuickStartGuide";
+import { HelpSearch, HelpFilter } from "@/components/help/HelpSearch";
+
+/** Topic filters shared between QuickStartGuide and the glossary. */
+const HELP_FILTERS: HelpFilter[] = [
+  { key: "tracking", label: "Tracking", keywords: ["tracking", "script", "snippet", "instalar", "rastreamento"] },
+  { key: "whatsapp", label: "WhatsApp", keywords: ["whatsapp", "wa.me"] },
+  { key: "cta", label: "CTAs", keywords: ["cta", "botão", "botao", "conversão", "conversao"] },
+  { key: "valor", label: "Valor por lead", keywords: ["valor", "lead", "receita", "monetização", "monetizacao"] },
+  { key: "dashboard", label: "Dashboard", keywords: ["dashboard", "kpi", "métrica", "metrica", "gráfico", "grafico"] },
+];
 
 interface Entry {
   term: string;
