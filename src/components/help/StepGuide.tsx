@@ -4,6 +4,10 @@ export interface StepItem {
   title: string;
   description?: ReactNode;
   content?: ReactNode;
+  /** Lowercase tags used by Help search/filter. */
+  keywords?: string[];
+  /** Plain-text version of description used for search matching. */
+  searchText?: string;
 }
 
 interface StepGuideProps {
