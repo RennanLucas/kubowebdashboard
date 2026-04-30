@@ -1,4 +1,5 @@
 import { HelpCircle, PlayCircle } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,16 @@ import {
 } from "@/components/ui/accordion";
 import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
 import { QuickStartGuide } from "@/components/help/QuickStartGuide";
+import { HelpSearch, HelpFilter } from "@/components/help/HelpSearch";
+
+/** Topic filters shared between QuickStartGuide and the glossary. */
+const HELP_FILTERS: HelpFilter[] = [
+  { key: "tracking", label: "Tracking", keywords: ["tracking", "script", "snippet", "instalar", "rastreamento"] },
+  { key: "whatsapp", label: "WhatsApp", keywords: ["whatsapp", "wa.me"] },
+  { key: "cta", label: "CTAs", keywords: ["cta", "botão", "botao", "conversão", "conversao"] },
+  { key: "valor", label: "Valor por lead", keywords: ["valor", "lead", "receita", "monetização", "monetizacao"] },
+  { key: "dashboard", label: "Dashboard", keywords: ["dashboard", "kpi", "métrica", "metrica", "gráfico", "grafico"] },
+];
 
 interface Entry {
   term: string;
@@ -222,6 +233,35 @@ const sections: Section[] = [
 
 export default function Help() {
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const activeFilterKeywords = useMemo(() => {
+    if (!activeFilter) return null;
+    return HELP_FILTERS.find((f) => f.key === activeFilter)?.keywords ?? null;
+  }, [activeFilter]);
+
+  const filteredSections = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q && !activeFilterKeywords) return sections;
+
+    return sections
+      .map((sec) => {
+        const items = sec.items.filter((item) => {
+          const haystack = `${item.term} ${item.description} ${item.formula ?? ""}`.toLowerCase();
+          if (activeFilterKeywords && !activeFilterKeywords.some((kw) => haystack.includes(kw))) {
+            return false;
+          }
+          if (q && !haystack.includes(q)) return false;
+          return true;
+        });
+        return { ...sec, items };
+      })
+      .filter((sec) => sec.items.length > 0);
+  }, [query, activeFilterKeywords]);
+
+  const totalResults = filteredSections.reduce((acc, s) => acc + s.items.length, 0);
+  const isFiltering = query.trim().length > 0 || activeFilter !== null;
 
   const handleRestartTour = () => {
     try {
@@ -264,31 +304,53 @@ export default function Help() {
           </p>
         </div>
 
-        <OnboardingChecklist />
+        <HelpSearch
+          query={query}
+          onQueryChange={setQuery}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          filters={HELP_FILTERS}
+          resultsLabel={isFiltering ? `${totalResults} resultado(s)` : undefined}
+        />
 
-        <QuickStartGuide />
+        {!isFiltering && <OnboardingChecklist />}
 
-        <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <PlayCircle className="h-4 w-4 text-primary" />
-              Tour guiado da plataforma
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Refaça o tutorial interativo de boas-vindas mostrando todas as áreas do app.
-            </p>
-          </div>
-          <Button onClick={handleRestartTour} className="shrink-0">
-            <PlayCircle className="h-4 w-4 mr-2" />
-            Refazer tour
-          </Button>
-        </Card>
+        <QuickStartGuide query={query} filter={activeFilter} />
+
+        {!isFiltering && (
+          <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <PlayCircle className="h-4 w-4 text-primary" />
+                Tour guiado da plataforma
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Refaça o tutorial interativo de boas-vindas mostrando todas as áreas do app.
+              </p>
+            </div>
+            <Button onClick={handleRestartTour} className="shrink-0">
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Refazer tour
+            </Button>
+          </Card>
+        )}
 
         <div className="space-y-4">
-          {sections.map((sec) => (
+          {filteredSections.length === 0 && (
+            <Card className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhum resultado encontrado para sua busca.
+              </p>
+            </Card>
+          )}
+          {filteredSections.map((sec) => (
             <Card key={sec.title} className="p-5">
               <h2 className="text-sm font-semibold text-foreground mb-3">{sec.title}</h2>
-              <Accordion type="multiple" className="w-full">
+              <Accordion
+                type="multiple"
+                className="w-full"
+                defaultValue={isFiltering ? sec.items.map((i) => i.term) : undefined}
+              >
                 {sec.items.map((item) => (
                   <AccordionItem key={item.term} value={item.term} className="border-border">
                     <AccordionTrigger className="text-sm hover:no-underline py-3">{item.term}</AccordionTrigger>
