@@ -354,12 +354,14 @@ export default function Help() {
               >
                 {sec.items.map((item) => (
                   <AccordionItem key={item.term} value={item.term} className="border-border">
-                    <AccordionTrigger className="text-sm hover:no-underline py-3">{item.term}</AccordionTrigger>
+                    <AccordionTrigger className="text-sm hover:no-underline py-3">
+                      <Highlight text={item.term} query={query} />
+                    </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground space-y-2">
-                      <p>{item.description}</p>
+                      <p><Highlight text={item.description} query={query} /></p>
                       {item.formula && (
                         <p className="text-xs font-mono bg-muted px-2 py-1 rounded inline-block text-foreground">
-                          {item.formula}
+                          <Highlight text={item.formula} query={query} />
                         </p>
                       )}
                     </AccordionContent>
