@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Highlight } from "./Highlight";
 
 export interface StepItem {
   title: string;
@@ -12,13 +13,15 @@ export interface StepItem {
 
 interface StepGuideProps {
   steps: StepItem[];
+  /** Free-text query to visually highlight inside step titles. */
+  highlightQuery?: string;
 }
 
 /**
  * Numbered vertical step guide. Pure presentational — no routing or auth.
  * Reusable wherever an inline how-to is needed.
  */
-export function StepGuide({ steps }: StepGuideProps) {
+export function StepGuide({ steps, highlightQuery }: StepGuideProps) {
   return (
     <ol className="space-y-4">
       {steps.map((step, idx) => (
@@ -32,7 +35,9 @@ export function StepGuide({ steps }: StepGuideProps) {
             )}
           </div>
           <div className="flex-1 min-w-0 pb-2">
-            <h3 className="text-sm font-medium text-foreground">{step.title}</h3>
+            <h3 className="text-sm font-medium text-foreground">
+              <Highlight text={step.title} query={highlightQuery} />
+            </h3>
             {step.description && (
               <div className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 {step.description}
