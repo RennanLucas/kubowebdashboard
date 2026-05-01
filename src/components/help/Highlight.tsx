@@ -17,10 +17,11 @@ export function Highlight({ text, query }: HighlightProps): ReactNode {
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`(${escaped})`, "gi");
     const parts = text.split(regex);
+    const lowerQ = q.toLowerCase();
     return (
       <>
         {parts.map((part, i) =>
-          regex.test(part) && part.toLowerCase() === q.toLowerCase() ? (
+          part.toLowerCase() === lowerQ ? (
             <mark
               key={i}
               className="bg-primary/20 text-foreground rounded px-0.5"
