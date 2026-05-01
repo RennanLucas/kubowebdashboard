@@ -124,7 +124,7 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
         </div>
       </div>
 
-      <StepGuide steps={steps} />
+      <StepGuide steps={steps} highlightQuery={query} />
     </Card>
   );
 }
