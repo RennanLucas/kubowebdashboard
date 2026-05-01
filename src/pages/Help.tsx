@@ -15,6 +15,7 @@ import {
 import { OnboardingChecklist } from "@/components/help/OnboardingChecklist";
 import { QuickStartGuide } from "@/components/help/QuickStartGuide";
 import { HelpSearch, HelpFilter } from "@/components/help/HelpSearch";
+import { Highlight } from "@/components/help/Highlight";
 
 /** Topic filters shared between QuickStartGuide and the glossary. */
 const HELP_FILTERS: HelpFilter[] = [
