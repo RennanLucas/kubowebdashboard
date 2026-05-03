@@ -258,22 +258,34 @@ Deno.serve(async (req) => {
     const hasSourceFilter = sourceFilter !== "all";
     const hasDeviceFilter = deviceFilter !== "all";
 
-    // Get client data
-    const { data: clientData, error: clientError } = await supabaseAdmin
+    // Get all clients for this user (a user may have more than one client row).
+    const { data: allClients, error: clientError } = await supabaseAdmin
       .from("clients")
       .select("*, projects(*)")
       .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
 
     if (clientError) throw clientError;
-    if (!clientData) {
+    if (!allClients || allClients.length === 0) {
       return new Response(JSON.stringify({ client: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Select project
+    // Pick the client that owns the selected project. If none specified
+    // (or it doesn't match), prefer the first client that actually has
+    // projects, falling back to the first client overall.
+    let clientData: any = null;
+    if (selectedProjectId) {
+      clientData = allClients.find((c: any) =>
+        (c.projects || []).some((p: any) => p.id === selectedProjectId)
+      ) || null;
+    }
+    if (!clientData) {
+      clientData = allClients.find((c: any) => (c.projects || []).length > 0) || allClients[0];
+    }
+
+    // Select project within the chosen client
     const projects = clientData.projects || [];
     const projectId = selectedProjectId && projects.some((p: any) => p.id === selectedProjectId)
       ? selectedProjectId
