@@ -53,14 +53,13 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     }
   }, [activeProjectId]);
 
-  // When the active project changes, invalidate all project-scoped caches
-  // (heatmap, annotations, alerts, AI insights, etc.) so widgets refresh.
+  // When the active project changes, refresh all project-scoped widgets.
   useEffect(() => {
     if (!activeProjectId) return;
-    queryClient.invalidateQueries({ predicate: (q) => {
-      const key = q.queryKey;
-      return Array.isArray(key) && key.some((k) => typeof k === "string" && k !== activeProjectId && key.includes(activeProjectId) === false && (key[0] === "annotations" || key[0] === "alerts" || key[0] === "heatmap" || key[0] === "ai-insights" || key[0] === "live-feed" || key[0] === "goals"));
-    }});
+    const scopedKeys = ["heatmap", "annotations", "alerts", "ai-insights", "live-feed", "goals", "client-projects"];
+    queryClient.invalidateQueries({
+      predicate: (q) => Array.isArray(q.queryKey) && scopedKeys.includes(q.queryKey[0] as string),
+    });
   }, [activeProjectId, queryClient]);
 
   useEffect(() => {
