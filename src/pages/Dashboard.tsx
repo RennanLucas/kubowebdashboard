@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
 import { BarChart3 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -22,12 +23,14 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 
-const DashboardContent = () => {
+interface DashboardContentProps {
+  selectedProjectId?: string;
+  setSelectedProjectId: (id: string) => void;
+}
+
+const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: DashboardContentProps) => {
   const [dateRange, setDateRange] = useState(30);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => {
-    if (typeof window === "undefined") return undefined;
-    return window.localStorage.getItem("dashboard:last-project-id") ?? undefined;
-  });
+  const queryClient = useQueryClient();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
   const { data: allProjects } = useAllUserProjects();
@@ -50,15 +53,14 @@ const DashboardContent = () => {
     }
   }, [activeProjectId]);
 
-  // React to project changes from the global topbar switcher.
+  // When the active project changes, refresh all project-scoped widgets.
   useEffect(() => {
-    const handler = (e: Event) => {
-      const id = (e as CustomEvent<{ id: string }>).detail?.id;
-      if (id) setSelectedProjectId(id);
-    };
-    window.addEventListener("project-changed", handler);
-    return () => window.removeEventListener("project-changed", handler);
-  }, []);
+    if (!activeProjectId) return;
+    const scopedKeys = ["heatmap", "annotations", "alerts", "ai-insights", "live-feed", "goals", "client-projects"];
+    queryClient.invalidateQueries({
+      predicate: (q) => Array.isArray(q.queryKey) && scopedKeys.includes(q.queryKey[0] as string),
+    });
+  }, [activeProjectId, queryClient]);
 
   useEffect(() => {
     if (!clientData?.id) return;
@@ -394,14 +396,27 @@ const DashboardContent = () => {
 };
 
 const Dashboard = () => {
-  // Project-scoped filters; localStorage key is updated when active project resolves.
-  const activeProjectKey =
-    typeof window !== "undefined"
-      ? window.localStorage.getItem("dashboard:last-project-id") ?? undefined
-      : undefined;
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return window.localStorage.getItem("dashboard:last-project-id") ?? undefined;
+  });
+
+  // React to project changes from the global topbar switcher.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) setSelectedProjectId(id);
+    };
+    window.addEventListener("project-changed", handler);
+    return () => window.removeEventListener("project-changed", handler);
+  }, []);
+
   return (
-    <DashboardFiltersProvider projectId={activeProjectKey}>
-      <DashboardContent />
+    <DashboardFiltersProvider projectId={selectedProjectId}>
+      <DashboardContent
+        selectedProjectId={selectedProjectId}
+        setSelectedProjectId={setSelectedProjectId}
+      />
     </DashboardFiltersProvider>
   );
 };
