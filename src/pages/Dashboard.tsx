@@ -17,6 +17,7 @@ import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistor
 import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useAllUserProjects } from "@/hooks/useAllUserProjects";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -396,20 +397,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 };
 
 const Dashboard = () => {
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => {
-    if (typeof window === "undefined") return undefined;
-    return window.localStorage.getItem("dashboard:last-project-id") ?? undefined;
-  });
-
-  // React to project changes from the global topbar switcher.
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const id = (e as CustomEvent<{ id: string }>).detail?.id;
-      if (id) setSelectedProjectId(id);
-    };
-    window.addEventListener("project-changed", handler);
-    return () => window.removeEventListener("project-changed", handler);
-  }, []);
+  const { selectedProjectId, setSelectedProjectId } = useSelectedProject();
 
   return (
     <DashboardFiltersProvider projectId={selectedProjectId}>
