@@ -47,12 +47,23 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
-  // Remember last active project so filters can be hydrated correctly on next load.
+  // If the stored project id no longer exists for this user (deleted, switched
+  // accounts, etc.), reset it to the first available project so the selector
+  // doesn't get stuck on a stale value.
   useEffect(() => {
-    if (activeProjectId && typeof window !== "undefined") {
-      window.localStorage.setItem("dashboard:last-project-id", activeProjectId);
+    if (!allProjects || allProjects.length === 0) return;
+    if (!selectedProjectId) return;
+    const exists = allProjects.some((p) => p.id === selectedProjectId);
+    if (!exists) setSelectedProjectId(allProjects[0].id);
+  }, [allProjects, selectedProjectId, setSelectedProjectId]);
+
+  // Persist the resolved active project so other surfaces (topbar switcher,
+  // next page load) restore the same choice.
+  useEffect(() => {
+    if (activeProjectId && !selectedProjectId) {
+      setSelectedProjectId(activeProjectId);
     }
-  }, [activeProjectId]);
+  }, [activeProjectId, selectedProjectId, setSelectedProjectId]);
 
   // When the active project changes, refresh all project-scoped widgets.
   useEffect(() => {
