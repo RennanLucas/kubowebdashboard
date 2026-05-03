@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown, Folder } from "lucide-react";
 import { useAllUserProjects } from "@/hooks/useAllUserProjects";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -17,40 +18,28 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = "dashboard:last-project-id";
-
 /**
- * Global project switcher in the topbar.
- *
- * Reads/writes the same `dashboard:last-project-id` localStorage key
- * the Dashboard already uses, so changing it from the topbar updates
- * the project everywhere on next read. We also dispatch a `storage`-like
- * custom event so any open dashboard can react instantly.
+ * Global project switcher in the topbar. Uses the shared `useSelectedProject`
+ * hook so persistence + cross-component sync is centralized.
  */
 export const GlobalProjectSwitcher = () => {
   const { data: projects, isLoading } = useAllUserProjects();
+  const { selectedProjectId, setSelectedProjectId } = useSelectedProject();
   const [open, setOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return window.localStorage.getItem(STORAGE_KEY);
-  });
 
   // Pick a default if nothing stored yet.
   useEffect(() => {
-    if (!activeId && projects && projects.length > 0) {
-      const first = projects[0].id;
-      setActiveId(first);
-      window.localStorage.setItem(STORAGE_KEY, first);
+    if (!selectedProjectId && projects && projects.length > 0) {
+      setSelectedProjectId(projects[0].id);
     }
-  }, [projects, activeId]);
+  }, [projects, selectedProjectId, setSelectedProjectId]);
 
   const handleSelect = (id: string) => {
-    setActiveId(id);
-    window.localStorage.setItem(STORAGE_KEY, id);
-    window.dispatchEvent(new CustomEvent("project-changed", { detail: { id } }));
+    setSelectedProjectId(id);
     setOpen(false);
   };
 
+  const activeId = selectedProjectId;
   const active = projects?.find((p) => p.id === activeId) ?? projects?.[0];
 
   if (isLoading || !projects || projects.length === 0) return null;
