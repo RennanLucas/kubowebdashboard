@@ -397,14 +397,27 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 };
 
 const Dashboard = () => {
-  // Project-scoped filters; localStorage key is updated when active project resolves.
-  const activeProjectKey =
-    typeof window !== "undefined"
-      ? window.localStorage.getItem("dashboard:last-project-id") ?? undefined
-      : undefined;
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    return window.localStorage.getItem("dashboard:last-project-id") ?? undefined;
+  });
+
+  // React to project changes from the global topbar switcher.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) setSelectedProjectId(id);
+    };
+    window.addEventListener("project-changed", handler);
+    return () => window.removeEventListener("project-changed", handler);
+  }, []);
+
   return (
-    <DashboardFiltersProvider projectId={activeProjectKey}>
-      <DashboardContent />
+    <DashboardFiltersProvider projectId={selectedProjectId}>
+      <DashboardContent
+        selectedProjectId={selectedProjectId}
+        setSelectedProjectId={setSelectedProjectId}
+      />
     </DashboardFiltersProvider>
   );
 };
