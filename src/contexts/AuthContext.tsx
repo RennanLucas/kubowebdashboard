@@ -65,6 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    try {
+      window.localStorage.removeItem("dashboard:last-project-id");
+      window.dispatchEvent(new CustomEvent("project-changed", { detail: { id: undefined } }));
+    } catch {
+      /* ignore storage errors */
+    }
     await supabase.auth.signOut();
   };
 
