@@ -136,15 +136,16 @@ export const useDashboardAnalytics = (
   filters?: { source?: string; device?: string },
 ) => {
   const { session, loading: authLoading } = useAuth();
+  const userId = session?.user?.id;
   const plan = usePlan(!!session);
   const cappedDays = Math.min(days, plan.maxHistoryDays);
   const source = filters?.source ?? "all";
   const device = filters?.device ?? "all";
   return useQuery({
-    queryKey: ["dashboard-analytics", cappedDays, projectId, source, device],
+    queryKey: ["dashboard-analytics", userId, cappedDays, projectId, source, device],
     refetchInterval: 60000,
     refetchIntervalInBackground: false,
-    enabled: !authLoading && !!session?.access_token && !plan.loading,
+    enabled: !authLoading && !!session?.access_token && !!userId && !plan.loading,
     queryFn: async () => {
       const days = cappedDays;
       const { data: sessionData } = await supabase.auth.getSession();
