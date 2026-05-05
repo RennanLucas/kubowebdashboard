@@ -117,12 +117,8 @@ describe("Account isolation in the dashboard", () => {
     const sessionA = makeSession("user-a");
     const sessionB = makeSession("user-b");
 
-    // Pre-populate state as if user A was logged in and had cached data.
+    // Start logged in as user A.
     authState.currentSession = sessionA;
-    window.localStorage.setItem("dashboard:last-project-id", "project-of-A");
-    queryClient.setQueryData(buildDashboardKey("user-a", 30, "project-of-A"), {
-      secret: "user-A-dashboard",
-    });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -132,7 +128,12 @@ describe("Account isolation in the dashboard", () => {
       expect(result.current.user?.id).toBe("user-a");
     });
 
-    // Sanity: user A's data is in cache and project id is persisted.
+    // Now simulate user A using the app: dashboard data + persisted project.
+    queryClient.setQueryData(buildDashboardKey("user-a", 30, "project-of-A"), {
+      secret: "user-A-dashboard",
+    });
+    window.localStorage.setItem("dashboard:last-project-id", "project-of-A");
+
     expect(
       queryClient.getQueryData(buildDashboardKey("user-a", 30, "project-of-A")),
     ).toBeDefined();
