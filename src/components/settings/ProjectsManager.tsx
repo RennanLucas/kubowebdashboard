@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,14 +18,16 @@ interface Props {
 
 export default function ProjectsManager({ clientId }: Props) {
   const qc = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user?.id;
   const plan = usePlan();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", url: "" });
 
   const { data: projects, refetch } = useQuery({
-    queryKey: ["client-projects", clientId],
-    enabled: !!clientId,
+    queryKey: ["client-projects", userId, clientId],
+    enabled: !!clientId && !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
