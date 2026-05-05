@@ -185,21 +185,26 @@ describe("E2E: dashboard never shows another user's data after account switch", 
     // Start logged in as user A.
     authState.currentSession = sessionA;
 
-    const { result: authResult } = renderHook(() => useAuth(), { wrapper });
-    const { result: dashResult } = renderHook(
-      () => useDashboardAnalytics(30, "project-user-a"),
+    // IMPORTANT: both hooks must share the SAME AuthProvider, otherwise each
+    // renderHook() spins up its own provider tree with its own auth state.
+    let projectId = "project-user-a";
+    const { result, rerender } = renderHook(
+      () => ({
+        auth: useAuth(),
+        dash: useDashboardAnalytics(30, projectId),
+      }),
       { wrapper },
     );
 
     // 1) Wait for AuthProvider hydration as user A.
     await waitFor(() => {
-      expect(authResult.current.loading).toBe(false);
-      expect(authResult.current.user?.id).toBe("user-a");
+      expect(result.current.auth.loading).toBe(false);
+      expect(result.current.auth.user?.id).toBe("user-a");
     });
 
     // 2) Dashboard for user A loads and shows user A's company name.
     await waitFor(() => {
-      expect(dashResult.current.data?.client?.company_name).toBe("Company USER-A");
+      expect(result.current.dash.data?.client?.company_name).toBe("Company USER-A");
     });
 
     // The first network call must have used user A's token.
@@ -216,24 +221,21 @@ describe("E2E: dashboard never shows another user's data after account switch", 
 
     // 3) AuthProvider must wipe persisted project state on user switch.
     await waitFor(() => {
-      expect(authResult.current.user?.id).toBe("user-b");
+      expect(result.current.auth.user?.id).toBe("user-b");
     });
     expect(window.localStorage.getItem("dashboard:last-project-id")).toBeNull();
 
-    // 4) Re-render the dashboard hook for user B's project. Because the
-    //    queryKey is scoped by userId AND the cache was cleared, this MUST
-    //    issue a brand new fetch with user B's token — never serve A's data.
-    const { result: dashResultB } = renderHook(
-      () => useDashboardAnalytics(30, "project-user-b"),
-      { wrapper },
-    );
+    // 4) Switch to user B's project. Because the queryKey is scoped by userId
+    //    AND the cache was cleared, this MUST issue a brand new fetch with
+    //    user B's token — never serve A's data.
+    projectId = "project-user-b";
+    rerender();
 
     await waitFor(() => {
-      expect(dashResultB.current.data?.client?.company_name).toBe("Company USER-B");
+      expect(result.current.dash.data?.client?.company_name).toBe("Company USER-B");
     });
 
     // 5) Audit every network call: each response's user must match its token.
-    //    (i.e. the backend was always asked with the correct identity.)
     for (const c of calls) {
       const sub = JSON.parse(atob(c.token.split(".")[1])).sub;
       expect(c.userReturned).toBe(sub);
@@ -244,8 +246,8 @@ describe("E2E: dashboard never shows another user's data after account switch", 
     expect(calls.some((c) => c.userReturned === "user-b")).toBe(true);
 
     // 7) The currently rendered dashboard for user B must NOT contain user A.
-    expect(dashResultB.current.data?.client?.company_name).not.toContain("USER-A");
-    expect(dashResultB.current.data?.client?.id).toBe("client-user-b");
+    expect(result.current.dash.data?.client?.company_name).not.toContain("USER-A");
+    expect(result.current.dash.data?.client?.id).toBe("client-user-b");
   });
 
   it("after signOut and a NEW login as user B, dashboard shows only user B", async () => {
@@ -254,40 +256,41 @@ describe("E2E: dashboard never shows another user's data after account switch", 
 
     authState.currentSession = sessionA;
 
-    const { result: authResult } = renderHook(() => useAuth(), { wrapper });
-    const { result: dashResult } = renderHook(
-      () => useDashboardAnalytics(30, "project-user-a"),
+    let projectId = "project-user-a";
+    const { result, rerender } = renderHook(
+      () => ({
+        auth: useAuth(),
+        dash: useDashboardAnalytics(30, projectId),
+      }),
       { wrapper },
     );
 
-    await waitFor(() => expect(authResult.current.user?.id).toBe("user-a"));
+    await waitFor(() => expect(result.current.auth.user?.id).toBe("user-a"));
     await waitFor(() =>
-      expect(dashResult.current.data?.client?.company_name).toBe("Company USER-A"),
+      expect(result.current.dash.data?.client?.company_name).toBe("Company USER-A"),
     );
 
     // Sign out — wipes cache + localStorage.
     await act(async () => {
-      await authResult.current.signOut();
+      await result.current.auth.signOut();
     });
-    await waitFor(() => expect(authResult.current.user).toBeNull());
+    await waitFor(() => expect(result.current.auth.user).toBeNull());
     expect(window.localStorage.getItem("dashboard:last-project-id")).toBeNull();
 
     // Now log in as user B.
     await act(async () => {
       fireAuth(sessionB);
     });
-    await waitFor(() => expect(authResult.current.user?.id).toBe("user-b"));
+    await waitFor(() => expect(result.current.auth.user?.id).toBe("user-b"));
 
-    const { result: dashResultB } = renderHook(
-      () => useDashboardAnalytics(30, "project-user-b"),
-      { wrapper },
-    );
+    projectId = "project-user-b";
+    rerender();
 
     await waitFor(() => {
-      expect(dashResultB.current.data?.client?.company_name).toBe("Company USER-B");
+      expect(result.current.dash.data?.client?.company_name).toBe("Company USER-B");
     });
 
     // No call returned A's data to B, and B's view is pure B.
-    expect(dashResultB.current.data?.client?.company_name).not.toContain("USER-A");
+    expect(result.current.dash.data?.client?.company_name).not.toContain("USER-A");
   });
 });
