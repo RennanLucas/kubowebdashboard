@@ -3,6 +3,9 @@ import App from "./App.tsx";
 import "./index.css";
 import { registerPWA } from "./lib/pwa";
 
+// Default to dark mode premium experience
+document.documentElement.classList.add("dark");
+
 createRoot(document.getElementById("root")!).render(<App />);
 
 registerPWA();

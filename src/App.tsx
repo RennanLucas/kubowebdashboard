@@ -28,6 +28,7 @@ const Live = lazy(() => import("./pages/Live"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Install = lazy(() => import("./pages/Install"));
 const PWAQA = lazy(() => import("./pages/PWAQA"));
+const Landing = lazy(() => import("./pages/Landing"));
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,7 @@ const App = () => (
         <AuthProvider>
           <Suspense fallback={null}>
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/install" element={<Install />} />
