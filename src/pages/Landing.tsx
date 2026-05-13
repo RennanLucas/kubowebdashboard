@@ -81,6 +81,7 @@ const Navbar = () => (
           <a href="#social" className="hover:text-foreground transition-colors">Clientes</a>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline px-3">
             Entrar
           </Link>

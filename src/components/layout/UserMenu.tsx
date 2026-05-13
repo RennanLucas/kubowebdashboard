@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,8 @@ export const UserMenu = () => {
   };
 
   return (
+    <div className="flex items-center gap-1">
+    <ThemeToggle />
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -85,5 +88,6 @@ export const UserMenu = () => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   );
 };
