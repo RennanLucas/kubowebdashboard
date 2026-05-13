@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
 /* ----------------------------- Animated counter ---------------------------- */
