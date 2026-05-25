@@ -57,8 +57,29 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-card/60 backdrop-blur sticky top-0 z-30">
+    <>
+      {plans.length > 0 && (
+        <script type="application/ld+json">
+          {JSON.stringify(
+            plans.map((plan) => ({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: `KUBOWEB ${plan.name}`,
+              description: plan.tagline,
+              brand: { "@type": "Brand", name: "KUBOWEB" },
+              offers: {
+                "@type": "Offer",
+                price: plan.amount,
+                priceCurrency: plan.currency,
+                availability: "https://schema.org/InStock",
+                url: "https://kubowebdashboard.lovable.app/pricing",
+              },
+            }))
+          )}
+        </script>
+      )}
+      <div className="min-h-screen bg-background">
+        <div className="border-b bg-card/60 backdrop-blur sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
@@ -191,5 +212,6 @@ export default function Pricing() {
         </p>
       </div>
     </div>
+    </>
   );
 }
