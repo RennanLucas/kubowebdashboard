@@ -440,18 +440,32 @@ const Footer = () => (
 
 const Landing = () => {
   return (
-    <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
-      <Navbar />
-      <main>
-        <Hero />
-        <Stats />
-        <Features />
-        <Benefits />
-        <Social />
-        <CTA />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <Helmet>
+        <title>KUBOWEB — Analytics e geração de leads para seu site</title>
+        <meta name="description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
+        <meta property="og:title" content="KUBOWEB — Analytics e geração de leads para seu site" />
+        <meta property="og:description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
+        <meta property="og:url" content="https://kubowebdashboard.lovable.app/" />
+        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta name="twitter:title" content="KUBOWEB — Analytics e geração de leads para seu site" />
+        <meta name="twitter:description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
+        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/" />
+      </Helmet>
+      <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
+        <Navbar />
+        <main>
+          <Hero />
+          <Stats />
+          <Features />
+          <Benefits />
+          <Social />
+          <CTA />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

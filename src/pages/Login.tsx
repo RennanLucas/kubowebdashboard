@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -148,7 +149,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <>
+      <Helmet>
+        <title>Entrar — KUBOWEB Client Portal</title>
+        <meta name="description" content="Acesse seu painel de analytics e leads da KUBOWEB." />
+        <meta property="og:title" content="Entrar — KUBOWEB Client Portal" />
+        <meta property="og:description" content="Acesse seu painel de analytics e leads da KUBOWEB." />
+        <meta property="og:url" content="https://kubowebdashboard.lovable.app/login" />
+        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta name="twitter:title" content="Entrar — KUBOWEB Client Portal" />
+        <meta name="twitter:description" content="Acesse seu painel de analytics e leads da KUBOWEB." />
+        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/login" />
+      </Helmet>
+      <div className="min-h-screen flex bg-background">
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12 relative overflow-hidden">
         {/* Decorative gradient blobs */}
