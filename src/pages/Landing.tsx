@@ -71,7 +71,7 @@ const Navbar = () => (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 mt-4">
       <nav className="glass-strong rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-auto" />
+          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-auto" width="109" height="28" />
           <span className="text-xs font-medium text-muted-foreground hidden sm:inline tracking-[0.18em] uppercase">
             Analytics
           </span>
@@ -427,7 +427,7 @@ const Footer = () => (
   <footer className="border-t border-border/60 py-10">
     <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
       <div className="flex items-center gap-2">
-        <img src={logoKubowebWhite} alt="KUBOWEB" className="h-5 w-auto" />
+        <img src={logoKubowebWhite} alt="KUBOWEB" className="h-5 w-auto" width="78" height="20" />
         <span>© {new Date().getFullYear()} KUBOWEB</span>
       </div>
       <div className="flex items-center gap-6">
