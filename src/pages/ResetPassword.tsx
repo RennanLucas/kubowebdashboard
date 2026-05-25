@@ -225,7 +225,20 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-8">
+    <>
+      <Helmet>
+        <title>Recuperar senha — KUBOWEB</title>
+        <meta name="description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
+        <meta property="og:title" content="Recuperar senha — KUBOWEB" />
+        <meta property="og:description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
+        <meta property="og:url" content="https://kubowebdashboard.lovable.app/reset-password" />
+        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta name="twitter:title" content="Recuperar senha — KUBOWEB" />
+        <meta name="twitter:description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
+        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/reset-password" />
+      </Helmet>
+      <div className="min-h-screen flex items-center justify-center bg-background p-8">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
@@ -357,6 +370,7 @@ const ResetPassword = () => {
         )}
       </div>
     </div>
+  </>
   );
 };
 
