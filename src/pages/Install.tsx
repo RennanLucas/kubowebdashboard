@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Download, Share, Plus, CheckCircle2, Smartphone, Apple, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,7 +26,20 @@ const Install = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
+      <Helmet>
+        <title>Instalar app — KUBOWEB</title>
+        <meta name="description" content="Instale o KUBOWEB como aplicativo no seu celular ou computador." />
+        <meta property="og:title" content="Instalar app — KUBOWEB" />
+        <meta property="og:description" content="Instale o KUBOWEB como aplicativo no seu celular ou computador." />
+        <meta property="og:url" content="https://kubowebdashboard.lovable.app/install" />
+        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta name="twitter:title" content="Instalar app — KUBOWEB" />
+        <meta name="twitter:description" content="Instale o KUBOWEB como aplicativo no seu celular ou computador." />
+        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/install" />
+      </Helmet>
+      <div className="min-h-screen bg-background flex flex-col">
       <header className="px-4 py-3 border-b border-border flex items-center gap-3">
         <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-5 w-5" />
@@ -158,6 +172,7 @@ const Install = () => {
         </p>
       </main>
     </div>
+  </>
   );
 };
 

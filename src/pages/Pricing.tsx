@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Check, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -58,6 +59,18 @@ export default function Pricing() {
 
   return (
     <>
+      <Helmet>
+        <title>Planos — KUBOWEB Pro</title>
+        <meta name="description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
+        <meta property="og:title" content="Planos — KUBOWEB Pro" />
+        <meta property="og:description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
+        <meta property="og:url" content="https://kubowebdashboard.lovable.app/pricing" />
+        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta name="twitter:title" content="Planos — KUBOWEB Pro" />
+        <meta name="twitter:description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
+        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/pricing" />
+      </Helmet>
       {plans.length > 0 && (
         <script type="application/ld+json">
           {JSON.stringify(

@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
 import { registerPWA } from "./lib/pwa";
@@ -41,6 +42,10 @@ window.addEventListener("load", () => {
   try { sessionStorage.removeItem(RELOAD_KEY); } catch { /* ignore */ }
 });
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>
+);
 
 registerPWA();
