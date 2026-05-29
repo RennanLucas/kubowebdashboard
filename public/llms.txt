@@ -1,0 +1,14 @@
+# KUBOWEB
+
+> KUBOWEB é uma plataforma de analytics e geração de leads para sites. Acompanhe visitantes em tempo real, monitore conversões e tome decisões baseadas em dados para impulsionar seus resultados.
+
+## Pages
+
+- [Home](/): Conheça a plataforma KUBOWEB e descubra como analytics inteligente e geração de leads podem transformar o desempenho do seu site.
+- [Pricing](/pricing): Planos e preços do KUBOWEB. Escolha o plano ideal para o tamanho do seu negócio e comece a monitorar leads e visitantes.
+- [Install](/install): Guia de instalação do script de rastreamento do KUBOWEB no seu site. Passo a passo simples para começar a coletar dados.
+
+## Optional
+
+- [Terms of Service](/terms): Termos de serviço e condições de uso da plataforma.
+- [Privacy Policy](/privacy): Política de privacidade e proteção de dados.
