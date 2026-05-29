@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Users, TrendingUp, DollarSign, Percent, X, Maximize2, RefreshCw } from "lucide-react";
