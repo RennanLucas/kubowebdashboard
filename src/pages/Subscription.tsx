@@ -132,6 +132,11 @@ export default function SubscriptionPage() {
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Assinatura — KUBOWEB</title>
+        <meta name="description" content="Gerencie seu plano, cobranças e assinatura KUBOWEB." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/subscription" />
+      </Helmet>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Assinatura</h1>

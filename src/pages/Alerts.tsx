@@ -174,6 +174,11 @@ export default function Alerts() {
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Alertas — KUBOWEB</title>
+        <meta name="description" content="Monitore anomalias, metas e oportunidades automaticamente detectadas." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/alerts" />
+      </Helmet>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
           <div>

@@ -603,6 +603,11 @@ export default function Insights() {
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Insights com IA — KUBOWEB</title>
+        <meta name="description" content="Análise inteligente de dados do seu site com inteligência artificial." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/insights" />
+      </Helmet>
       <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
           <div>

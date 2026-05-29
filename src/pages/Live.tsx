@@ -24,6 +24,11 @@ export default function Live() {
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Visitantes ao vivo — KUBOWEB</title>
+        <meta name="description" content="Acompanhe os visitantes ativos no seu site em tempo real." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/live" />
+      </Helmet>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 flex items-center gap-3">
           <span className="relative flex h-3 w-3">

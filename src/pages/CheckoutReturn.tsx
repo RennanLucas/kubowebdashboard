@@ -33,6 +33,11 @@ export default function CheckoutReturn() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>Status do pagamento — KUBOWEB</title>
+        <meta name="description" content="Confirmação de pagamento e ativação da assinatura KUBOWEB." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/checkout/return" />
+      </Helmet>
       {/* Header com botão de sair sempre disponível */}
       <header className="border-b bg-card/60 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">

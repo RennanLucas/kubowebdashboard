@@ -85,6 +85,11 @@ const Presentation = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-10">
+      <Helmet>
+        <title>Apresentação — KUBOWEB</title>
+        <meta name="description" content="Modo apresentação do dashboard KUBOWEB para telas e reuniões." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/presentation" />
+      </Helmet>
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
         <div>

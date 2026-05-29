@@ -266,6 +266,11 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Configurações — KUBOWEB</title>
+        <meta name="description" content="Gerencie os dados do seu projeto e preferências de rastreamento." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/settings" />
+      </Helmet>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center gap-3 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
