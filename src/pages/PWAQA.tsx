@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, RefreshCcw, Trash2, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
@@ -209,6 +210,11 @@ const PWAQA = () => {
 
   return (
     <PageContainer>
+      <Helmet>
+        <title>QA do PWA — KUBOWEB</title>
+        <meta name="description" content="Diagnóstico do Progressive Web App da plataforma KUBOWEB." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/admin/pwa-qa" />
+      </Helmet>
       <div className="mb-4">
         <Link to="/admin" className="text-[13px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
           <ArrowLeft className="h-3.5 w-3.5" />

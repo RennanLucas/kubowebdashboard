@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
@@ -269,6 +270,11 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Dashboard — KUBOWEB</title>
+        <meta name="description" content="Acompanhe visitantes, leads e métricas do seu site em tempo real." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/dashboard" />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <UpgradeBanner />
         <DashboardHeader

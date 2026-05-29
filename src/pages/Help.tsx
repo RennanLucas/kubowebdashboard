@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { HelpCircle, PlayCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -294,6 +295,11 @@ export default function Help() {
 
   return (
     <AppLayout>
+      <Helmet>
+        <title>Ajuda — KUBOWEB</title>
+        <meta name="description" content="Glossário e central de ajuda da plataforma KUBOWEB." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/help" />
+      </Helmet>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">

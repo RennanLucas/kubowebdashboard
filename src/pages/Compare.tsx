@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { GitCompare, Users, TrendingUp, DollarSign, Percent, ArrowRight } from "lucide-react";
@@ -49,6 +50,11 @@ function ProjectColumn({
 
   return (
     <Card className="overflow-hidden border-2">
+      <Helmet>
+        <title>Comparar projetos — KUBOWEB</title>
+        <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
+      </Helmet>
       <div className={`bg-gradient-to-br ${accent} p-6 text-white`}>
         <Select value={projectId} onValueChange={onChange}>
           <SelectTrigger className="bg-white/20 border-white/30 text-white backdrop-blur-sm hover:bg-white/30">

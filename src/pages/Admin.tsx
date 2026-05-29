@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Loader2, Shield, ShieldOff, ArrowLeft, RefreshCw, Gift, Ban } from "lucide-react";
@@ -137,6 +138,11 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Admin — KUBOWEB</title>
+        <meta name="description" content="Painel administrativo da plataforma KUBOWEB." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/admin" />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

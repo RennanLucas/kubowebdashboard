@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,6 +183,11 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
 
   return (
     <div className="min-h-screen flex bg-background">
+      <Helmet>
+        <title>Configurar conta — KUBOWEB</title>
+        <meta name="description" content="Configure sua conta e comece a rastrear visitantes e leads no seu site." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/onboarding" />
+      </Helmet>
       {/* Left side - branding */}
       <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
