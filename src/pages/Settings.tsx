@@ -14,6 +14,7 @@ import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
 import MonthlyGoalsCard from "@/components/settings/MonthlyGoalsCard";
+import AlertPreferencesCard from "@/components/settings/AlertPreferencesCard";
 import { useSubscription } from "@/hooks/useSubscription";
 
 
