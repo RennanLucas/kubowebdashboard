@@ -14,6 +14,7 @@ import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
 import MonthlyGoalsCard from "@/components/settings/MonthlyGoalsCard";
+import AlertPreferencesCard from "@/components/settings/AlertPreferencesCard";
 import { useSubscription } from "@/hooks/useSubscription";
 
 
@@ -435,6 +436,11 @@ const Settings = () => {
           {/* Metas Mensais */}
           {clientData?.projects?.[0]?.id && (
             <MonthlyGoalsCard projectId={clientData.projects[0].id} />
+          )}
+
+          {/* Preferências de Alertas */}
+          {clientData?.projects?.[0]?.id && (
+            <AlertPreferencesCard projectId={clientData.projects[0].id} />
           )}
 
           {/* Tracking Snippet */}
