@@ -438,6 +438,11 @@ const Settings = () => {
             <MonthlyGoalsCard projectId={clientData.projects[0].id} />
           )}
 
+          {/* Preferências de Alertas */}
+          {clientData?.projects?.[0]?.id && (
+            <AlertPreferencesCard projectId={clientData.projects[0].id} />
+          )}
+
           {/* Tracking Snippet */}
           {clientData?.projects?.[0]?.id && (
             <div className="glass-card rounded-xl p-6 space-y-4">
