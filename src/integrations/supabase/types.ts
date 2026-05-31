@@ -46,28 +46,40 @@ export type Database = {
       }
       alert_preferences: {
         Row: {
+          alert_types: Json
           created_at: string
           enabled: boolean
+          frequency: string
           id: string
           leads_goal_daily: number | null
+          notify_email: boolean
+          notify_in_app: boolean
           project_id: string
           traffic_threshold_pct: number
           updated_at: string
         }
         Insert: {
+          alert_types?: Json
           created_at?: string
           enabled?: boolean
+          frequency?: string
           id?: string
           leads_goal_daily?: number | null
+          notify_email?: boolean
+          notify_in_app?: boolean
           project_id: string
           traffic_threshold_pct?: number
           updated_at?: string
         }
         Update: {
+          alert_types?: Json
           created_at?: string
           enabled?: boolean
+          frequency?: string
           id?: string
           leads_goal_daily?: number | null
+          notify_email?: boolean
+          notify_in_app?: boolean
           project_id?: string
           traffic_threshold_pct?: number
           updated_at?: string
