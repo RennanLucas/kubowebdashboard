@@ -62,7 +62,7 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
       )}
 
       {sparkline && sparkline.length > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 h-12 opacity-50 pointer-events-none transition-opacity duration-200 group-hover:opacity-80">
+        <div className="absolute bottom-0 left-0 right-0 h-10 opacity-30 pointer-events-none transition-opacity duration-200 group-hover:opacity-60">
           <Sparklines data={sparkline}>
             <SparklinesLine color={sparklineColor || "hsl(var(--primary))"} />
           </Sparklines>
