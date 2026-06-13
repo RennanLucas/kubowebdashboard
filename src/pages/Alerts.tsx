@@ -1,9 +1,20 @@
 import { Helmet } from "react-helmet-async";
-import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock, X, Check } from "lucide-react";
+import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock, X, Check, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useGoals } from "@/hooks/useGoals";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
@@ -11,6 +22,7 @@ import { usePersistedAlerts } from "@/hooks/usePersistedAlerts";
 import { Navigate, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
