@@ -66,5 +66,12 @@ export const usePersistedAlerts = (projectId: string | null | undefined) => {
     setAlerts((prev) => prev.map((a) => ({ ...a, read: true })));
   };
 
-  return { alerts, loading, markAsRead, dismiss, markAllRead, reload: load };
+  const dismissAll = async () => {
+    if (!projectId) return;
+    const { error } = await supabase.from("alerts").delete().eq("project_id", projectId);
+    if (error) throw error;
+    setAlerts([]);
+  };
+
+  return { alerts, loading, markAsRead, dismiss, markAllRead, dismissAll, reload: load };
 };
