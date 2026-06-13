@@ -46,7 +46,16 @@ export default function Alerts() {
   const projectId = data?.client?.project?.id;
   const { goals } = useGoals(projectId);
   const { heatmap } = useHourlyHeatmap(projectId, 30);
-  const { alerts: persisted, markAsRead, dismiss, markAllRead } = usePersistedAlerts(projectId);
+  const { alerts: persisted, markAsRead, dismiss, markAllRead, dismissAll } = usePersistedAlerts(projectId);
+
+  const handleDismissAll = async () => {
+    try {
+      await dismissAll();
+      toast.success("Todas as notificações foram apagadas");
+    } catch (e) {
+      toast.error("Não foi possível apagar as notificações");
+    }
+  };
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
