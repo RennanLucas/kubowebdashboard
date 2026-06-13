@@ -1,9 +1,20 @@
 import { Helmet } from "react-helmet-async";
-import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock, X, Check } from "lucide-react";
+import { Bell, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Info, Target, Clock, X, Check, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useGoals } from "@/hooks/useGoals";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
@@ -11,6 +22,7 @@ import { usePersistedAlerts } from "@/hooks/usePersistedAlerts";
 import { Navigate, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
@@ -34,7 +46,16 @@ export default function Alerts() {
   const projectId = data?.client?.project?.id;
   const { goals } = useGoals(projectId);
   const { heatmap } = useHourlyHeatmap(projectId, 30);
-  const { alerts: persisted, markAsRead, dismiss, markAllRead } = usePersistedAlerts(projectId);
+  const { alerts: persisted, markAsRead, dismiss, markAllRead, dismissAll } = usePersistedAlerts(projectId);
+
+  const handleDismissAll = async () => {
+    try {
+      await dismissAll();
+      toast.success("Todas as notificações foram apagadas");
+    } catch (e) {
+      toast.error("Não foi possível apagar as notificações");
+    }
+  };
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -194,11 +215,39 @@ export default function Alerts() {
               <Link to="/help" className="text-primary hover:underline">Saiba mais</Link>
             </p>
           </div>
-          {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={markAllRead}>
-              <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
-            </Button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {unreadCount > 0 && (
+              <Button variant="outline" size="sm" onClick={markAllRead}>
+                <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
+              </Button>
+            )}
+            {persisted.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Apagar tudo
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todas as notificações?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação removerá permanentemente as {persisted.length} notificação(ões) automáticas deste projeto. Os insights atuais continuarão sendo gerados em tempo real.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDismissAll}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Apagar tudo
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         {/* Persisted alerts (from cron) */}
