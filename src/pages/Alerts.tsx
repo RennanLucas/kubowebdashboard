@@ -215,11 +215,39 @@ export default function Alerts() {
               <Link to="/help" className="text-primary hover:underline">Saiba mais</Link>
             </p>
           </div>
-          {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={markAllRead}>
-              <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
-            </Button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {unreadCount > 0 && (
+              <Button variant="outline" size="sm" onClick={markAllRead}>
+                <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
+              </Button>
+            )}
+            {persisted.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Apagar tudo
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Apagar todas as notificações?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação removerá permanentemente as {persisted.length} notificação(ões) automáticas deste projeto. Os insights atuais continuarão sendo gerados em tempo real.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDismissAll}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Apagar tudo
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         {/* Persisted alerts (from cron) */}
