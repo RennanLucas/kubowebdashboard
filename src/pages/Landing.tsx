@@ -202,14 +202,14 @@ const Stats = () => (
   <section id="stats" className="relative py-20 sm:py-28">
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
       <div className="text-center mb-12">
-        <p className="text-xs font-semibold tracking-widest text-primary uppercase">Resultados reais</p>
-        <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">Números que falam por si</h2>
+        <p className="text-xs font-semibold tracking-widest text-primary uppercase">Por que KUBOWEB</p>
+        <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">Feito para times exigentes</h2>
       </div>
       <div className="glass-strong rounded-2xl p-8 sm:p-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-        <StatItem value={12000} suffix="+" label="Sites monitorados" />
-        <StatItem value={4.2} suffix="M" label="Eventos por dia" />
-        <StatItem value={99.9} suffix="%" label="Uptime garantido" />
-        <StatItem value={32} suffix="%" label="Mais conversões" />
+        <StatItem value={60} suffix="s" label="Setup em segundos" />
+        <StatItem value={1} suffix="KB" label="Script leve" />
+        <StatItem value={100} suffix="%" label="Compatível LGPD" />
+        <StatItem value={24} suffix="/7" label="Dados em tempo real" />
       </div>
     </div>
   </section>
