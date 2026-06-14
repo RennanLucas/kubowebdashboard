@@ -461,7 +461,7 @@ const Landing = () => {
           <Stats />
           <Features />
           <Benefits />
-          <Social />
+          {/* <Social /> hidden until we have real customer quotes */}
           <CTA />
         </main>
         <Footer />
