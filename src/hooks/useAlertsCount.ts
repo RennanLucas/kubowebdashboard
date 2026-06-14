@@ -1,18 +1,28 @@
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useGoals } from "@/hooks/useGoals";
 import { useHourlyHeatmap } from "@/hooks/useHourlyHeatmap";
+import { usePersistedAlerts } from "@/hooks/usePersistedAlerts";
 
 /**
- * Returns the number of *attention-worthy* alerts (critical + warning).
- * Mirrors the rules in src/pages/Alerts.tsx without rendering UI.
+ * Returns attention-worthy alerts shown on the bell badge.
+ * Combines:
+ *  - Computed (rule-based) alerts derived from analytics — same rules as Alerts.tsx.
+ *  - Unread persisted alerts for the active project (matches the "novos" badge).
  */
 export const useAlertsCount = () => {
   const { data, isLoading } = useDashboardAnalytics(30);
   const projectId = data?.client?.project?.id;
   const { goals } = useGoals(projectId);
   const { heatmap } = useHourlyHeatmap(projectId, 30);
+  const { alerts: persisted } = usePersistedAlerts(projectId);
 
-  if (isLoading || !data) return { count: 0, criticalCount: 0 };
+  const unreadPersisted = persisted.filter((a) => !a.read);
+  const unreadPersistedCount = unreadPersisted.length;
+  const unreadPersistedCritical = unreadPersisted.filter((a) => a.severity === "critical").length;
+
+  if (isLoading || !data) {
+    return { count: unreadPersistedCount, criticalCount: unreadPersistedCritical };
+  }
 
   let count = 0;
   let criticalCount = 0;
@@ -30,13 +40,14 @@ export const useAlertsCount = () => {
   if (totalVisitors === 0) count++;
   if (data.engagement && data.engagement.bounceRate > 70) count++;
   if (data.trafficSources?.[0]?.percentage > 80) count++;
-  // goals near (info-but-actionable) are not counted; only success goals omitted
   if (goals.visitors > 0 && totalVisitors < goals.visitors && totalVisitors >= goals.visitors * 0.8) {
-    // near miss: count as soft alert
     count++;
   }
-  // peak hour is informational, skip
 
-  void heatmap; // kept to ensure hook deps are stable
-  return { count, criticalCount };
+  void heatmap;
+
+  return {
+    count: count + unreadPersistedCount,
+    criticalCount: criticalCount + unreadPersistedCritical,
+  };
 };
