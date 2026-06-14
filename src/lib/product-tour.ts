@@ -143,6 +143,7 @@ export function startProductTour(onFinish?: () => void) {
   const d = driver({
     showProgress: true,
     allowClose: true,
+    allowKeyboardControl: true,
     nextBtnText: "Próximo →",
     prevBtnText: "← Voltar",
     doneBtnText: "Finalizar",
@@ -152,9 +153,19 @@ export function startProductTour(onFinish?: () => void) {
     onDestroyed: () => {
       markTourCompleted();
       onFinish?.();
+      window.removeEventListener("keydown", onKeyDown, true);
     },
     steps,
   });
+
+  // Robust ESC close — driver.js's built-in handler can be blocked by other listeners.
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      try { d.destroy(); } catch {}
+    }
+  };
+  window.addEventListener("keydown", onKeyDown, true);
 
   d.drive();
   return d;
