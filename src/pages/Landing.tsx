@@ -454,7 +454,7 @@ const Landing = () => {
         <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/" />
       </Helmet>
-      <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
+      <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
         <Navbar />
         <main>
           <Hero />
