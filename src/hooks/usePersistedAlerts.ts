@@ -37,7 +37,7 @@ export const usePersistedAlerts = (projectId: string | null | undefined) => {
     load();
     if (!projectId) return;
     const channel = supabase
-      .channel(`alerts-${projectId}`)
+      .channel(`alerts-persisted-${projectId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "alerts", filter: `project_id=eq.${projectId}` },
