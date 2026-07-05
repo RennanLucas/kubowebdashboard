@@ -239,16 +239,33 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: authError } = await supabaseAuth.auth.getUser(token);
-    const userId = userData?.user?.id;
+    const token = authHeader.replace("Bearer ", "").trim();
 
-    if (authError || !userId) {
+    // Prefer getClaims() (local JWKS validation — resilient to transient
+    // Auth server hiccups). Fall back to getUser() if claims verification
+    // fails for a reason other than an actually invalid token.
+    let userId: string | undefined;
+    try {
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (!claimsError && claimsData?.claims?.sub) {
+        userId = claimsData.claims.sub as string;
+      }
+    } catch (_e) {
+      // ignore, fallback below
+    }
+
+    if (!userId) {
+      const { data: userData, error: authError } = await supabaseAuth.auth.getUser(token);
+      if (!authError && userData?.user?.id) userId = userData.user.id;
+    }
+
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Token inválido" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
