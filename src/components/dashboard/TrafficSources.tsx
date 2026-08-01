@@ -204,7 +204,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
       </div>
 
       {/* Detailed sources */}
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1 -mr-1 scrollbar-thin">
         {displayData.map((s, i) => (
           <TooltipProvider key={s.source} delayDuration={120}>
             <Tooltip>
@@ -241,6 +241,7 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
           </TooltipProvider>
         ))}
       </div>
+
 
       {filteredData.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">Sem dados de tráfego ainda</p>
