@@ -36,11 +36,11 @@ const HeaderActions = () => {
               });
               document.dispatchEvent(evt);
             }}
-            className="hidden sm:inline-flex items-center gap-2 h-8 px-2.5 rounded-md border border-border/70 bg-background hover:bg-muted/60 text-[12px] text-muted-foreground transition-colors"
+            className="hidden sm:inline-flex items-center gap-2 h-9 px-3 rounded-xl border border-border bg-muted/50 hover:bg-muted text-[12.5px] text-muted-foreground transition-colors min-w-[220px]"
             aria-label="Buscar"
           >
             <Search className="h-3.5 w-3.5" />
-            <span>Buscar</span>
+            <span className="flex-1 text-left">Buscar em tudo...</span>
             <span className="ml-1 inline-flex items-center gap-0.5">
               <kbd className="kbd">{isMac ? "⌘" : "Ctrl"}</kbd>
               <kbd className="kbd">K</kbd>
@@ -54,7 +54,7 @@ const HeaderActions = () => {
         <TooltipTrigger asChild>
           <Link
             to="/alerts"
-            className={`relative inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted/60 transition-colors ${
+            className={`relative inline-flex items-center justify-center h-9 w-9 rounded-xl hover:bg-muted/70 transition-colors ${
               criticalCount > 0 ? "text-destructive" : "text-muted-foreground hover:text-foreground"
             }`}
             aria-label={`Alertas${count > 0 ? ` (${count})` : ""}`}
@@ -103,7 +103,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-4">
+          <header className="h-16 flex items-center gap-3 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-6">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="hidden sm:block w-px h-5 bg-border/70" />
 
