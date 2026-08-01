@@ -19,23 +19,22 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
   const isPositive = hasChange && change >= 0;
 
   return (
-    <div className={`glass-card glass-card-hover p-6 relative overflow-hidden group min-h-[172px] ${sparkline && sparkline.length > 1 ? "pb-12" : ""}`}>
-      <div className="flex items-start justify-between gap-2 mb-4">
+    <div className={`glass-card glass-card-hover p-5 relative overflow-hidden group min-h-[180px] ${sparkline && sparkline.length > 1 ? "pb-12" : ""}`}>
+      <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-1 min-w-0 flex-1">
-          <span className="text-[13px] font-medium text-muted-foreground leading-tight">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">
             {title}
           </span>
           {tooltip && <InfoTooltip content={tooltip} />}
         </div>
-        <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground shrink-0">
+        <div className="h-7 w-7 rounded-lg bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary shrink-0">
           {icon}
         </div>
       </div>
 
-      <div className="text-[30px] leading-none font-semibold text-card-foreground tracking-tight mb-3 tabular-nums">
+      <div className="text-[26px] leading-tight font-semibold text-card-foreground tracking-tight mb-2 tabular-nums">
         {value}
       </div>
-
 
       {hasChange ? (
         <div className="flex items-center gap-1.5 flex-wrap">
