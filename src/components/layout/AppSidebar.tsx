@@ -67,7 +67,7 @@ const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
             active ? "opacity-100" : "opacity-0",
           ].join(" ")}
         />
-        <Icon className="h-[17px] w-[17px] shrink-0" strokeWidth={1.9} />
+        <Icon className="h-[17px] w-[17px] shrink-0" />
         <span className="truncate">{title}</span>
       </NavLink>
     </SidebarMenuButton>
