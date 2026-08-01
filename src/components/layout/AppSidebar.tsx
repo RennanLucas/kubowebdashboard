@@ -50,9 +50,10 @@ const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
       isActive={active}
       tooltip={title}
       className={[
-        "relative h-9 rounded-md text-[13px] font-medium",
-        "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/70",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground",
+        "relative h-10 rounded-xl text-[13px] font-medium",
+        "text-sidebar-foreground hover:text-foreground hover:bg-muted/70",
+        "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-[var(--shadow-sm)]",
+        "data-[active=true]:hover:bg-primary data-[active=true]:hover:text-primary-foreground",
         "transition-colors",
       ].join(" ")}
     >
@@ -61,12 +62,12 @@ const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
         <span
           aria-hidden
           className={[
-            "absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r-full",
-            "bg-sidebar-foreground/90 transition-opacity",
+            "absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full",
+            "bg-primary-foreground/70 transition-opacity",
             active ? "opacity-100" : "opacity-0",
           ].join(" ")}
         />
-        <Icon className="h-[15px] w-[15px] shrink-0" />
+        <Icon className="h-[17px] w-[17px] shrink-0" strokeWidth={1.9} />
         <span className="truncate">{title}</span>
       </NavLink>
     </SidebarMenuButton>
@@ -93,7 +94,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-sidebar-border"
+      className="border-r border-sidebar-border bg-sidebar"
       style={{ background: "var(--gradient-sidebar)" }}
     >
       <SidebarHeader className="border-b border-sidebar-border/70">
@@ -111,13 +112,13 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-1.5 py-2">
+      <SidebarContent className="px-2.5 py-3">
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">
             Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-1">
               {mainItems.map((item) => (
                 <NavItem key={item.title} {...item} active={isActive(item.url)} />
               ))}
@@ -132,7 +133,7 @@ export function AppSidebar() {
             Conta
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-1">
               {accountItems.map((item) => (
                 <NavItem key={item.title} {...item} active={isActive(item.url)} />
               ))}
