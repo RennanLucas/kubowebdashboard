@@ -146,7 +146,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
           traffic_threshold_pct: prefs.traffic_threshold_pct,
           leads_goal_daily: prefs.leads_goal_daily,
           alert_types: prefs.alert_types,
-          notify_email: prefs.notify_email,
+          notify_email: prefs.notify_email && emailAllowed,
           notify_in_app: prefs.notify_in_app,
         },
         { onConflict: "project_id" },
