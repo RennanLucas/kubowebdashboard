@@ -19,13 +19,19 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-const mainItems = [
+const mainItems: {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tour?: string;
+  feature?: FeatureKey;
+}[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tour: "sidebar-dashboard" },
-  { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live" },
-  { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights" },
+  { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live", feature: "live" },
+  { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
-  { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare" },
-  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation" },
+  { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
+  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 
 const accountItems = [
