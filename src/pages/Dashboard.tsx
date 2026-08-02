@@ -31,7 +31,8 @@ interface DashboardContentProps {
 }
 
 const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: DashboardContentProps) => {
-  const [dateRange, setDateRange] = useState(30);
+  const plan = usePlan();
+  const [dateRange, setDateRange] = useState(plan.maxHistoryDays >= 30 ? 30 : plan.maxHistoryDays);
   const queryClient = useQueryClient();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
