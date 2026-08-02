@@ -58,8 +58,9 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const isProPlus = subRow?.plan_id === "kuboweb_pro_plus_monthly";
-    const MONTHLY_LIMIT = isProPlus ? MONTHLY_LIMIT_PRO_PLUS : MONTHLY_LIMIT_PRO;
+    const tier = resolveTier(subRow);
+    const isProPlus = tier === "pro_plus";
+    const MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
 
     // Calcula uso no mês corrente
     const now = new Date();
