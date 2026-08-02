@@ -119,9 +119,16 @@ export function AppSidebar() {
           ) : (
             <div className="flex items-center gap-2 min-w-0">
               <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-auto shrink-0" />
-              <div className="text-[10px] text-sidebar-foreground/55 uppercase tracking-[0.12em] font-medium">
-                Analytics
-              </div>
+              <span
+                className={[
+                  "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  plan.isFree
+                    ? "bg-sidebar-accent text-sidebar-foreground/70"
+                    : "bg-primary/20 text-primary",
+                ].join(" ")}
+              >
+                {plan.loading ? "..." : plan.label}
+              </span>
             </div>
           )}
         </div>
