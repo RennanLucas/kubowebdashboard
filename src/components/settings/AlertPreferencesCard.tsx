@@ -102,7 +102,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
         }
       }
 
-      if (!prefs.notify_email && !prefs.notify_in_app) {
+      if (!(prefs.notify_email && emailAllowed) && !prefs.notify_in_app) {
         newErrors.channels = "Selecione pelo menos um canal de notificação.";
       }
 
