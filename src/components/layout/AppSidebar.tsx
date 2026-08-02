@@ -133,8 +133,13 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {mainItems.map((item) => (
-                <NavItem key={item.title} {...item} active={isActive(item.url)} />
+              {mainItems.map(({ feature, ...item }) => (
+                <NavItem
+                  key={item.title}
+                  {...item}
+                  active={isActive(item.url)}
+                  locked={!!feature && !plan.loading && !plan.can(feature) && !isAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
