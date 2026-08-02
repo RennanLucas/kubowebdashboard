@@ -87,3 +87,46 @@ export function listPlans(): PlanDefinition[] {
 export function getPlan(id: string): PlanDefinition | null {
   return (PLANS as Record<string, PlanDefinition>)[id] ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Tiers e limites por plano (fonte única compartilhada com src/lib/plan-features.ts)
+// ---------------------------------------------------------------------------
+
+export type PlanTier = "free" | "pro" | "pro_plus";
+
+export interface TierLimits {
+  tier: PlanTier;
+  maxProjects: number;
+  maxHistoryDays: number;
+  aiMonthlyLimit: number;
+  emailAlerts: boolean;
+}
+
+export const TIER_LIMITS: Record<PlanTier, TierLimits> = {
+  free: { tier: "free", maxProjects: 1, maxHistoryDays: 7, aiMonthlyLimit: 0, emailAlerts: false },
+  pro: { tier: "pro", maxProjects: 3, maxHistoryDays: 90, aiMonthlyLimit: 3, emailAlerts: false },
+  pro_plus: { tier: "pro_plus", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365, aiMonthlyLimit: 6, emailAlerts: true },
+};
+
+interface SubscriptionRow {
+  plan_id?: string | null;
+  status?: string | null;
+  current_period_end?: string | null;
+}
+
+const ACTIVE_STATUS = ["active", "trialing", "authorized", "approved"];
+
+/** Resolve o tier a partir da assinatura mais recente do usuário. */
+export function resolveTier(sub: SubscriptionRow | null | undefined): PlanTier {
+  if (!sub) return "free";
+  const status = (sub.status ?? "").toLowerCase();
+  const periodOk = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
+  const active = (ACTIVE_STATUS.includes(status) && periodOk)
+    || (["canceled", "cancelled"].includes(status) && !!sub.current_period_end && new Date(sub.current_period_end) > new Date());
+  if (!active) return "free";
+  return sub.plan_id === "kuboweb_pro_plus_monthly" ? "pro_plus" : "pro";
+}
+
+export function limitsForTier(tier: PlanTier): TierLimits {
+  return TIER_LIMITS[tier];
+}
