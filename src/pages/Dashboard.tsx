@@ -198,6 +198,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const hasData = totalVisitors > 0 || (trafficSources && trafficSources.length > 0);
 
   const handleExportPDF = async () => {
+    if (!plan.can("pdf_report")) {
+      toast.error("Relatórios em PDF estão disponíveis nos planos Pro e Pro+.");
+      return;
+    }
     toast.info("Gerando relatório PDF...");
     try {
       const { data: { session } } = await supabase.auth.getSession();
