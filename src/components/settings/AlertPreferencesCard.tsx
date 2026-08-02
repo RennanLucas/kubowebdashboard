@@ -48,6 +48,8 @@ interface Errors {
 }
 
 export default function AlertPreferencesCard({ projectId }: { projectId: string }) {
+  const plan = usePlan();
+  const emailAllowed = plan.can("email_alerts");
   const [prefs, setPrefs] = useState<Prefs>({
     enabled: true,
     frequency: "realtime",
