@@ -93,6 +93,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const plan = usePlan();
   const navigate = useNavigate();
   const location = useLocation();
 
