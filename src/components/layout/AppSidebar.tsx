@@ -1,4 +1,6 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
+import type { FeatureKey } from "@/lib/plan-features";
 import logoKuboweb from "@/assets/logo-kuboweb-white.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
