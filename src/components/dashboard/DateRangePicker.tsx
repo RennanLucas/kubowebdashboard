@@ -115,7 +115,8 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
                 to="/pricing"
                 className="mt-2 text-[11px] px-3 py-2 rounded-md bg-primary/10 text-primary hover:bg-primary/15 inline-flex items-center gap-1"
               >
-                <Sparkles className="h-3 w-3" /> Upgrade para Pro+ (12 meses)
+                <Sparkles className="h-3 w-3" />
+                {plan.isFree ? "Assinar Pro (90 dias)" : "Upgrade para Pro+ (12 meses)"}
               </Link>
             )}
           </div>
