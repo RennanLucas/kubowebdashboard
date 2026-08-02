@@ -282,14 +282,20 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
               <div className="flex items-center gap-2">
                 <Switch
                   id="notify-email"
-                  checked={prefs.notify_email}
+                  checked={prefs.notify_email && emailAllowed}
                   onCheckedChange={(v) => {
+                    if (v && !emailAllowed) {
+                      toast.error("Alertas por e-mail estão disponíveis no plano Pro+.");
+                      return;
+                    }
                     setPrefs((p) => ({ ...p, notify_email: v }));
                     setTouched((t) => ({ ...t, channels: true }));
                   }}
-                  disabled={loading}
+                  disabled={loading || !emailAllowed}
                 />
-                <Label htmlFor="notify-email" className="text-sm">Por e-mail</Label>
+                <Label htmlFor="notify-email" className="text-sm">
+                  Por e-mail{!emailAllowed && <span className="ml-1 text-xs text-muted-foreground">(Pro+)</span>}
+                </Label>
               </div>
             </div>
             {showError("channels") && (
