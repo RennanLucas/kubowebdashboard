@@ -268,7 +268,23 @@ Deno.serve(async (req) => {
 
 
     const url = new URL(req.url);
-    const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);
+
+    // Enforce the history window allowed by the user's plan (server-side).
+    const { data: subRow } = await supabaseAdmin
+      .from("subscriptions")
+      .select("plan_id, status, current_period_end")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const planTier = resolveTier(subRow);
+    const planLimits = limitsForTier(planTier);
+    const days = Math.max(
+      1,
+      Math.min(Number.isFinite(requestedDays) ? requestedDays : 30, planLimits.maxHistoryDays),
+    );
+
     const selectedProjectId = url.searchParams.get("project_id") || null;
     const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
     const deviceFilter = (url.searchParams.get("device") || "all").toLowerCase();
