@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
     const tier = resolveTier(subRow);
-    const isProPlus = tier === "pro_plus";
+    
     const MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
 
     // Calcula uso no mês corrente
