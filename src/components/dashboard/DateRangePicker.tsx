@@ -33,7 +33,9 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
   const tryApply = (days: number) => {
     if (days > plan.maxHistoryDays) {
       toast.error(
-        `Plano Pro mostra até ${plan.maxHistoryDays} dias. Faça upgrade para Pro+ para ver até 12 meses.`,
+        plan.isFree
+          ? `O plano Gratuito mostra até ${plan.maxHistoryDays} dias. Assine o Pro para 90 dias ou o Pro+ para 12 meses.`
+          : `Plano Pro mostra até ${plan.maxHistoryDays} dias. Faça upgrade para Pro+ para ver até 12 meses.`,
       );
       return;
     }
@@ -113,7 +115,8 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
                 to="/pricing"
                 className="mt-2 text-[11px] px-3 py-2 rounded-md bg-primary/10 text-primary hover:bg-primary/15 inline-flex items-center gap-1"
               >
-                <Sparkles className="h-3 w-3" /> Upgrade para Pro+ (12 meses)
+                <Sparkles className="h-3 w-3" />
+                {plan.isFree ? "Assinar Pro (90 dias)" : "Upgrade para Pro+ (12 meses)"}
               </Link>
             )}
           </div>

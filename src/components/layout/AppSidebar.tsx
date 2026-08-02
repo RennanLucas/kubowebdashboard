@@ -1,4 +1,6 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
+import type { FeatureKey } from "@/lib/plan-features";
 import logoKuboweb from "@/assets/logo-kuboweb-white.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,13 +21,19 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-const mainItems = [
+const mainItems: {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tour?: string;
+  feature?: FeatureKey;
+}[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tour: "sidebar-dashboard" },
-  { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live" },
-  { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights" },
+  { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live", feature: "live" },
+  { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
-  { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare" },
-  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation" },
+  { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
+  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 
 const accountItems = [
@@ -41,14 +49,15 @@ interface NavItemProps {
   icon: React.ComponentType<{ className?: string }>;
   tour?: string;
   active: boolean;
+  locked?: boolean;
 }
 
-const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
+const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps) => (
   <SidebarMenuItem>
     <SidebarMenuButton
       asChild
       isActive={active}
-      tooltip={title}
+      tooltip={locked ? `${title} · disponível em planos pagos` : title}
       className={[
         "relative h-9 rounded-md text-[13px] font-medium",
         "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/70",
@@ -56,7 +65,12 @@ const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
         "transition-colors",
       ].join(" ")}
     >
-      <NavLink to={url} end data-tour={tour} className="flex items-center gap-2.5">
+      <NavLink
+        to={locked ? "/pricing" : url}
+        end
+        data-tour={tour}
+        className="flex items-center gap-2.5"
+      >
         {/* Linear-style left indicator on active */}
         <span
           aria-hidden
@@ -66,8 +80,9 @@ const NavItem = ({ url, title, icon: Icon, tour, active }: NavItemProps) => (
             active ? "opacity-100" : "opacity-0",
           ].join(" ")}
         />
-        <Icon className="h-[15px] w-[15px] shrink-0" />
-        <span className="truncate">{title}</span>
+        <Icon className={`h-[15px] w-[15px] shrink-0 ${locked ? "opacity-55" : ""}`} />
+        <span className={`truncate ${locked ? "opacity-55" : ""}`}>{title}</span>
+        {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60" />}
       </NavLink>
     </SidebarMenuButton>
   </SidebarMenuItem>
@@ -78,6 +93,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const plan = usePlan();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -103,9 +119,16 @@ export function AppSidebar() {
           ) : (
             <div className="flex items-center gap-2 min-w-0">
               <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-auto shrink-0" />
-              <div className="text-[10px] text-sidebar-foreground/55 uppercase tracking-[0.12em] font-medium">
-                Analytics
-              </div>
+              <span
+                className={[
+                  "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  plan.isFree
+                    ? "bg-sidebar-accent text-sidebar-foreground/70"
+                    : "bg-primary/20 text-primary",
+                ].join(" ")}
+              >
+                {plan.loading ? "..." : plan.label}
+              </span>
             </div>
           )}
         </div>
@@ -118,8 +141,13 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {mainItems.map((item) => (
-                <NavItem key={item.title} {...item} active={isActive(item.url)} />
+              {mainItems.map(({ feature, ...item }) => (
+                <NavItem
+                  key={item.title}
+                  {...item}
+                  active={isActive(item.url)}
+                  locked={!!feature && !plan.loading && !plan.can(feature) && !isAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { resolveTier, limitsForTier } from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,8 +7,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MONTHLY_LIMIT_PRO = 3;
-const MONTHLY_LIMIT_PRO_PLUS = 6;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -58,8 +57,9 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const isProPlus = subRow?.plan_id === "kuboweb_pro_plus_monthly";
-    const MONTHLY_LIMIT = isProPlus ? MONTHLY_LIMIT_PRO_PLUS : MONTHLY_LIMIT_PRO;
+    const tier = resolveTier(subRow);
+    
+    const MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
 
     // Calcula uso no mês corrente
     const now = new Date();
@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (action === "status") {
       return new Response(
-        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: isProPlus ? "pro_plus" : "pro" }),
+        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -94,6 +94,19 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (MONTHLY_LIMIT <= 0) {
+      return new Response(
+        JSON.stringify({
+          error: "PLAN_REQUIRED",
+          message: "Resumos com IA estão disponíveis nos planos Pro (3/mês) e Pro+ (6/mês).",
+          used,
+          limit: 0,
+          plan: tier,
+        }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     if (remaining <= 0) {

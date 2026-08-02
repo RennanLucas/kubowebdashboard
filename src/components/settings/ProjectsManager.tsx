@@ -52,7 +52,9 @@ export default function ProjectsManager({ clientId }: Props) {
       toast.error(
         plan.isProPlus
           ? "Limite atingido"
-          : `Plano Pro permite até ${plan.maxProjects} projetos. Faça upgrade para o Pro+ para projetos ilimitados.`,
+          : plan.isFree
+            ? `O plano Gratuito permite ${plan.maxProjects} projeto. Assine o Pro para até 3 projetos.`
+            : `Plano Pro permite até ${plan.maxProjects} projetos. Faça upgrade para o Pro+ para projetos ilimitados.`,
       );
       return;
     }
@@ -129,15 +131,16 @@ export default function ProjectsManager({ clientId }: Props) {
         {plan.isProPlus ? (
           <>Seu plano <span className="font-medium text-foreground">Pro+</span> permite projetos ilimitados ({currentCount} criados).</>
         ) : (
-          <>Plano <span className="font-medium text-foreground">Pro</span>: até <span className="font-medium text-foreground">{limitLabel} projetos</span> ({currentCount}/{limitLabel}).</>
+          <>Plano <span className="font-medium text-foreground">{plan.label}</span>: até <span className="font-medium text-foreground">{limitLabel} projeto{plan.maxProjects > 1 ? "s" : ""}</span> ({currentCount}/{limitLabel}).</>
         )}
         {limitReached && !plan.isProPlus && (
           <span className="block mt-2 text-destructive">
             Limite atingido.{" "}
             <Link to="/pricing" className="inline-flex items-center gap-1 underline font-medium">
-              <Sparkles className="h-3 w-3" /> Faça upgrade para Pro+
+              <Sparkles className="h-3 w-3" />
+              {plan.isFree ? "Assine o Pro" : "Faça upgrade para Pro+"}
             </Link>{" "}
-            e tenha projetos ilimitados.
+            {plan.isFree ? "e monitore até 3 sites." : "e tenha projetos ilimitados."}
           </span>
         )}
       </p>

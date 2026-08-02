@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
+import { usePlan } from "@/hooks/usePlan";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
 import { BarChart3 } from "lucide-react";
@@ -31,7 +32,8 @@ interface DashboardContentProps {
 }
 
 const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: DashboardContentProps) => {
-  const [dateRange, setDateRange] = useState(30);
+  const plan = usePlan();
+  const [dateRange, setDateRange] = useState(plan.maxHistoryDays >= 30 ? 30 : plan.maxHistoryDays);
   const queryClient = useQueryClient();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
@@ -198,6 +200,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const hasData = totalVisitors > 0 || (trafficSources && trafficSources.length > 0);
 
   const handleExportPDF = async () => {
+    if (!plan.can("pdf_report")) {
+      toast.error("Relatórios em PDF estão disponíveis nos planos Pro e Pro+.");
+      return;
+    }
     toast.info("Gerando relatório PDF...");
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -238,6 +244,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   });
 
   const handleExportCSV = () => {
+    if (!plan.can("csv_export")) {
+      toast.error("A exportação de dados está disponível nos planos Pro e Pro+.");
+      return;
+    }
     try {
       exportToCSV(buildExportData());
       toast.success("CSV baixado com sucesso!");
@@ -247,6 +257,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   };
 
   const handleExportExcel = () => {
+    if (!plan.can("csv_export")) {
+      toast.error("A exportação de dados está disponível nos planos Pro e Pro+.");
+      return;
+    }
     try {
       exportToExcel(buildExportData());
       toast.success("Planilha Excel baixada com sucesso!");

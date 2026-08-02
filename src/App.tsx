@@ -52,13 +52,13 @@ const App = () => (
               <Route path="/subscription" element={<ProtectedRoute requireSubscription><Subscription /></ProtectedRoute>} />
               <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute requireSubscription><Settings /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute requireSubscription><Dashboard /></ProtectedRoute>} />
-              <Route path="/insights" element={<ProtectedRoute requireSubscription><Insights /></ProtectedRoute>} />
-              <Route path="/alerts" element={<ProtectedRoute requireSubscription><Alerts /></ProtectedRoute>} />
-              <Route path="/compare" element={<ProtectedRoute requireSubscription><Compare /></ProtectedRoute>} />
-              <Route path="/presentation" element={<ProtectedRoute requireSubscription><Presentation /></ProtectedRoute>} />
-              <Route path="/live" element={<ProtectedRoute requireSubscription><Live /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/insights" element={<ProtectedRoute requireFeature="ai_insights"><Insights /></ProtectedRoute>} />
+              <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+              <Route path="/compare" element={<ProtectedRoute requireFeature="compare"><Compare /></ProtectedRoute>} />
+              <Route path="/presentation" element={<ProtectedRoute requireFeature="presentation"><Presentation /></ProtectedRoute>} />
+              <Route path="/live" element={<ProtectedRoute requireFeature="live"><Live /></ProtectedRoute>} />
               <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
               <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />

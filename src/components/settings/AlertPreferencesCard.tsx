@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
 
 type AlertTypesMap = Record<string, boolean>;
 
@@ -48,6 +49,8 @@ interface Errors {
 }
 
 export default function AlertPreferencesCard({ projectId }: { projectId: string }) {
+  const plan = usePlan();
+  const emailAllowed = plan.can("email_alerts");
   const [prefs, setPrefs] = useState<Prefs>({
     enabled: true,
     frequency: "realtime",
@@ -99,7 +102,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
         }
       }
 
-      if (!prefs.notify_email && !prefs.notify_in_app) {
+      if (!(prefs.notify_email && emailAllowed) && !prefs.notify_in_app) {
         newErrors.channels = "Selecione pelo menos um canal de notificação.";
       }
 
@@ -143,7 +146,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
           traffic_threshold_pct: prefs.traffic_threshold_pct,
           leads_goal_daily: prefs.leads_goal_daily,
           alert_types: prefs.alert_types,
-          notify_email: prefs.notify_email,
+          notify_email: prefs.notify_email && emailAllowed,
           notify_in_app: prefs.notify_in_app,
         },
         { onConflict: "project_id" },
@@ -282,14 +285,20 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
               <div className="flex items-center gap-2">
                 <Switch
                   id="notify-email"
-                  checked={prefs.notify_email}
+                  checked={prefs.notify_email && emailAllowed}
                   onCheckedChange={(v) => {
+                    if (v && !emailAllowed) {
+                      toast.error("Alertas por e-mail estão disponíveis no plano Pro+.");
+                      return;
+                    }
                     setPrefs((p) => ({ ...p, notify_email: v }));
                     setTouched((t) => ({ ...t, channels: true }));
                   }}
-                  disabled={loading}
+                  disabled={loading || !emailAllowed}
                 />
-                <Label htmlFor="notify-email" className="text-sm">Por e-mail</Label>
+                <Label htmlFor="notify-email" className="text-sm">
+                  Por e-mail{!emailAllowed && <span className="ml-1 text-xs text-muted-foreground">(Pro+)</span>}
+                </Label>
               </div>
             </div>
             {showError("channels") && (
