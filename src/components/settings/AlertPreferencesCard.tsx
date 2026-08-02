@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
 
 type AlertTypesMap = Record<string, boolean>;
 
