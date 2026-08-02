@@ -52,7 +52,9 @@ export default function ProjectsManager({ clientId }: Props) {
       toast.error(
         plan.isProPlus
           ? "Limite atingido"
-          : `Plano Pro permite até ${plan.maxProjects} projetos. Faça upgrade para o Pro+ para projetos ilimitados.`,
+          : plan.isFree
+            ? `O plano Gratuito permite ${plan.maxProjects} projeto. Assine o Pro para até 3 projetos.`
+            : `Plano Pro permite até ${plan.maxProjects} projetos. Faça upgrade para o Pro+ para projetos ilimitados.`,
       );
       return;
     }
