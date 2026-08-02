@@ -244,6 +244,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   });
 
   const handleExportCSV = () => {
+    if (!plan.can("csv_export")) {
+      toast.error("A exportação de dados está disponível nos planos Pro e Pro+.");
+      return;
+    }
     try {
       exportToCSV(buildExportData());
       toast.success("CSV baixado com sucesso!");
@@ -253,6 +257,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   };
 
   const handleExportExcel = () => {
+    if (!plan.can("csv_export")) {
+      toast.error("A exportação de dados está disponível nos planos Pro e Pro+.");
+      return;
+    }
     try {
       exportToExcel(buildExportData());
       toast.success("Planilha Excel baixada com sucesso!");
