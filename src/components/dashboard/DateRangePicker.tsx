@@ -33,7 +33,9 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
   const tryApply = (days: number) => {
     if (days > plan.maxHistoryDays) {
       toast.error(
-        `Plano Pro mostra até ${plan.maxHistoryDays} dias. Faça upgrade para Pro+ para ver até 12 meses.`,
+        plan.isFree
+          ? `O plano Gratuito mostra até ${plan.maxHistoryDays} dias. Assine o Pro para 90 dias ou o Pro+ para 12 meses.`
+          : `Plano Pro mostra até ${plan.maxHistoryDays} dias. Faça upgrade para Pro+ para ver até 12 meses.`,
       );
       return;
     }
