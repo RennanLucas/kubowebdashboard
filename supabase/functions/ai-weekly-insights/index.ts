@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (action === "status") {
       return new Response(
-        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: isProPlus ? "pro_plus" : "pro" }),
+        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -94,6 +94,19 @@ Deno.serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (MONTHLY_LIMIT <= 0) {
+      return new Response(
+        JSON.stringify({
+          error: "PLAN_REQUIRED",
+          message: "Resumos com IA estão disponíveis nos planos Pro (3/mês) e Pro+ (6/mês).",
+          used,
+          limit: 0,
+          plan: tier,
+        }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     if (remaining <= 0) {
