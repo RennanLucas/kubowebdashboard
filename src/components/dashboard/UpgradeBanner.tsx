@@ -34,6 +34,14 @@ export function UpgradeBanner() {
 
   if (!visible) return null;
 
+  const title = plan.isFree
+    ? "Você está no plano Gratuito"
+    : "Você está vendo até 90 dias";
+  const subtitle = plan.isFree
+    ? "Assine o Pro para desbloquear tempo real, IA, comparações, relatórios em PDF e 90 dias de histórico."
+    : "Faça upgrade para Pro+ e veja até 12 meses de histórico, alertas por email e projetos ilimitados.";
+  const cta = plan.isFree ? "Ver planos" : "Upgrade para Pro+";
+
   return (
     <div className="relative mb-4 overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -42,18 +50,14 @@ export function UpgradeBanner() {
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground">
-              Você está vendo até 90 dias
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Faça upgrade para Pro+ e veja até 12 meses de histórico, alertas por email e projetos ilimitados.
-            </p>
+            <p className="text-sm font-semibold text-foreground">{title}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button asChild size="sm" className="gap-1.5 h-9 rounded-lg shadow-sm">
             <Link to="/pricing">
-              Upgrade para Pro+
+              {cta}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
