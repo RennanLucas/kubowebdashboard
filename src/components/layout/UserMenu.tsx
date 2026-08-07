@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon, Eye, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePlanPreview } from "@/hooks/usePlanPreview";
+import { PLAN_CAPABILITIES, type PlanTier } from "@/lib/plan-features";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -11,8 +13,13 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+const PREVIEW_TIERS: PlanTier[] = ["free", "pro", "pro_plus"];
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
