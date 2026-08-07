@@ -39,7 +39,7 @@ export const useLiveFeed = (projectId: string | null, limit = 20) => {
 
     // Realtime subscription
     const channel = supabase
-      .channel(`pageviews-${projectId}`)
+      .channel(`pageviews-${projectId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {
