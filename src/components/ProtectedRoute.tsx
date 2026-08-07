@@ -47,7 +47,7 @@ const ProtectedRoute = ({
     return <Navigate to="/pricing" replace />;
   }
 
-  if (requireFeature && !plan.can(requireFeature) && !isAdmin) {
+  if (requireFeature && !plan.can(requireFeature) && (!isAdmin || plan.isPreview)) {
     return <Navigate to="/pricing" replace state={{ lockedFeature: requireFeature }} />;
   }
 
