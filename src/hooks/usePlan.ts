@@ -50,7 +50,8 @@ export function usePlan(enabled = true): PlanLimits {
     maxProjects: caps.maxProjects,
     maxHistoryDays: caps.maxHistoryDays,
     aiMonthlyLimit: caps.aiMonthlyLimit,
-    loading,
+    loading: isPreview ? false : loading,
+    isPreview,
     can: (feature: FeatureKey) => caps.features[feature],
     requiredTierFor,
   };
