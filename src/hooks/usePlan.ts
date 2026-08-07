@@ -1,4 +1,5 @@
 import { useSubscription } from "./useSubscription";
+import { usePlanPreview } from "./usePlanPreview";
 import {
   PLAN_CAPABILITIES,
   type FeatureKey,
@@ -18,6 +19,8 @@ export interface PlanLimits {
   maxHistoryDays: number;
   aiMonthlyLimit: number;
   loading: boolean;
+  /** true se o plano exibido vem de uma pré-visualização (não da assinatura real) */
+  isPreview: boolean;
   /** true se o plano atual libera o recurso */
   can: (feature: FeatureKey) => boolean;
   /** menor plano que libera o recurso ("pro" | "pro_plus") */
@@ -26,12 +29,15 @@ export interface PlanLimits {
 
 export function usePlan(enabled = true): PlanLimits {
   const { subscription, isActive, loading } = useSubscription(enabled);
+  const { preview } = usePlanPreview();
   const planId = (subscription as any)?.plan_id as string | undefined;
 
   let tier: PlanTier = "free";
   if (isActive) {
     tier = planId === "kuboweb_pro_plus_monthly" ? "pro_plus" : "pro";
   }
+  const isPreview = preview !== null;
+  if (preview) tier = preview;
 
   const caps = PLAN_CAPABILITIES[tier];
 
