@@ -70,6 +70,7 @@ export default function Live() {
           </Card>
         </div>
 
+        <FeatureLock feature="live" description="Veja quem está no seu site agora, de onde vem e qual página está acessando. Disponível a partir do plano Pro.">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Stream de visitantes</CardTitle>
@@ -106,6 +107,7 @@ export default function Live() {
             </div>
           </CardContent>
         </Card>
+        </FeatureLock>
       </div>
     </AppLayout>
   );
