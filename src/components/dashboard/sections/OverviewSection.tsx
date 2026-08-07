@@ -4,6 +4,8 @@ import { ReturningVisitorsCard } from "@/components/dashboard/ReturningVisitorsC
 import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
 import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
 import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
+import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
+import { usePlan } from "@/hooks/usePlan";
 
 interface Props {
   totalVisitors: number;
@@ -31,7 +33,11 @@ export const OverviewSection = ({
   activeProjectId,
   dateRange,
   monthlyAdSpend,
-}: Props) => (
+}: Props) => {
+  const plan = usePlan();
+  const showLive = plan.can("live");
+
+  return (
   <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <DailySummaryCard
@@ -52,7 +58,7 @@ export const OverviewSection = ({
       <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div className={`grid grid-cols-1 gap-4 mb-6 ${showLive ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
       <GoalsProgressCard
         projectId={activeProjectId}
         visitors={totalVisitors}
@@ -60,6 +66,8 @@ export const OverviewSection = ({
         revenue={totalValue}
       />
       <CriticalAlertsCard projectId={activeProjectId} />
+      {showLive && <LiveFeedCard projectId={activeProjectId ?? null} compact />}
     </div>
   </>
-);
+  );
+};

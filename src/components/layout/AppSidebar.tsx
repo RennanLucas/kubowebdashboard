@@ -66,7 +66,7 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
       ].join(" ")}
     >
       <NavLink
-        to={locked ? "/pricing" : url}
+        to={url}
         end
         data-tour={tour}
         className="flex items-center gap-2.5"
