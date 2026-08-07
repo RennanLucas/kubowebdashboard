@@ -87,6 +87,33 @@ export const UserMenu = () => {
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Eye className="h-3.5 w-3.5 mr-2" />
+            Ver painel como
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-52">
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setPreview(null)}
+            >
+              <span className="flex-1">Meu plano real</span>
+              {preview === null && <Check className="h-3.5 w-3.5 text-primary" />}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {PREVIEW_TIERS.map((tier) => (
+              <DropdownMenuItem
+                key={tier}
+                className="cursor-pointer"
+                onClick={() => setPreview(tier)}
+              >
+                <span className="flex-1">{PLAN_CAPABILITIES[tier].label}</span>
+                {preview === tier && <Check className="h-3.5 w-3.5 text-primary" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
           className="cursor-pointer text-destructive focus:text-destructive"
