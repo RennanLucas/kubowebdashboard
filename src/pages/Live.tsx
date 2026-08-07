@@ -7,6 +7,7 @@ import { Globe, Users, MapPin, Activity } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Navigate } from "react-router-dom";
+import { FeatureLock } from "@/components/FeatureLock";
 
 export default function Live() {
   const { data, error } = useDashboardAnalytics(1);
