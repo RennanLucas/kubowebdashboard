@@ -6,6 +6,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { GlobalProjectSwitcher } from "./GlobalProjectSwitcher";
 import { UserMenu } from "./UserMenu";
+import { PlanPreviewBanner } from "@/components/PlanPreviewBanner";
 import { CommandPalette } from "@/components/CommandPalette";
 import { HelpButton } from "@/components/HelpButton";
 import { useAlertsCount } from "@/hooks/useAlertsCount";
@@ -116,6 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Right cluster: search, alerts, user */}
             <HeaderActions />
           </header>
+          <PlanPreviewBanner />
           <main className="flex-1 min-w-0">{children}</main>
         </div>
         <HelpButton />
