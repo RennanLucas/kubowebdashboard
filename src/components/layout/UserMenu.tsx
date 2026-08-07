@@ -24,6 +24,7 @@ const PREVIEW_TIERS: PlanTier[] = ["free", "pro", "pro_plus"];
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { preview, setPreview } = usePlanPreview();
   const navigate = useNavigate();
 
   const initials = (user?.email || "U").slice(0, 2).toUpperCase();
