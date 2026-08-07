@@ -4,6 +4,8 @@ import { ReturningVisitorsCard } from "@/components/dashboard/ReturningVisitorsC
 import { CostPerLeadCard } from "@/components/dashboard/CostPerLeadCard";
 import { GoalsProgressCard } from "@/components/dashboard/GoalsProgressCard";
 import { CriticalAlertsCard } from "@/components/dashboard/CriticalAlertsCard";
+import LiveFeedCard from "@/components/dashboard/LiveFeedCard";
+import { usePlan } from "@/hooks/usePlan";
 
 interface Props {
   totalVisitors: number;
