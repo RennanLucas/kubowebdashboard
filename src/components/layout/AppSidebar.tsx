@@ -59,9 +59,9 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
       isActive={active}
       tooltip={locked ? `${title} · disponível em planos pagos` : title}
       className={[
-        "relative h-9 rounded-md text-[13px] font-medium",
+        "h-9 rounded-md text-[13px] font-medium",
         "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
-        "data-[active=true]:bg-sidebar-accent/90 data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-sm",
+        "data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold",
         "transition-all duration-200 ease-in-out",
       ].join(" ")}
     >
@@ -69,18 +69,9 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
         to={url}
         end
         data-tour={tour}
-        className="flex items-center gap-2.5"
+        className="flex items-center gap-2.5 px-2"
       >
-        {/* Linear-style left indicator on active */}
-        <span
-          aria-hidden
-          className={[
-            "absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full",
-            "bg-primary transition-all duration-300",
-            active ? "opacity-100 scale-100 shadow-[0_0_12px_rgba(var(--primary),0.8)]" : "opacity-0 scale-y-50",
-          ].join(" ")}
-        />
-        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110 text-primary" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
+        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
         <span className={`truncate ${locked ? "opacity-55" : ""}`}>{title}</span>
         {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60" />}
       </NavLink>
