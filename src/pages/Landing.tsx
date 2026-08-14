@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { 
   ArrowRight, Activity, Shield, PieChart, Target, Play, 
-  ChevronRight, Sparkles, BarChart3, LineChart, Globe, Zap, Users
+  ChevronRight, Sparkles, BarChart3, LineChart, Globe, Zap, Users, TrendingUp
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
