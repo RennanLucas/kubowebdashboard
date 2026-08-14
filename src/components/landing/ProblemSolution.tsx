@@ -1,4 +1,4 @@
-import { SplitSquareHorizontal, FileClock, EyeOff, Activity, Link2, Zap } from "lucide-react";
+import { SplitSquareHorizontal, FileClock, EyeOff, Activity, Link2, Zap, Target, Shield } from "lucide-react";
 
 export const ProblemSolution = () => {
   return (
