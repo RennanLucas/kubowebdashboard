@@ -72,6 +72,7 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
               ))}
               <span>Mais</span>
             </div>
+            </div>
           </div>
         </TooltipProvider>
       )}
