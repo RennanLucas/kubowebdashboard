@@ -34,8 +34,8 @@ export const ConversionsSection = ({
       <ConversionFunnel
         visitors={totalVisitors}
         engaged={engagedVisitors}
-        clicks={totalButtons + totalWhatsapp}
-        conversions={totalConversionsAll || totalLeads}
+        clicks={Math.min(engagedVisitors, totalButtons + totalWhatsapp)}
+        conversions={totalLeads}
       />
     </WidgetBoundary>
     <WidgetBoundary title="Não foi possível carregar conversões">

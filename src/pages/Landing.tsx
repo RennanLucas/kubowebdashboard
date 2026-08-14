@@ -91,14 +91,30 @@ const useScrollReveal = () => {
           entry.target.classList.add('is-visible');
         }
       });
-    }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+    }, { threshold: 0.05, rootMargin: "0px 0px -20px 0px" });
 
-    // Re-run observation slightly after mount to catch all dynamically rendered components
-    setTimeout(() => {
-      document.querySelectorAll('.reveal-scroll').forEach((el) => observer.observe(el));
-    }, 100);
+    const observeElements = () => {
+      document.querySelectorAll('.reveal-scroll:not(.is-observed)').forEach((el) => {
+        el.classList.add('is-observed');
+        observer.observe(el);
+      });
+    };
+
+    observeElements();
+
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
     
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, []);
 };
 

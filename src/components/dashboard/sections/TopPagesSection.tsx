@@ -21,7 +21,7 @@ export const TopPagesSection = ({
   heatmapError,
   refetchHeatmap,
 }: Props) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 stagger-children">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 stagger-children">
     <WidgetBoundary title="Não foi possível carregar páginas">
       <TopPages pages={topPages ?? []} />
     </WidgetBoundary>
@@ -32,9 +32,6 @@ export const TopPagesSection = ({
       title="Não foi possível carregar referrers"
     >
       <TopReferrers data={referrers} isLoading={false} />
-    </WidgetBoundary>
-    <WidgetBoundary title="Feed ao vivo indisponível">
-      <LiveFeedCard projectId={activeProjectId ?? null} compact />
     </WidgetBoundary>
   </div>
 );
