@@ -100,27 +100,25 @@ const Navbar = () => (
 );
 
 const Hero = () => (
-  <section className="relative overflow-hidden pt-36 pb-24 sm:pt-44 sm:pb-32">
-    <div className="absolute inset-0 hero-bg pointer-events-none" />
-    <div className="absolute inset-0 bg-grid pointer-events-none opacity-[0.15]" />
-    {/* Floating orbs */}
-    <div className="absolute top-0 -left-1/4 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[100px] animate-float pointer-events-none" />
-    <div className="absolute top-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-[hsl(var(--primary-glow))]/15 blur-[120px] animate-float pointer-events-none" style={{ animationDelay: "2s", animationDuration: "10s" }} />
+  <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32 flex flex-col items-center">
+    {/* Ultra-premium background mesh */}
+    <div className="absolute inset-0 bg-background" />
+    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay pointer-events-none" />
+    <div className="absolute -top-[40%] -left-[10%] w-[70%] h-[70%] rounded-full bg-primary/20 blur-[120px] mix-blend-screen animate-pulse-soft" />
+    <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-chart-purple/20 blur-[120px] mix-blend-screen animate-float" style={{ animationDelay: '1s' }} />
+    <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[60%] rounded-full bg-chart-blue/20 blur-[120px] mix-blend-screen animate-float" style={{ animationDelay: '2s' }} />
 
-    <div className="relative mx-auto max-w-6xl px-4 sm:px-6 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full glass border border-primary/20 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary mb-8 animate-fade-up shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-        </span>
-        KUBO 2.0 · Conheça o novo padrão
-        <ArrowRight className="h-3.5 w-3.5" />
+    <div className="relative mx-auto max-w-7xl px-4 sm:px-6 flex flex-col items-center text-center z-10">
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-4 py-1.5 text-xs font-semibold tracking-wide text-foreground mb-10 animate-fade-up hover:bg-white/10 transition-colors shadow-2xl shadow-primary/20 cursor-pointer">
+        <Sparkles className="h-3.5 w-3.5 text-primary" />
+        KUBOWEB 2.0 IS LIVE
+        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
 
-      <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground leading-[1.1] animate-fade-up" style={{ animationDelay: "100ms" }}>
-        Analytics de alto nível para
+      <h1 className="text-5xl sm:text-7xl lg:text-[6rem] font-bold tracking-tighter text-foreground leading-[0.95] animate-fade-up max-w-5xl" style={{ animationDelay: "100ms" }}>
+        Analytics invisível.
         <br />
-        <span className="gradient-text animate-gradient pb-2 inline-block">decisões que importam.</span>
+        <span className="gradient-text animate-gradient pb-2 inline-block">Crescimento visível.</span>
       </h1>
 
       <p className="mt-6 max-w-2xl mx-auto text-base sm:text-xl text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "200ms" }}>
@@ -238,43 +236,85 @@ const Stats = () => (
 );
 
 const Features = () => {
-  const items = [
-    { icon: BarChart3, title: "Analytics em tempo real", desc: "Veja visitantes ativos, páginas e fontes de tráfego enquanto acontecem." },
-    { icon: Target, title: "Conversões automáticas", desc: "WhatsApp, formulários, cliques — tudo rastreado sem configuração." },
-    { icon: Sparkles, title: "Insights com IA", desc: "Resumos semanais inteligentes que apontam oportunidades de crescimento." },
-    { icon: Bell, title: "Alertas inteligentes", desc: "Receba notificações quando algo importante acontecer no seu site." },
-    { icon: Globe, title: "Multi-projeto", desc: "Gerencie todos os seus sites em um único painel premium." },
-    { icon: Shield, title: "Privacidade total", desc: "Sem cookies, sem dados pessoais. 100% compatível com LGPD." },
-  ];
   return (
-    <section id="features" className="relative py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="text-center mb-14">
-          <p className="text-xs font-semibold tracking-widest text-primary uppercase">Recursos</p>
-          <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">
-            Tudo que você precisa, <span className="gradient-text">nada que você não precisa</span>
+    <section id="features" className="relative py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tighter">
+            Tudo que você precisa.<br />
+            <span className="text-muted-foreground">Construído à perfeição.</span>
           </h2>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Uma plataforma completa, polida e rápida — pensada para times que valorizam clareza acima de tudo.
-          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {items.map((it, i) => (
-            <div
-              key={it.title}
-              className="group relative glass-card rounded-[24px] p-8 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full gradient-primary opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-500" />
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary shadow-sm mb-6 group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-300">
-                  <it.icon className="h-6 w-6" />
+        
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[320px]">
+          {/* Large Item */}
+          <div className="md:col-span-2 group relative glass-card rounded-[2rem] p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden bg-gradient-to-br from-white/5 to-transparent">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
+            <div className="relative z-10 h-full flex flex-col justify-between">
+              <div>
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                  <BarChart3 className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold tracking-tight mb-2 text-foreground">{it.title}</h3>
-                <p className="text-base text-muted-foreground leading-relaxed">{it.desc}</p>
+                <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">Analytics em Tempo Real</h3>
+                <p className="text-muted-foreground max-w-sm">Acompanhe cada clique, visitante e conversão no exato milissegundo em que acontecem. Sem delays.</p>
+              </div>
+              
+              {/* Decorative mini-chart inside the bento box */}
+              <div className="absolute -bottom-4 -right-4 w-2/3 h-48 bg-background/50 backdrop-blur-xl border border-white/10 rounded-tl-2xl rounded-br-2xl shadow-2xl p-4 transform group-hover:-translate-y-2 group-hover:-translate-x-2 transition-transform duration-500">
+                <div className="flex items-end gap-2 h-full opacity-80 pt-10">
+                   {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
+                     <div key={i} className="flex-1 bg-gradient-to-t from-primary/80 to-primary/20 rounded-t-sm" style={{ height: `${h}%` }} />
+                   ))}
+                </div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Medium Item */}
+          <div className="group relative glass-card rounded-[2rem] p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-chart-purple/10 blur-[60px] rounded-full group-hover:bg-chart-purple/20 transition-colors" />
+            <div className="relative z-10">
+              <div className="h-12 w-12 rounded-2xl bg-chart-purple/10 border border-chart-purple/20 flex items-center justify-center text-chart-purple mb-6">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight mb-2">Insights com IA</h3>
+              <p className="text-muted-foreground">Relatórios gerados automaticamente que apontam onde você está perdendo dinheiro.</p>
+            </div>
+          </div>
+
+          {/* Medium Item */}
+          <div className="group relative glass-card rounded-[2rem] p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-success/10 blur-[60px] rounded-full group-hover:bg-success/20 transition-colors" />
+            <div className="relative z-10">
+              <div className="h-12 w-12 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center text-success mb-6">
+                <Target className="h-6 w-6" />
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight mb-2">Auto-Track</h3>
+              <p className="text-muted-foreground">Rastreie envios de formulário e cliques no WhatsApp sem configurar absolutamente nada.</p>
+            </div>
+          </div>
+
+          {/* Medium/Wide Item */}
+          <div className="md:col-span-2 group relative glass-card rounded-[2rem] p-8 hover:shadow-2xl transition-all duration-500 overflow-hidden border border-white/5">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <div className="relative z-10 flex flex-col sm:flex-row gap-8 items-center h-full">
+              <div className="flex-1">
+                <div className="h-12 w-12 rounded-2xl bg-chart-blue/10 border border-chart-blue/20 flex items-center justify-center text-chart-blue mb-6">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight mb-2">Privacidade Absoluta</h3>
+                <p className="text-muted-foreground">100% focado na LGPD e GDPR. Sem cookies irritantes, sem dados expostos. Seus dados são criptografados no banco e pertencem apenas a você.</p>
+              </div>
+              <div className="flex-1 flex justify-center w-full">
+                 <div className="flex gap-4 opacity-50">
+                   <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Globe className="h-8 w-8" /></div>
+                   <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10"><Lock className="h-8 w-8" /></div>
+                 </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
