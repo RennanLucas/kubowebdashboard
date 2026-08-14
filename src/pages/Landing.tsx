@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import logoKubowebWhite from "../assets/logo_kuboweb_white.webp";
+import logoKubowebWhite from "../assets/logo-kuboweb-white.png";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
