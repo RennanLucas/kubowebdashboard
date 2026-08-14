@@ -2,7 +2,7 @@ import { ArrowRight, BarChart3, Target, Sparkles, Check, Activity, TrendingUp, L
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import logoKubowebWhite from "../assets/logo_kuboweb_white.webp";
 
 const Navbar = () => {
