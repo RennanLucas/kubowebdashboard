@@ -70,8 +70,6 @@ function ProjectColumn({
             ))}
           </SelectContent>
         </Select>
-          </SelectContent>
-        </Select>
         <div className="mt-4 flex items-center gap-2">
           <Badge variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-md shadow-sm font-semibold tracking-wider uppercase text-[10px]">
             {side === "left" ? "Projeto A" : "Projeto B"}
