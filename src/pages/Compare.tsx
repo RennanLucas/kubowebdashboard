@@ -50,11 +50,7 @@ function ProjectColumn({
 
   return (
     <Card className="overflow-hidden border-2 border-border/50 glass-card transition-all duration-300 hover:shadow-lg">
-      <Helmet>
-        <title>Comparar projetos — KUBOWEB</title>
-        <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
-      </Helmet>
+
       <div className={`bg-gradient-to-br ${accent} p-6 text-white relative overflow-hidden`}>
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
         <div className="relative z-10">
@@ -178,13 +174,20 @@ const Compare = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!baseLoading && !baseData?.client) {
+  if (!baseLoading && !error && baseData && !baseData.client) {
     return <Navigate to="/onboarding" replace />;
   }
 
+
   return (
     <AppLayout>
+      <Helmet>
+        <title>Comparar projetos — KUBOWEB</title>
+        <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
+        <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
         {/* Header destacado */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-chart-purple to-chart-orange p-8 mb-8 text-white shadow-xl animate-fade-in">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.3),transparent_50%)] animate-pulse" style={{ animationDuration: "4s" }} />

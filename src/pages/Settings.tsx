@@ -3,13 +3,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useClientData } from "@/hooks/useDashboardData";
+import { AppLayout } from "@/components/layout/AppLayout";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Building2, Globe, Rocket, DollarSign, ArrowLeft, Save, HelpCircle, CreditCard, ExternalLink, Calculator, Sparkles } from "lucide-react";
+import { Building2, Globe, Rocket, DollarSign, Save, HelpCircle, CreditCard, ExternalLink, Calculator, Sparkles } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import ProjectsManager from "@/components/settings/ProjectsManager";
 import TrackingStatus from "@/components/settings/TrackingStatus";
@@ -269,29 +271,28 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <AppLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
+
       <Helmet>
         <title>Configurações — KUBOWEB</title>
         <meta name="description" content="Gerencie os dados do seu projeto e preferências de rastreamento." />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/settings" />
       </Helmet>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
-            <p className="text-sm text-muted-foreground">Gerencie os dados do seu projeto</p>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+          <p className="text-sm text-muted-foreground">Gerencie os dados do seu projeto</p>
         </div>
+
 
         <div className="space-y-6">
           {/* Empresa */}
@@ -575,8 +576,9 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
+
 };
 
 export default Settings;
