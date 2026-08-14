@@ -1,103 +1,73 @@
-import { useEffect, useRef, useState } from "react";
+import { ArrowRight, BarChart3, Target, Sparkles, Check, Activity, TrendingUp, LineChart, Shield, Lock, Globe, Zap, Menu, X, Star } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import {
-  ArrowRight,
-  BarChart3,
-  Bell,
-  Check,
-  Globe,
-  LineChart,
-  Lock,
-  Shield,
-  Sparkles,
-  Star,
-  Target,
-  TrendingUp,
-  Users,
-  Zap,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import logoKubowebWhite from "../assets/logo_kuboweb_white.webp";
 
-/* ----------------------------- Animated counter ---------------------------- */
-function useCountUp(target: number, durationMs = 1600, start: boolean) {
-  const [value, setValue] = useState(0);
+const Navbar = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   useEffect(() => {
-    if (!start) return;
-    let raf = 0;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / durationMs);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setValue(target * eased);
-      if (p < 1) raf = requestAnimationFrame(tick);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, durationMs, start]);
-  return value;
-}
-
-function StatItem({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setVisible(true)),
-      { threshold: 0.3 },
-    );
-    io.observe(ref.current);
-    return () => io.disconnect();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  const v = useCountUp(value, 1800, visible);
-  const formatted = value >= 1000 ? Math.round(v).toLocaleString("pt-BR") : v.toFixed(value % 1 ? 1 : 0);
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl sm:text-5xl font-semibold tracking-tight gradient-text tabular-nums">
-        {formatted}
-        {suffix}
-      </div>
-      <div className="mt-2 text-sm text-muted-foreground">{label}</div>
-    </div>
-  );
-}
 
-/* ------------------------------- Components -------------------------------- */
-const Navbar = () => (
-  <header className="fixed top-0 inset-x-0 z-50">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 mt-4">
-      <nav className="glass-strong rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-auto" width="109" height="28" />
-          <span className="text-xs font-medium text-muted-foreground hidden sm:inline tracking-[0.18em] uppercase">
-            Analytics
-          </span>
+  return (
+    <nav
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? "bg-background/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-lg" 
+          : "bg-transparent py-5"
+      }`}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 z-50">
+          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-6 w-auto" width="94" height="24" />
         </Link>
-        <div className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Recursos</a>
-          <a href="#stats" className="hover:text-foreground transition-colors">Resultados</a>
-          <a href="#benefits" className="hover:text-foreground transition-colors">Benefícios</a>
-          <a href="#social" className="hover:text-foreground transition-colors">Clientes</a>
+        <div className="hidden md:flex items-center gap-8">
+          <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+          <a href="#benefits" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Benefícios</a>
+          <a href="#social" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Clientes</a>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline px-3">
-            Entrar
-          </Link>
-          <Button asChild size="sm" className="rounded-full gradient-primary text-white border-0 hover:opacity-90 shadow-lg shadow-primary/30">
-            <Link to="/login">
-              Começar grátis
-              <ArrowRight className="ml-1 h-3.5 w-3.5" />
-            </Link>
+        <div className="hidden md:flex items-center gap-4">
+          <Button variant="ghost" asChild className="text-sm font-medium hover:bg-white/5">
+            <Link to="/login">Entrar</Link>
+          </Button>
+          <Button asChild className="gradient-primary text-white border-0 shadow-lg shadow-primary/25 rounded-full px-6">
+            <Link to="/login">Criar conta gratuita</Link>
           </Button>
         </div>
-      </nav>
-    </div>
-  </header>
-);
+        <button 
+          className="md:hidden z-50 text-foreground p-2"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+      
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 top-0 pt-20 bg-background/95 backdrop-blur-3xl z-40 flex flex-col px-6">
+          <div className="flex flex-col gap-6 text-lg font-medium mt-10">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)}>Recursos</a>
+            <a href="#benefits" onClick={() => setMobileMenuOpen(false)}>Benefícios</a>
+            <a href="#social" onClick={() => setMobileMenuOpen(false)}>Clientes</a>
+            <hr className="border-border" />
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Entrar</Link>
+            <Button asChild className="gradient-primary text-white w-full py-6 mt-4">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Criar conta gratuita</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
 
 const Hero = () => (
   <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-32 flex flex-col items-center">
@@ -144,7 +114,7 @@ const Hero = () => (
       </div>
 
       {/* Premium Dashboard Preview */}
-      <div className="mt-20 relative animate-fade-up" style={{ animationDelay: "500ms" }}>
+      <div className="mt-20 relative animate-fade-up w-full max-w-5xl" style={{ animationDelay: "500ms" }}>
         {/* Glow behind the dashboard */}
         <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-chart-purple/20 to-chart-orange/30 blur-[80px] rounded-full opacity-60" />
         
@@ -218,14 +188,23 @@ const Hero = () => (
   </section>
 );
 
+const StatItem = ({ value, suffix, label }: { value: number; suffix: string; label: string }) => (
+  <div className="flex flex-col items-center justify-center p-4">
+    <div className="text-4xl sm:text-5xl font-bold tracking-tighter text-foreground tabular-nums flex items-baseline gap-1">
+      {value}<span className="text-xl sm:text-2xl text-primary">{suffix}</span>
+    </div>
+    <div className="mt-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">{label}</div>
+  </div>
+);
+
 const Stats = () => (
   <section id="stats" className="relative py-20 sm:py-28">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <div className="text-center mb-12">
         <p className="text-xs font-semibold tracking-widest text-primary uppercase">Por que KUBOWEB</p>
         <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">Feito para times exigentes</h2>
       </div>
-      <div className="glass-strong rounded-2xl p-8 sm:p-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="glass-strong rounded-[2rem] p-8 sm:p-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <StatItem value={60} suffix="s" label="Setup em segundos" />
         <StatItem value={1} suffix="KB" label="Script leve" />
         <StatItem value={100} suffix="%" label="Compatível LGPD" />
@@ -278,7 +257,7 @@ const Features = () => {
               <div className="h-12 w-12 rounded-2xl bg-chart-purple/10 border border-chart-purple/20 flex items-center justify-center text-chart-purple mb-6">
                 <Sparkles className="h-6 w-6" />
               </div>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">Insights com IA</h3>
+              <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">Insights com IA</h3>
               <p className="text-muted-foreground">Relatórios gerados automaticamente que apontam onde você está perdendo dinheiro.</p>
             </div>
           </div>
@@ -290,7 +269,7 @@ const Features = () => {
               <div className="h-12 w-12 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center text-success mb-6">
                 <Target className="h-6 w-6" />
               </div>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">Auto-Track</h3>
+              <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">Auto-Track</h3>
               <p className="text-muted-foreground">Rastreie envios de formulário e cliques no WhatsApp sem configurar absolutamente nada.</p>
             </div>
           </div>
@@ -303,7 +282,7 @@ const Features = () => {
                 <div className="h-12 w-12 rounded-2xl bg-chart-blue/10 border border-chart-blue/20 flex items-center justify-center text-chart-blue mb-6">
                   <Shield className="h-6 w-6" />
                 </div>
-                <h3 className="text-2xl font-bold tracking-tight mb-2">Privacidade Absoluta</h3>
+                <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">Privacidade Absoluta</h3>
                 <p className="text-muted-foreground">100% focado na LGPD e GDPR. Sem cookies irritantes, sem dados expostos. Seus dados são criptografados no banco e pertencem apenas a você.</p>
               </div>
               <div className="flex-1 flex justify-center w-full">
@@ -330,26 +309,26 @@ const Benefits = () => {
   ];
   return (
     <section id="benefits" className="relative py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <p className="text-xs font-semibold tracking-widest text-primary uppercase">Benefícios</p>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">
+            <h2 className="mt-3 text-4xl sm:text-5xl font-bold tracking-tighter text-foreground">
               Por que times escolhem <span className="gradient-text">KUBOWEB</span>
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
               Construímos a plataforma que sempre quisemos usar: rápida, bonita, sem ruído e com tudo
               que importa para crescer.
             </p>
-            <div className="mt-8 grid sm:grid-cols-2 gap-5">
+            <div className="mt-10 grid sm:grid-cols-2 gap-8">
               {list.map((b) => (
-                <div key={b.title} className="flex gap-3">
-                  <div className="shrink-0 h-7 w-7 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
-                    <Check className="h-3.5 w-3.5 text-white" />
+                <div key={b.title} className="flex gap-4">
+                  <div className="shrink-0 h-8 w-8 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 mt-1">
+                    <Check className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-sm">{b.title}</div>
-                    <div className="text-sm text-muted-foreground mt-0.5">{b.desc}</div>
+                    <div className="font-bold text-base text-foreground">{b.title}</div>
+                    <div className="text-sm text-muted-foreground mt-1 leading-relaxed">{b.desc}</div>
                   </div>
                 </div>
               ))}
@@ -358,15 +337,15 @@ const Benefits = () => {
 
           <div className="relative">
             <div className="absolute -inset-6 gradient-primary opacity-20 blur-3xl rounded-full" />
-            <div className="relative glass-strong rounded-2xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-4">
+            <div className="relative glass-strong rounded-[2rem] p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live · agora</div>
-                <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--success))] font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
+                <div className="flex items-center gap-2 text-xs text-[hsl(var(--success))] font-bold">
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--success))] animate-pulse" />
                   84 ativos
                 </div>
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {[
                   { c: "🇧🇷", p: "/produtos/premium", t: "agora" },
                   { c: "🇧🇷", p: "/checkout", t: "12s" },
@@ -374,12 +353,12 @@ const Benefits = () => {
                   { c: "🇧🇷", p: "/contato", t: "1m" },
                   { c: "🇺🇸", p: "/", t: "2m" },
                 ].map((row, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg bg-background/40 border border-border/60 px-3 py-2.5 text-sm">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-base">{row.c}</span>
-                      <span className="font-mono text-xs text-muted-foreground truncate">{row.p}</span>
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-background/40 border border-border/60 px-4 py-3 text-sm">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="text-lg">{row.c}</span>
+                      <span className="font-mono text-sm text-muted-foreground truncate">{row.p}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground tabular-nums">{row.t}</span>
+                    <span className="text-xs text-muted-foreground font-semibold tabular-nums">{row.t}</span>
                   </div>
                 ))}
               </div>
@@ -391,82 +370,25 @@ const Benefits = () => {
   );
 };
 
-const Social = () => (
-  <section id="social" className="relative py-20 sm:py-28">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      <div className="text-center mb-12">
-        <p className="text-xs font-semibold tracking-widest text-primary uppercase">Prova social</p>
-        <h2 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight">
-          Confiado por equipes que crescem
-        </h2>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-5">
-        {[
-          {
-            quote: "Em duas semanas dobramos a taxa de conversão do site. O painel é absurdamente claro.",
-            name: "Marina Souza",
-            role: "Head of Growth · Loft",
-          },
-          {
-            quote: "Substituímos três ferramentas por uma. Mais rápido, mais bonito, mais barato.",
-            name: "Rafael Lima",
-            role: "CTO · Plant Studio",
-          },
-          {
-            quote: "Os insights de IA da KUBOWEB já pagaram o ano inteiro. Mudou nossa rotina.",
-            name: "Camila Reis",
-            role: "Diretora de Marketing · Vexia",
-          },
-        ].map((t, i) => (
-          <figure key={i} className="glass rounded-2xl p-6 glass-card-hover">
-            <div className="flex gap-0.5 mb-4">
-              {Array.from({ length: 5 }).map((_, k) => (
-                <Star key={k} className="h-3.5 w-3.5 fill-warning text-warning" />
-              ))}
-            </div>
-            <blockquote className="text-sm text-foreground leading-relaxed">"{t.quote}"</blockquote>
-            <figcaption className="mt-5 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-white text-xs font-semibold">
-                {t.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
-              </div>
-              <div>
-                <div className="text-sm font-semibold">{t.name}</div>
-                <div className="text-xs text-muted-foreground">{t.role}</div>
-              </div>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-
-      <div className="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 opacity-60">
-        {["LOFT", "PLANT STUDIO", "VEXIA", "NÓRDICA", "KUBO LABS", "CASA NOVA"].map((b) => (
-          <span key={b} className="text-sm font-bold tracking-[0.18em] text-muted-foreground">{b}</span>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
 const CTA = () => (
   <section className="relative py-24 sm:py-32 overflow-hidden">
-    <div className="absolute inset-0 bg-grid opacity-[0.05]" />
+    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
     <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10">
-      <div className="relative overflow-hidden rounded-[2.5rem] glass-strong border border-primary/20 p-12 sm:p-20 text-center shadow-2xl">
+      <div className="relative overflow-hidden rounded-[3rem] glass-strong border border-primary/20 p-12 sm:p-24 text-center shadow-2xl">
         <div className="absolute inset-0 gradient-primary opacity-10" />
         <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-[hsl(var(--primary-glow))]/20 blur-[100px] animate-float" />
         <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-primary/20 blur-[80px] animate-float" style={{ animationDelay: "2s" }} />
 
         <div className="relative z-20">
-          <Sparkles className="h-10 w-10 text-primary mx-auto mb-6" />
-          <h2 className="text-4xl sm:text-6xl font-bold tracking-tight">
+          <Sparkles className="h-12 w-12 text-primary mx-auto mb-8" />
+          <h2 className="text-5xl sm:text-6xl font-bold tracking-tighter">
             Pronto para ver tudo com <span className="gradient-text">clareza?</span>
           </h2>
-          <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
+          <p className="mt-8 text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
             Junte-se às empresas que já descobriram o poder de ter analytics de ponta. 
             Sem complexidade.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="h-14 px-10 rounded-full gradient-primary text-white border-0 hover:scale-105 transition-transform duration-300 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.5)] text-base font-semibold">
               <Link to="/login">
                 Criar conta gratuita
@@ -477,9 +399,9 @@ const CTA = () => (
               <Link to="/login">Acessar painel</Link>
             </Button>
           </div>
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground font-medium">
-            <div className="flex items-center gap-2"><Lock className="h-4 w-4" /> Dados criptografados e isolados</div>
-            <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-warning" /> Instalação em 1 minuto</div>
+          <div className="mt-10 flex items-center justify-center gap-8 text-sm text-muted-foreground font-semibold">
+            <div className="flex items-center gap-2"><Lock className="h-5 w-5 text-muted-foreground/80" /> Dados criptografados</div>
+            <div className="flex items-center gap-2"><Zap className="h-5 w-5 text-warning" /> Setup em 1 minuto</div>
           </div>
         </div>
       </div>
@@ -488,16 +410,17 @@ const CTA = () => (
 );
 
 const Footer = () => (
-  <footer className="border-t border-border/60 py-10">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-      <div className="flex items-center gap-2">
-        <img src={logoKubowebWhite} alt="KUBOWEB" className="h-5 w-auto" width="78" height="20" />
-        <span>© {new Date().getFullYear()} KUBOWEB</span>
+  <footer className="border-t border-white/5 py-12 bg-background relative overflow-hidden">
+    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-muted-foreground relative z-10">
+      <div className="flex items-center gap-3">
+        <img src={logoKubowebWhite} alt="KUBOWEB" className="h-6 w-auto" width="94" height="24" />
+        <span className="font-medium">© {new Date().getFullYear()} KUBOWEB</span>
       </div>
-      <div className="flex items-center gap-6">
-        <a href="#features" className="hover:text-foreground transition-colors">Recursos</a>
-        <a href="#benefits" className="hover:text-foreground transition-colors">Benefícios</a>
-        <Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link>
+      <div className="flex items-center gap-8">
+        <a href="#features" className="font-medium hover:text-foreground transition-colors">Recursos</a>
+        <a href="#benefits" className="font-medium hover:text-foreground transition-colors">Benefícios</a>
+        <Link to="/login" className="font-medium hover:text-foreground transition-colors">Entrar</Link>
       </div>
     </div>
   </footer>
@@ -507,25 +430,24 @@ const Landing = () => {
   return (
     <>
       <Helmet>
-        <title>KUBOWEB — Analytics e geração de leads para seu site</title>
+        <title>KUBOWEB — Analytics invisível, crescimento visível.</title>
         <meta name="description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
-        <meta property="og:title" content="KUBOWEB — Analytics e geração de leads para seu site" />
+        <meta property="og:title" content="KUBOWEB — Analytics invisível, crescimento visível." />
         <meta property="og:description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
         <meta property="og:url" content="https://kubowebdashboard.lovable.app/" />
         <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
-        <meta name="twitter:title" content="KUBOWEB — Analytics e geração de leads para seu site" />
+        <meta name="twitter:title" content="KUBOWEB — Analytics invisível, crescimento visível." />
         <meta name="twitter:description" content="Acompanhe visitantes, monitore leads e tome decisões baseadas em dados com o KUBOWEB." />
         <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/" />
       </Helmet>
-      <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/30 selection:text-primary-foreground">
         <Navbar />
         <main>
           <Hero />
           <Stats />
           <Features />
           <Benefits />
-          {/* <Social /> hidden until we have real customer quotes */}
           <CTA />
         </main>
         <Footer />
