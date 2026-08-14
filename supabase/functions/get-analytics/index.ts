@@ -444,6 +444,12 @@ Deno.serve(async (req) => {
             project: currentProject,
             projects,
           },
+          summary: {
+            totalVisitors: ga4Data.dailyMetrics.reduce((s: number, m: any) => s + m.visitors, 0),
+            totalViews: ga4Data.dailyMetrics.reduce((s: number, m: any) => s + m.views, 0),
+            totalLeads: metrics.reduce((s: number, m: any) => s + m.leads, 0),
+            totalSessions: ga4Data.dailyMetrics.reduce((s: number, m: any) => s + m.sessions, 0)
+          },
           metrics,
           trafficSources,
           topPages,
@@ -812,6 +818,12 @@ Deno.serve(async (req) => {
             project: currentProject,
             projects,
           },
+          summary: {
+            totalVisitors: current.totalVisitors,
+            totalViews: current.totalViews,
+            totalLeads: currLeadsTotal,
+            totalSessions: current.totalSessions
+          },
           metrics,
           trafficSources,
           topPages,
@@ -917,6 +929,12 @@ Deno.serve(async (req) => {
           lead_value: (Number(clientData.lead_value) > 0 ? Number(clientData.lead_value) : 25),
           project: currentProject,
           projects,
+        },
+        summary: {
+          totalVisitors: metricsRes.data.reduce((s: number, m: any) => s + m.visitors, 0),
+          totalViews: metricsRes.data.reduce((s: number, m: any) => s + m.views, 0),
+          totalLeads: metricsRes.data.reduce((s: number, m: any) => s + m.leads, 0),
+          totalSessions: metricsRes.data.reduce((s: number, m: any) => s + m.visitors, 0)
         },
         metrics: metricsRes.data,
         trafficSources,

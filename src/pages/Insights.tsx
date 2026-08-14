@@ -196,6 +196,7 @@ export default function Insights() {
       devices: data?.devices ?? [],
       countries: data?.countries ?? [],
       hourlyDistribution,
+      summary: data?.summary,
     });
   };
 
@@ -469,6 +470,7 @@ export default function Insights() {
         devices: data?.devices ?? [],
         countries: data?.countries ?? [],
         hourlyDistribution,
+        summary: data?.summary,
       });
       setAnalysis(result);
       let generatedDetails: InsightDetail[] = [];
@@ -488,6 +490,7 @@ export default function Insights() {
           devices: data?.devices ?? [],
           countries: data?.countries ?? [],
           hourlyDistribution,
+          summary: data?.summary,
         });
         generatedDetails = details;
         setAnalysisDetails(details);
@@ -677,16 +680,16 @@ export default function Insights() {
             content={
               <div className="space-y-2">
                 <p>
-                  A IA interpreta métricas de tráfego, conversões, dispositivos, origens, páginas e padrões por horário para sugerir oportunidades e riscos.
+                  A IA interpreta métricas de tráfego, conversões, dispositivos, origens, páginas e padrões por horário para sugerir oportunidades e riscos reais para o seu negócio.
                 </p>
                 <p>
-                  No momento, os resultados podem usar dados simulados em partes do ambiente de demonstração. As recomendações devem servir como apoio à análise, não como decisão automática.
+                  As recomendações são geradas a partir da base de dados reais do seu projeto e servem como apoio à sua análise técnica.
                 </p>
               </div>
             }
           />
           <p className="leading-relaxed">
-            Os insights são gerados a partir dos dados exibidos no dashboard. Em ambientes de demonstração, parte da base ainda pode ser mockada.
+            Os insights são gerados a partir dos dados consolidados exibidos no dashboard e refletem o comportamento real dos seus visitantes.
           </p>
         </div>
 

@@ -28,6 +28,12 @@ export interface InsightsInput {
   devices?: any[];
   countries?: any[];
   hourlyDistribution?: HourlyPoint[];
+  summary?: {
+    totalVisitors: number;
+    totalViews: number;
+    totalLeads: number;
+    totalSessions: number;
+  };
 }
 
 export interface InsightDetail {
@@ -76,8 +82,8 @@ const healthScore = (
 };
 
 export function generateLocalInsights(input: InsightsInput): string {
-  const totalVisitors = input.metrics.reduce((s, m) => s + (m.visitors || 0), 0);
-  const totalLeads = input.metrics.reduce((s, m) => s + (m.leads || 0), 0);
+  const totalVisitors = input.summary?.totalVisitors ?? input.metrics.reduce((s, m) => s + (m.visitors || 0), 0);
+  const totalLeads = input.summary?.totalLeads ?? input.metrics.reduce((s, m) => s + (m.leads || 0), 0);
   const totalValue = input.metrics.reduce((s, m) => s + Number(m.estimated_value || 0), 0);
   const conversionRate = totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0;
   const valuePerVisitor = totalVisitors > 0 ? totalValue / totalVisitors : 0;
@@ -361,8 +367,8 @@ export function generateLocalInsights(input: InsightsInput): string {
 }
 
 export function generateInsightDetails(input: InsightsInput): InsightDetail[] {
-  const totalVisitors = input.metrics.reduce((sum, metric) => sum + (metric.visitors || 0), 0);
-  const totalLeads = input.metrics.reduce((sum, metric) => sum + (metric.leads || 0), 0);
+  const totalVisitors = input.summary?.totalVisitors ?? input.metrics.reduce((sum, metric) => sum + (metric.visitors || 0), 0);
+  const totalLeads = input.summary?.totalLeads ?? input.metrics.reduce((sum, metric) => sum + (metric.leads || 0), 0);
   const conversionRate = totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0;
   const totalConversions =
     (input.conversions?.whatsapp_clicks || 0) +

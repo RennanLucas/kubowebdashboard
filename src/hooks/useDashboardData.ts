@@ -102,6 +102,12 @@ interface AnalyticsResponse {
     pagesPerSession: number;
   } | null;
   activeVisitors: number | null;
+  summary?: {
+    totalVisitors: number;
+    totalViews: number;
+    totalLeads: number;
+    totalSessions: number;
+  };
 }
 
 interface FetchOptions {

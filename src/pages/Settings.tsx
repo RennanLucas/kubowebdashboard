@@ -185,6 +185,7 @@ const Settings = () => {
     domain: "",
     projectName: "",
     leadValue: "25",
+    monthlyAdSpend: "0",
   });
 
   useEffect(() => {
@@ -194,6 +195,7 @@ const Settings = () => {
         domain: clientData.domain || "",
         projectName: clientData.projects?.[0]?.name || "",
         leadValue: String((clientData as any).lead_value ?? 25),
+        monthlyAdSpend: String((clientData as any).monthly_ad_spend ?? 0),
       });
     }
   }, [clientData]);
@@ -214,15 +216,23 @@ const Settings = () => {
         return;
       }
 
+      const { value: adSpendVal, error: adSpendErr } = parseLeadValue(form.monthlyAdSpend);
+      if (adSpendErr || adSpendVal === null) {
+        toast.error(adSpendErr ?? "Investimento mensal inválido");
+        setSaving(false);
+        return;
+      }
+
       const { data: updated, error: clientError } = await supabase
         .from("clients")
         .update({
           company_name: form.companyName,
           domain: form.domain || null,
           lead_value: leadVal,
+          monthly_ad_spend: adSpendVal,
         } as any)
         .eq("id", clientData.id)
-        .select("id, company_name, domain, lead_value");
+        .select("id, company_name, domain, lead_value, monthly_ad_spend");
 
       if (clientError) {
         console.error("Erro ao atualizar cliente:", clientError);
@@ -427,6 +437,36 @@ const Settings = () => {
                   Aceita vírgula ou ponto. Máx. 2 casas decimais. Mín. R$ 0,00.
                 </p>
               )}
+            </div>
+            <div className="space-y-2 mt-6 pt-6 border-t border-border">
+              <Label htmlFor="monthlyAdSpend" className="flex items-center gap-2">
+                Investimento Mensal em Anúncios (R$)
+                <HelpTip text="O valor médio que você gasta por mês em Google Ads, Facebook Ads, etc. Usado para calcular seu Custo por Lead (CPL) no dashboard." />
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                <Input
+                  id="monthlyAdSpend"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={form.monthlyAdSpend}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^\d.,]/g, "");
+                    setForm((f) => ({ ...f, monthlyAdSpend: cleaned }));
+                  }}
+                  onBlur={() => {
+                    const { value } = parseLeadValue(form.monthlyAdSpend);
+                    if (value !== null) {
+                      setForm((f) => ({ ...f, monthlyAdSpend: value.toFixed(2).replace(".", ",") }));
+                    }
+                  }}
+                  className="h-11 pl-10"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Deixe 0 se não fizer anúncios. Usado para a métrica de Custo por Lead (CPL).
+              </p>
             </div>
           </div>
 

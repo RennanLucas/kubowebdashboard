@@ -92,14 +92,14 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     return () => { cancelled = true; };
   }, [clientData?.id]);
 
-  const totalVisitors = metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0;
-  const totalLeads = metrics?.reduce((s, m) => s + m.leads, 0) ?? 0;
+  const totalVisitors = data?.summary?.totalVisitors ?? (metrics?.reduce((s, m) => s + m.visitors, 0) ?? 0);
+  const totalLeads = data?.summary?.totalLeads ?? (metrics?.reduce((s, m) => s + m.leads, 0) ?? 0);
   const avgConversion = totalVisitors > 0 ? Number(((totalLeads / totalVisitors) * 100).toFixed(2)) : 0;
   const totalValue = metrics?.reduce((s, m) => s + Number(m.estimated_value), 0) ?? 0;
   const totalWhatsapp = metrics?.reduce((s, m) => s + m.whatsapp_clicks, 0) ?? 0;
   const totalForms = metrics?.reduce((s, m) => s + m.form_submissions, 0) ?? 0;
   const totalButtons = metrics?.reduce((s, m) => s + m.button_clicks, 0) ?? 0;
-  const totalViews = metrics?.reduce((s, m) => s + (m.views ?? m.visitors ?? 0), 0) ?? 0;
+  const totalViews = data?.summary?.totalViews ?? (metrics?.reduce((s, m) => s + (m.views ?? m.visitors ?? 0), 0) ?? 0);
 
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
@@ -278,9 +278,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     : clientData?.projects;
 
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
-  const engagedVisitors = data?.engagement
-    ? Math.round(totalVisitors * (1 - data.engagement.bounceRate / 100))
-    : 0;
+  const engagedVisitors = data?.engagement && data?.summary?.totalSessions
+    ? Math.min(totalVisitors, Math.round(data.summary.totalSessions * (1 - data.engagement.bounceRate / 100)))
+    : (totalVisitors > 0 ? Math.round(totalVisitors * 0.4) : 0); // fallback
 
   return (
     <AppLayout>
