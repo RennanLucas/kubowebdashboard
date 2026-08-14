@@ -24,7 +24,7 @@ export const Pricing = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-scroll">
           {plans.map((plan) => (
-            <div key={plan.name} className={\`glass-panel p-8 rounded-[2rem] border \${plan.highlight ? 'border-primary/50 shadow-[0_0_50px_rgba(108,60,225,0.2)]' : 'border-white/5'} flex flex-col premium-hover\`}>
+            <div key={plan.name} className={`glass-panel p-8 rounded-[2rem] border ${plan.highlight ? 'border-primary/50 shadow-[0_0_50px_rgba(108,60,225,0.2)]' : 'border-white/5'} flex flex-col premium-hover`}>
               {plan.highlight && (
                 <div className="mb-4 inline-flex px-3 py-1 bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full self-start">
                   Mais escolhido
@@ -34,7 +34,7 @@ export const Pricing = () => {
               <p className="text-sm text-white/50 font-medium mb-10 h-10">{plan.target}</p>
               
               <div className="mt-auto pt-8 border-t border-white/5">
-                <Button asChild className={\`w-full h-12 rounded-xl font-bold \${plan.highlight ? 'bg-primary text-white hover:bg-primary-glow' : 'bg-white/5 text-white hover:bg-white/10'}\`}>
+                <Button asChild className={`w-full h-12 rounded-xl font-bold ${plan.highlight ? 'bg-primary text-white hover:bg-primary-glow' : 'bg-white/5 text-white hover:bg-white/10'}`}>
                   <Link to="/login">Falar com vendas</Link>
                 </Button>
               </div>

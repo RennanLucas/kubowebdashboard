@@ -23,7 +23,7 @@ export const HowItWorks = () => {
           
           <div className="grid md:grid-cols-4 gap-8">
             {steps.map((step, i) => (
-              <div key={i} className="relative z-10 flex flex-col items-center md:items-start text-center md:text-left reveal-scroll" style={{ transitionDelay: \`\${i * 100}ms\` }}>
+              <div key={i} className="relative z-10 flex flex-col items-center md:items-start text-center md:text-left reveal-scroll" style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="w-12 h-12 rounded-full bg-black border-2 border-primary flex items-center justify-center text-primary font-black mb-6 shadow-[0_0_30px_rgba(108,60,225,0.4)]">
                   0{i + 1}
                 </div>

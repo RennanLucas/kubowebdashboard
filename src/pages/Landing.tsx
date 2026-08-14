@@ -25,7 +25,7 @@ import { Footer } from "@/components/landing/Footer";
    Premium CSS & Animations (Injected dynamically)
    ───────────────────────────────────────────────────────────── */
 const PremiumStyles = () => (
-  <style dangerouslySetInnerHTML={{ __html: \`
+  <style dangerouslySetInnerHTML={{ __html: `
     .bg-grid-white {
       background-size: 40px 40px;
       background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
@@ -77,7 +77,7 @@ const PremiumStyles = () => (
       opacity: 1;
       transform: translateY(0);
     }
-  \`}} />
+  `}} />
 );
 
 /* ─────────────────────────────────────────────────────────────
@@ -115,9 +115,9 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={\`fixed top-0 inset-x-0 z-50 transition-all duration-500 \${
+    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
       scrolled ? "glass-panel py-3" : "bg-transparent py-6"
-    }\`}>
+    }`}>
       <div className="mx-auto max-w-7xl px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center z-50">
           <img src={logoKubowebWhite} alt="Kubo Web" className="h-6 sm:h-7 w-auto hover:opacity-80 transition-opacity" />
@@ -127,7 +127,7 @@ const Navbar = () => {
           {["Visão Geral", "Plataforma", "Inteligência", "Integrações", "Preços"].map((label, i) => {
             const anchors = ["hero", "features", "kuboai", "integrations", "pricing"];
             return (
-              <a key={label} href={\`#\${anchors[i]}\`} className="text-sm font-medium text-white/60 hover:text-white transition-colors">
+              <a key={label} href={`#${anchors[i]}`} className="text-sm font-medium text-white/60 hover:text-white transition-colors">
                 {label}
               </a>
             )

@@ -32,10 +32,10 @@ export const FAQ = () => {
                 className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
               >
                 <span className="font-bold text-white text-lg">{faq.q}</span>
-                <ChevronDown className={\`w-5 h-5 text-white/40 transition-transform duration-300 \${openIndex === i ? 'rotate-180' : ''}\`} />
+                <ChevronDown className={`w-5 h-5 text-white/40 transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`} />
               </button>
               <div 
-                className={\`px-6 overflow-hidden transition-all duration-300 ease-in-out \${openIndex === i ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}\`}
+                className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === i ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
               >
                 <p className="text-white/50 font-medium leading-relaxed">{faq.a}</p>
               </div>
