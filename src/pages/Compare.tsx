@@ -178,9 +178,10 @@ const Compare = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!baseLoading && !baseData?.client) {
+  if (!baseLoading && !error && baseData && !baseData.client) {
     return <Navigate to="/onboarding" replace />;
   }
+
 
   return (
     <AppLayout>
