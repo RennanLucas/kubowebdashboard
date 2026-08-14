@@ -50,11 +50,7 @@ function ProjectColumn({
 
   return (
     <Card className="overflow-hidden border-2 border-border/50 glass-card transition-all duration-300 hover:shadow-lg">
-      <Helmet>
-        <title>Comparar projetos — KUBOWEB</title>
-        <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
-      </Helmet>
+
       <div className={`bg-gradient-to-br ${accent} p-6 text-white relative overflow-hidden`}>
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
         <div className="relative z-10">
