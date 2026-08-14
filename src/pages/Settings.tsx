@@ -578,8 +578,9 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
+
 };
 
 export default Settings;
