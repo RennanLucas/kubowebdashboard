@@ -102,91 +102,113 @@ const Navbar = () => (
 const Hero = () => (
   <section className="relative overflow-hidden pt-36 pb-24 sm:pt-44 sm:pb-32">
     <div className="absolute inset-0 hero-bg pointer-events-none" />
-    <div className="absolute inset-0 bg-grid pointer-events-none opacity-50" />
+    <div className="absolute inset-0 bg-grid pointer-events-none opacity-[0.15]" />
     {/* Floating orbs */}
-    <div className="absolute top-1/4 -left-20 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-float pointer-events-none" />
-    <div className="absolute top-1/3 -right-20 h-96 w-96 rounded-full bg-[hsl(var(--primary-glow))]/20 blur-3xl animate-float pointer-events-none" style={{ animationDelay: "2s" }} />
+    <div className="absolute top-0 -left-1/4 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[100px] animate-float pointer-events-none" />
+    <div className="absolute top-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-[hsl(var(--primary-glow))]/15 blur-[120px] animate-float pointer-events-none" style={{ animationDelay: "2s", animationDuration: "10s" }} />
 
     <div className="relative mx-auto max-w-6xl px-4 sm:px-6 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full glass px-3.5 py-1.5 text-xs font-medium text-muted-foreground mb-6 animate-fade-up">
+      <div className="inline-flex items-center gap-2 rounded-full glass border border-primary/20 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary mb-8 animate-fade-up shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]">
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[hsl(var(--success))] opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[hsl(var(--success))]" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
         </span>
-        Novo · Insights com IA em tempo real
-        <ArrowRight className="h-3 w-3" />
+        KUBO 2.0 · Conheça o novo padrão
+        <ArrowRight className="h-3.5 w-3.5" />
       </div>
 
-      <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-foreground leading-[1.05] animate-fade-up" style={{ animationDelay: "60ms" }}>
-        Analytics premium para
+      <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground leading-[1.1] animate-fade-up" style={{ animationDelay: "100ms" }}>
+        Analytics de alto nível para
         <br />
-        <span className="gradient-text animate-gradient">decisões que importam.</span>
+        <span className="gradient-text animate-gradient pb-2 inline-block">decisões que importam.</span>
       </h1>
 
-      <p className="mt-6 max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "120ms" }}>
-        Acompanhe visitantes, leads e conversões em tempo real — com privacidade total e
-        insights inteligentes que cabem em qualquer site, instalados em minutos.
+      <p className="mt-6 max-w-2xl mx-auto text-base sm:text-xl text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "200ms" }}>
+        Uma plataforma completa, rápida e refinada. Acompanhe visitantes, leads e conversões em tempo real com design de classe mundial e insights com IA.
       </p>
 
-      <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "180ms" }}>
-        <Button asChild size="lg" className="h-12 px-7 rounded-full gradient-primary text-white border-0 hover:opacity-90 shadow-xl shadow-primary/40 animate-pulse-glow">
-          <Link to="/login">
+      <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
+        <Button asChild size="lg" className="h-14 px-8 rounded-full gradient-primary text-white border-0 hover:scale-105 transition-transform duration-300 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.5)]">
+          <Link to="/login" className="text-base font-medium">
             Comece em 60 segundos
-            <ArrowRight className="ml-1.5 h-4 w-4" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </Button>
-        <Button asChild size="lg" variant="outline" className="h-12 px-7 rounded-full glass border-border-strong">
-          <a href="#features">Ver recursos</a>
+        <Button asChild size="lg" variant="outline" className="h-14 px-8 rounded-full glass-card hover:bg-white/10 transition-colors border-border-strong text-base font-medium">
+          <a href="#features">Explorar recursos</a>
         </Button>
       </div>
 
-      <div className="mt-8 flex items-center justify-center gap-5 text-xs text-muted-foreground animate-fade-up" style={{ animationDelay: "240ms" }}>
-        <div className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" /> Sem cartão</div>
-        <div className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" /> LGPD compliant</div>
-        <div className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" /> Script &lt; 1KB</div>
+      <div className="mt-10 flex items-center justify-center gap-6 text-sm text-muted-foreground font-medium animate-fade-up" style={{ animationDelay: "400ms" }}>
+        <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[hsl(var(--success))]" /> Sem cartão de crédito</div>
+        <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[hsl(var(--success))]" /> 100% focado em LGPD</div>
+        <div className="flex items-center gap-2"><Check className="h-4 w-4 text-[hsl(var(--success))]" /> Script ultra leve</div>
       </div>
 
-      {/* Mock dashboard preview */}
-      <div className="mt-16 relative animate-fade-up" style={{ animationDelay: "320ms" }}>
-        <div className="absolute -inset-4 gradient-primary opacity-30 blur-3xl rounded-3xl" />
-        <div className="relative glass-strong rounded-2xl p-3 shadow-2xl">
-          <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-border/60">
-              <div className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
-              <div className="h-2.5 w-2.5 rounded-full bg-warning/80" />
-              <div className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--success))]/80" />
-              <div className="ml-3 text-[10px] text-muted-foreground">app.kuboweb.com/dashboard</div>
+      {/* Premium Dashboard Preview */}
+      <div className="mt-20 relative animate-fade-up" style={{ animationDelay: "500ms" }}>
+        {/* Glow behind the dashboard */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-chart-purple/20 to-chart-orange/30 blur-[80px] rounded-full opacity-60" />
+        
+        <div className="relative glass-card rounded-[2rem] p-3 shadow-2xl ring-1 ring-white/10 overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          
+          <div className="rounded-2xl border border-white/10 bg-background/80 backdrop-blur-xl overflow-hidden shadow-inner">
+            {/* Window controls */}
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-white/5 bg-white/5">
+              <div className="flex gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-destructive/90 shadow-sm" />
+                <div className="h-3 w-3 rounded-full bg-warning/90 shadow-sm" />
+                <div className="h-3 w-3 rounded-full bg-success/90 shadow-sm" />
+              </div>
+              <div className="mx-auto px-4 py-1 rounded-md bg-black/20 text-[11px] text-muted-foreground font-mono flex items-center gap-2 border border-white/5 shadow-inner">
+                <Lock className="h-3 w-3" />
+                app.kuboweb.com/dashboard
+              </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
-              {[
-                { l: "Visitantes", v: "12.487", c: "+18%", i: Users },
-                { l: "Leads", v: "342", c: "+24%", i: Target },
-                { l: "Conversão", v: "2.74%", c: "+0.4pp", i: TrendingUp },
-                { l: "Valor", v: "R$ 84k", c: "+31%", i: LineChart },
-              ].map((k) => (
-                <div key={k.l} className="rounded-lg border border-border/60 bg-background/40 p-3 text-left">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{k.l}</span>
-                    <k.i className="h-3.5 w-3.5 text-primary" />
+            
+            {/* Dashboard Mockup Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                {[
+                  { l: "Visitantes Ativos", v: "84", c: "+12", i: Activity, cc: "text-success", bc: "bg-success/10" },
+                  { l: "Leads Totais", v: "1.204", c: "+24%", i: Target, cc: "text-chart-blue", bc: "bg-chart-blue/10" },
+                  { l: "Taxa de Conversão", v: "4.8%", c: "+1.2pp", i: TrendingUp, cc: "text-chart-purple", bc: "bg-chart-purple/10" },
+                  { l: "Receita Estimada", v: "R$ 12k", c: "+8%", i: LineChart, cc: "text-chart-orange", bc: "bg-chart-orange/10" },
+                ].map((k) => (
+                  <div key={k.l} className="rounded-xl border border-white/5 bg-white/5 p-4 text-left hover:bg-white/10 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{k.l}</span>
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${k.bc}`}>
+                        <k.i className={`h-4 w-4 ${k.cc}`} />
+                      </div>
+                    </div>
+                    <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{k.v}</div>
+                    <div className={`text-xs font-medium mt-1 ${k.cc}`}>{k.c} <span className="text-muted-foreground">vs ontem</span></div>
                   </div>
-                  <div className="mt-1 text-xl font-semibold tabular-nums">{k.v}</div>
-                  <div className="text-[10px] text-[hsl(var(--success))] font-medium">{k.c}</div>
-                </div>
-              ))}
-            </div>
-            <div className="px-4 pb-4">
-              <div className="h-32 rounded-lg gradient-primary opacity-80 relative overflow-hidden">
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="none">
+                ))}
+              </div>
+              
+              <div className="h-48 rounded-xl bg-white/5 border border-white/5 relative overflow-hidden flex items-end">
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
                   <path
-                    d="M0 90 L 40 70 L 80 78 L 120 50 L 160 62 L 200 38 L 240 48 L 280 22 L 320 30 L 360 12 L 400 18 L 400 120 L 0 120 Z"
-                    fill="rgba(255,255,255,0.2)"
+                    d="M0 150 C 100 130, 200 180, 300 120 C 400 60, 500 140, 600 90 C 700 40, 800 110, 900 30 C 950 -10, 1000 20, 1000 20 L 1000 200 L 0 200 Z"
+                    fill="url(#chart-grad)"
                   />
                   <path
-                    d="M0 90 L 40 70 L 80 78 L 120 50 L 160 62 L 200 38 L 240 48 L 280 22 L 320 30 L 360 12 L 400 18"
+                    d="M0 150 C 100 130, 200 180, 300 120 C 400 60, 500 140, 600 90 C 700 40, 800 110, 900 30 C 950 -10, 1000 20, 1000 20"
                     fill="none"
-                    stroke="white"
-                    strokeWidth="2.5"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth="3"
                     strokeLinecap="round"
+                    className="drop-shadow-[0_0_8px_hsl(var(--primary))]"
                   />
                 </svg>
               </div>
@@ -240,16 +262,16 @@ const Features = () => {
           {items.map((it, i) => (
             <div
               key={it.title}
-              className="group relative glass rounded-2xl p-6 glass-card-hover overflow-hidden"
+              className="group relative glass-card rounded-[24px] p-8 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full gradient-primary opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500" />
-              <div className="relative">
-                <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center text-white shadow-lg shadow-primary/30 mb-4">
-                  <it.icon className="h-5 w-5" />
+              <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full gradient-primary opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary shadow-sm mb-6 group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-300">
+                  <it.icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-base font-semibold mb-1.5">{it.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{it.desc}</p>
+                <h3 className="text-xl font-bold tracking-tight mb-2 text-foreground">{it.title}</h3>
+                <p className="text-base text-muted-foreground leading-relaxed">{it.desc}</p>
               </div>
             </div>
           ))}
@@ -387,35 +409,37 @@ const Social = () => (
 );
 
 const CTA = () => (
-  <section className="relative py-20 sm:py-28">
-    <div className="mx-auto max-w-5xl px-4 sm:px-6">
-      <div className="relative overflow-hidden rounded-3xl glass-strong p-10 sm:p-16 text-center">
-        <div className="absolute inset-0 gradient-primary opacity-20" />
-        <div className="absolute -top-32 -right-32 h-64 w-64 rounded-full bg-[hsl(var(--primary-glow))]/40 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-64 w-64 rounded-full bg-primary/40 blur-3xl" />
+  <section className="relative py-24 sm:py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-grid opacity-[0.05]" />
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10">
+      <div className="relative overflow-hidden rounded-[2.5rem] glass-strong border border-primary/20 p-12 sm:p-20 text-center shadow-2xl">
+        <div className="absolute inset-0 gradient-primary opacity-10" />
+        <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-[hsl(var(--primary-glow))]/20 blur-[100px] animate-float" />
+        <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-primary/20 blur-[80px] animate-float" style={{ animationDelay: "2s" }} />
 
-        <div className="relative">
-          <Sparkles className="h-8 w-8 text-primary mx-auto mb-4" />
-          <h2 className="text-3xl sm:text-5xl font-semibold tracking-tight">
+        <div className="relative z-20">
+          <Sparkles className="h-10 w-10 text-primary mx-auto mb-6" />
+          <h2 className="text-4xl sm:text-6xl font-bold tracking-tight">
             Pronto para ver tudo com <span className="gradient-text">clareza?</span>
           </h2>
-          <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-            Comece grátis em 60 segundos. Sem cartão, sem fricção. Cancele quando quiser.
+          <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
+            Junte-se às empresas que já descobriram o poder de ter analytics de ponta. 
+            Sem complexidade.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button asChild size="lg" className="h-12 px-8 rounded-full gradient-primary text-white border-0 hover:opacity-90 shadow-xl shadow-primary/40">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button asChild size="lg" className="h-14 px-10 rounded-full gradient-primary text-white border-0 hover:scale-105 transition-transform duration-300 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.5)] text-base font-semibold">
               <Link to="/login">
-                Criar minha conta
-                <ArrowRight className="ml-1.5 h-4 w-4" />
+                Criar conta gratuita
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 px-8 rounded-full glass border-border-strong">
-              <Link to="/login">Já sou cliente</Link>
+            <Button asChild size="lg" variant="outline" className="h-14 px-10 rounded-full glass border-border-strong text-base font-semibold hover:bg-white/5">
+              <Link to="/login">Acessar painel</Link>
             </Button>
           </div>
-          <div className="mt-6 flex items-center justify-center gap-5 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Dados criptografados</div>
-            <div className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> Setup em 60s</div>
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground font-medium">
+            <div className="flex items-center gap-2"><Lock className="h-4 w-4" /> Dados criptografados e isolados</div>
+            <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-warning" /> Instalação em 1 minuto</div>
           </div>
         </div>
       </div>

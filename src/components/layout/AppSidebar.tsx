@@ -77,10 +77,10 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
           className={[
             "absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full",
             "bg-primary transition-all duration-300",
-            active ? "opacity-100 scale-100" : "opacity-0 scale-y-50",
+            active ? "opacity-100 scale-100 shadow-[0_0_12px_rgba(var(--primary),0.8)]" : "opacity-0 scale-y-50",
           ].join(" ")}
         />
-        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-200 ${active ? "scale-110 text-primary" : ""} ${locked ? "opacity-55" : ""}`} />
+        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110 text-primary" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
         <span className={`truncate ${locked ? "opacity-55" : ""}`}>{title}</span>
         {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60" />}
       </NavLink>
@@ -109,9 +109,10 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-sidebar-border"
+      className="border-r border-sidebar-border/30 relative"
       style={{ background: "var(--gradient-sidebar)" }}
     >
+      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
       <SidebarHeader className="border-b border-sidebar-border/70">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (

@@ -19,7 +19,8 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
   const isPositive = hasChange && change >= 0;
 
   return (
-    <div className={`glass-card glass-card-hover p-5 relative overflow-hidden group min-h-[180px] ${sparkline && sparkline.length > 1 ? "pb-12" : ""}`}>
+    <div className={`animated-border-gradient glass-card glass-card-hover p-5 relative overflow-hidden group min-h-[180px] ${sparkline && sparkline.length > 1 ? "pb-12" : ""}`}>
+      <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none" />
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-1 min-w-0 flex-1">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">
@@ -32,8 +33,11 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
         </div>
       </div>
 
-      <div className="text-[26px] leading-tight font-semibold text-card-foreground tracking-tight mb-2 tabular-nums">
-        {value}
+      <div className="relative inline-block mb-2">
+        <div className="absolute -inset-2 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="text-[26px] leading-tight font-semibold text-card-foreground tracking-tight tabular-nums relative z-10">
+          {value}
+        </div>
       </div>
 
       {hasChange ? (

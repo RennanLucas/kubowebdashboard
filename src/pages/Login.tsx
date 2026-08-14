@@ -166,8 +166,9 @@ const Login = () => {
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12 relative overflow-hidden">
         {/* Decorative gradient blobs */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-black/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 animate-pulse" style={{ animationDelay: "2s" }} />
+        <div className="absolute inset-0 bg-grid opacity-10 pointer-events-none" />
+        <div className="absolute top-[10%] right-[10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-[10%] left-[10%] w-[600px] h-[600px] bg-primary-glow/20 rounded-full blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: '6s', animationDelay: "1s" }} />
 
         <div className="max-w-md relative z-10">
           <img
@@ -221,8 +222,10 @@ const Login = () => {
       </div>
 
       {/* Right: Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-sm animate-scale-in">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
+        <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="w-full max-w-md animate-scale-in glass-strong p-8 sm:p-10 rounded-2xl relative z-10 shadow-2xl">
           <div className="mb-8 flex justify-center lg:justify-start">
             <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
           </div>
@@ -277,14 +280,15 @@ const Login = () => {
                 </button>
               )}
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-medium transition-all gradient-primary shadow-lg hover:shadow-xl" disabled={isBusy}>
+            <Button type="submit" className="w-full h-11 text-base font-medium transition-all duration-300 gradient-primary shadow-lg hover:shadow-xl hover:scale-[1.02] overflow-hidden relative group" disabled={isBusy}>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               {isBusy ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground" />
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground relative z-10" />
               ) : (
-                <>
+                <div className="flex items-center justify-center relative z-10">
                   {isSignUp ? "Criar Conta" : "Entrar"}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </>
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </div>
               )}
             </Button>
           </form>

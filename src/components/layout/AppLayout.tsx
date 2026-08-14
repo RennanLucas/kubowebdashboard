@@ -104,7 +104,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-30 px-3 sm:px-4 shadow-sm">
+          <header className="h-14 flex items-center gap-3 border-b-0 bg-background/60 backdrop-blur-2xl sticky top-0 z-30 px-3 sm:px-4 shadow-sm after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 transition-colors" />
             <div className="hidden sm:block w-px h-5 bg-border/70 shrink-0" />
 

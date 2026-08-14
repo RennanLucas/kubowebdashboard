@@ -156,10 +156,10 @@ export default function Pricing() {
                   <div
                     key={plan.id}
                     className={cn(
-                      "rounded-2xl border bg-card p-8 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col relative overflow-hidden",
+                      "rounded-2xl border bg-card/60 backdrop-blur-xl p-8 shadow-sm transition-all duration-300 flex flex-col relative overflow-hidden",
                       plan.recommended && !isDisabled
-                        ? "border-primary ring-2 ring-primary/30 shadow-[0_0_40px_-10px_rgba(var(--primary),0.3)] hover:scale-[1.02]"
-                        : "border-border hover:-translate-y-1",
+                        ? "animated-border-gradient border-border ring-0 shadow-[0_0_40px_-10px_rgba(var(--primary),0.3)] hover:scale-[1.02]"
+                        : "border-border hover:-translate-y-1 hover:shadow-lg",
                       isDisabled && "opacity-70",
                     )}
                   >
@@ -172,7 +172,7 @@ export default function Pricing() {
                         <p className="text-sm text-muted-foreground mt-1">{plan.tagline}</p>
                       </div>
                       {isCurrent ? (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                           Plano atual
                         </span>
                       ) : !plan.enabled ? (
@@ -180,7 +180,7 @@ export default function Pricing() {
                           Indisponível
                         </span>
                       ) : plan.recommended ? (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                        <span className="text-xs font-medium px-3 py-1 rounded-full gradient-primary text-white shadow-lg animate-pulse-soft">
                           Mais escolhido
                         </span>
                       ) : null}
@@ -190,10 +190,12 @@ export default function Pricing() {
                       <span className="text-muted-foreground">{plan.cadence}</span>
                       <p className="text-sm text-primary font-medium mt-2">{plan.highlight}</p>
                     </div>
-                    <ul className="space-y-3 mb-6 flex-1">
+                    <ul className="space-y-3 mb-6 flex-1 stagger-children">
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2 text-sm">
-                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <li key={f} className="flex items-start gap-2 text-sm relative">
+                          <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="h-3 w-3 text-primary" />
+                          </div>
                           <span className="text-foreground">{f}</span>
                         </li>
                       ))}
