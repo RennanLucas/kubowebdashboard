@@ -55,6 +55,13 @@ function SparklineRender({ ctx, node }: { ctx: ChartContext; node: { type: any; 
     const { color = "currentColor", strokeWidth = 1.5 } = node.props as SparklinesLineProps;
     return (
       <>
+        <defs>
+          <linearGradient id={`gradient-${color.replace(/[^\w]/g, '-')}`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+            <stop offset="100%" stopColor={color} stopOpacity={0.0} />
+          </linearGradient>
+        </defs>
+        <path d={ctx.fillPath} fill={`url(#gradient-${color.replace(/[^\w]/g, '-')})`} />
         <polyline
           fill="none"
           stroke={color}
@@ -64,7 +71,6 @@ function SparklineRender({ ctx, node }: { ctx: ChartContext; node: { type: any; 
           points={ctx.points}
           vectorEffect="non-scaling-stroke"
         />
-        <path d={ctx.fillPath} fill={color} opacity={0.12} />
       </>
     );
   }

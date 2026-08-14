@@ -44,28 +44,28 @@ export default function Live() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-                <Activity className="h-3.5 w-3.5" /> Ativos agora
+          <Card className="glass-card shadow-sm border-border/50">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs mb-2 uppercase tracking-wider">
+                <Activity className="h-4 w-4 text-success" /> Ativos agora
               </div>
-              <div className="text-2xl font-semibold text-foreground">{activeNow}</div>
+              <div className="text-3xl font-bold text-foreground">{activeNow}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-                <Globe className="h-3.5 w-3.5" /> Países distintos
+          <Card className="glass-card shadow-sm border-border/50">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs mb-2 uppercase tracking-wider">
+                <Globe className="h-4 w-4 text-chart-blue" /> Países
               </div>
-              <div className="text-2xl font-semibold text-foreground">{uniqueCountries}</div>
+              <div className="text-3xl font-bold text-foreground">{uniqueCountries}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-                <MapPin className="h-3.5 w-3.5" /> Páginas distintas
+          <Card className="glass-card shadow-sm border-border/50">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs mb-2 uppercase tracking-wider">
+                <MapPin className="h-4 w-4 text-chart-orange" /> Páginas
               </div>
-              <div className="text-2xl font-semibold text-foreground">{uniquePages}</div>
+              <div className="text-3xl font-bold text-foreground">{uniquePages}</div>
             </CardContent>
           </Card>
         </div>
@@ -84,10 +84,10 @@ export default function Live() {
                 <p className="text-xs text-muted-foreground/70 mt-1">As visitas aparecerão aqui em tempo real.</p>
               </div>
             )}
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/60">
               {visitors.map((v) => (
-                <div key={v.id} className="flex items-start gap-3 py-3 animate-in fade-in slide-in-from-top-1 duration-300">
-                  <div className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <div key={v.id} className="flex items-start gap-3 py-4 animate-fade-up duration-300">
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shadow-sm">
                     <Globe className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">

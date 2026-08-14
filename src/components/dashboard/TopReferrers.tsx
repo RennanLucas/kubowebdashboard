@@ -9,6 +9,7 @@ interface Props {
 }
 
 export const TopReferrers = ({ data, isLoading }: Props) => {
+  const maxVisitors = Math.max(...data.map((r) => r.visitors), 1);
   return (
     <SectionCard
       title="Top sites de origem"
@@ -38,8 +39,12 @@ export const TopReferrers = ({ data, isLoading }: Props) => {
           {data.map((r) => (
             <div
               key={r.domain}
-              className="grid grid-cols-12 items-center text-xs py-2 px-1 -mx-1 rounded-md transition-colors duration-150 hover:bg-muted/40"
+              className="grid grid-cols-12 items-center text-xs py-2 px-1 -mx-1 rounded-md transition-colors duration-150 hover:bg-muted/60 relative group z-0"
             >
+              <div 
+                className="absolute inset-y-1 left-0 bg-chart-purple/10 rounded-sm -z-10 transition-all duration-500" 
+                style={{ width: `${(r.visitors / maxVisitors) * 100}%` }} 
+              />
               <div className="col-span-6 truncate text-foreground font-medium" title={r.domain}>
                 {r.domain}
               </div>
@@ -48,7 +53,7 @@ export const TopReferrers = ({ data, isLoading }: Props) => {
               <div
                 className={`col-span-2 text-right font-semibold tabular-nums ${
                   r.conversionRate >= 3
-                    ? "text-[hsl(var(--success))]"
+                    ? "text-success"
                     : r.conversionRate >= 1
                     ? "text-foreground"
                     : "text-muted-foreground"

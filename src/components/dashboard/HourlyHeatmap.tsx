@@ -1,6 +1,7 @@
 import { Clock } from "lucide-react";
 import { HeatmapCell } from "@/hooks/useHourlyHeatmap";
 import { SectionCard } from "./SectionCard";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -27,7 +28,8 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
       {isLoading ? (
         <div className="h-48 flex items-center justify-center text-xs text-muted-foreground">Carregando...</div>
       ) : (
-        <div className="overflow-x-auto">
+        <TooltipProvider delayDuration={100}>
+          <div className="overflow-x-auto">
           <div className="inline-block min-w-full">
             <div className="flex">
               <div className="w-10" />
@@ -44,12 +46,17 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
                   const cell = data.find((c) => c.day === day && c.hour === hour);
                   const op = intensity(cell?.count ?? 0);
                   return (
-                    <div
-                      key={hour}
-                      className="flex-1 aspect-square rounded-[2px] mx-px min-w-[18px]"
-                      style={{ backgroundColor: `hsl(var(--primary) / ${op})` }}
-                      title={`${label} ${hour}h: ${cell?.count ?? 0} visitas`}
-                    />
+                    <Tooltip key={hour}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="flex-1 aspect-square rounded-[3px] mx-[1px] min-w-[18px] transition-all hover:ring-1 hover:ring-primary/50 hover:scale-110 relative z-10"
+                          style={{ backgroundColor: `hsl(var(--primary) / ${op})` }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs border border-border/50 bg-card/80 backdrop-blur-md shadow-lg ring-1 ring-black/5">
+                        <span className="font-medium text-foreground">{label} às {hour}h:</span> {cell?.count ?? 0} visitas
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 })}
               </div>
@@ -66,7 +73,7 @@ export const HourlyHeatmap = ({ data, isLoading }: Props) => {
               <span>Mais</span>
             </div>
           </div>
-        </div>
+        </TooltipProvider>
       )}
     </SectionCard>
   );

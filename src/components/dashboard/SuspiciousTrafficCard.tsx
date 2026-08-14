@@ -40,8 +40,8 @@ export const SuspiciousTrafficCard = ({ referrers, totalVisitors, isLoading }: P
     pct >= 30 ? "alert" : pct >= 10 ? "warn" : "ok";
 
   const severityStyles = {
-    ok: { color: "text-[hsl(var(--success))]", bg: "bg-[hsl(var(--success))]/10", label: "Tráfego saudável" },
-    warn: { color: "text-[hsl(var(--warning))]", bg: "bg-[hsl(var(--warning))]/10", label: "Atenção" },
+    ok: { color: "text-success", bg: "bg-success/10", label: "Tráfego saudável" },
+    warn: { color: "text-warning", bg: "bg-warning/10", label: "Atenção" },
     alert: { color: "text-destructive", bg: "bg-destructive/10", label: "Tráfego ruim alto" },
   }[severity];
 
@@ -79,7 +79,7 @@ export const SuspiciousTrafficCard = ({ referrers, totalVisitors, isLoading }: P
           <div className="mb-4">
             <div className="flex items-baseline justify-between mb-1.5">
               <span className="text-xs text-muted-foreground">Visitantes suspeitos</span>
-              <span className={`text-xs font-semibold ${severityStyles.color}`}>
+              <span className={`text-xs font-semibold tabular-nums ${severityStyles.color}`}>
                 {suspiciousVisitors.toLocaleString("pt-BR")} ({pct}%)
               </span>
             </div>

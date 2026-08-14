@@ -47,7 +47,7 @@ export const KPIsSection = ({
   valueSeries,
   conversionSeries,
 }: Props) => (
-  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+  <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6 stagger-children">
     <KPICard
       title="Visitantes"
       value={fmtNum(totalVisitors)}

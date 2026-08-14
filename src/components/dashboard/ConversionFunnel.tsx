@@ -4,7 +4,8 @@ import { SectionCard } from "./SectionCard";
 interface FunnelStep {
   label: string;
   value: number;
-  color: string;
+  dotClass: string;
+  barClass: string;
 }
 
 interface ConversionFunnelProps {
@@ -16,10 +17,10 @@ interface ConversionFunnelProps {
 
 export function ConversionFunnel({ visitors, engaged, clicks, conversions }: ConversionFunnelProps) {
   const steps: FunnelStep[] = [
-    { label: "Visitantes", value: visitors, color: "hsl(var(--chart-blue))" },
-    { label: "Engajados", value: engaged, color: "hsl(var(--chart-purple))" },
-    { label: "Cliques em CTA", value: clicks, color: "hsl(var(--chart-orange))" },
-    { label: "Conversões", value: conversions, color: "hsl(var(--chart-green))" },
+    { label: "Visitantes", value: visitors, dotClass: "bg-chart-blue", barClass: "bg-gradient-to-r from-chart-blue to-chart-blue/60" },
+    { label: "Engajados", value: engaged, dotClass: "bg-chart-purple", barClass: "bg-gradient-to-r from-chart-purple to-chart-purple/60" },
+    { label: "Cliques em CTA", value: clicks, dotClass: "bg-chart-orange", barClass: "bg-gradient-to-r from-chart-orange to-chart-orange/60" },
+    { label: "Conversões", value: conversions, dotClass: "bg-chart-green", barClass: "bg-gradient-to-r from-chart-green to-chart-green/60" },
   ];
 
   const max = Math.max(visitors, 1);
@@ -54,8 +55,7 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <span
-                    className="h-2 w-2 rounded-full shrink-0"
-                    style={{ backgroundColor: step.color }}
+                    className={`h-2 w-2 rounded-full shrink-0 ${step.dotClass}`}
                   />
                   <span className="text-xs font-medium text-foreground">{step.label}</span>
                 </div>
@@ -72,10 +72,9 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
               </div>
               <div className="h-9 bg-muted/60 rounded-lg overflow-hidden relative">
                 <div
-                  className="h-full rounded-lg transition-all duration-700 ease-out opacity-90"
+                  className={`h-full rounded-lg transition-all duration-700 ease-out opacity-90 ${step.barClass}`}
                   style={{
                     width: `${Math.max(widthPct, 2)}%`,
-                    backgroundColor: step.color,
                   }}
                 />
               </div>

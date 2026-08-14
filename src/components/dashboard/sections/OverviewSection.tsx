@@ -39,7 +39,7 @@ export const OverviewSection = ({
 
   return (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
       <DailySummaryCard
         visitors={totalVisitors}
         leads={totalLeads}
@@ -58,7 +58,7 @@ export const OverviewSection = ({
       <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
     </div>
 
-    <div className={`grid grid-cols-1 gap-4 mb-6 ${showLive ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
+    <div className={`grid grid-cols-1 gap-4 mb-6 stagger-children ${showLive ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
       <GoalsProgressCard
         projectId={activeProjectId}
         visitors={totalVisitors}

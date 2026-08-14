@@ -55,7 +55,7 @@ export default function CheckoutReturn() {
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="max-w-md text-center">
+        <div className="max-w-md w-full text-center p-8 rounded-2xl glass-card shadow-xl border-border/50 animate-fade-in">
           {isActive ? (
             <>
               <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-4" />

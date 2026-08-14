@@ -10,7 +10,10 @@ interface PageData {
   bounceRate: number;
 }
 
-const TopPages = ({ pages }: { pages: PageData[] }) => (
+const TopPages = ({ pages }: { pages: PageData[] }) => {
+  const maxViews = Math.max(...pages.map((p) => p.views), 1);
+  
+  return (
   <SectionCard
     title="Páginas Mais Visitadas"
     subtitle={`Top ${pages.length || 0} páginas por visualizações`}
@@ -49,7 +52,11 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
                   <p className="text-sm font-medium text-card-foreground truncate max-w-[180px] sm:max-w-[240px]">{page.name}</p>
                   <p className="text-xs text-muted-foreground truncate max-w-[180px] sm:max-w-[240px]">{page.path}</p>
                 </td>
-                <td className="text-right text-sm font-semibold text-card-foreground px-2 sm:px-1 tabular-nums whitespace-nowrap">
+                <td className="text-right text-sm font-semibold text-card-foreground px-2 sm:px-1 tabular-nums whitespace-nowrap relative">
+                  <div 
+                    className="absolute inset-y-1.5 right-2 sm:right-1 bg-chart-blue/10 rounded-sm -z-10 transition-all duration-500" 
+                    style={{ width: `${(page.views / maxViews) * 100}%` }} 
+                  />
                   {page.views.toLocaleString("pt-BR")}
                 </td>
                 <td className="text-right text-sm text-muted-foreground px-2 sm:px-1 tabular-nums whitespace-nowrap">
@@ -59,7 +66,7 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
                     page.bounceRate > 40
                       ? "bg-destructive/10 text-destructive"
-                      : "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]"
+                      : "bg-success/10 text-success"
                   }`}>
                     {page.bounceRate}%
                   </span>
@@ -71,6 +78,7 @@ const TopPages = ({ pages }: { pages: PageData[] }) => (
       </div>
     )}
   </SectionCard>
-);
+  );
+};
 
 export default TopPages;

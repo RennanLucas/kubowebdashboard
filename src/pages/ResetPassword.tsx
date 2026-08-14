@@ -238,9 +238,11 @@ const ResetPassword = () => {
         <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/reset-password" />
       </Helmet>
-      <div className="min-h-screen flex items-center justify-center bg-background p-8">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-8">
+      <div className="w-full max-w-sm p-8 rounded-3xl glass-card shadow-2xl border-white/10 animate-fade-in relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="relative z-10">
+          <div className="mb-8 flex justify-center">
           <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
         </div>
         <h2 className="text-2xl font-semibold text-foreground mb-1 text-center">
@@ -368,6 +370,7 @@ const ResetPassword = () => {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   </>

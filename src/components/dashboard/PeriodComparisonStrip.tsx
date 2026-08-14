@@ -57,7 +57,7 @@ export const PeriodComparisonStrip = ({ dateRange, items }: Props) => {
           const dir = rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
 
           const dirStyle = dir === "up"
-            ? { bg: "bg-[hsl(var(--success))]/10", text: "text-[hsl(var(--success))]", icon: <TrendingUp className="h-3 w-3" /> }
+            ? { bg: "bg-success/10", text: "text-success", icon: <TrendingUp className="h-3 w-3" /> }
             : dir === "down"
             ? { bg: "bg-destructive/10", text: "text-destructive", icon: <TrendingDown className="h-3 w-3" /> }
             : { bg: "bg-muted", text: "text-muted-foreground", icon: <Minus className="h-3 w-3" /> };

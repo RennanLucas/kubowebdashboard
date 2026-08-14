@@ -33,7 +33,7 @@ export const TrafficSection = ({
   refetchHeatmap,
 }: Props) => (
   <>
-    <div className="grid grid-cols-1 gap-4 mb-6">
+    <div className="grid grid-cols-1 gap-4 mb-6 stagger-children">
       <WidgetBoundary
         isLoading={heatmapLoading}
         error={heatmapError}
@@ -45,7 +45,7 @@ export const TrafficSection = ({
       </WidgetBoundary>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 stagger-children">
       <div className="lg:col-span-2">
         <WidgetBoundary title="Não foi possível carregar o gráfico de visitantes" skeletonHeight={280}>
           <VisitorsChart data={chartData} projectId={activeProjectId} prevSeries={prevSeries} dateRangeDays={dateRange} />
@@ -56,7 +56,7 @@ export const TrafficSection = ({
       </WidgetBoundary>
     </div>
 
-    <div className="grid grid-cols-1 gap-4 mb-6">
+    <div className="grid grid-cols-1 gap-4 mb-6 stagger-children">
       <WidgetBoundary
         isLoading={heatmapLoading}
         error={heatmapError}

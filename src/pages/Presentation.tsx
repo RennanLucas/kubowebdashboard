@@ -20,8 +20,8 @@ function BigStat({
   accent: string;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br ${accent} shadow-2xl`}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+    <div className={`relative overflow-hidden rounded-[2rem] p-8 bg-gradient-to-br ${accent} shadow-2xl transition-transform duration-500 hover:scale-[1.02]`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)] animate-pulse" style={{ animationDuration: "3s" }} />
       <div className="relative">
         <div className="flex items-center gap-3 text-white/90 mb-4">
           {icon}
@@ -97,9 +97,9 @@ const Presentation = () => {
           <h1 className="text-3xl font-bold">{data?.client?.company_name ?? "Dashboard"}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-sm">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin-slow" />
-            <span>Atualiza em {secondsLeft}s</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-sm border border-white/20 shadow-inner">
+            <RefreshCw className="h-4 w-4 animate-spin" style={{ animationDuration: "3s" }} />
+            <span className="font-mono">Atualiza em {secondsLeft}s</span>
           </div>
           <Button variant="ghost" size="icon" onClick={enterFullscreen} className="text-white hover:bg-white/10">
             <Maximize2 className="h-4 w-4" />

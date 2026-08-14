@@ -233,12 +233,12 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
             {steps.map((s, i) => (
               <div key={s.label} className="flex items-center gap-2">
                 <div
-                  className={`flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium transition-all duration-300 ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold shadow-sm transition-all duration-300 ${
                     i < step
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground scale-100"
                       : i === step
-                      ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-110"
+                      : "bg-surface-sunken text-muted-foreground scale-95"
                   }`}
                 >
                   {i < step ? (
@@ -255,9 +255,9 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
           </div>
 
           {/* Step content */}
-          <div className="glass-card rounded-2xl p-6 sm:p-8 shadow-lg border border-border/50">
+          <div className="glass-card rounded-2xl p-6 sm:p-8 shadow-xl border border-border/50 relative overflow-hidden">
             {step === 0 && (
-              <div className="space-y-5 animate-in fade-in duration-300">
+              <div className="space-y-5 animate-slide-in-up duration-300">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-1">
                     {editMode ? "Dados da Empresa" : "Sobre sua empresa"}
@@ -282,7 +282,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
             )}
 
             {step === 1 && (
-              <div className="space-y-5 animate-in fade-in duration-300">
+              <div className="space-y-5 animate-slide-in-up duration-300">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-1">
                     {editMode ? "Dados do Projeto" : "Configure seu projeto"}
@@ -322,7 +322,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
             )}
 
             {step === 2 && (
-              <div className="space-y-5 animate-in fade-in duration-300">
+              <div className="space-y-5 animate-slide-in-up duration-300">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-1">Tudo pronto!</h2>
                   <p className="text-sm text-muted-foreground">Revise as informações antes de finalizar.</p>

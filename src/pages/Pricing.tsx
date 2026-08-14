@@ -156,13 +156,16 @@ export default function Pricing() {
                   <div
                     key={plan.id}
                     className={cn(
-                      "rounded-xl border bg-card p-8 shadow-sm transition-all flex flex-col",
+                      "rounded-2xl border bg-card p-8 shadow-sm transition-all duration-300 hover:shadow-xl flex flex-col relative overflow-hidden",
                       plan.recommended && !isDisabled
-                        ? "border-primary ring-2 ring-primary/30"
-                        : "border-border",
+                        ? "border-primary ring-2 ring-primary/30 shadow-[0_0_40px_-10px_rgba(var(--primary),0.3)] hover:scale-[1.02]"
+                        : "border-border hover:-translate-y-1",
                       isDisabled && "opacity-70",
                     )}
                   >
+                    {plan.recommended && !isDisabled && (
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    )}
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
@@ -197,7 +200,8 @@ export default function Pricing() {
                     </ul>
                     <Button
                       size="lg"
-                      className="w-full"
+                      className={cn("w-full transition-all duration-300 shadow-sm hover:shadow-md", plan.recommended && !isDisabled && "gradient-primary border-0")}
+                      variant={plan.recommended ? "default" : "outline"}
                       disabled={isDisabled || isLoading || loadingPlan !== null}
                       onClick={() => handleCheckout(plan.id)}
                     >

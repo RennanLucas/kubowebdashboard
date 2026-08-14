@@ -75,11 +75,12 @@ export const GoalsProgressCard = ({ projectId, visitors, leads, revenue }: Props
         <div className="space-y-3">
           {items.map((item) => {
             const pct = Math.min(100, Math.round((item.current / item.target) * 100));
-            const color =
-              pct >= 100 ? "hsl(var(--success))"
-              : pct >= 70 ? "hsl(var(--chart-blue))"
-              : pct >= 40 ? "hsl(var(--warning))"
-              : "hsl(var(--destructive))";
+            const colorClass =
+              pct >= 100 ? "bg-success"
+              : pct >= 70 ? "bg-chart-blue"
+              : pct >= 40 ? "bg-warning"
+              : "bg-destructive";
+            const textColorClass = colorClass.replace("bg-", "text-");
 
             return (
               <div key={item.label} className="space-y-1">
@@ -91,11 +92,11 @@ export const GoalsProgressCard = ({ projectId, visitors, leads, revenue }: Props
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full transition-all duration-500"
-                    style={{ width: `${pct}%`, backgroundColor: color }}
+                    className={`h-full transition-all duration-500 ${colorClass}`}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="text-[10px] tabular-nums" style={{ color }}>{pct}% atingido</p>
+                <p className={`text-[10px] tabular-nums ${textColorClass}`}>{pct}% atingido</p>
               </div>
             );
           })}

@@ -21,10 +21,10 @@ const deviceIcons: Record<string, React.ReactNode> = {
 
 const barColors = [
   "bg-primary",
-  "bg-[hsl(var(--chart-blue))]",
-  "bg-[hsl(var(--chart-green))]",
-  "bg-[hsl(var(--chart-purple))]",
-  "bg-[hsl(var(--chart-orange))]",
+  "bg-chart-blue",
+  "bg-chart-green",
+  "bg-chart-purple",
+  "bg-chart-orange",
 ];
 
 const DevicesBrowsersCard = ({ devices, browsers, operatingSystems }: DevicesBrowsersCardProps) => {

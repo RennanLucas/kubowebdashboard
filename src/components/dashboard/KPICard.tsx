@@ -27,7 +27,7 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
           </span>
           {tooltip && <InfoTooltip content={tooltip} />}
         </div>
-        <div className="h-7 w-7 rounded-lg bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary shrink-0">
+        <div className={`h-7 w-7 rounded-lg flex items-center justify-center transition-colors duration-200 shrink-0 ${hasChange ? (isPositive ? 'bg-success/10 text-success group-hover:bg-success/20' : 'bg-destructive/10 text-destructive group-hover:bg-destructive/20') : 'bg-muted/70 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'}`}>
           {icon}
         </div>
       </div>
@@ -41,7 +41,7 @@ const KPICard = ({ title, value, change, icon, changeUnit = "%", sparkline, spar
           <span
             className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tabular-nums ${
               isPositive
-                ? "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]"
+                ? "bg-success/10 text-success"
                 : "bg-destructive/10 text-destructive"
             }`}
           >

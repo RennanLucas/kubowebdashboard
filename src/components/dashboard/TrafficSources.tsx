@@ -222,8 +222,8 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
                       <span className="text-card-foreground font-medium truncate">{s.source}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-2">
-                      <span className="text-card-foreground font-medium text-xs">{s.visitors.toLocaleString("pt-BR")}</span>
-                      <span className="text-muted-foreground text-xs w-9 text-right">{s.percentage}%</span>
+                      <span className="text-card-foreground font-medium text-xs tabular-nums tracking-tight">{s.visitors.toLocaleString("pt-BR")}</span>
+                      <span className="text-muted-foreground text-xs w-9 text-right tabular-nums tracking-tight">{s.percentage}%</span>
                     </div>
                   </div>
                   <div className="h-1.5 rounded-full bg-muted overflow-hidden">

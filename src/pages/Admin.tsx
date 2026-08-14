@@ -4,12 +4,25 @@ import { Link, Navigate } from "react-router-dom";
 import { Loader2, Shield, ShieldOff, ArrowLeft, RefreshCw, Gift, Ban } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface AdminUser {
   id: string;
@@ -35,6 +48,10 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  
+  // Dialog States
+  const [grantDialogState, setGrantDialogState] = useState<{ open: boolean; target: AdminUser | null; days: string }>({ open: false, target: null, days: "365" });
+  const [revokeDialogState, setRevokeDialogState] = useState<{ open: boolean; target: AdminUser | null }>({ open: false, target: null });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -79,17 +96,15 @@ export default function Admin() {
     setBusyId(null);
   };
 
-  const grantSubscription = async (target: AdminUser) => {
-    const input = window.prompt(
-      `Conceder assinatura manual para ${target.email}.\nQuantos dias de acesso?`,
-      "365",
-    );
-    if (input === null) return;
-    const days = parseInt(input, 10);
+  const grantSubscription = async () => {
+    const { target, days: daysStr } = grantDialogState;
+    if (!target) return;
+    const days = parseInt(daysStr, 10);
     if (!Number.isFinite(days) || days < 1) {
       toast.error("Informe um número de dias válido");
       return;
     }
+    setGrantDialogState({ open: false, target: null, days: "365" });
     setBusyId(target.id);
     const { data, error } = await supabase.functions.invoke("admin-list-users", {
       body: { action: "grant_subscription", userId: target.id, days, environment: "sandbox" },
@@ -103,8 +118,10 @@ export default function Admin() {
     setBusyId(null);
   };
 
-  const revokeSubscription = async (target: AdminUser) => {
-    if (!window.confirm(`Revogar assinatura manual de ${target.email}?`)) return;
+  const revokeSubscription = async () => {
+    const { target } = revokeDialogState;
+    if (!target) return;
+    setRevokeDialogState({ open: false, target: null });
     setBusyId(target.id);
     const { data, error } = await supabase.functions.invoke("admin-list-users", {
       body: { action: "revoke_subscription", userId: target.id, environment: "sandbox" },
@@ -169,11 +186,11 @@ export default function Admin() {
             placeholder="Buscar por email ou nome..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm glass-card focus-ring"
           />
         </div>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden glass-card border-border/50">
           {loading ? (
             <div className="p-12 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
           ) : filtered.length === 0 ? (
@@ -232,7 +249,7 @@ export default function Admin() {
                                 size="sm"
                                 variant="outline"
                                 disabled={busyId === u.id}
-                                onClick={() => revokeSubscription(u)}
+                                onClick={() => setRevokeDialogState({ open: true, target: u })}
                               >
                                 <Ban className="h-3 w-3 mr-1" />Revogar
                               </Button>
@@ -241,7 +258,7 @@ export default function Admin() {
                                 size="sm"
                                 variant="secondary"
                                 disabled={busyId === u.id}
-                                onClick={() => grantSubscription(u)}
+                                onClick={() => setGrantDialogState({ open: true, target: u, days: "365" })}
                               >
                                 <Gift className="h-3 w-3 mr-1" />Conceder
                               </Button>
@@ -272,15 +289,57 @@ export default function Admin() {
           )}
         </Card>
       </div>
+
+      <Dialog open={grantDialogState.open} onOpenChange={(open) => setGrantDialogState(s => ({ ...s, open }))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Conceder Assinatura Manual</DialogTitle>
+            <DialogDescription>
+              Quantos dias de acesso você deseja conceder para <b>{grantDialogState.target?.email}</b>?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="days">Dias de acesso</Label>
+            <Input
+              id="days"
+              type="number"
+              value={grantDialogState.days}
+              onChange={(e) => setGrantDialogState(s => ({ ...s, days: e.target.value }))}
+              className="mt-2 focus-ring"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGrantDialogState(s => ({ ...s, open: false }))}>Cancelar</Button>
+            <Button onClick={grantSubscription} className="gradient-primary text-primary-foreground">Conceder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={revokeDialogState.open} onOpenChange={(open) => setRevokeDialogState(s => ({ ...s, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revogar Assinatura</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja revogar a assinatura manual de <b>{revokeDialogState.target?.email}</b>? Eles perderão o acesso imediatamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={revokeSubscription} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Revogar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card className="p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-2xl font-semibold text-foreground mt-1">{value}</div>
+    <Card className="p-5 glass-card border-border/50">
+      <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{label}</div>
+      <div className="text-3xl font-bold text-foreground mt-2">{value}</div>
     </Card>
   );
 }

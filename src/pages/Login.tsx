@@ -166,8 +166,8 @@ const Login = () => {
       {/* Left: Brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12 relative overflow-hidden">
         {/* Decorative gradient blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-black/10 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4 animate-pulse" style={{ animationDelay: "2s" }} />
 
         <div className="max-w-md relative z-10">
           <img
@@ -175,24 +175,24 @@ const Login = () => {
             alt="KUBOWEB"
             className="h-12 w-auto mb-6"
           />
-          <h1 className="text-primary-foreground text-3xl font-semibold leading-tight mb-4">
+          <h1 className="text-primary-foreground text-4xl font-bold tracking-tight leading-tight mb-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
             O painel completo para o desempenho do seu site.
           </h1>
-          <p className="text-primary-foreground/80 text-base leading-relaxed mb-10">
+          <p className="text-primary-foreground/80 text-lg leading-relaxed mb-10 animate-fade-up" style={{ animationDelay: "200ms" }}>
             Acompanhe visitantes, monitore leads e tome decisões baseadas em dados — tudo em tempo real, em um só lugar.
           </p>
 
           {/* Features grid */}
-          <div className="grid grid-cols-1 gap-3 mb-10">
+          <div className="grid grid-cols-1 gap-4 mb-10 animate-fade-up stagger-children" style={{ animationDelay: "300ms" }}>
             {[
               { icon: BarChart3, title: "Analytics em tempo real", desc: "Veja o que acontece no seu site agora" },
               { icon: Users, title: "Rastreamento de visitantes", desc: "Sem cookies, com privacidade garantida" },
               { icon: Target, title: "Conversões automáticas", desc: "WhatsApp, formulários e cliques" },
               { icon: Bell, title: "Alertas inteligentes", desc: "Saiba quando algo importante acontecer" },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-3 p-3 rounded-lg bg-primary-foreground/5 backdrop-blur-sm border border-primary-foreground/10">
-                <div className="shrink-0 w-9 h-9 rounded-md bg-primary-foreground/10 flex items-center justify-center">
-                  <Icon className="h-4 w-4 text-primary-foreground" />
+              <div key={title} className="flex items-start gap-3 p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Icon className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <div>
                   <p className="text-primary-foreground font-medium text-sm">{title}</p>
@@ -203,17 +203,17 @@ const Login = () => {
           </div>
 
           {/* Trust badges */}
-          <div className="flex items-center gap-4 pt-6 border-t border-primary-foreground/10">
-            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
+          <div className="flex items-center gap-6 pt-8 border-t border-white/10 animate-fade-up" style={{ animationDelay: "400ms" }}>
+            <div className="flex items-center gap-2 text-primary-foreground/80 text-sm font-medium">
               <Shield className="h-3.5 w-3.5" />
               <span>LGPD compliant</span>
             </div>
-            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
-              <Zap className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2 text-primary-foreground/80 text-sm font-medium">
+              <Zap className="h-4 w-4" />
               <span>Script &lt; 1KB</span>
             </div>
-            <div className="flex items-center gap-2 text-primary-foreground/70 text-xs">
-              <Globe className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2 text-primary-foreground/80 text-sm font-medium">
+              <Globe className="h-4 w-4" />
               <span>Multi-site</span>
             </div>
           </div>
@@ -221,19 +221,19 @@ const Login = () => {
       </div>
 
       {/* Right: Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+        <div className="w-full max-w-sm animate-scale-in">
           <div className="mb-8 flex justify-center lg:justify-start">
             <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
           </div>
-          <h2 className="text-2xl font-semibold text-foreground mb-1">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground mb-2">
             {isSignUp ? "Criar conta" : "Bem-vindo de volta"}
           </h2>
           <p className="text-muted-foreground mb-8">
             {isSignUp ? "Comece a acompanhar seu desempenho" : "Entre no seu painel"}
           </p>
 
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form onSubmit={handleAuth} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -243,6 +243,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="focus-ring bg-surface-sunken"
               />
             </div>
             <div className="space-y-2">
@@ -256,6 +257,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
+                  className="focus-ring bg-surface-sunken pr-10"
                 />
                 <button
                   type="button"
@@ -275,13 +277,13 @@ const Login = () => {
                 </button>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={isBusy}>
+            <Button type="submit" className="w-full h-11 text-base font-medium transition-all gradient-primary shadow-lg hover:shadow-xl" disabled={isBusy}>
               {isBusy ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground" />
               ) : (
                 <>
                   {isSignUp ? "Criar Conta" : "Entrar"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>

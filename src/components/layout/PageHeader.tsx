@@ -15,7 +15,7 @@ interface PageHeaderProps {
 export const PageHeader = ({ title, subtitle, actions, className }: PageHeaderProps) => (
   <header
     className={cn(
-      "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4",
+      "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 animate-fade-in",
       className,
     )}
   >

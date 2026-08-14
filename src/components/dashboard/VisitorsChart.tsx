@@ -426,7 +426,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 <stop offset="100%" stopColor="hsl(var(--chart-green))" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" strokeOpacity={0.4} vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <RechartsTooltip
@@ -441,7 +441,7 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
                 if (!visibleItems.length) return null;
 
                 return (
-                  <div className="min-w-40 rounded-lg border border-border bg-card px-3 py-2 text-xs shadow-xl">
+                  <div className="min-w-40 rounded-lg border border-border/50 bg-card/80 backdrop-blur-md px-3 py-2 text-xs shadow-xl ring-1 ring-black/5">
                     <div className="mb-2 font-medium text-card-foreground">{label}</div>
                     <div className="space-y-1.5">
                       {visibleItems.map((item) => (

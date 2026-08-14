@@ -29,7 +29,7 @@ export const ConversionsSection = ({
   totalConversionsAll,
   conversions,
 }: Props) => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 stagger-children">
     <WidgetBoundary title="Funil indisponível">
       <ConversionFunnel
         visitors={totalVisitors}

@@ -57,7 +57,7 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
                 <div>
                   <p className="text-sm font-medium text-card-foreground">{item.label}</p>
                   {item.change !== 0 && (
-                    <p className={`text-xs flex items-center gap-1 ${isPositive ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+                    <p className={`text-xs flex items-center gap-1 ${isPositive ? "text-success" : "text-destructive"}`}>
                       {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                       {isPositive ? "+" : ""}{item.change}%
                     </p>
@@ -67,7 +67,7 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
                   )}
                 </div>
               </div>
-              <span className="text-lg font-medium text-card-foreground">{item.value.toLocaleString("pt-BR")}</span>
+              <span className="text-lg font-medium text-card-foreground tabular-nums">{item.value.toLocaleString("pt-BR")}</span>
             </div>
           );
         })}
@@ -87,7 +87,7 @@ const ConversionsCard = ({ data }: { data: ConversionsData }) => {
                   </span>
                   <span className="text-muted-foreground truncate">{event.label || event.page}</span>
                 </div>
-                <span className="text-muted-foreground shrink-0 ml-2">
+                <span className="text-muted-foreground shrink-0 ml-2 tabular-nums">
                   {format(new Date(event.time), "HH:mm")}
                 </span>
               </div>

@@ -60,9 +60,9 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
       tooltip={locked ? `${title} · disponível em planos pagos` : title}
       className={[
         "relative h-9 rounded-md text-[13px] font-medium",
-        "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/70",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground",
-        "transition-colors",
+        "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
+        "data-[active=true]:bg-sidebar-accent/90 data-[active=true]:text-sidebar-foreground data-[active=true]:shadow-sm",
+        "transition-all duration-200 ease-in-out",
       ].join(" ")}
     >
       <NavLink
@@ -75,12 +75,12 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
         <span
           aria-hidden
           className={[
-            "absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r-full",
-            "bg-sidebar-foreground/90 transition-opacity",
-            active ? "opacity-100" : "opacity-0",
+            "absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full",
+            "bg-primary transition-all duration-300",
+            active ? "opacity-100 scale-100" : "opacity-0 scale-y-50",
           ].join(" ")}
         />
-        <Icon className={`h-[15px] w-[15px] shrink-0 ${locked ? "opacity-55" : ""}`} />
+        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-200 ${active ? "scale-110 text-primary" : ""} ${locked ? "opacity-55" : ""}`} />
         <span className={`truncate ${locked ? "opacity-55" : ""}`}>{title}</span>
         {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60" />}
       </NavLink>
@@ -121,10 +121,10 @@ export function AppSidebar() {
               <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-auto shrink-0" />
               <span
                 className={[
-                  "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300",
                   plan.isFree
                     ? "bg-sidebar-accent text-sidebar-foreground/70"
-                    : "bg-primary/20 text-primary",
+                    : "bg-primary text-primary-foreground animate-pulse hover:animate-none",
                 ].join(" ")}
               >
                 {plan.loading ? "..." : plan.label}

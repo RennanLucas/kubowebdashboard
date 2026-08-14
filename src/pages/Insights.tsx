@@ -760,7 +760,7 @@ export default function Insights() {
         </Card>
 
         {!generating && !historyLoading && !hasHistoryForSelectedPeriod && (
-          <Card className="mb-6 border-warning/30 bg-warning/5 p-4">
+          <Card className="mb-6 border-warning/30 bg-warning/5 p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
               <div className="space-y-1 text-sm">
@@ -774,9 +774,11 @@ export default function Insights() {
         )}
 
         {!analysis && !generating && (
-          <Card className="p-6 sm:p-12 text-center border-dashed">
-            <Sparkles className="h-10 w-10 sm:h-12 sm:w-12 text-primary/30 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
+          <Card className="p-6 sm:p-12 text-center border-dashed glass-card">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
               Ao clicar em "Gerar análise com IA", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
             </p>
@@ -784,15 +786,18 @@ export default function Insights() {
         )}
 
         {generating && (
-          <Card className="p-6 sm:p-12 text-center">
-            <Loader2 className="h-9 w-9 sm:h-10 sm:w-10 text-primary animate-spin mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
-            </p>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Status atual: coletando métricas, cruzando padrões e organizando os resultados.
-            </p>
+          <Card className="p-6 sm:p-12 text-center glass-card relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 animate-pulse" />
+            <div className="relative z-10">
+              <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Status atual: coletando métricas, cruzando padrões e organizando os resultados.
+              </p>
+            </div>
           </Card>
         )}
 

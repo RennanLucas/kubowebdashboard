@@ -48,8 +48,8 @@ const Install = () => {
       </header>
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full">
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-sidebar flex items-center justify-center">
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-sidebar shadow-inner flex items-center justify-center">
             <Smartphone className="h-8 w-8 text-sidebar-foreground" />
           </div>
           <h2 className="text-xl font-semibold mb-1">KUBOWEB no seu celular</h2>
@@ -80,8 +80,8 @@ const Install = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="ios">
-              <Card className="p-5">
+            <TabsContent value="ios" className="animate-fade-up">
+              <Card className="p-5 glass-card border-border/50 shadow-sm">
                 <h3 className="font-semibold mb-3 text-sm">No iPhone / iPad (Safari)</h3>
                 <ol className="space-y-3">
                   <Step n={1}>
@@ -100,8 +100,8 @@ const Install = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="android">
-              <Card className="p-5">
+            <TabsContent value="android" className="animate-fade-up">
+              <Card className="p-5 glass-card border-border/50 shadow-sm">
                 <h3 className="font-semibold mb-4 text-sm">No Android (Chrome)</h3>
 
                 {canPrompt && platform === "android" ? (
@@ -136,8 +136,8 @@ const Install = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="desktop">
-              <Card className="p-5">
+            <TabsContent value="desktop" className="animate-fade-up">
+              <Card className="p-5 glass-card border-border/50 shadow-sm">
                 <h3 className="font-semibold mb-4 text-sm">No computador (Chrome / Edge)</h3>
 
                 {canPrompt && platform === "desktop" ? (

@@ -49,14 +49,16 @@ function ProjectColumn({
   const accent = side === "left" ? "from-chart-blue to-primary" : "from-chart-orange to-chart-purple";
 
   return (
-    <Card className="overflow-hidden border-2">
+    <Card className="overflow-hidden border-2 border-border/50 glass-card transition-all duration-300 hover:shadow-lg">
       <Helmet>
         <title>Comparar projetos — KUBOWEB</title>
         <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
       </Helmet>
-      <div className={`bg-gradient-to-br ${accent} p-6 text-white`}>
-        <Select value={projectId} onValueChange={onChange}>
+      <div className={`bg-gradient-to-br ${accent} p-6 text-white relative overflow-hidden`}>
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+        <div className="relative z-10">
+          <Select value={projectId} onValueChange={onChange}>
           <SelectTrigger className="bg-white/20 border-white/30 text-white backdrop-blur-sm hover:bg-white/30">
             <SelectValue placeholder="Selecione um projeto" />
           </SelectTrigger>
@@ -68,11 +70,14 @@ function ProjectColumn({
             ))}
           </SelectContent>
         </Select>
-        <div className="mt-3 flex items-center gap-2">
-          <Badge variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-sm">
+          </SelectContent>
+        </Select>
+        <div className="mt-4 flex items-center gap-2">
+          <Badge variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-md shadow-sm font-semibold tracking-wider uppercase text-[10px]">
             {side === "left" ? "Projeto A" : "Projeto B"}
           </Badge>
-          <span className="text-xs text-white/80">Últimos {days} dias</span>
+          <span className="text-xs font-medium text-white/90">Últimos {days} dias</span>
+        </div>
         </div>
       </div>
 
@@ -116,9 +121,9 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
   const pct = b > 0 ? Math.abs(((a - b) / b) * 100).toFixed(1) : "—";
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground font-medium">{label}</span>
       {winner ? (
-        <Badge className={winner === "A" ? "bg-chart-blue/15 text-chart-blue hover:bg-chart-blue/20" : "bg-chart-orange/15 text-chart-orange hover:bg-chart-orange/20"}>
+        <Badge className={winner === "A" ? "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/20 shadow-sm" : "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]/20 shadow-sm"}>
           Projeto {winner} +{pct}%
         </Badge>
       ) : (
@@ -183,9 +188,9 @@ const Compare = () => {
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header destacado */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-chart-purple to-chart-orange p-8 mb-6 text-white shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" />
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-chart-purple to-chart-orange p-8 mb-8 text-white shadow-xl animate-fade-in">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.3),transparent_50%)] animate-pulse" style={{ animationDuration: "4s" }} />
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <GitCompare className="h-6 w-6" />

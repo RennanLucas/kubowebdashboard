@@ -34,7 +34,7 @@ export const InsightsSection = ({
   insights,
 }: Props) => (
   <>
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 stagger-children">
       {engagement && <EngagementCard data={engagement} />}
       <DevicesBrowsersCard
         devices={devices ?? []}

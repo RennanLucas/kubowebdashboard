@@ -104,18 +104,20 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-4">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="hidden sm:block w-px h-5 bg-border/70" />
+          <header className="h-14 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-30 px-3 sm:px-4 shadow-sm">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 transition-colors" />
+            <div className="hidden sm:block w-px h-5 bg-border/70 shrink-0" />
 
             {/* Left cluster: project switcher + breadcrumbs */}
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
               <GlobalProjectSwitcher />
               <Breadcrumbs />
             </div>
 
             {/* Right cluster: search, alerts, user */}
-            <HeaderActions />
+            <div className="flex-shrink-0">
+              <HeaderActions />
+            </div>
           </header>
           <PlanPreviewBanner />
           <main className="flex-1 min-w-0">{children}</main>

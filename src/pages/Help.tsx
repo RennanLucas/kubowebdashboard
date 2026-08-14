@@ -325,7 +325,7 @@ export default function Help() {
         <QuickStartGuide query={query} filter={activeFilter} />
 
         {!isFiltering && (
-          <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5">
+          <Card className="p-5 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-primary/20 bg-primary/5 glass-card">
             <div>
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <PlayCircle className="h-4 w-4 text-primary" />
@@ -360,10 +360,10 @@ export default function Help() {
               >
                 {sec.items.map((item) => (
                   <AccordionItem key={item.term} value={item.term} className="border-border">
-                    <AccordionTrigger className="text-sm hover:no-underline py-3">
+                    <AccordionTrigger className="text-sm hover:no-underline py-3 transition-all duration-300">
                       <Highlight text={item.term} query={query} />
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground space-y-2">
+                    <AccordionContent className="text-sm text-muted-foreground space-y-2 animate-in fade-in duration-300">
                       <p><Highlight text={item.description} query={query} /></p>
                       {item.formula && (
                         <p className="text-xs font-mono bg-muted px-2 py-1 rounded inline-block text-foreground">

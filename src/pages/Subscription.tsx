@@ -169,8 +169,9 @@ export default function SubscriptionPage() {
           </Card>
         ) : (
           <>
-            <Card>
-              <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <Card className="glass-card border-border/50 shadow-sm overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+              <CardHeader className="flex flex-row items-start justify-between gap-4 relative z-10">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {planName}
@@ -287,15 +288,15 @@ export default function SubscriptionPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
+            <Card className="glass-card border-border/50 shadow-sm mt-6 relative overflow-hidden">
+              <CardHeader className="relative z-10">
                 <CardTitle className="text-base">Trocar de plano</CardTitle>
                 <CardDescription>
                   Você será redirecionado para o checkout seguro do Mercado Pago. Sua conta atual
                   será mantida e o novo plano substituirá o atual após a confirmação do pagamento.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10">
                 {plansLoading ? (
                   <div className="grid sm:grid-cols-2 gap-3">
                     {Array.from({ length: 2 }).map((_, i) => (
@@ -366,7 +367,7 @@ export default function SubscriptionPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card border-border/50 shadow-sm mt-6">
               <CardHeader>
                 <CardTitle className="text-base">Precisa de ajuda?</CardTitle>
                 <CardDescription>

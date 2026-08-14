@@ -34,11 +34,11 @@ interface AlertItem {
   icon: React.ReactNode;
 }
 
-const severityConfig: Record<AlertSeverity, { color: string; bg: string; badge: "default" | "secondary" | "destructive" | "outline" }> = {
-  critical: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/30", badge: "destructive" },
-  warning: { color: "text-[hsl(var(--warning))]", bg: "bg-[hsl(var(--warning))]/5 border-[hsl(var(--warning))]/30", badge: "secondary" },
-  info: { color: "text-primary", bg: "bg-primary/5 border-primary/30", badge: "default" },
-  success: { color: "text-[hsl(var(--success))]", bg: "bg-[hsl(var(--success))]/5 border-[hsl(var(--success))]/30", badge: "default" },
+const severityConfig: Record<AlertSeverity, { color: string; bg: string; badge: "default" | "secondary" | "destructive" | "outline"; borderLeft: string }> = {
+  critical: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/30", badge: "destructive", borderLeft: "border-l-4 border-l-destructive" },
+  warning: { color: "text-[hsl(var(--warning))]", bg: "bg-[hsl(var(--warning))]/5 border-[hsl(var(--warning))]/30", badge: "secondary", borderLeft: "border-l-4 border-l-[hsl(var(--warning))]" },
+  info: { color: "text-primary", bg: "bg-primary/5 border-primary/30", badge: "default", borderLeft: "border-l-4 border-l-primary" },
+  success: { color: "text-[hsl(var(--success))]", bg: "bg-[hsl(var(--success))]/5 border-[hsl(var(--success))]/30", badge: "default", borderLeft: "border-l-4 border-l-[hsl(var(--success))]" },
 };
 
 export default function Alerts() {
@@ -256,11 +256,11 @@ export default function Alerts() {
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
               Notificações automáticas
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-3 animate-fade-up stagger-children">
               {persisted.map((alert) => {
                 const cfg = severityConfig[alert.severity] ?? severityConfig.info;
                 return (
-                  <Card key={alert.id} className={`p-4 border ${cfg.bg} ${alert.read ? "opacity-60" : ""}`}>
+                  <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} ${alert.read ? "opacity-60" : "shadow-sm"}`}>
                     <div className="flex items-start gap-3">
                       <div className={`shrink-0 ${cfg.color}`}>
                         <Bell className="h-5 w-5" />
@@ -300,19 +300,21 @@ export default function Alerts() {
         {isLoading ? (
           <Card className="p-12 text-center text-muted-foreground text-sm">Carregando alertas...</Card>
         ) : alerts.length === 0 && persisted.length === 0 ? (
-          <Card className="p-12 text-center border-dashed">
-            <CheckCircle2 className="h-12 w-12 text-[hsl(var(--success))]/40 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Tudo certo por aqui!</h3>
-            <p className="text-sm text-muted-foreground">
+          <Card className="p-12 text-center glass-card border-dashed">
+            <div className="mx-auto w-16 h-16 rounded-full bg-[hsl(var(--success))]/10 flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-8 w-8 text-[hsl(var(--success))]" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">Tudo certo por aqui!</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
               Nenhuma anomalia detectada. Continuaremos monitorando seus dados.
             </p>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-up stagger-children" style={{ animationDelay: "200ms" }}>
             {alerts.map((alert) => {
               const cfg = severityConfig[alert.severity];
               return (
-                <Card key={alert.id} className={`p-4 border ${cfg.bg}`}>
+                <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} shadow-sm`}>
                   <div className="flex items-start gap-3">
                     <div className={`shrink-0 ${cfg.color}`}>{alert.icon}</div>
                     <div className="flex-1 min-w-0">

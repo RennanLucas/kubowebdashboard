@@ -122,7 +122,7 @@ const DashboardHeader = ({
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-9 rounded-lg shadow-sm hover:shadow transition-all duration-150">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-9 rounded-lg shadow-sm hover:shadow hover:bg-muted/60 transition-all duration-200">
                   <FileDown className="h-3.5 w-3.5" />
                   Exportar
                   <ChevronDown className="h-3 w-3 opacity-60" />

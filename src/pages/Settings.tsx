@@ -285,7 +285,7 @@ const Settings = () => {
 
         <div className="space-y-6">
           {/* Empresa */}
-          <div className="glass-card rounded-xl p-6 space-y-4">
+          <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" /> Empresa
             </h2>
@@ -304,7 +304,7 @@ const Settings = () => {
           </div>
 
           {/* Projeto */}
-          <div className="glass-card rounded-xl p-6 space-y-4">
+          <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <Rocket className="h-4 w-4 text-primary" /> Projeto
             </h2>
@@ -337,7 +337,7 @@ const Settings = () => {
           </div>
 
           {/* Valor por Lead */}
-          <div className="glass-card rounded-xl p-6 space-y-4">
+          <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" /> Valor por Lead
               <HelpTip text="Quanto vale, em média, cada lead gerado pelo seu site. O dashboard multiplica esse valor pela quantidade de conversões para calcular o Valor Estimado." />
@@ -445,7 +445,7 @@ const Settings = () => {
 
           {/* Tracking Snippet */}
           {clientData?.projects?.[0]?.id && (
-            <div className="glass-card rounded-xl p-6 space-y-4">
+            <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
               <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
                 Código de Rastreamento
                 <HelpTip text="Cole este código no <head> do seu site para começar a coletar visitas, fontes de tráfego e conversões automaticamente." />
@@ -456,7 +456,7 @@ const Settings = () => {
           )}
 
           {/* Assinatura */}
-          <div className="glass-card rounded-xl p-6 space-y-4">
+          <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-primary" /> Assinatura
             </h2>
