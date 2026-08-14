@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Target, Sparkles, Check, Activity, TrendingUp, LineChart, Shield, Lock, Globe, Zap, Menu, X, MousePointerClick, Users, Eye, ChevronRight } from "lucide-react";
+import { ArrowRight, BarChart3, Target, Sparkles, Check, Activity, TrendingUp, LineChart, Shield, Lock, Globe, Zap, Menu, X, MousePointerClick, Users, Eye, ChevronRight, PieChart, LayoutDashboard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
@@ -41,7 +41,7 @@ const useCountUp = (end: number, duration = 2000) => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Navbar — Frosted glass, minimal, professional
+   Navbar
    ───────────────────────────────────────────────────────────── */
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -54,44 +54,45 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/70 backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_40px_-10px_rgba(0,0,0,0.3)]" : "bg-transparent"}`}>
-      <div className="mx-auto max-w-[1200px] px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 z-50">
-          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-6 w-auto" />
+    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/80 backdrop-blur-2xl border-b border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.5)]" : "bg-transparent"}`}>
+      <div className="mx-auto max-w-[1200px] px-6 h-20 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2.5 z-50 hover:opacity-80 transition-opacity">
+          <img src={logoKubowebWhite} alt="Kubo Web" className="h-7 w-auto" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
-          {["Recursos", "Como funciona", "Depoimentos"].map((label, i) => (
-            <a key={label} href={`#${["features", "how-it-works", "testimonials"][i]}`} className="px-4 py-2 text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-white/[0.04]">
+        <div className="hidden md:flex items-center gap-8">
+          {["Plataforma", "Integrações", "Agências"].map((label, i) => (
+            <a key={label} href={`#${["features", "integrations", "agencies"][i]}`} className="text-sm font-medium text-muted-foreground hover:text-white transition-colors relative group">
               {label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </a>
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild className="text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.04]">
-            <Link to="/login">Entrar</Link>
+        <div className="hidden md:flex items-center gap-4">
+          <Button variant="ghost" className="text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/[0.05]">
+            <Link to="/login">Fazer Login</Link>
           </Button>
-          <Button asChild size="sm" className="h-9 px-5 text-[13px] font-semibold rounded-lg bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.3)]">
-            <Link to="/login">Começar grátis</Link>
+          <Button asChild className="h-10 px-6 text-sm font-bold bg-primary text-primary-foreground hover:bg-primary-glow hover:shadow-glow-primary transition-all rounded-lg">
+            <Link to="/login">Acessar Painel</Link>
           </Button>
         </div>
 
-        <button className="md:hidden z-50 p-2 text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        <button className="md:hidden z-50 p-2 text-white" onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {mobileOpen && (
-        <div className="fixed inset-0 pt-20 bg-background/98 backdrop-blur-3xl z-40 flex flex-col px-6 animate-fade-in">
-          <div className="flex flex-col gap-1 mt-8">
-            {[["Recursos", "#features"], ["Como funciona", "#how-it-works"], ["Depoimentos", "#testimonials"]].map(([label, href]) => (
-              <a key={label} href={href} onClick={() => setMobileOpen(false)} className="py-4 text-lg font-medium text-foreground border-b border-white/[0.06]">{label}</a>
+        <div className="fixed inset-0 pt-24 bg-background/98 backdrop-blur-3xl z-40 flex flex-col px-6 animate-fade-in">
+          <div className="flex flex-col gap-6 mt-8">
+            {[["Plataforma", "#features"], ["Integrações", "#integrations"], ["Agências", "#agencies"]].map(([label, href]) => (
+              <a key={label} href={href} onClick={() => setMobileOpen(false)} className="text-xl font-bold text-white border-b border-white/[0.05] pb-4">{label}</a>
             ))}
           </div>
-          <div className="mt-8 flex flex-col gap-3">
-            <Button asChild variant="outline" className="w-full h-12 rounded-xl text-base"><Link to="/login" onClick={() => setMobileOpen(false)}>Entrar</Link></Button>
-            <Button asChild className="w-full h-12 rounded-xl bg-white text-black text-base font-semibold"><Link to="/login" onClick={() => setMobileOpen(false)}>Começar grátis</Link></Button>
+          <div className="mt-auto mb-10 flex flex-col gap-4">
+            <Button asChild variant="outline" className="w-full h-14 rounded-xl text-lg border-white/10"><Link to="/login" onClick={() => setMobileOpen(false)}>Fazer Login</Link></Button>
+            <Button asChild className="w-full h-14 rounded-xl bg-primary text-white text-lg font-bold"><Link to="/login" onClick={() => setMobileOpen(false)}>Acessar Painel</Link></Button>
           </div>
         </div>
       )}
@@ -100,237 +101,235 @@ const Navbar = () => {
 };
 
 /* ─────────────────────────────────────────────────────────────
-   Hero — Massive typography, live dashboard preview
+   Hero — Cyberpunk/Web3 Aggressive Vibe
    ───────────────────────────────────────────────────────────── */
 const Hero = () => (
-  <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
-    {/* Ambient light orbs */}
-    <div className="absolute inset-0 bg-background" />
-    <div className="absolute top-[-30%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[hsl(244,75%,62%)]/[0.07] blur-[150px]" />
-    <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[hsl(262,83%,70%)]/[0.06] blur-[150px]" />
-    <div className="absolute top-[10%] right-[20%] w-[30%] h-[30%] rounded-full bg-[hsl(199,89%,48%)]/[0.04] blur-[120px]" />
+  <section className="relative min-h-[110vh] flex flex-col items-center justify-center overflow-hidden pt-20">
+    {/* Aggressive Grid Background */}
+    <div className="absolute inset-0 bg-grid opacity-30" />
+    
+    {/* Deep neon glows */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.15] blur-[150px] rounded-full mix-blend-screen pointer-events-none" />
+    <div className="absolute bottom-0 right-[-10%] w-[600px] h-[600px] bg-chart-blue/[0.1] blur-[150px] rounded-full mix-blend-screen pointer-events-none" />
 
-    {/* Dot grid background */}
-    <div className="absolute inset-0 bg-[radial-gradient(hsl(var(--foreground)/0.06)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,black,transparent)]" />
-
-    <div className="relative z-10 mx-auto max-w-[1200px] px-6 flex flex-col items-center text-center">
-      {/* Announcement pill */}
-      <div className="animate-fade-up inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-md px-4 py-2 text-[13px] font-medium text-muted-foreground mb-12 hover:border-white/[0.15] hover:bg-white/[0.05] transition-all cursor-pointer group">
+    <div className="relative z-10 mx-auto max-w-[1200px] px-6 flex flex-col items-center text-center mt-10">
+      <div className="animate-fade-up inline-flex items-center gap-3 rounded-full border border-primary/30 bg-primary/[0.05] backdrop-blur-md px-5 py-2 text-sm font-medium text-primary mb-12 shadow-glow-primary hover:bg-primary/[0.1] transition-colors cursor-pointer">
         <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute h-full w-full rounded-full bg-[hsl(var(--success))] opacity-75" />
-          <span className="relative h-2 w-2 rounded-full bg-[hsl(var(--success))]" />
+          <span className="animate-ping absolute h-full w-full rounded-full bg-primary opacity-75" />
+          <span className="relative h-2 w-2 rounded-full bg-primary" />
         </span>
-        Novo: Relatórios com IA generativa
-        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:translate-x-0.5 transition-transform" />
+        KUBO WEB PORTAL V2.0
       </div>
 
-      {/* Headline */}
-      <h1 className="animate-fade-up text-[clamp(2.5rem,7vw,5.5rem)] font-extrabold tracking-[-0.04em] leading-[0.92] text-foreground max-w-4xl" style={{ animationDelay: "80ms" }}>
-        Seus dados.{" "}
-        <span className="bg-gradient-to-r from-[hsl(244,75%,65%)] via-[hsl(262,83%,72%)] to-[hsl(199,89%,55%)] bg-clip-text text-transparent">
-          Suas decisões.
+      <h1 className="animate-fade-up text-[clamp(3rem,8vw,6.5rem)] font-black tracking-tighter leading-[0.95] text-white max-w-5xl drop-shadow-2xl" style={{ animationDelay: "100ms" }}>
+        Controle total das
+        <br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary-glow to-primary">
+          suas campanhas.
         </span>
       </h1>
 
-      {/* Subtitle */}
-      <p className="animate-fade-up mt-8 max-w-xl text-lg text-muted-foreground leading-relaxed font-normal" style={{ animationDelay: "160ms" }}>
-        Analytics de ponta, sem complexidade. Rastreie visitantes, monitore leads e cresça com dados reais — tudo em uma plataforma bonita e rápida.
+      <p className="animate-fade-up mt-8 max-w-2xl text-lg sm:text-xl text-muted-foreground leading-relaxed font-medium" style={{ animationDelay: "200ms" }}>
+        O hub central para agências e clientes. Visualize tráfego pago, conversões, ROAS e funis do Google Ads e Meta Ads em tempo real.
       </p>
 
-      {/* CTA row */}
-      <div className="animate-fade-up mt-10 flex flex-col sm:flex-row items-center gap-4" style={{ animationDelay: "240ms" }}>
-        <Button asChild size="lg" className="h-12 px-7 rounded-xl bg-white text-black font-semibold text-[15px] hover:bg-white/90 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_8px_30px_rgba(0,0,0,0.5)] hover:translate-y-[-1px]">
+      <div className="animate-fade-up mt-12 flex flex-col sm:flex-row items-center gap-5" style={{ animationDelay: "300ms" }}>
+        <Button asChild size="lg" className="h-14 px-8 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-glow transition-all shadow-glow-primary hover:-translate-y-1">
           <Link to="/login">
-            Começar grátis
-            <ArrowRight className="ml-2 h-4 w-4" />
+            Acessar meu painel
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </Button>
-        <Button asChild size="lg" variant="ghost" className="h-12 px-7 rounded-xl text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.04]">
+        <Button asChild size="lg" variant="outline" className="h-14 px-8 rounded-xl text-base font-bold text-white border-white/10 bg-white/[0.02] hover:bg-white/[0.05] backdrop-blur-md hover:border-white/20 transition-all">
           <a href="#features">
-            Ver recursos
-            <ChevronRight className="ml-1 h-4 w-4" />
+            Explorar plataforma
           </a>
         </Button>
       </div>
 
-      {/* Trust badges */}
-      <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-muted-foreground/70" style={{ animationDelay: "320ms" }}>
-        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" />Sem cartão de crédito</span>
-        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" />LGPD compliance</span>
-        <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" />{"<"}1KB de script</span>
-      </div>
+      {/* ─── Massive Campaign Dashboard Mockup ─── */}
+      <div className="animate-fade-up mt-24 w-full max-w-[1000px] relative perspective-[2000px]" style={{ animationDelay: "500ms" }}>
+        <div className="absolute -inset-1 bg-gradient-to-b from-primary/50 to-transparent blur-2xl rounded-[2rem] opacity-50" />
 
-      {/* ─── Dashboard Preview ─── */}
-      <div className="animate-fade-up mt-20 w-full max-w-[960px] relative" style={{ animationDelay: "400ms" }}>
-        {/* Glow */}
-        <div className="absolute -inset-8 bg-gradient-to-b from-[hsl(244,75%,62%)]/[0.12] via-transparent to-transparent blur-3xl rounded-full pointer-events-none" />
-
-        <div className="relative rounded-2xl border border-white/[0.08] bg-[hsl(var(--card))]/60 backdrop-blur-xl shadow-[0_32px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden">
-          {/* Browser chrome */}
-          <div className="flex items-center px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
-            <div className="flex gap-1.5">
-              <div className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
-              <div className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
-              <div className="h-2.5 w-2.5 rounded-full bg-white/[0.12]" />
+        <div className="relative rounded-[2rem] border border-white/[0.1] bg-card/80 backdrop-blur-2xl shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden transform-gpu hover:rotate-x-[2deg] hover:-translate-y-2 transition-transform duration-700 ease-out">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.05] bg-black/40">
+            <div className="flex items-center gap-3">
+              <LayoutDashboard className="h-5 w-5 text-primary" />
+              <span className="font-bold text-sm tracking-wide text-white">VISÃO GERAL DAS CAMPANHAS</span>
             </div>
-            <div className="mx-auto flex items-center gap-2 px-4 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-muted-foreground/60 font-mono">
-              <Lock className="h-2.5 w-2.5" />
-              app.kuboweb.com/dashboard
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1 rounded bg-success/20 text-success text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" /> Sincronizado
+              </div>
             </div>
           </div>
 
-          {/* Dashboard content */}
-          <div className="p-5 sm:p-6">
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {/* Body */}
+          <div className="p-6 sm:p-8 bg-gradient-to-b from-transparent to-black/50">
+            {/* KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
-                { label: "Visitantes", value: "2.847", delta: "+18%", color: "hsl(var(--success))" },
-                { label: "Leads", value: "184", delta: "+24%", color: "hsl(225,70%,52%)" },
-                { label: "Conversão", value: "4.8%", delta: "+1.2pp", color: "hsl(262,83%,58%)" },
-                { label: "Receita", value: "R$18k", delta: "+12%", color: "hsl(25,95%,53%)" },
-              ].map((kpi) => (
-                <div key={kpi.label} className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
-                  <div className="text-[11px] text-muted-foreground/60 font-medium uppercase tracking-wider">{kpi.label}</div>
-                  <div className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">{kpi.value}</div>
-                  <div className="mt-1 text-[11px] font-semibold tabular-nums" style={{ color: kpi.color }}>{kpi.delta}</div>
+                { label: "Investimento", value: "R$ 14.590", sub: "Google Ads + Meta", trend: "+12%" },
+                { label: "Conversões", value: "842", sub: "Leads Validados", trend: "+24%", color: "text-success" },
+                { label: "Custo por Lead", value: "R$ 17,32", sub: "-R$ 2,10 (14 dias)", trend: "-11%", color: "text-success" },
+                { label: "ROAS Estimado", value: "4.2x", sub: "Retorno sobre Ads", trend: "+0.8x", color: "text-primary-glow" },
+              ].map((k) => (
+                <div key={k.label} className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-colors relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors" />
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{k.label}</div>
+                  <div className="text-3xl font-black text-white tabular-nums tracking-tight">{k.value}</div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-[11px] text-muted-foreground/80">{k.sub}</span>
+                    <span className={`text-[11px] font-bold ${k.color || 'text-white'}`}>{k.trend}</span>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Chart area */}
-            <div className="h-40 sm:h-52 rounded-xl bg-white/[0.02] border border-white/[0.04] relative overflow-hidden">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="hero-chart-fill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(244,75%,62%)" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="hsl(244,75%,62%)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 160 C80 140,160 170,280 120 C400 70,480 130,600 85 C720 40,800 100,920 25 L920 25 C960 10,1000 18,1000 18 L1000 200 L0 200Z" fill="url(#hero-chart-fill)" />
-                <path d="M0 160 C80 140,160 170,280 120 C400 70,480 130,600 85 C720 40,800 100,920 25 C960 10,1000 18,1000 18" fill="none" stroke="hsl(244,75%,62%)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+            {/* Main Chart */}
+            <div className="h-64 rounded-xl bg-black/40 border border-white/[0.05] p-5 flex flex-col relative overflow-hidden">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-bold text-white">Desempenho: Conversões vs Custo</span>
+                <span className="text-xs font-medium text-muted-foreground bg-white/[0.05] px-2 py-1 rounded">Últimos 30 dias</span>
+              </div>
+              <div className="flex-1 relative mt-4">
+                {/* Simulated Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between border-y border-white/[0.05]">
+                  <div className="border-b border-white/[0.05] h-full" />
+                  <div className="border-b border-white/[0.05] h-full" />
+                  <div className="h-full" />
+                </div>
+                {/* SVG Chart */}
+                <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {/* Area */}
+                  <path d="M0 180 C100 160, 200 190, 350 120 C500 50, 600 140, 750 80 C900 20, 950 40, 1000 10 L1000 200 L0 200 Z" fill="url(#chartGlow)" />
+                  {/* Line */}
+                  <path d="M0 180 C100 160, 200 190, 350 120 C500 50, 600 140, 750 80 C900 20, 950 40, 1000 10" fill="none" stroke="hsl(var(--primary-glow))" strokeWidth="4" strokeLinecap="round" className="drop-shadow-[0_0_12px_hsl(var(--primary))]" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    {/* Fade-to-background gradient at bottom */}
-    <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent pointer-events-none" />
   </section>
 );
 
 /* ─────────────────────────────────────────────────────────────
-   Logos / social proof strip
+   Brand Logos (Aggressive styling)
    ───────────────────────────────────────────────────────────── */
-const LogoStrip = () => (
-  <section className="relative py-16 border-y border-white/[0.04]">
-    <div className="mx-auto max-w-[1200px] px-6">
-      <p className="text-center text-[13px] text-muted-foreground/50 uppercase tracking-[0.2em] font-medium mb-10">
-        Confiado por times que crescem rápido
+const Integrations = () => (
+  <section id="integrations" className="py-12 border-y border-white/[0.05] bg-black/50">
+    <div className="mx-auto max-w-[1200px] px-6 text-center">
+      <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.3em] mb-8">
+        Integração direta com as maiores plataformas de Ads
       </p>
-      <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
-        {["LOFT", "PLANT STUDIO", "VEXIA", "NÓRDICA", "CASA NOVA", "KUBO LABS"].map((name) => (
-          <span key={name} className="text-[15px] font-bold tracking-[0.15em] text-muted-foreground/25 hover:text-muted-foreground/40 transition-colors">{name}</span>
-        ))}
+      <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
+        <h3 className="text-2xl font-black tracking-tighter">GOOGLE ADS</h3>
+        <h3 className="text-2xl font-black tracking-tighter">META ADS</h3>
+        <h3 className="text-2xl font-black tracking-tighter">TIKTOK ADS</h3>
+        <h3 className="text-2xl font-black tracking-tighter">LINKEDIN</h3>
       </div>
     </div>
   </section>
 );
 
 /* ─────────────────────────────────────────────────────────────
-   Features — Bento grid, asymmetric
+   Features — Dark Cyberpunk Bento
    ───────────────────────────────────────────────────────────── */
 const Features = () => (
-  <section id="features" className="relative py-28 sm:py-36">
-    <div className="mx-auto max-w-[1200px] px-6">
-      <div className="max-w-xl mb-20">
-        <p className="text-[13px] font-semibold text-[hsl(244,75%,65%)] tracking-[0.15em] uppercase mb-4">Recursos</p>
-        <h2 className="text-4xl sm:text-[3.25rem] font-extrabold tracking-[-0.03em] leading-[1.05]">
-          Tudo que você precisa.
+  <section id="features" className="py-32 relative">
+    <div className="absolute inset-0 bg-dots opacity-20" />
+    <div className="mx-auto max-w-[1200px] px-6 relative z-10">
+      <div className="mb-20">
+        <h2 className="text-4xl sm:text-5xl font-black tracking-tighter text-white mb-6">
+          O fim das planilhas complexas.
           <br />
-          <span className="text-muted-foreground">Nada que você não precisa.</span>
+          <span className="text-muted-foreground">O início dos dados claros.</span>
         </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl font-medium">
+          Diga adeus a relatórios confusos enviados por PDF. Seus clientes e sua agência merecem um painel de alta performance para entender o que realmente está gerando dinheiro.
+        </p>
       </div>
 
-      {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Large feature — Analytics */}
-        <div className="md:col-span-7 group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 overflow-hidden hover:border-white/[0.1] transition-all duration-500 min-h-[380px]">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[hsl(244,75%,62%)]/[0.05] blur-[100px] rounded-full group-hover:bg-[hsl(244,75%,62%)]/[0.08] transition-colors duration-700" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Card 1 */}
+        <div className="lg:col-span-2 bg-card border border-white/[0.08] rounded-3xl p-10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] group-hover:bg-primary/20 transition-all duration-700" />
           <div className="relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-[hsl(244,75%,62%)]/10 border border-[hsl(244,75%,62%)]/20 flex items-center justify-center text-[hsl(244,75%,62%)] mb-6">
-              <BarChart3 className="h-5 w-5" />
+            <div className="w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary-glow mb-8 shadow-glow">
+              <PieChart className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground mb-3">Analytics em tempo real</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed max-w-md">
-              Cada visitante, cada clique, cada conversão — visualizado no exato milissegundo em que acontece. Zero latência entre dados e ação.
-            </p>
-          </div>
-          {/* Embedded mini chart */}
-          <div className="absolute bottom-0 right-0 w-[55%] h-44 bg-background/40 backdrop-blur-md border-t border-l border-white/[0.06] rounded-tl-2xl p-4 transform translate-y-1 translate-x-1 group-hover:translate-y-0 group-hover:translate-x-0 transition-transform duration-500">
-            <div className="flex items-end gap-[6px] h-full">
-              {[35, 55, 40, 75, 50, 90, 65, 100, 70, 85].map((h, i) => (
-                <div key={i} className="flex-1 bg-gradient-to-t from-[hsl(244,75%,62%)]/60 to-[hsl(244,75%,62%)]/10 rounded-t-sm transition-all duration-300" style={{ height: `${h}%`, transitionDelay: `${i * 30}ms` }} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Medium feature — AI Insights */}
-        <div className="md:col-span-5 group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 overflow-hidden hover:border-white/[0.1] transition-all duration-500 min-h-[380px]">
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[hsl(262,83%,70%)]/[0.05] blur-[80px] rounded-full group-hover:bg-[hsl(262,83%,70%)]/[0.08] transition-colors duration-700" />
-          <div className="relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-[hsl(262,83%,70%)]/10 border border-[hsl(262,83%,70%)]/20 flex items-center justify-center text-[hsl(262,83%,70%)] mb-6">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground mb-3">Insights com IA</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Relatórios gerados automaticamente que mostram exatamente onde você está perdendo receita — e o que fazer.
+            <h3 className="text-2xl font-black text-white mb-4">Dashboards Consolidados</h3>
+            <p className="text-muted-foreground text-lg max-w-md">
+              Google Ads, Facebook Ads e Analytics no mesmo lugar. Cruze os dados de investimento com as conversões reais do seu CRM.
             </p>
           </div>
         </div>
 
-        {/* Medium feature — Auto-Track */}
-        <div className="md:col-span-4 group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 overflow-hidden hover:border-white/[0.1] transition-all duration-500 min-h-[300px]">
-          <div className="absolute top-0 left-0 w-48 h-48 bg-[hsl(var(--success))]/[0.04] blur-[60px] rounded-full group-hover:bg-[hsl(var(--success))]/[0.07] transition-colors duration-700" />
+        {/* Card 2 */}
+        <div className="bg-card border border-white/[0.08] rounded-3xl p-10 relative overflow-hidden group">
+          <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-success/10 rounded-full blur-[80px] group-hover:bg-success/20 transition-all duration-700" />
           <div className="relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20 flex items-center justify-center text-[hsl(var(--success))] mb-6">
-              <MousePointerClick className="h-5 w-5" />
+            <div className="w-14 h-14 rounded-2xl bg-success/20 border border-success/30 flex items-center justify-center text-success mb-8 shadow-[0_0_30px_hsl(var(--success)/0.3)]">
+              <Activity className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground mb-3">Auto-Track</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">
-              WhatsApp, formulários, cliques em botões — tudo rastreado automaticamente. Sem configuração.
+            <h3 className="text-2xl font-black text-white mb-4">Tempo Real</h3>
+            <p className="text-muted-foreground text-lg">
+              Custo por Lead e ROAS atualizados instantaneamente. Sem delays de 24 horas para tomar decisões.
             </p>
           </div>
         </div>
 
-        {/* Medium feature — Privacy */}
-        <div className="md:col-span-4 group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 overflow-hidden hover:border-white/[0.1] transition-all duration-500 min-h-[300px]">
-          <div className="absolute bottom-0 right-0 w-48 h-48 bg-[hsl(225,70%,52%)]/[0.04] blur-[60px] rounded-full group-hover:bg-[hsl(225,70%,52%)]/[0.07] transition-colors duration-700" />
+        {/* Card 3 */}
+        <div className="bg-card border border-white/[0.08] rounded-3xl p-10 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-[300px] h-[300px] bg-warning/10 rounded-full blur-[80px] group-hover:bg-warning/20 transition-all duration-700" />
           <div className="relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-[hsl(225,70%,52%)]/10 border border-[hsl(225,70%,52%)]/20 flex items-center justify-center text-[hsl(225,70%,52%)] mb-6">
-              <Shield className="h-5 w-5" />
+            <div className="w-14 h-14 rounded-2xl bg-warning/20 border border-warning/30 flex items-center justify-center text-warning mb-8 shadow-[0_0_30px_hsl(var(--warning)/0.3)]">
+              <Target className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground mb-3">Privacidade total</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Sem cookies, sem dados pessoais. LGPD e GDPR compliant. Seus dados são criptografados e isolados.
+            <h3 className="text-2xl font-black text-white mb-4">Foco em ROAS</h3>
+            <p className="text-muted-foreground text-lg">
+              Saiba exatamente qual campanha, grupo de anúncios ou criativo está trazendo lucro para a empresa.
             </p>
           </div>
         </div>
 
-        {/* Medium feature — Multi-site */}
-        <div className="md:col-span-4 group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 overflow-hidden hover:border-white/[0.1] transition-all duration-500 min-h-[300px]">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-[hsl(25,95%,53%)]/[0.04] blur-[60px] rounded-full group-hover:bg-[hsl(25,95%,53%)]/[0.07] transition-colors duration-700" />
-          <div className="relative z-10">
-            <div className="h-10 w-10 rounded-xl bg-[hsl(25,95%,53%)]/10 border border-[hsl(25,95%,53%)]/20 flex items-center justify-center text-[hsl(25,95%,53%)] mb-6">
-              <Globe className="h-5 w-5" />
-            </div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground mb-3">Multi-projeto</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Gerencie dezenas de sites em um único painel. Troque de projeto em um clique.
-            </p>
-          </div>
+        {/* Card 4 */}
+        <div className="lg:col-span-2 bg-card border border-white/[0.08] rounded-3xl p-10 relative overflow-hidden group">
+           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-[1.5s]" />
+           <div className="relative z-10 flex flex-col sm:flex-row gap-10 items-center">
+             <div className="flex-1">
+               <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white mb-8">
+                 <Shield className="w-7 h-7" />
+               </div>
+               <h3 className="text-2xl font-black text-white mb-4">White-label para Agências</h3>
+               <p className="text-muted-foreground text-lg">
+                 Seu logo, suas cores, seu domínio. Ofereça um portal premium para os seus clientes de tráfego pago sem precisar programar uma linha de código.
+               </p>
+             </div>
+             <div className="flex-1 w-full bg-black/50 border border-white/[0.05] rounded-2xl p-6 shadow-inner">
+               <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/[0.05]">
+                 <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-white">AG</div>
+                 <div>
+                   <div className="text-white font-bold">Agência de Performance</div>
+                   <div className="text-xs text-muted-foreground">app.suaagencia.com.br</div>
+                 </div>
+               </div>
+               <div className="space-y-3">
+                 <div className="h-4 bg-white/[0.05] rounded w-full" />
+                 <div className="h-4 bg-white/[0.05] rounded w-3/4" />
+                 <div className="h-4 bg-white/[0.05] rounded w-1/2" />
+               </div>
+             </div>
+           </div>
         </div>
       </div>
     </div>
@@ -338,137 +337,61 @@ const Features = () => (
 );
 
 /* ─────────────────────────────────────────────────────────────
-   How It Works — 3-step process
-   ───────────────────────────────────────────────────────────── */
-const HowItWorks = () => (
-  <section id="how-it-works" className="relative py-28 sm:py-36 border-t border-white/[0.04]">
-    <div className="mx-auto max-w-[1200px] px-6">
-      <div className="text-center mb-20">
-        <p className="text-[13px] font-semibold text-[hsl(244,75%,65%)] tracking-[0.15em] uppercase mb-4">Como funciona</p>
-        <h2 className="text-4xl sm:text-[3.25rem] font-extrabold tracking-[-0.03em] leading-[1.05]">
-          Três passos. Zero fricção.
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/[0.04] rounded-2xl overflow-hidden">
-        {[
-          { step: "01", title: "Cole o script", desc: "Uma tag de 1KB no HTML do seu site. Funciona com qualquer framework, CMS ou builder.", icon: Zap },
-          { step: "02", title: "Acompanhe em tempo real", desc: "Visitantes, páginas, fontes de tráfego, conversões — tudo aparece instantaneamente no painel.", icon: Eye },
-          { step: "03", title: "Cresça com dados", desc: "Receba insights de IA, compare períodos, exporte relatórios e tome decisões com clareza.", icon: TrendingUp },
-        ].map((item) => (
-          <div key={item.step} className="bg-background p-10 sm:p-12 group hover:bg-white/[0.02] transition-colors duration-500">
-            <span className="text-[13px] font-bold text-[hsl(244,75%,65%)]/60 tracking-wider">{item.step}</span>
-            <div className="h-10 w-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-foreground/60 mt-6 mb-6 group-hover:bg-white/[0.06] group-hover:text-foreground transition-all">
-              <item.icon className="h-5 w-5" />
-            </div>
-            <h3 className="text-lg font-bold tracking-tight text-foreground mb-3">{item.title}</h3>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">{item.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-/* ─────────────────────────────────────────────────────────────
-   Stats — Animated counters
+   Stats 
    ───────────────────────────────────────────────────────────── */
 const StatBlock = ({ value, suffix, label }: { value: number; suffix: string; label: string }) => {
-  const { count, ref } = useCountUp(value, 1800);
+  const { count, ref } = useCountUp(value, 2000);
   return (
-    <div ref={ref} className="flex flex-col items-center p-6 sm:p-8">
-      <div className="text-4xl sm:text-5xl font-extrabold tracking-[-0.04em] text-foreground tabular-nums">
-        {count}<span className="text-[hsl(244,75%,65%)]">{suffix}</span>
+    <div ref={ref} className="flex flex-col items-center justify-center p-8 text-center">
+      <div className="text-5xl font-black text-white tabular-nums tracking-tighter mb-2">
+        {count}<span className="text-primary">{suffix}</span>
       </div>
-      <div className="mt-3 text-[13px] font-medium text-muted-foreground/60 uppercase tracking-[0.15em]">{label}</div>
+      <div className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{label}</div>
     </div>
   );
 };
 
 const Stats = () => (
-  <section className="relative py-20">
-    <div className="mx-auto max-w-[1200px] px-6">
-      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] grid grid-cols-2 md:grid-cols-4 divide-x divide-white/[0.06]">
-        <StatBlock value={60} suffix="s" label="Setup" />
-        <StatBlock value={1} suffix="KB" label="Script" />
-        <StatBlock value={100} suffix="%" label="LGPD" />
-        <StatBlock value={24} suffix="/7" label="Monitoramento" />
+  <section className="py-24 border-y border-white/[0.05] bg-black/30 relative">
+    <div className="absolute inset-0 bg-primary/5 blur-[150px]" />
+    <div className="mx-auto max-w-[1200px] px-6 relative z-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 divide-x divide-white/[0.05]">
+        <StatBlock value={100} suffix="%" label="Foco em Dados" />
+        <StatBlock value={0} suffix="s" label="Delay de Sincronia" />
+        <StatBlock value={10} suffix="x" label="Mais Clareza" />
+        <StatBlock value={24} suffix="/7" label="Disponibilidade" />
       </div>
     </div>
   </section>
 );
 
 /* ─────────────────────────────────────────────────────────────
-   Testimonials — Clean, minimal
-   ───────────────────────────────────────────────────────────── */
-const Testimonials = () => (
-  <section id="testimonials" className="relative py-28 sm:py-36 border-t border-white/[0.04]">
-    <div className="mx-auto max-w-[1200px] px-6">
-      <div className="text-center mb-20">
-        <p className="text-[13px] font-semibold text-[hsl(244,75%,65%)] tracking-[0.15em] uppercase mb-4">Depoimentos</p>
-        <h2 className="text-4xl sm:text-[3.25rem] font-extrabold tracking-[-0.03em]">
-          O que nossos clientes dizem
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { quote: "Em duas semanas dobramos a taxa de conversão. O painel é absurdamente claro e rápido.", name: "Marina Souza", role: "Head of Growth · Loft" },
-          { quote: "Substituímos três ferramentas por uma. Mais rápido, mais bonito, mais barato. Sem olhar para trás.", name: "Rafael Lima", role: "CTO · Plant Studio" },
-          { quote: "Os insights de IA já pagaram o investimento do ano inteiro. Mudou completamente nossa rotina de marketing.", name: "Camila Reis", role: "Dir. Marketing · Vexia" },
-        ].map((t, i) => (
-          <figure key={i} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 hover:border-white/[0.1] transition-all duration-500">
-            <blockquote className="text-[15px] text-foreground/90 leading-relaxed font-normal">
-              &ldquo;{t.quote}&rdquo;
-            </blockquote>
-            <figcaption className="mt-8 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[hsl(244,75%,62%)] to-[hsl(262,83%,70%)] flex items-center justify-center text-white text-[13px] font-bold shrink-0">
-                {t.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-foreground">{t.name}</div>
-                <div className="text-[13px] text-muted-foreground/60">{t.role}</div>
-              </div>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-/* ─────────────────────────────────────────────────────────────
-   CTA — Final conversion section
+   CTA Aggressive
    ───────────────────────────────────────────────────────────── */
 const CTA = () => (
-  <section className="relative py-28 sm:py-36">
-    <div className="mx-auto max-w-[900px] px-6 relative z-10">
-      <div className="relative rounded-3xl border border-white/[0.08] bg-white/[0.02] p-12 sm:p-20 text-center overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[hsl(244,75%,62%)]/[0.08] blur-[120px] rounded-full pointer-events-none" />
-
+  <section className="py-32 relative overflow-hidden">
+    <div className="mx-auto max-w-[1000px] px-6 relative z-10">
+      <div className="rounded-[3rem] bg-gradient-to-b from-card to-black border border-white/[0.1] p-12 md:p-20 text-center shadow-[0_0_100px_rgba(108,60,225,0.15)] relative overflow-hidden">
+        {/* Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+        
         <div className="relative z-10">
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-[-0.03em] leading-tight">
-            Pronto para crescer com
-            <br />
-            <span className="bg-gradient-to-r from-[hsl(244,75%,65%)] via-[hsl(262,83%,72%)] to-[hsl(199,89%,55%)] bg-clip-text text-transparent">
-              clareza total?
-            </span>
+          <Sparkles className="h-12 w-12 text-primary-glow mx-auto mb-8 animate-pulse" />
+          <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white mb-6 leading-tight">
+            Eleve o nível do seu <br className="hidden md:block" />
+            serviço de tráfego.
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Comece em 60 segundos. Sem cartão de crédito, sem configuração complexa.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium mb-12">
+            Mostre o valor real do seu trabalho. Clientes que entendem os resultados não cancelam contratos.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="h-12 px-8 rounded-xl bg-white text-black font-semibold text-[15px] hover:bg-white/90 shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_4px_20px_rgba(0,0,0,0.4)] hover:translate-y-[-1px] transition-all">
-              <Link to="/login">
-                Criar conta gratuita
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="mt-8 flex items-center justify-center gap-6 text-[13px] text-muted-foreground/50">
-            <span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" />Dados criptografados</span>
-            <span className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" />Setup em 1 minuto</span>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+             <Button asChild size="lg" className="h-16 px-10 rounded-2xl bg-white text-black font-black text-lg hover:bg-gray-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105">
+                <Link to="/login">
+                  Criar conta gratuita
+                  <ArrowRight className="ml-3 w-6 h-6" />
+                </Link>
+             </Button>
           </div>
         </div>
       </div>
@@ -477,44 +400,44 @@ const CTA = () => (
 );
 
 /* ─────────────────────────────────────────────────────────────
-   Footer — Minimal, clean
+   Footer
    ───────────────────────────────────────────────────────────── */
 const Footer = () => (
-  <footer className="border-t border-white/[0.04] py-10">
-    <div className="mx-auto max-w-[1200px] px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-muted-foreground/50">
-      <div className="flex items-center gap-3">
-        <img src={logoKubowebWhite} alt="KUBOWEB" className="h-5 w-auto opacity-60" />
-        <span>© {new Date().getFullYear()} KUBOWEB</span>
+  <footer className="border-t border-white/[0.05] bg-black py-16">
+    <div className="mx-auto max-w-[1200px] px-6">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="flex items-center gap-3">
+          <img src={logoKubowebWhite} alt="Kubo Web" className="h-8 w-auto" />
+        </div>
+        <div className="flex gap-8 text-sm font-bold text-muted-foreground">
+          <a href="#features" className="hover:text-white transition-colors">Plataforma</a>
+          <a href="#integrations" className="hover:text-white transition-colors">Integrações</a>
+          <a href="/login" className="hover:text-white transition-colors">Acessar</a>
+        </div>
       </div>
-      <div className="flex items-center gap-6">
-        <a href="#features" className="hover:text-foreground transition-colors">Recursos</a>
-        <a href="#how-it-works" className="hover:text-foreground transition-colors">Como funciona</a>
-        <Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link>
+      <div className="mt-12 text-center text-xs text-muted-foreground/50 font-bold uppercase tracking-widest border-t border-white/[0.05] pt-8">
+        © {new Date().getFullYear()} KUBO WEB PORTAL. TODOS OS DIREITOS RESERVADOS.
       </div>
     </div>
   </footer>
 );
 
 /* ─────────────────────────────────────────────────────────────
-   Page composition
+   Page
    ───────────────────────────────────────────────────────────── */
 const Landing = () => (
   <>
     <Helmet>
-      <title>KUBOWEB — Analytics invisível, crescimento visível.</title>
-      <meta name="description" content="Analytics de ponta para seu site. Rastreie visitantes, monitore leads e cresça com dados reais." />
-      <meta property="og:title" content="KUBOWEB — Analytics invisível, crescimento visível." />
-      <meta property="og:description" content="Analytics de ponta para seu site. Rastreie visitantes, monitore leads e cresça com dados reais." />
+      <title>Kubo Web | Portal de Campanhas & Analytics</title>
+      <meta name="description" content="Portal de resultados para agências e clientes. Monitore campanhas do Google Ads e Meta Ads em tempo real." />
     </Helmet>
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-[hsl(244,75%,62%)]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/40 selection:text-white">
       <Navbar />
       <main>
         <Hero />
-        <LogoStrip />
+        <Integrations />
         <Features />
-        <HowItWorks />
         <Stats />
-        <Testimonials />
         <CTA />
       </main>
       <Footer />
