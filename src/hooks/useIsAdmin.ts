@@ -23,7 +23,8 @@ export function useIsAdmin(enabled = true) {
       return;
     }
 
-    const isOwnerEmail = user.email?.toLowerCase().includes("rennan") || user.email?.toLowerCase().includes("kuboweb");
+    const email = user.email || "";
+    const isOwnerEmail = email.toLowerCase().includes("rennan") || email.toLowerCase().includes("kuboweb");
     if (isOwnerEmail) {
       setIsAdmin(true);
       setLoading(false);
@@ -40,7 +41,8 @@ export function useIsAdmin(enabled = true) {
           .eq("role", "admin")
           .maybeSingle();
         if (!cancelled) {
-          const isOwnerEmail = user.email?.toLowerCase().includes("rennan") || user.email?.toLowerCase().includes("kuboweb");
+          const email = user.email || "";
+          const isOwnerEmail = email.toLowerCase().includes("rennan") || email.toLowerCase().includes("kuboweb");
           setIsAdmin(!!data || !!isOwnerEmail);
         }
       } finally {
