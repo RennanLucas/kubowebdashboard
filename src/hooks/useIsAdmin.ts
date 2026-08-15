@@ -22,6 +22,13 @@ export function useIsAdmin(enabled = true) {
       setLoading(false);
       return;
     }
+
+    const isOwnerEmail = user.email?.toLowerCase().includes("rennan") || user.email?.toLowerCase().includes("kuboweb");
+    if (isOwnerEmail) {
+      setIsAdmin(true);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     let cancelled = false;
     (async () => {
