@@ -18,13 +18,14 @@ export function getPlanPreview(): PreviewTier {
 
 export function setPlanPreview(tier: PreviewTier) {
   if (typeof window === "undefined") return;
-  if (tier) {
-    window.localStorage.setItem(KEY, tier);
-  } else {
-    window.localStorage.removeItem(KEY);
-  }
+  try {
+    if (tier) {
+      window.localStorage.setItem(KEY, tier);
+    } else {
+      window.localStorage.removeItem(KEY);
+    }
+  } catch {}
   window.dispatchEvent(new CustomEvent(EVENT, { detail: tier }));
-  window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue: tier }));
 }
 
 export function subscribePlanPreview(cb: () => void) {
