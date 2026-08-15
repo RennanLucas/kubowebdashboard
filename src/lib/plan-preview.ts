@@ -18,16 +18,22 @@ export function getPlanPreview(): PreviewTier {
 
 export function setPlanPreview(tier: PreviewTier) {
   if (typeof window === "undefined") return;
-  if (tier) window.localStorage.setItem(KEY, tier);
-  else window.localStorage.removeItem(KEY);
-  window.dispatchEvent(new CustomEvent(EVENT));
+  if (tier) {
+    window.localStorage.setItem(KEY, tier);
+  } else {
+    window.localStorage.removeItem(KEY);
+  }
+  window.dispatchEvent(new CustomEvent(EVENT, { detail: tier }));
+  window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue: tier }));
 }
 
 export function subscribePlanPreview(cb: () => void) {
-  window.addEventListener(EVENT, cb);
-  window.addEventListener("storage", cb);
+  if (typeof window === "undefined") return () => {};
+  const handler = () => cb();
+  window.addEventListener(EVENT, handler);
+  window.addEventListener("storage", handler);
   return () => {
-    window.removeEventListener(EVENT, cb);
-    window.removeEventListener("storage", cb);
+    window.removeEventListener(EVENT, handler);
+    window.removeEventListener("storage", handler);
   };
 }

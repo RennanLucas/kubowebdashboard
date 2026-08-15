@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon, Eye, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +33,15 @@ export const UserMenu = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
+  };
+
+  const handleSelectTier = (tier: PlanTier | null) => {
+    setPreview(tier);
+    if (tier) {
+      toast.info(`Simulando visualização como plano ${PLAN_CAPABILITIES[tier].label}`);
+    } else {
+      toast.success("Retornado ao seu plano real (Pro+)");
+    }
   };
 
   return (
@@ -94,20 +104,22 @@ export const UserMenu = () => {
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="w-52">
             <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => setPreview(null)}
+              className="cursor-pointer flex items-center justify-between"
+              onSelect={() => handleSelectTier(null)}
+              onClick={() => handleSelectTier(null)}
             >
-              <span className="flex-1">Meu plano real</span>
+              <span>Meu plano real</span>
               {preview === null && <Check className="h-3.5 w-3.5 text-primary" />}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {PREVIEW_TIERS.map((tier) => (
               <DropdownMenuItem
                 key={tier}
-                className="cursor-pointer"
-                onClick={() => setPreview(tier)}
+                className="cursor-pointer flex items-center justify-between"
+                onSelect={() => handleSelectTier(tier)}
+                onClick={() => handleSelectTier(tier)}
               >
-                <span className="flex-1">{PLAN_CAPABILITIES[tier].label}</span>
+                <span>{PLAN_CAPABILITIES[tier].label}</span>
                 {preview === tier && <Check className="h-3.5 w-3.5 text-primary" />}
               </DropdownMenuItem>
             ))}
