@@ -172,7 +172,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     return <Navigate to="/login" replace />;
   }
 
-  if (!isLoading && !error && data && !clientData) {
+  if (!isLoading && !error && data && !clientData && (!allProjects || allProjects.length === 0)) {
     return <Navigate to="/onboarding" replace />;
   }
 
