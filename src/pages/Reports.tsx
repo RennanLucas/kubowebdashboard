@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Upload, BarChart3, Users, Printer } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 
 const Reports = () => {
-  const { clientData, loading } = useDashboardData();
+  const { data: clientData, isLoading: loading } = useDashboardAnalytics(30);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
