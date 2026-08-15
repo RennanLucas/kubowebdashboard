@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell, Sparkles, Activity, Crown, Maximize2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell, Sparkles, Activity, Crown, Maximize2, Flame, FileText, History } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
@@ -186,11 +186,12 @@ const Login = () => {
           {/* Features grid */}
           <div className="grid grid-cols-1 gap-4 mb-10 animate-fade-up stagger-children" style={{ animationDelay: "300ms" }}>
             {[
-              { icon: BarChart3, title: "Analytics em tempo real", desc: "Métricas de visitantes, leads e origens sem cookies.", badge: null },
-              { icon: Target, title: "Conversões automáticas", desc: "Monitore WhatsApp, formulários e cliques com alertas.", badge: null },
-              { icon: Sparkles, title: "IA & Insights Avançados", desc: "Análises e sugestões geradas automaticamente via IA.", badge: "Pro+" },
-              { icon: Activity, title: "Visualização Live", desc: "Acompanhe seus usuários navegando ao vivo na sua tela.", badge: "Pro" },
-              { icon: Maximize2, title: "Modo Apresentação", desc: "Gere relatórios interativos prontos para seus clientes.", badge: "Pro" },
+              { icon: BarChart3, title: "Analytics em tempo real", desc: "Métricas de visitantes e leads 100% sem cookies.", badge: null },
+              { icon: Flame, title: "Heatmaps & Replay de Sessões", desc: "Veja a gravação exata de onde os usuários clicam e interagem.", badge: "Pro+" },
+              { icon: Sparkles, title: "IA & Insights Avançados", desc: "Análises automáticas de otimização via Inteligência Artificial.", badge: "Pro+" },
+              { icon: FileText, title: "Relatórios White-label", desc: "Exporte PDFs com a sua própria marca para enviar aos clientes.", badge: "Pro" },
+              { icon: Activity, title: "Visualização Live", desc: "Acompanhe os usuários navegando no seu site ao vivo na sua tela.", badge: "Pro" },
+              { icon: History, title: "Histórico Ilimitado", desc: "Nunca perca dados. Acesse o histórico completo e compare meses.", badge: "Pro+" },
             ].map(({ icon: Icon, title, desc, badge }) => (
               <div key={title} className="flex items-start gap-3 p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors relative group overflow-hidden">
                 <div className="shrink-0 w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
