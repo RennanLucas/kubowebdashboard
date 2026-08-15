@@ -85,6 +85,20 @@ const Heatmaps = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   O Microsoft Clarity é gratuito e ilimitado. Insira o seu <b>Project ID</b> abaixo. A KUBOWEB irá instalar o script automaticamente para você em todos os sites rastreados por este projeto.
                 </p>
+                
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-md p-4 mb-5">
+                  <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-400 mb-2">Como encontrar seu Project ID:</h4>
+                  <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1.5 ml-1">
+                    <li>Acesse <a href="https://clarity.microsoft.com/" target="_blank" rel="noreferrer" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">clarity.microsoft.com</a> e crie uma conta gratuita.</li>
+                    <li>Crie um novo projeto adicionando o domínio do seu site.</li>
+                    <li>Vá em <strong>Settings</strong> (Configurações) &gt; <strong>Setup</strong>.</li>
+                    <li>Copie o código do <strong>Project ID</strong> (letras e números curtos, ex: <code className="bg-background px-1 py-0.5 rounded border border-border">jkw92k3lma</code>).</li>
+                  </ol>
+                  <p className="text-xs text-orange-600/80 dark:text-orange-400/80 mt-3 font-medium">
+                    ✨ Você <strong>não precisa</strong> colar o script enorme no seu site. Apenas salve o ID abaixo e a KUBOWEB injetará automaticamente para você!
+                  </p>
+                </div>
+
                 <div className="flex gap-3 max-w-md">
                   <div className="flex-1 space-y-1">
                     <Label htmlFor="clarity_id" className="sr-only">Clarity Project ID</Label>
