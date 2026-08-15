@@ -21,7 +21,7 @@ const allPresets = [
   { label: "Últimos 7 dias", days: 7 },
   { label: "Últimos 30 dias", days: 30 },
   { label: "Últimos 90 dias", days: 90 },
-  { label: "Últimos 12 meses", days: 365, proPlusOnly: true },
+  { label: "Últimos 12 meses", days: 365 },
 ];
 
 export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePickerProps) {
@@ -34,8 +34,8 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
     if (days > plan.maxHistoryDays) {
       toast.error(
         plan.isFree
-          ? `O plano Gratuito mostra até ${plan.maxHistoryDays} dias. Assine o Pro para 90 dias ou o Pro+ para 12 meses.`
-          : `Plano Pro mostra até ${plan.maxHistoryDays} dias. Faça upgrade para Pro+ para ver até 12 meses.`,
+          ? `O plano Gratuito mostra até ${plan.maxHistoryDays} dias. Assine o Pro para ver até 12 meses.`
+          : `O seu plano mostra até ${plan.maxHistoryDays} dias.`,
       );
       return;
     }
@@ -110,13 +110,13 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
             >
               Mês passado
             </button>
-            {!plan.isProPlus && (
+            {plan.isFree && (
               <Link
                 to="/pricing"
                 className="mt-2 text-[11px] px-3 py-2 rounded-md bg-primary/10 text-primary hover:bg-primary/15 inline-flex items-center gap-1"
               >
                 <Sparkles className="h-3 w-3" />
-                {plan.isFree ? "Assinar Pro (90 dias)" : "Upgrade para Pro+ (12 meses)"}
+                Assinar Pro (12 meses)
               </Link>
             )}
           </div>

@@ -13,7 +13,7 @@ export type PreviewTier = PlanTier | null;
 export function getPlanPreview(): PreviewTier {
   if (typeof window === "undefined") return null;
   const v = window.localStorage.getItem(KEY);
-  return v === "free" || v === "pro" || v === "pro_plus" ? v : null;
+  return v === "free" || v === "pro" ? v : null;
 }
 
 export function setPlanPreview(tier: PreviewTier) {

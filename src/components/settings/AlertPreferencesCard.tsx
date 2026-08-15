@@ -288,7 +288,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
                   checked={prefs.notify_email && emailAllowed}
                   onCheckedChange={(v) => {
                     if (v && !emailAllowed) {
-                      toast.error("Alertas por e-mail estão disponíveis no plano Pro+.");
+                      toast.error("Alertas por e-mail estão disponíveis no plano Pro.");
                       return;
                     }
                     setPrefs((p) => ({ ...p, notify_email: v }));
@@ -297,7 +297,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
                   disabled={loading || !emailAllowed}
                 />
                 <Label htmlFor="notify-email" className="text-sm">
-                  Por e-mail{!emailAllowed && <span className="ml-1 text-xs text-muted-foreground">(Pro+)</span>}
+                  Por e-mail{!emailAllowed && <span className="ml-1 text-xs text-muted-foreground">(Pro)</span>}
                 </Label>
               </div>
             </div>

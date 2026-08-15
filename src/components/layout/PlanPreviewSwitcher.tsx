@@ -17,8 +17,7 @@ import { toast } from "sonner";
 
 const PREVIEW_TIERS: { tier: PlanTier; label: string; desc: string }[] = [
   { tier: "free", label: "Plano Gratuito", desc: "Simula bloqueios e cadeados" },
-  { tier: "pro", label: "Plano Pro", desc: "Simula até 3 projetos e IA" },
-  { tier: "pro_plus", label: "Plano Pro+", desc: "Simula acesso ilimitado" },
+  { tier: "pro", label: "Plano Pro", desc: "Simula acesso ilimitado" },
 ];
 
 export const PlanPreviewSwitcher = () => {
@@ -37,7 +36,7 @@ export const PlanPreviewSwitcher = () => {
     if (tier && PLAN_CAPABILITIES[tier]) {
       toast.info(`Simulando visualização como: ${PLAN_CAPABILITIES[tier].label}`);
     } else {
-      toast.success("Retornado ao seu plano real (Pro+)");
+      toast.success("Retornado ao seu plano real (Pro)");
     }
   };
 
@@ -78,7 +77,7 @@ export const PlanPreviewSwitcher = () => {
             <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <span>Meu plano real</span>
               <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-primary/10 text-primary border-primary/20">
-                PRO+
+                PRO
               </Badge>
             </div>
             <div className="text-[10px] text-muted-foreground mt-0.5">Visão real com acesso total</div>

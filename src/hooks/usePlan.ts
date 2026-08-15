@@ -16,7 +16,6 @@ export interface PlanLimits {
   label: string;
   isFree: boolean;
   isPro: boolean;
-  isProPlus: boolean;
   maxProjects: number; // Infinity para ilimitado
   maxHistoryDays: number;
   aiMonthlyLimit: number;
@@ -25,7 +24,7 @@ export interface PlanLimits {
   isPreview: boolean;
   /** true se o plano atual libera o recurso */
   can: (feature: FeatureKey) => boolean;
-  /** menor plano que libera o recurso ("pro" | "pro_plus") */
+  /** menor plano que libera o recurso */
   requiredTierFor: (feature: FeatureKey) => PlanTier;
 }
 
@@ -44,10 +43,10 @@ export function usePlan(enabled = true): PlanLimits {
 
   let tier: PlanTier = "free";
   if (isActive) {
-    tier = planId === "kuboweb_pro_monthly" ? "pro" : "pro_plus";
+    tier = "pro";
   }
   if (isEffectiveAdmin && !isPreview) {
-    tier = "pro_plus";
+    tier = "pro";
   }
   if (isPreview && preview) {
     tier = preview;
@@ -60,7 +59,6 @@ export function usePlan(enabled = true): PlanLimits {
     label: caps.label,
     isFree: tier === "free",
     isPro: tier === "pro",
-    isProPlus: tier === "pro_plus",
     maxProjects: caps.maxProjects,
     maxHistoryDays: caps.maxHistoryDays,
     aiMonthlyLimit: caps.aiMonthlyLimit,

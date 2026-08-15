@@ -12,7 +12,7 @@ export function UpgradeBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (plan.loading || plan.isProPlus) {
+    if (plan.loading || plan.isPro) {
       setVisible(false);
       return;
     }
@@ -25,7 +25,7 @@ export function UpgradeBanner() {
       }
     }
     setVisible(true);
-  }, [plan.loading, plan.isProPlus]);
+  }, [plan.loading, plan.isPro]);
 
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -34,13 +34,9 @@ export function UpgradeBanner() {
 
   if (!visible) return null;
 
-  const title = plan.isFree
-    ? "Você está no plano Gratuito"
-    : "Você está vendo até 90 dias";
-  const subtitle = plan.isFree
-    ? "Assine o Pro para desbloquear tempo real, IA, comparações, relatórios em PDF e 90 dias de histórico."
-    : "Faça upgrade para Pro+ e veja até 12 meses de histórico, alertas por email e projetos ilimitados.";
-  const cta = plan.isFree ? "Ver planos" : "Upgrade para Pro+";
+  const title = "Você está no plano Gratuito";
+  const subtitle = "Assine o Pro para desbloquear Heatmaps, Metas, Relatórios White-label, Insights com IA e histórico de até 12 meses.";
+  const cta = "Upgrade para Pro";
 
   return (
     <div className="relative mb-4 overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 sm:p-5">

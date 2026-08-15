@@ -1,7 +1,7 @@
 // Fonte única de verdade dos recursos por plano (frontend).
 // Mantida em sincronia com supabase/functions/_shared/plans.ts
 
-export type PlanTier = "free" | "pro" | "pro_plus";
+export type PlanTier = "free" | "pro";
 
 export type FeatureKey =
   | "live"
@@ -49,15 +49,11 @@ const PRO_FEATURES: Record<FeatureKey, boolean> = {
   presentation: true,
   pdf_report: true,
   csv_export: true,
+  email_alerts: true,
   annotations: true,
   goals: true,
-  realtime_refresh: true,
-};
-
-const PRO_PLUS_FEATURES: Record<FeatureKey, boolean> = {
-  ...PRO_FEATURES,
-  email_alerts: true,
   heatmap: true,
+  realtime_refresh: true,
 };
 
 export const PLAN_CAPABILITIES: Record<PlanTier, PlanCapabilities> = {
@@ -72,26 +68,17 @@ export const PLAN_CAPABILITIES: Record<PlanTier, PlanCapabilities> = {
   pro: {
     tier: "pro",
     label: "Pro",
-    maxProjects: 3,
-    maxHistoryDays: 90,
-    aiMonthlyLimit: 3,
-    features: PRO_FEATURES,
-  },
-  pro_plus: {
-    tier: "pro_plus",
-    label: "Pro+",
     maxProjects: Number.POSITIVE_INFINITY,
     maxHistoryDays: 365,
-    aiMonthlyLimit: 6,
-    features: PRO_PLUS_FEATURES,
+    aiMonthlyLimit: 10,
+    features: PRO_FEATURES,
   },
 };
 
 /** Menor plano pago que libera o recurso. */
 export function requiredTierFor(feature: FeatureKey): PlanTier {
   if (PLAN_CAPABILITIES.free.features[feature]) return "free";
-  if (PLAN_CAPABILITIES.pro.features[feature]) return "pro";
-  return "pro_plus";
+  return "pro";
 }
 
 export const FEATURE_LABELS: Record<FeatureKey, string> = {
@@ -104,7 +91,7 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   email_alerts: "Alertas por e-mail",
   in_app_alerts: "Alertas no painel",
   annotations: "Anotações no gráfico",
-  goals: "Metas mensais",
-  heatmap: "Mapa de calor por hora",
+  goals: "Metas e Funis",
+  heatmap: "Mapas de Calor",
   realtime_refresh: "Atualização automática",
 };
