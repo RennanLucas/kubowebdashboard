@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { GlobalProjectSwitcher } from "./GlobalProjectSwitcher";
@@ -87,6 +87,38 @@ const HeaderActions = () => {
   );
 };
 
+function AppLayoutContent({ children }: { children: ReactNode }) {
+  const { state, isMobile } = useSidebar();
+  
+  return (
+    <div 
+      className="main-area flex-1 flex flex-col min-w-0 transition-all duration-200 ease-linear"
+      style={{
+        marginLeft: isMobile ? 0 : (state === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)"),
+        width: isMobile ? "100%" : (state === "collapsed" ? "calc(100% - var(--sidebar-width-icon))" : "calc(100% - var(--sidebar-width))")
+      }}
+    >
+      <header className="h-14 flex items-center gap-3 border-b-0 bg-background/60 backdrop-blur-2xl sticky top-0 z-30 px-3 sm:px-4 shadow-sm after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent">
+        <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 transition-colors" />
+        <div className="hidden sm:block w-px h-5 bg-border/70 shrink-0" />
+
+        {/* Left cluster: project switcher + breadcrumbs */}
+        <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+          <GlobalProjectSwitcher />
+          <Breadcrumbs />
+        </div>
+
+        {/* Right cluster: search, alerts, user */}
+        <div className="flex-shrink-0">
+          <HeaderActions />
+        </div>
+      </header>
+      <PlanPreviewBanner />
+      <main className="flex-1 min-w-0">{children}</main>
+    </div>
+  );
+}
+
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
 
@@ -101,27 +133,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <CommandPalette />
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="app-layout flex min-h-screen w-full bg-background relative">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b-0 bg-background/60 backdrop-blur-2xl sticky top-0 z-30 px-3 sm:px-4 shadow-sm after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground shrink-0 transition-colors" />
-            <div className="hidden sm:block w-px h-5 bg-border/70 shrink-0" />
-
-            {/* Left cluster: project switcher + breadcrumbs */}
-            <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
-              <GlobalProjectSwitcher />
-              <Breadcrumbs />
-            </div>
-
-            {/* Right cluster: search, alerts, user */}
-            <div className="flex-shrink-0">
-              <HeaderActions />
-            </div>
-          </header>
-          <PlanPreviewBanner />
-          <main className="flex-1 min-w-0">{children}</main>
-        </div>
+        <AppLayoutContent>{children}</AppLayoutContent>
         <HelpButton />
       </div>
     </SidebarProvider>
