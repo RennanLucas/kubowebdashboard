@@ -1,10 +1,7 @@
-import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon, Eye, Check } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { usePlanPreview } from "@/hooks/usePlanPreview";
-import { PLAN_CAPABILITIES, type PlanTier } from "@/lib/plan-features";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -14,13 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const PREVIEW_TIERS: PlanTier[] = ["free", "pro", "pro_plus"];
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
@@ -96,35 +88,6 @@ export const UserMenu = () => {
             </Link>
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Eye className="h-3.5 w-3.5 mr-2" />
-            Ver painel como
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-52">
-            <DropdownMenuItem
-              className="cursor-pointer flex items-center justify-between"
-              onSelect={() => handleSelectTier(null)}
-              onClick={() => handleSelectTier(null)}
-            >
-              <span>Meu plano real</span>
-              {preview === null && <Check className="h-3.5 w-3.5 text-primary" />}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {PREVIEW_TIERS.map((tier) => (
-              <DropdownMenuItem
-                key={tier}
-                className="cursor-pointer flex items-center justify-between"
-                onSelect={() => handleSelectTier(tier)}
-                onClick={() => handleSelectTier(tier)}
-              >
-                <span>{PLAN_CAPABILITIES[tier].label}</span>
-                {preview === tier && <Check className="h-3.5 w-3.5 text-primary" />}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}

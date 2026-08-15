@@ -6,6 +6,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { GlobalProjectSwitcher } from "./GlobalProjectSwitcher";
 import { UserMenu } from "./UserMenu";
+import { PlanPreviewSwitcher } from "./PlanPreviewSwitcher";
 import { PlanPreviewBanner } from "@/components/PlanPreviewBanner";
 import { CommandPalette } from "@/components/CommandPalette";
 import { HelpButton } from "@/components/HelpButton";
@@ -81,7 +82,8 @@ const HeaderActions = () => {
         </TooltipContent>
       </Tooltip>
 
-      <div className="hidden sm:block w-px h-5 bg-border/70 mx-1" />
+      <PlanPreviewSwitcher />
+      <div className="hidden sm:block w-px h-5 bg-border/70 mx-0.5" />
       <UserMenu />
     </div>
   );
