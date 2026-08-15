@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { PlanFeatureGuard } from "@/components/auth/PlanFeatureGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Plus, ArrowRight, MousePointerClick, MessageSquare, CreditCard } from "lucide-react";
@@ -16,7 +15,6 @@ const funnelData = [
 
 const Goals = () => {
   return (
-    <PlanFeatureGuard feature="goals" fallbackPath="/dashboard">
       <AppLayout>
         <Helmet>
           <title>Metas e Funis — KUBOWEB</title>
@@ -143,7 +141,6 @@ const Goals = () => {
           </div>
         </div>
       </AppLayout>
-    </PlanFeatureGuard>
   );
 };
 

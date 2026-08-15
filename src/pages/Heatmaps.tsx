@@ -1,13 +1,11 @@
 import { Helmet } from "react-helmet-async";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { PlanFeatureGuard } from "@/components/auth/PlanFeatureGuard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Flame, Play, Clock, MousePointer2, Settings, ExternalLink } from "lucide-react";
 
 const Heatmaps = () => {
   return (
-    <PlanFeatureGuard feature="heatmap" fallbackPath="/dashboard">
       <AppLayout>
         <Helmet>
           <title>Heatmaps e Gravações — KUBOWEB</title>
@@ -164,7 +162,6 @@ const Heatmaps = () => {
           </div>
         </div>
       </AppLayout>
-    </PlanFeatureGuard>
   );
 };
 

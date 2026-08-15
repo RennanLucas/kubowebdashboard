@@ -1,6 +1,5 @@
 import { Helmet } from "react-helmet-async";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { PlanFeatureGuard } from "@/components/auth/PlanFeatureGuard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Upload, BarChart3, Users, Printer } from "lucide-react";
@@ -29,7 +28,6 @@ const Reports = () => {
   };
 
   return (
-    <PlanFeatureGuard feature="pdf_report" fallbackPath="/dashboard">
       <AppLayout>
         <Helmet>
           <title>Relatórios White-label — KUBOWEB</title>
@@ -140,7 +138,6 @@ const Reports = () => {
           </div>
         </div>
       </AppLayout>
-    </PlanFeatureGuard>
   );
 };
 
