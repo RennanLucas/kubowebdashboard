@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell, Sparkles, Activity, Crown, Maximize2 } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
@@ -186,19 +186,28 @@ const Login = () => {
           {/* Features grid */}
           <div className="grid grid-cols-1 gap-4 mb-10 animate-fade-up stagger-children" style={{ animationDelay: "300ms" }}>
             {[
-              { icon: BarChart3, title: "Analytics em tempo real", desc: "Veja o que acontece no seu site agora" },
-              { icon: Users, title: "Rastreamento de visitantes", desc: "Sem cookies, com privacidade garantida" },
-              { icon: Target, title: "Conversões automáticas", desc: "WhatsApp, formulários e cliques" },
-              { icon: Bell, title: "Alertas inteligentes", desc: "Saiba quando algo importante acontecer" },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-3 p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors">
+              { icon: BarChart3, title: "Analytics em tempo real", desc: "Métricas de visitantes, leads e origens sem cookies.", badge: null },
+              { icon: Target, title: "Conversões automáticas", desc: "Monitore WhatsApp, formulários e cliques com alertas.", badge: null },
+              { icon: Sparkles, title: "IA & Insights Avançados", desc: "Análises e sugestões geradas automaticamente via IA.", badge: "Pro+" },
+              { icon: Activity, title: "Visualização Live", desc: "Acompanhe seus usuários navegando ao vivo na sua tela.", badge: "Pro" },
+              { icon: Maximize2, title: "Modo Apresentação", desc: "Gere relatórios interativos prontos para seus clientes.", badge: "Pro" },
+            ].map(({ icon: Icon, title, desc, badge }) => (
+              <div key={title} className="flex items-start gap-3 p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors relative group overflow-hidden">
                 <div className="shrink-0 w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-primary-foreground" />
+                  <Icon className="h-5 w-5 text-primary-foreground group-hover:scale-110 transition-transform" />
                 </div>
-                <div>
-                  <p className="text-primary-foreground font-medium text-sm">{title}</p>
-                  <p className="text-primary-foreground/70 text-xs mt-0.5">{desc}</p>
+                <div className="flex-1 pr-8">
+                  <p className="text-primary-foreground font-medium text-sm flex items-center gap-2">
+                    {title}
+                  </p>
+                  <p className="text-primary-foreground/70 text-xs mt-0.5 leading-relaxed">{desc}</p>
                 </div>
+                {badge && (
+                  <div className="absolute top-4 right-4 flex items-center gap-1 px-1.5 py-0.5 rounded border border-white/20 bg-white/10 shadow-sm backdrop-blur-md">
+                    <Crown className="h-3 w-3 text-yellow-400" />
+                    <span className="text-[9px] font-bold text-white uppercase tracking-wider">{badge}</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
