@@ -14,12 +14,14 @@ export const PlanPreviewBanner = () => {
     toast.success("Retornado ao seu plano real (Pro+)");
   };
 
+  const planLabel = preview && PLAN_CAPABILITIES[preview] ? PLAN_CAPABILITIES[preview].label : "Plano";
+
   return (
     <div className="flex items-center justify-center gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-600 dark:text-amber-400 font-medium z-40 sticky top-14 backdrop-blur-md">
       <Eye className="h-4 w-4 shrink-0 text-amber-500 animate-pulse" />
       <span>
         Você está simulando o painel como plano{" "}
-        <strong className="underline underline-offset-2">{PLAN_CAPABILITIES[preview].label}</strong> (modo teste).
+        <strong className="underline underline-offset-2">{planLabel}</strong> (modo teste).
       </span>
       <Button
         size="sm"

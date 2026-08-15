@@ -34,12 +34,14 @@ export const PlanPreviewSwitcher = () => {
 
   const handleSelect = (tier: PlanTier | null) => {
     setPreview(tier);
-    if (tier) {
+    if (tier && PLAN_CAPABILITIES[tier]) {
       toast.info(`Simulando visualização como: ${PLAN_CAPABILITIES[tier].label}`);
     } else {
       toast.success("Retornado ao seu plano real (Pro+)");
     }
   };
+
+  const previewLabel = preview && PLAN_CAPABILITIES[preview] ? PLAN_CAPABILITIES[preview].label : null;
 
   return (
     <DropdownMenu>
@@ -49,16 +51,16 @@ export const PlanPreviewSwitcher = () => {
           size="sm"
           className={`h-8 px-2.5 text-xs gap-1.5 font-medium transition-all ${
             preview
-              ? "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 animate-pulse"
+              ? "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400"
               : "border-border/70 hover:bg-muted/60 text-muted-foreground hover:text-foreground"
           }`}
         >
           <Eye className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">
-            {preview ? `Vendo como: ${PLAN_CAPABILITIES[preview].label}` : "Simular Plano"}
+            {previewLabel ? `Vendo como: ${previewLabel}` : "Simular Plano"}
           </span>
           <span className="sm:hidden">
-            {preview ? PLAN_CAPABILITIES[preview].label : "Plano"}
+            {previewLabel || "Plano"}
           </span>
           <ChevronDown className="h-3 w-3 opacity-60 ml-0.5" />
         </Button>
