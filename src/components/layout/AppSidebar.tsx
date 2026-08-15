@@ -108,20 +108,22 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border/70">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (
-            <>
-              <img src={logoKubowebDark} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto dark:hidden block" />
-              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto hidden dark:block" />
-            </>
+            <div className="mx-auto flex items-center justify-center">
+              <img src={logoKubowebDark} alt="KUBOWEB" className="h-7 w-7 object-contain dark:hidden block" />
+              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-7 object-contain hidden dark:block" />
+            </div>
           ) : (
-            <div className="flex items-center gap-2 min-w-0">
-              <img src={logoKubowebDark} alt="KUBOWEB" className="h-7 w-auto shrink-0 dark:hidden block" />
-              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-auto shrink-0 hidden dark:block" />
+            <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+              <div className="flex items-center min-w-0">
+                <img src={logoKubowebDark} alt="KUBOWEB" className="h-6 w-auto max-w-[110px] object-contain shrink-0 dark:hidden block" />
+                <img src={logoKubowebWhite} alt="KUBOWEB" className="h-6 w-auto max-w-[110px] object-contain shrink-0 hidden dark:block" />
+              </div>
               <span
                 className={[
-                  "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300",
+                  "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300 shrink-0",
                   plan.isFree
                     ? "bg-sidebar-accent text-sidebar-foreground/70"
-                    : "bg-primary text-primary-foreground animate-pulse hover:animate-none",
+                    : "bg-gradient-to-r from-primary to-purple-600 text-white shadow-primary/20",
                 ].join(" ")}
               >
                 {plan.loading ? "..." : plan.label}

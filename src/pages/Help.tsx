@@ -31,6 +31,8 @@ interface Entry {
   term: string;
   description: string;
   formula?: string;
+  link?: string;
+  linkLabel?: string;
 }
 
 interface Section {
@@ -46,46 +48,64 @@ const sections: Section[] = [
         term: "Dashboard",
         description:
           "Visão geral do desempenho do seu site: KPIs principais (visitantes, leads, conversão, valor estimado), gráficos de evolução, funil de conversão, origens de tráfego, páginas mais acessadas e geolocalização. Permite filtrar por período e por projeto.",
+        link: "/dashboard",
+        linkLabel: "Acessar Dashboard",
       },
       {
         term: "Live",
         description:
           "Monitoramento em tempo real de quem está navegando no seu site agora: visitantes ativos, páginas sendo vistas, origem do tráfego e localização. Atualiza automaticamente a cada poucos segundos.",
+        link: "/live",
+        linkLabel: "Acessar Live",
       },
       {
         term: "IA / Insights",
         description:
           "Análises automáticas geradas por inteligência artificial sobre os dados do seu site. Identifica padrões, oportunidades de melhoria, sugestões de otimização e resumos semanais de desempenho.",
+        link: "/insights",
+        linkLabel: "Acessar IA / Insights",
       },
       {
         term: "Alertas",
         description:
           "Central de notificações inteligentes: detecta quedas bruscas de tráfego, picos anormais, baixa taxa de conversão, alta taxa de rejeição e dependência excessiva de um único canal de aquisição.",
+        link: "/alerts",
+        linkLabel: "Acessar Alertas",
       },
       {
         term: "Comparar",
         description:
           "Compara o desempenho entre dois períodos diferentes (ex.: este mês vs. mês anterior) ou entre dois projetos. Mostra variações percentuais em todas as métricas para identificar evolução ou regressão.",
+        link: "/compare",
+        linkLabel: "Acessar Comparar",
       },
       {
         term: "Apresentação",
         description:
           "Modo tela cheia com os principais indicadores em destaque, ideal para exibir em monitores de equipe, reuniões com clientes ou apresentações de resultados.",
+        link: "/presentation",
+        linkLabel: "Acessar Apresentação",
       },
       {
         term: "Configurações",
         description:
           "Gerenciamento dos seus projetos (sites monitorados), código de rastreamento para instalar no site, metas mensais, valor por lead e preferências da conta.",
+        link: "/settings",
+        linkLabel: "Acessar Configurações",
       },
       {
         term: "Assinatura",
         description:
           "Gerencie seu plano atual, faça upgrade/downgrade, visualize limites de uso (projetos, eventos, retenção de dados) e acesse o histórico de pagamentos.",
+        link: "/subscription",
+        linkLabel: "Acessar Assinatura",
       },
       {
         term: "Instalar app",
         description:
           "Instruções passo a passo para instalar o KUBOWEB como aplicativo (PWA) no iPhone, Android ou computador, permitindo acesso rápido pela tela inicial e funcionamento offline.",
+        link: "/install",
+        linkLabel: "Instalar aplicativo",
       },
       {
         term: "Ajuda",
@@ -96,6 +116,8 @@ const sections: Section[] = [
         term: "Admin (apenas administradores)",
         description:
           "Painel administrativo para gestão de usuários, planos e configurações globais da plataforma. Visível apenas para contas com permissão de administrador.",
+        link: "/admin",
+        linkLabel: "Acessar Painel Admin",
       },
     ],
   },
@@ -364,12 +386,25 @@ export default function Help() {
                     <AccordionTrigger className="text-sm hover:no-underline py-3 transition-all duration-300">
                       <Highlight text={item.term} query={query} />
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground space-y-2 animate-in fade-in duration-300">
+                    <AccordionContent className="text-sm text-muted-foreground space-y-3 animate-in fade-in duration-300">
                       <p><Highlight text={item.description} query={query} /></p>
                       {item.formula && (
                         <p className="text-xs font-mono bg-muted px-2 py-1 rounded inline-block text-foreground">
                           <Highlight text={item.formula} query={query} />
                         </p>
+                      )}
+                      {item.link && (
+                        <div className="pt-1">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="h-8 text-xs gap-1.5 font-medium hover:bg-primary hover:text-white transition-all shadow-xs"
+                            onClick={() => navigate(item.link!)}
+                          >
+                            <span>{item.linkLabel || "Acessar"}</span>
+                            <span aria-hidden="true">→</span>
+                          </Button>
+                        </div>
                       )}
                     </AccordionContent>
                   </AccordionItem>

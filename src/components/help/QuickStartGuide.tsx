@@ -1,6 +1,8 @@
-import { Rocket } from "lucide-react";
+import { Rocket, ArrowRight } from "lucide-react";
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StepGuide, StepItem } from "./StepGuide";
 import { CodeBlock } from "./CodeBlock";
 
@@ -13,12 +15,10 @@ interface QuickStartGuideProps {
 
 /**
  * Inline quick-start guide for the Help page.
- * Does NOT navigate to protected routes — every action is doable
- * right here with copyable snippets and clear instructions.
- *
  * Supports filtering by free-text query and topic keyword.
  */
 export function QuickStartGuide({ query = "", filter = null }: QuickStartGuideProps) {
+  const navigate = useNavigate();
   const supabaseProjectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const scriptExample = `<script src="https://${supabaseProjectId}.supabase.co/functions/v1/tracker-script?pid=SEU_PROJECT_ID" defer></script>`;
 
@@ -40,6 +40,17 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
           <code className="bg-muted px-1 rounded mx-1">project_id</code>
           único usado no script de rastreamento.
         </>
+      ),
+      content: (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => navigate("/settings")}
+        >
+          <span>Ir para Configurações</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
       ),
       keywords: ["projeto", "configuracao", "setup"],
       searchText:
@@ -81,6 +92,17 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
       title: "Defina o valor por lead",
       description:
         "Em Configurações, informe quanto vale, em média, um lead para o seu negócio. A plataforma calcula automaticamente o valor estimado gerado.",
+      content: (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => navigate("/settings")}
+        >
+          <span>Configurar valor do lead</span>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Button>
+      ),
       keywords: ["valor", "lead", "configuracao"],
       searchText:
         "valor por lead configurações valor estimado receita monetização",
@@ -89,6 +111,37 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
       title: "Acompanhe o dashboard",
       description:
         "Em poucos minutos os primeiros eventos aparecem no Dashboard. Use a página Live para ver visitantes em tempo real e Insights para análises automáticas.",
+      content: (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => navigate("/dashboard")}
+          >
+            <span>Dashboard</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => navigate("/live")}
+          >
+            <span>Live</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => navigate("/insights")}
+          >
+            <span>IA / Insights</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
       keywords: ["dashboard"],
       searchText: "dashboard live insights tempo real visitantes",
     },

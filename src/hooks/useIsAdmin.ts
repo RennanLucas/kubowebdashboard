@@ -4,12 +4,20 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function useIsAdmin(enabled = true) {
   const { user, loading: authLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(enabled);
+  const email = (user?.email || "").toLowerCase();
+  const isOwnerEmail = email.includes("rennan") || email.includes("kuboweb");
+  
+  const [isAdmin, setIsAdmin] = useState(isOwnerEmail);
+  const [loading, setLoading] = useState(enabled && !isOwnerEmail);
 
   useEffect(() => {
     if (!enabled) {
       setIsAdmin(false);
+      setLoading(false);
+      return;
+    }
+    if (isOwnerEmail) {
+      setIsAdmin(true);
       setLoading(false);
       return;
     }
@@ -23,13 +31,6 @@ export function useIsAdmin(enabled = true) {
       return;
     }
 
-    const email = user.email || "";
-    const isOwnerEmail = email.toLowerCase().includes("rennan") || email.toLowerCase().includes("kuboweb");
-    if (isOwnerEmail) {
-      setIsAdmin(true);
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     let cancelled = false;
     (async () => {
@@ -41,9 +42,9 @@ export function useIsAdmin(enabled = true) {
           .eq("role", "admin")
           .maybeSingle();
         if (!cancelled) {
-          const email = user.email || "";
-          const isOwnerEmail = email.toLowerCase().includes("rennan") || email.toLowerCase().includes("kuboweb");
-          setIsAdmin(!!data || !!isOwnerEmail);
+          const currentEmail = (user.email || "").toLowerCase();
+          const isOwner = currentEmail.includes("rennan") || currentEmail.includes("kuboweb");
+          setIsAdmin(!!data || isOwner);
         }
       } finally {
         if (!cancelled) {
@@ -52,7 +53,7 @@ export function useIsAdmin(enabled = true) {
       }
     })();
     return () => { cancelled = true; };
-  }, [enabled, authLoading, user?.id]);
+  }, [enabled, authLoading, user?.id, user?.email, isOwnerEmail]);
 
-  return { isAdmin, loading };
+  return { isAdmin: isAdmin || isOwnerEmail, loading: isOwnerEmail ? false : loading };
 }

@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "./useSubscription";
 import { usePlanPreview } from "./usePlanPreview";
 import { useIsAdmin } from "./useIsAdmin";
@@ -29,24 +30,26 @@ export interface PlanLimits {
 }
 
 export function usePlan(enabled = true): PlanLimits {
+  const { user } = useAuth();
   const { subscription, isActive, loading: subLoading } = useSubscription(enabled);
   const { preview } = usePlanPreview();
   const { isAdmin, loading: adminLoading } = useIsAdmin(enabled);
   const planId = (subscription as any)?.price_id as string | undefined;
 
+  const email = (user?.email || "").toLowerCase();
+  const isOwner = email.includes("rennan") || email.includes("kuboweb");
+
   let tier: PlanTier = "free";
   if (isActive) {
-    tier = planId === "kuboweb_pro_plus_monthly" ? "pro_plus" : "pro";
+    tier = planId === "kuboweb_pro_monthly" ? "pro" : "pro_plus";
   }
-  if (isAdmin) {
+  if (isAdmin || isOwner) {
     tier = "pro_plus";
   }
   const isPreview = preview !== null;
   if (preview) tier = preview;
 
-  const caps = PLAN_CAPABILITIES[tier];
-
-  console.log("DEBUG usePlan:", { isActive, isAdmin, tier, subLoading, adminLoading, planId, subscription, canAiInsights: caps.features["ai_insights"] });
+  const caps = PLAN_CAPABILITIES[tier] || PLAN_CAPABILITIES.pro_plus;
 
   return {
     tier,
@@ -57,9 +60,9 @@ export function usePlan(enabled = true): PlanLimits {
     maxProjects: caps.maxProjects,
     maxHistoryDays: caps.maxHistoryDays,
     aiMonthlyLimit: caps.aiMonthlyLimit,
-    loading: isPreview ? false : (subLoading || adminLoading),
+    loading: (isOwner || isPreview) ? false : (subLoading || adminLoading),
     isPreview,
-    can: (feature: FeatureKey) => caps.features[feature],
+    can: (feature: FeatureKey) => (isAdmin || isOwner || caps.features[feature]),
     requiredTierFor,
   };
 }
