@@ -145,7 +145,7 @@ export function AppSidebar() {
                   key={item.title}
                   {...item}
                   active={isActive(item.url)}
-                  locked={!!feature && !plan.loading && !plan.can(feature) && !isAdmin}
+                  locked={!!feature && !plan.loading && !plan.can(feature)}
                 />
               ))}
             </SidebarMenu>

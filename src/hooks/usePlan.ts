@@ -38,18 +38,22 @@ export function usePlan(enabled = true): PlanLimits {
 
   const email = (user?.email || "").toLowerCase();
   const isOwner = email.includes("rennan") || email.includes("kuboweb");
+  const isEffectiveAdmin = isAdmin || isOwner;
+
+  const isPreview = preview !== null;
 
   let tier: PlanTier = "free";
   if (isActive) {
     tier = planId === "kuboweb_pro_monthly" ? "pro" : "pro_plus";
   }
-  if (isAdmin || isOwner) {
+  if (isEffectiveAdmin && !isPreview) {
     tier = "pro_plus";
   }
-  const isPreview = preview !== null;
-  if (preview) tier = preview;
+  if (isPreview && preview) {
+    tier = preview;
+  }
 
-  const caps = PLAN_CAPABILITIES[tier] || PLAN_CAPABILITIES.pro_plus;
+  const caps = PLAN_CAPABILITIES[tier] || PLAN_CAPABILITIES.free;
 
   return {
     tier,
@@ -60,9 +64,14 @@ export function usePlan(enabled = true): PlanLimits {
     maxProjects: caps.maxProjects,
     maxHistoryDays: caps.maxHistoryDays,
     aiMonthlyLimit: caps.aiMonthlyLimit,
-    loading: (isOwner || isPreview) ? false : (subLoading || adminLoading),
+    loading: (isEffectiveAdmin || isPreview) ? false : (subLoading || adminLoading),
     isPreview,
-    can: (feature: FeatureKey) => (isAdmin || isOwner || caps.features[feature]),
+    can: (feature: FeatureKey) => {
+      if (isPreview) {
+        return !!caps.features[feature];
+      }
+      return isEffectiveAdmin || !!caps.features[feature];
+    },
     requiredTierFor,
   };
 }
