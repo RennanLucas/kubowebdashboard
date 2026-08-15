@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowRight, Globe, Building2, Rocket, CheckCircle2, BarChart3, Zap } from "lucide-react";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
+import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
 interface ClientFormData {
   companyName: string;
@@ -225,7 +226,8 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-6 flex justify-center">
-            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
+            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto dark:hidden block" />
+            <img src={logoKubowebWhite} alt="KUBOWEB" className="h-10 w-auto hidden dark:block" />
           </div>
 
           {/* Step indicator */}

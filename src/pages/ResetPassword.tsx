@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
+import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
 // Schema de validação da nova senha
 const passwordSchema = z
@@ -242,8 +243,9 @@ const ResetPassword = () => {
       <div className="w-full max-w-sm p-8 rounded-3xl glass-card shadow-2xl border-white/10 animate-fade-in relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative z-10">
-          <div className="mb-8 flex justify-center">
-          <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
+          <div className="mb-8 flex justify-center lg:justify-start">
+          <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto dark:hidden block" />
+          <img src={logoKubowebWhite} alt="KUBOWEB" className="h-10 w-auto hidden dark:block" />
         </div>
         <h2 className="text-2xl font-semibold text-foreground mb-1 text-center">
           Redefinir senha

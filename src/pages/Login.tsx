@@ -227,7 +227,8 @@ const Login = () => {
         <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
         <div className="w-full max-w-md animate-scale-in glass-strong p-8 sm:p-10 rounded-2xl relative z-10 shadow-2xl">
           <div className="mb-8 flex justify-center lg:justify-start">
-            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto" />
+            <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto dark:hidden block" />
+            <img src={logoKubowebWhite} alt="KUBOWEB" className="h-10 w-auto hidden dark:block" />
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground mb-2">
             {isSignUp ? "Criar conta" : "Bem-vindo de volta"}
