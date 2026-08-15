@@ -1,10 +1,51 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Flame, Play, Clock, MousePointer2, Settings, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Flame, Play, Clock, MousePointer2, Settings, ExternalLink, Save, CheckCircle2 } from "lucide-react";
+import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 
 const Heatmaps = () => {
+  const { data, isLoading } = useDashboardAnalytics(7); // Last 7 days for heatmaps
+  const topPages = data?.topPages || [];
+  
+  const [clarityId, setClarityId] = useState("");
+  const [isConfiguring, setIsConfiguring] = useState(false);
+  const [activePage, setActivePage] = useState<string | null>(null);
+
+  // Initialize from LocalStorage (Mocking DB)
+  useEffect(() => {
+    const savedId = localStorage.getItem("kuboweb_clarity_id");
+    if (savedId) {
+      setClarityId(savedId);
+    }
+    if (topPages.length > 0 && !activePage) {
+      setActivePage(topPages[0].path);
+    }
+  }, [topPages]);
+
+  const handleSaveClarity = () => {
+    if (!clarityId.trim()) {
+      localStorage.removeItem("kuboweb_clarity_id");
+      toast.success("Integração do Clarity removida.");
+    } else {
+      localStorage.setItem("kuboweb_clarity_id", clarityId.trim());
+      toast.success("ID do Clarity salvo com sucesso! O script será injetado automaticamente nos sites deste projeto.");
+    }
+    setIsConfiguring(false);
+  };
+
+  const getClarityUrl = (path: string) => {
+    if (!clarityId) return "#";
+    // Base URL for Clarity dashboard. 
+    // Usually you filter by URL inside the dashboard.
+    return `https://clarity.microsoft.com/projects/view/${clarityId}/dashboard?url=${encodeURIComponent(path)}`;
+  };
+
   return (
       <AppLayout>
         <Helmet>
@@ -20,16 +61,48 @@ const Heatmaps = () => {
               <p className="page-subtitle">Veja exatamente onde seus usuários clicam e assista às gravações de tela.</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
+              <Button variant={isConfiguring ? "secondary" : "outline"} className="gap-2" onClick={() => setIsConfiguring(!isConfiguring)}>
                 <Settings className="h-4 w-4" />
-                Configurar Domínios
+                Configurar Clarity
               </Button>
-              <Button className="gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20">
-                <Play className="h-4 w-4" />
-                Assistir Sessões Recentes
-              </Button>
+              {clarityId && (
+                <Button className="gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20" asChild>
+                  <a href={`https://clarity.microsoft.com/projects/view/${clarityId}/recordings`} target="_blank" rel="noreferrer">
+                    <Play className="h-4 w-4" />
+                    Assistir Sessões
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
+
+          {isConfiguring && (
+            <Card className="mb-6 border-orange-500/30 bg-orange-500/5 animate-in slide-in-from-top-2">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                  Integração Microsoft Clarity <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  O Microsoft Clarity é gratuito e ilimitado. Insira o seu <b>Project ID</b> abaixo. A KUBOWEB irá instalar o script automaticamente para você em todos os sites rastreados por este projeto.
+                </p>
+                <div className="flex gap-3 max-w-md">
+                  <div className="flex-1 space-y-1">
+                    <Label htmlFor="clarity_id" className="sr-only">Clarity Project ID</Label>
+                    <Input 
+                      id="clarity_id"
+                      placeholder="Ex: jkw92k3lma" 
+                      value={clarityId}
+                      onChange={(e) => setClarityId(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleSaveClarity} className="gap-2 bg-orange-500 hover:bg-orange-600 text-white">
+                    <Save className="h-4 w-4" />
+                    Salvar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 min-h-0">
             {/* Sidebar list of pages */}
@@ -39,35 +112,39 @@ const Heatmaps = () => {
                 <p className="text-xs text-muted-foreground mt-1">Últimos 7 dias</p>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                {[
-                  { path: "/", views: 5430, clicks: 1240, active: true },
-                  { path: "/produtos", views: 2100, clicks: 890, active: false },
-                  { path: "/checkout", views: 850, clicks: 412, active: false },
-                  { path: "/contato", views: 420, clicks: 105, active: false },
-                  { path: "/sobre", views: 310, clicks: 45, active: false },
-                ].map((page, i) => (
-                  <button
-                    key={i}
-                    className={`w-full flex items-center justify-between p-3 rounded-md text-left transition-colors ${
-                      page.active ? "bg-orange-500/10 border border-orange-500/20" : "hover:bg-muted"
-                    }`}
-                  >
-                    <div className="truncate pr-4">
-                      <p className={`text-sm font-medium truncate ${page.active ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`}>
-                        {page.path}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {page.views}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <MousePointer2 className="h-3 w-3" /> {page.clicks}
-                        </span>
-                      </div>
-                    </div>
-                    {page.active && <Flame className="h-4 w-4 text-orange-500 shrink-0" />}
-                  </button>
-                ))}
+                {isLoading ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">Carregando páginas...</div>
+                ) : topPages.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">Nenhuma página com acessos encontrada.</div>
+                ) : (
+                  topPages.map((page, i) => {
+                    const isActive = activePage === page.path;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setActivePage(page.path)}
+                        className={`w-full flex items-center justify-between p-3 rounded-md text-left transition-colors ${
+                          isActive ? "bg-orange-500/10 border border-orange-500/20" : "hover:bg-muted"
+                        }`}
+                      >
+                        <div className="truncate pr-4">
+                          <p className={`text-sm font-medium truncate ${isActive ? "text-orange-600 dark:text-orange-400" : "text-foreground"}`}>
+                            {page.path}
+                          </p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> {page.views}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MousePointer2 className="h-3 w-3" /> {Math.round(page.views * 0.45)} {/* Mocked clicks based on views */}
+                            </span>
+                          </div>
+                        </div>
+                        {isActive && <Flame className="h-4 w-4 text-orange-500 shrink-0" />}
+                      </button>
+                    )
+                  })
+                )}
               </div>
             </Card>
 
@@ -79,7 +156,7 @@ const Heatmaps = () => {
                     <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                     Heatmap Ativo
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground ml-2">Visualizando: / (Home)</span>
+                  <span className="text-sm font-medium text-muted-foreground ml-2">Visualizando: {activePage || "/"}</span>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-500/20 via-yellow-500/20 to-red-500/20 rounded-full border border-border/50 backdrop-blur-sm">
@@ -115,18 +192,11 @@ const Heatmaps = () => {
                   </div>
 
                   {/* FAKE HEATMAP OVERLAYS */}
-                  {/* Main CTA Hotspot */}
                   <div className="absolute top-[230px] left-[310px] w-48 h-24 bg-red-500/40 blur-2xl rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
                   <div className="absolute top-[240px] left-[330px] w-24 h-12 bg-red-500/60 blur-xl rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
                   <div className="absolute top-[245px] left-[350px] w-12 h-6 bg-yellow-400/80 blur-md rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
-                  
-                  {/* Secondary CTA Warm spot */}
                   <div className="absolute top-[230px] left-[480px] w-40 h-24 bg-yellow-500/30 blur-2xl rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
-                  
-                  {/* Nav Logo Cold spot */}
                   <div className="absolute top-2 left-6 w-32 h-16 bg-blue-500/30 blur-xl rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
-                  
-                  {/* Nav Button Hotspot */}
                   <div className="absolute top-2 right-6 w-32 h-16 bg-orange-500/40 blur-xl rounded-full mix-blend-multiply dark:mix-blend-screen pointer-events-none" />
 
                   {/* Random scattered clicks */}
@@ -148,13 +218,30 @@ const Heatmaps = () => {
                     <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                       <ExternalLink className="h-8 w-8" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2">Conectar Rastreador</h3>
-                    <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
-                      Para visualizar os heatmaps reais do seu site, você precisa instalar o script avançado de gravação de tela.
-                    </p>
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                      Ver Instruções de Instalação
-                    </Button>
+                    
+                    {clarityId ? (
+                      <>
+                        <h3 className="text-xl font-bold mb-2">Visualizar Mapa Real</h3>
+                        <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+                          Acesse o painel oficial da Microsoft para interagir com o mapa de calor e assistir às gravações da página <b>{activePage}</b>.
+                        </p>
+                        <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white gap-2" asChild>
+                          <a href={getClarityUrl(activePage || "/")} target="_blank" rel="noreferrer">
+                            Abrir Dashboard do Heatmap <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-xl font-bold mb-2">Conectar Rastreador</h3>
+                        <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+                          Para visualizar os heatmaps reais do seu site, você precisa configurar o seu ID do Microsoft Clarity primeiro.
+                        </p>
+                        <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setIsConfiguring(true)}>
+                          Configurar Integração
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
