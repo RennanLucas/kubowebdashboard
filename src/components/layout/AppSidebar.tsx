@@ -100,7 +100,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-sidebar-border/30 relative"
+      className="border-r border-sidebar-border/30"
       style={{ background: "var(--gradient-sidebar)" }}
     >
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
