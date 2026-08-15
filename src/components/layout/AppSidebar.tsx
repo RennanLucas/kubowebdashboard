@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock, Target, Flame, FileText } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import type { FeatureKey } from "@/lib/plan-features";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
@@ -31,9 +31,12 @@ const mainItems: {
 }[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tour: "sidebar-dashboard" },
   { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live", feature: "live" },
+  { title: "Metas e Funis", url: "/goals", icon: Target, feature: "goals" },
+  { title: "Heatmaps", url: "/heatmaps", icon: Flame, feature: "heatmap" },
   { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
   { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
+  { title: "Relatórios", url: "/reports", icon: FileText, feature: "pdf_report" },
   { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 

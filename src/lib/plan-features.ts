@@ -51,13 +51,13 @@ const PRO_FEATURES: Record<FeatureKey, boolean> = {
   csv_export: true,
   annotations: true,
   goals: true,
-  heatmap: true,
   realtime_refresh: true,
 };
 
 const PRO_PLUS_FEATURES: Record<FeatureKey, boolean> = {
   ...PRO_FEATURES,
   email_alerts: true,
+  heatmap: true,
 };
 
 export const PLAN_CAPABILITIES: Record<PlanTier, PlanCapabilities> = {

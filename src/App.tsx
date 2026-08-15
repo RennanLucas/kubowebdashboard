@@ -31,6 +31,9 @@ const Subscription = lazyWithRetry(() => import("./pages/Subscription"), "subscr
 const Install = lazyWithRetry(() => import("./pages/Install"), "install");
 const PWAQA = lazyWithRetry(() => import("./pages/PWAQA"), "pwa-qa");
 const Landing = lazyWithRetry(() => import("./pages/Landing"), "landing");
+const Reports = lazyWithRetry(() => import("./pages/Reports"), "reports");
+const Goals = lazyWithRetry(() => import("./pages/Goals"), "goals");
+const Heatmaps = lazyWithRetry(() => import("./pages/Heatmaps"), "heatmaps");
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -71,6 +74,9 @@ const App = () => (
               <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
               <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />
+              <Route path="/goals" element={<ProtectedRoute requireFeature="goals"><Goals /></ProtectedRoute>} />
+              <Route path="/heatmaps" element={<ProtectedRoute requireFeature="heatmap"><Heatmaps /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
