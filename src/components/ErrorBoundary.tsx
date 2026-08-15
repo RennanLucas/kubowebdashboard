@@ -27,10 +27,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     try {
-      localStorage.removeItem("kuboweb.plan-preview");
+      localStorage.clear();
       sessionStorage.clear();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
     } catch {}
-    window.location.href = "/dashboard";
+    
+    // Force a hard reload from the server, bypassing cache
+    window.location.reload();
   };
 
   public render() {
