@@ -92,7 +92,7 @@ const Heatmaps = () => {
                     <li>Acesse <a href="https://clarity.microsoft.com/" target="_blank" rel="noreferrer" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">clarity.microsoft.com</a> e crie uma conta gratuita.</li>
                     <li>Crie um novo projeto digitando o endereço do site que você deseja rastrear (Ex: <em>www.suaempresa.com.br</em>).</li>
                     <li>Vá em <strong>Settings</strong> (Configurações) &gt; <strong>Visão Geral</strong>.</li>
-                    <li>Clique no botão de copiar ao lado de <strong>Código do projeto</strong> (ex: <code className="bg-background px-1 py-0.5 rounded border border-border">y2jr1mv90j</code>) e cole abaixo.</li>
+                    <li>Clique no botão de copiar ao lado de <strong>Código do projeto</strong> (ex: <code className="bg-background px-1 py-0.5 rounded border border-border">a1b2c3d4e5</code>) e cole abaixo.</li>
                   </ol>
                   <p className="text-xs text-orange-600/80 dark:text-orange-400/80 mt-3 font-medium">
                     ✨ Você <strong>não precisa</strong> colar o script enorme no seu site. Apenas salve o ID abaixo e a KUBOWEB injetará automaticamente para você!
