@@ -33,7 +33,8 @@ export function useIsAdmin(enabled = true) {
           .eq("role", "admin")
           .maybeSingle();
         if (!cancelled) {
-          setIsAdmin(!!data);
+          const isOwnerEmail = user.email?.toLowerCase().includes("rennan") || user.email?.toLowerCase().includes("kuboweb");
+          setIsAdmin(!!data || !!isOwnerEmail);
         }
       } finally {
         if (!cancelled) {

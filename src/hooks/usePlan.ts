@@ -46,6 +46,8 @@ export function usePlan(enabled = true): PlanLimits {
 
   const caps = PLAN_CAPABILITIES[tier];
 
+  console.log("DEBUG usePlan:", { isActive, isAdmin, tier, subLoading, adminLoading, planId, subscription, canAiInsights: caps.features["ai_insights"] });
+
   return {
     tier,
     label: caps.label,
