@@ -1,5 +1,6 @@
 import { useSubscription } from "./useSubscription";
 import { usePlanPreview } from "./usePlanPreview";
+import { useIsAdmin } from "./useIsAdmin";
 import {
   PLAN_CAPABILITIES,
   type FeatureKey,
@@ -28,13 +29,17 @@ export interface PlanLimits {
 }
 
 export function usePlan(enabled = true): PlanLimits {
-  const { subscription, isActive, loading } = useSubscription(enabled);
+  const { subscription, isActive, loading: subLoading } = useSubscription(enabled);
   const { preview } = usePlanPreview();
+  const { isAdmin, loading: adminLoading } = useIsAdmin(enabled);
   const planId = (subscription as any)?.plan_id as string | undefined;
 
   let tier: PlanTier = "free";
   if (isActive) {
     tier = planId === "kuboweb_pro_plus_monthly" ? "pro_plus" : "pro";
+  }
+  if (isAdmin) {
+    tier = "pro_plus";
   }
   const isPreview = preview !== null;
   if (preview) tier = preview;
@@ -50,7 +55,7 @@ export function usePlan(enabled = true): PlanLimits {
     maxProjects: caps.maxProjects,
     maxHistoryDays: caps.maxHistoryDays,
     aiMonthlyLimit: caps.aiMonthlyLimit,
-    loading: isPreview ? false : loading,
+    loading: isPreview ? false : (subLoading || adminLoading),
     isPreview,
     can: (feature: FeatureKey) => caps.features[feature],
     requiredTierFor,

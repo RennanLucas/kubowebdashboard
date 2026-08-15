@@ -1,7 +1,8 @@
 import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import type { FeatureKey } from "@/lib/plan-features";
-import logoKuboweb from "@/assets/logo-kuboweb-white.png";
+import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import logoKubowebDark from "@/assets/logo-kuboweb.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -107,10 +108,14 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border/70">
         <div className="flex items-center gap-2 px-2 py-3">
           {collapsed ? (
-            <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto" />
+            <>
+              <img src={logoKubowebDark} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto dark:hidden block" />
+              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-7 object-contain mx-auto hidden dark:block" />
+            </>
           ) : (
             <div className="flex items-center gap-2 min-w-0">
-              <img src={logoKuboweb} alt="KUBOWEB" className="h-7 w-auto shrink-0" />
+              <img src={logoKubowebDark} alt="KUBOWEB" className="h-7 w-auto shrink-0 dark:hidden block" />
+              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-7 w-auto shrink-0 hidden dark:block" />
               <span
                 className={[
                   "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300",
