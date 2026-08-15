@@ -97,6 +97,9 @@ const Heatmaps = () => {
                   <p className="text-xs text-orange-600/80 dark:text-orange-400/80 mt-3 font-medium">
                     ✨ Você <strong>não precisa</strong> colar o script enorme no seu site. Apenas salve o ID abaixo e a KUBOWEB injetará automaticamente para você!
                   </p>
+                  <p className="text-xs text-orange-600/80 dark:text-orange-400/80 mt-2 font-medium">
+                    ⏱️ <strong>Atenção:</strong> Após salvar o ID, a Microsoft pode levar <strong>até 2 horas</strong> para liberar as abas do seu painel, e é necessário que seu site receba visitantes reais nesse período.
+                  </p>
                 </div>
 
                 <div className="flex gap-3 max-w-md">
