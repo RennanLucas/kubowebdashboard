@@ -37,20 +37,30 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground">
-          <div className="max-w-md w-full p-6 rounded-2xl border border-border bg-card shadow-xl text-center space-y-4">
+          <div className="max-w-lg w-full p-6 rounded-2xl border border-border bg-card shadow-xl text-center space-y-4">
             <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Algo deu errado ao carregar</h2>
+              <h2 className="text-lg font-bold text-foreground">Falha ao renderizar o painel</h2>
               <p className="text-xs text-muted-foreground mt-1">
-                Uma falha temporária ocorreu na interface. Clique abaixo para recarregar o painel.
+                Detalhes do erro detectado:
               </p>
+              {this.state.error && (
+                <pre className="mt-2 p-3 bg-muted/60 border border-border rounded-md text-[11px] text-destructive text-left overflow-auto max-h-40 font-mono whitespace-pre-wrap">
+                  {this.state.error.message || String(this.state.error)}
+                </pre>
+              )}
             </div>
-            <Button onClick={this.handleReset} className="w-full gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Recarregar Dashboard
-            </Button>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href = "/dashboard"; }} className="flex-1 text-xs">
+                Limpar Cache e Recarregar
+              </Button>
+              <Button onClick={this.handleReset} className="flex-1 text-xs gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5" />
+                Recarregar Painel
+              </Button>
+            </div>
           </div>
         </div>
       );

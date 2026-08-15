@@ -104,15 +104,16 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
     const metricsMap = new Map(metrics.map((m) => [m.date, m]));
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - (dateRange - 1));
     const result: Array<{ date: string; visitors: number; views: number; leads: number; rawDate: string }> = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const today = new Date();
+    for (let i = dateRange - 1; i >= 0; i--) {
+      const d = new Date(today.getTime() - i * 86400000);
       const key = d.toISOString().split("T")[0];
       const m = metricsMap.get(key);
+      const parts = key.split("-");
+      const formattedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}` : key;
       result.push({
-        date: format(new Date(key), "dd/MM"),
+        date: formattedDate,
         rawDate: key,
         visitors: m?.visitors ?? 0,
         views: m?.views ?? m?.visitors ?? 0,
