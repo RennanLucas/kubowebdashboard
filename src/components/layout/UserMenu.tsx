@@ -17,7 +17,6 @@ import {
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
-  const { preview, setPreview } = usePlanPreview();
   const navigate = useNavigate();
 
   const initials = (user?.email || "U").slice(0, 2).toUpperCase();
@@ -25,15 +24,6 @@ export const UserMenu = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
-  };
-
-  const handleSelectTier = (tier: PlanTier | null) => {
-    setPreview(tier);
-    if (tier) {
-      toast.info(`Simulando visualização como plano ${PLAN_CAPABILITIES[tier].label}`);
-    } else {
-      toast.success("Retornado ao seu plano real (Pro+)");
-    }
   };
 
   return (
