@@ -32,7 +32,7 @@ export function usePlan(enabled = true): PlanLimits {
   const { subscription, isActive, loading: subLoading } = useSubscription(enabled);
   const { preview } = usePlanPreview();
   const { isAdmin, loading: adminLoading } = useIsAdmin(enabled);
-  const planId = (subscription as any)?.plan_id as string | undefined;
+  const planId = (subscription as any)?.price_id as string | undefined;
 
   let tier: PlanTier = "free";
   if (isActive) {

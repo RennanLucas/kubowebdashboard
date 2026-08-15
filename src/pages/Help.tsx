@@ -354,9 +354,10 @@ export default function Help() {
             <Card key={sec.title} className="p-5">
               <h2 className="text-sm font-semibold text-foreground mb-3">{sec.title}</h2>
               <Accordion
+                key={sec.title + (isFiltering ? "-filtered" : "-all")}
                 type="multiple"
                 className="w-full"
-                defaultValue={isFiltering ? sec.items.map((i) => i.term) : undefined}
+                defaultValue={isFiltering ? sec.items.map((i) => i.term) : []}
               >
                 {sec.items.map((item) => (
                   <AccordionItem key={item.term} value={item.term} className="border-border">
