@@ -38,3 +38,7 @@ export const parseLeadValue = (raw: string): { value: number | null; error: stri
   const rounded = Math.round(num * 100) / 100;
   return { value: rounded, error: null };
 };
+
+export const getAppUrl = () => {
+  return import.meta.env.PROD ? 'https://kubowebdashboard.vercel.app' : window.location.origin;
+};

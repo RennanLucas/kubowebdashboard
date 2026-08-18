@@ -22,6 +22,7 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlans } from "@/hooks/usePlans";
+import { getAppUrl } from "@/lib/utils";
 
 type SwitchablePlanId = string;
 
@@ -115,7 +116,7 @@ export default function SubscriptionPage() {
       const { data, error } = await supabase.functions.invoke("create-mp-preference", {
         body: {
           planId: newPlanId,
-          returnUrl: `${window.location.origin}/checkout/return?switched=1`,
+          returnUrl: `${getAppUrl()}/checkout/return?switched=1`,
         },
       });
       if (error) throw new Error(error.message);

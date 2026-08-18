@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, BarChart3, Users, Target, Zap, Shield, TrendingUp, Globe, Bell, Sparkles, Activity, Crown, Maximize2, Flame, FileText, History } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import { getAppUrl } from "@/lib/utils";
 
 async function ensureConfirmationEmailSent(email: string, signupStartedAt: string) {
   // Aguarda alguns segundos para o webhook auth-email-hook enfileirar o email.
@@ -35,7 +36,7 @@ async function ensureConfirmationEmailSent(email: string, signupStartedAt: strin
   const { error: resendError } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: { emailRedirectTo: getAppUrl() },
   });
 
   if (resendError) {
@@ -82,7 +83,7 @@ const Login = () => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: getAppUrl() },
         });
 
         if (error) throw error;
@@ -133,7 +134,7 @@ const Login = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${getAppUrl()}/reset-password`,
       });
       if (error) throw error;
       toast.success("Enviamos um link de recuperação para seu email.");

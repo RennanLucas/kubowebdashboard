@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, getAppUrl } from "@/lib/utils";
 
 export default function Pricing() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -44,7 +44,7 @@ export default function Pricing() {
       const { data, error } = await supabase.functions.invoke("create-mp-preference", {
         body: {
           planId,
-          returnUrl: `${window.location.origin}/checkout/return`,
+          returnUrl: `${getAppUrl()}/checkout/return`,
         },
       });
       if (error || !data?.url) {

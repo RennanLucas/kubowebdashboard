@@ -58,7 +58,7 @@ const PWAQA = () => {
     typeof window !== "undefined" &&
     (window.location.hostname.includes("id-preview--") ||
       window.location.hostname.includes("lovableproject.com") ||
-      window.location.hostname === "localhost");
+      (!import.meta.env.PROD && window.location.hostname === "localhost"));
 
   const refresh = useCallback(async () => {
     if (!swSupported) return;

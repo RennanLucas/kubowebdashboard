@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getAppUrl } from "@/lib/utils";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 
@@ -64,7 +64,7 @@ const ResetPassword = () => {
     }
     setResending(true);
     try {
-      const redirectTo = `${window.location.origin}/reset-password`;
+      const redirectTo = `${getAppUrl()}/reset-password`;
       const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo });
       if (error) throw error;
       toast.success("Enviamos um novo link de recuperação. Verifique seu email.");
