@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { Plus, Globe, Trash2, Layers, Sparkles } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import { Link } from "react-router-dom";
+import TrackingSnippet from "@/components/TrackingSnippet";
+import TrackingStatus from "@/components/settings/TrackingStatus";
 
 interface Props {
   organizationId: string;
@@ -26,7 +28,7 @@ export default function ProjectsManager({ organizationId }: Props) {
   const [form, setForm] = useState({ name: "", url: "" });
 
   const { data: projects, refetch } = useQuery({
-    queryKey: ["projects", organizationId],
+    queryKey: ["org-projects", organizationId],
     enabled: !!organizationId && !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,6 +74,7 @@ export default function ProjectsManager({ organizationId }: Props) {
       setForm({ name: "", url: "" });
       setOpen(false);
       await refetch();
+      await qc.invalidateQueries({ queryKey: ["projects"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar projeto");
@@ -148,39 +151,59 @@ export default function ProjectsManager({ organizationId }: Props) {
                   </div>
                 )}
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir projeto "{p.name}"?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. Os dados de tráfego deste projeto serão mantidos no banco, mas o projeto deixará de aparecer.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={async () => {
-                        const { error } = await supabase.from("projects").delete().eq("id", p.id);
-                        if (error) {
-                          toast.error("Erro ao excluir: " + error.message);
-                          return;
-                        }
-                        toast.success("Projeto excluído");
-                        await refetch();
-                        await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
-                      }}
-                    >
-                      Excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex items-center gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 text-xs h-8">
+                      <Sparkles className="h-3.5 w-3.5" /> Instalação
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Instalação do Projeto: {p.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 py-4">
+                      <TrackingStatus projectId={p.id} />
+                      <TrackingSnippet projectId={p.id} />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0 h-8 w-8">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir projeto "{p.name}"?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Os dados de tráfego deste projeto serão mantidos no banco, mas o projeto deixará de aparecer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={async () => {
+                          const { error } = await supabase.from("projects").delete().eq("id", p.id);
+                          if (error) {
+                            toast.error("Erro ao excluir: " + error.message);
+                            return;
+                          }
+                          toast.success("Projeto excluído");
+                          await refetch();
+                          await qc.invalidateQueries({ queryKey: ["projects"] });
+                          await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
+                        }}
+                      >
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           ))
         ) : (

@@ -27,10 +27,14 @@ export default function Settings() {
 
   const [saving, setSaving] = useState(false);
   const [orgName, setOrgName] = useState("");
+  const [orgDomain, setOrgDomain] = useState("");
+  const [leadValue, setLeadValue] = useState("25");
 
   useEffect(() => {
     if (activeOrganization) {
-      setOrgName(activeOrganization.name);
+      setOrgName(activeOrganization.name || "");
+      setOrgDomain(activeOrganization.domain || "");
+      setLeadValue(activeOrganization.lead_value?.toString() || "25");
     }
   }, [activeOrganization]);
 
@@ -41,11 +45,17 @@ export default function Settings() {
       return;
     }
 
+    const value = parseFloat(leadValue);
+    if (isNaN(value) || value < 0) {
+      toast.error("O valor do lead deve ser um número válido e positivo.");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
         .from("organizations")
-        .update({ name: orgName })
+        .update({ name: orgName, domain: orgDomain, lead_value: value })
         .eq("id", activeOrganization.id);
       
       if (error) throw error;
@@ -95,17 +105,45 @@ export default function Settings() {
                 <Building2 className="h-4 w-4 text-primary" /> Dados da Organização
               </h2>
               <div className="space-y-4">
-                <div className="space-y-2 max-w-sm">
-                  <Label htmlFor="orgName">Nome da Empresa</Label>
-                  <Input
-                    id="orgName"
-                    value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
-                    disabled={currentRole === "viewer" || currentRole === "editor"}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+                  <div className="space-y-2">
+                    <Label htmlFor="orgName">Nome da Empresa</Label>
+                    <Input
+                      id="orgName"
+                      value={orgName}
+                      onChange={(e) => setOrgName(e.target.value)}
+                      disabled={currentRole === "viewer" || currentRole === "editor"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="orgDomain">Domínio Principal</Label>
+                    <Input
+                      id="orgDomain"
+                      placeholder="Ex: kuboweb.com.br"
+                      value={orgDomain}
+                      onChange={(e) => setOrgDomain(e.target.value)}
+                      disabled={currentRole === "viewer" || currentRole === "editor"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="leadValue">Valor Estimado por Lead (R$)</Label>
+                    <Input
+                      id="leadValue"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="25"
+                      value={leadValue}
+                      onChange={(e) => setLeadValue(e.target.value)}
+                      disabled={currentRole === "viewer" || currentRole === "editor"}
+                    />
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Usado para calcular a estimativa de receita gerada no Dashboard.
+                    </p>
+                  </div>
                 </div>
                 {(currentRole === "owner" || currentRole === "admin") && (
-                  <Button onClick={handleSaveOrganization} disabled={saving || !orgName.trim() || orgName === activeOrganization?.name}>
+                  <Button onClick={handleSaveOrganization} disabled={saving || !orgName.trim() || (orgName === activeOrganization?.name && orgDomain === activeOrganization?.domain && leadValue === activeOrganization?.lead_value?.toString())}>
                     {saving ? "Salvando..." : <><Save className="mr-2 h-4 w-4" /> Salvar Alterações</>}
                   </Button>
                 )}
