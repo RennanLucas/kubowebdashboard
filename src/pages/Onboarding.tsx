@@ -127,36 +127,16 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
         toast.success("Dados atualizados com sucesso!");
         navigate("/dashboard");
       } else {
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .insert({
-            name: form.companyName,
-            domain: form.domain || null,
-          })
-          .select()
-          .single();
+        const { data: orgId, error: orgError } = await supabase.rpc(
+          "create_organization",
+          {
+            org_name: form.companyName,
+            org_domain: form.domain || null,
+            project_name: form.projectName || form.companyName
+          }
+        );
 
         if (orgError) throw orgError;
-
-        const { error: memberError } = await supabase
-          .from("organization_members")
-          .insert({
-            organization_id: org.id,
-            user_id: user.id,
-            role: "owner",
-          });
-
-        if (memberError) throw memberError;
-
-        const { error: projectError } = await supabase
-          .from("projects")
-          .insert({
-            organization_id: org.id,
-            name: form.projectName || form.companyName,
-            url: form.domain || null,
-          });
-
-        if (projectError) throw projectError;
 
         toast.success("Projeto registrado com sucesso!");
         navigate("/dashboard");
