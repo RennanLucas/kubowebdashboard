@@ -91,7 +91,7 @@ export const useOverview = (days: number, projectId?: string, filters?: FetchOpt
   return useQuery({
     queryKey: ["dashboard-overview", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
     refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-overview", cappedDays, projectId, token, filters);

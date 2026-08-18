@@ -50,12 +50,12 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
-  // If the stored project id no longer exists for this user (deleted, switched
-  // accounts, etc.), reset it to the first available project so the selector
-  // doesn't get stuck on a stale value.
   useEffect(() => {
     if (!allProjects || allProjects.length === 0) return;
-    if (!selectedProjectId) return;
+    if (!selectedProjectId) {
+      setSelectedProjectId(allProjects[0].id);
+      return;
+    }
     const exists = allProjects.some((p) => p.id === selectedProjectId);
     if (!exists) setSelectedProjectId(allProjects[0].id);
   }, [allProjects, selectedProjectId, setSelectedProjectId]);
