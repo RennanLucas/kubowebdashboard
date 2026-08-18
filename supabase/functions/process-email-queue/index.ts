@@ -1,5 +1,5 @@
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -54,11 +54,9 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
 
 // Move a message to the dead letter queue and log the reason.
 async function moveToDlq(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient,
   queue: string,
-  // deno-lint-ignore no-explicit-any
-  msg: { msg_id: number; message: any },
+  msg: { msg_id: number; message: Record<string, unknown> },
   reason: string
 ): Promise<void> {
   const payload = msg.message

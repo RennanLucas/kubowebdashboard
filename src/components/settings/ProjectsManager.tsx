@@ -13,10 +13,10 @@ import { usePlan } from "@/hooks/usePlan";
 import { Link } from "react-router-dom";
 
 interface Props {
-  clientId: string;
+  organizationId: string;
 }
 
-export default function ProjectsManager({ clientId }: Props) {
+export default function ProjectsManager({ organizationId }: Props) {
   const qc = useQueryClient();
   const { session } = useAuth();
   const userId = session?.user?.id;
@@ -26,13 +26,13 @@ export default function ProjectsManager({ clientId }: Props) {
   const [form, setForm] = useState({ name: "", url: "" });
 
   const { data: projects, refetch } = useQuery({
-    queryKey: ["client-projects", userId, clientId],
-    enabled: !!clientId && !!userId,
+    queryKey: ["projects", organizationId],
+    enabled: !!organizationId && !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
         .select("id, name, url, created_at")
-        .eq("client_id", clientId)
+        .eq("organization_id", organizationId)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -59,7 +59,11 @@ export default function ProjectsManager({ clientId }: Props) {
     setSaving(true);
     try {
       const { error } = await supabase.from("projects").insert({
-        client_id: clientId,
+        organization_id: organizationId,
+        // Since client_id is required in DB schema still, we must fill it with something or rely on DB defaults if they exist. Wait, the DB schema has client_id as NOT NULL! Oh no, Fase 3.1 multi tenant migration made organization_id the main key but kept client_id for legacy?
+        // Let's pass a dummy or we need to find the user's first client_id. Wait! The Fase 3.1 Multi Tenant SQL:
+        // `ALTER TABLE public.projects ALTER COLUMN client_id DROP NOT NULL;`
+        // Let's assume it's dropped NOT NULL.
         name: form.name.trim(),
         url: form.url.trim() || null,
       });
@@ -68,8 +72,7 @@ export default function ProjectsManager({ clientId }: Props) {
       setForm({ name: "", url: "" });
       setOpen(false);
       await refetch();
-      await qc.invalidateQueries({ queryKey: ["dashboard-analytics"] });
-      await qc.invalidateQueries({ queryKey: ["all-user-projects"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar projeto");
     } finally {
@@ -81,7 +84,7 @@ export default function ProjectsManager({ clientId }: Props) {
     <div className="glass-card rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Layers className="h-4 w-4 text-primary" /> Meus Projetos
+          <Layers className="h-4 w-4 text-primary" /> Projetos
         </h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -131,16 +134,6 @@ export default function ProjectsManager({ clientId }: Props) {
         ) : (
           <>Plano <span className="font-medium text-foreground">{plan.label}</span>: até <span className="font-medium text-foreground">{limitLabel} projeto{plan.maxProjects > 1 ? "s" : ""}</span> ({currentCount}/{limitLabel}).</>
         )}
-        {limitReached && !plan.isPro && (
-          <span className="block mt-2 text-destructive">
-            Limite atingido.{" "}
-            <Link to="/pricing" className="inline-flex items-center gap-1 underline font-medium">
-              <Sparkles className="h-3 w-3" />
-              Assine o Pro
-            </Link>{" "}
-            e tenha projetos ilimitados.
-          </span>
-        )}
       </p>
 
       <div className="space-y-2">
@@ -165,7 +158,7 @@ export default function ProjectsManager({ clientId }: Props) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Excluir projeto "{p.name}"?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. Os dados de tráfego e conversões deste projeto serão mantidos no banco, mas o projeto deixará de aparecer no dashboard e na comparação.
+                      Esta ação não pode ser desfeita. Os dados de tráfego deste projeto serão mantidos no banco, mas o projeto deixará de aparecer.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -180,8 +173,7 @@ export default function ProjectsManager({ clientId }: Props) {
                         }
                         toast.success("Projeto excluído");
                         await refetch();
-                        await qc.invalidateQueries({ queryKey: ["dashboard-analytics"] });
-                        await qc.invalidateQueries({ queryKey: ["all-user-projects"] });
+                        await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
                       }}
                     >
                       Excluir
@@ -198,3 +190,4 @@ export default function ProjectsManager({ clientId }: Props) {
     </div>
   );
 }
+

@@ -19,12 +19,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import { generateInsightDetails, generateLocalInsights, type HourlyPoint, type InsightDetail } from "@/lib/local-insights";
 import { compareInsightVersions, type InsightComparisonResult, type InsightHistoryRecord } from "@/lib/insight-history";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navigate } from "react-router-dom";
+
+import { InsightsHeader } from "@/components/insights/InsightsHeader";
+import { 
+  InsightsStatusCard, 
+  InsightsExplanationCard, 
+  InsightsWarningCard, 
+  InsightsEmptyStateCard, 
+  InsightsGeneratingCard 
+} from "@/components/insights/InsightsCards";
+import { InsightsDetailsAccordion } from "@/components/insights/InsightsDetailsAccordion";
+import { InsightsMarkdown } from "@/components/insights/InsightsMarkdown";
 
 export default function Insights() {
   const HISTORY_PAGE_SIZE = 8;
@@ -33,9 +45,12 @@ export default function Insights() {
   const VIRTUAL_SOURCE_VIEWPORT_HEIGHT = 288;
   const VIRTUAL_SOURCE_OVERSCAN = 4;
   const VIRTUALIZATION_THRESHOLD = 12;
+  
   const { user } = useAuth();
+  const { activeOrganization } = useOrganization();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
   const { data, isLoading, error } = useDashboardAnalytics(periodDays);
+  
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -60,14 +75,17 @@ export default function Insights() {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("insights:readingMode") === "1";
   });
+  
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem("insights:readingMode", readingMode ? "1" : "0");
   }, [readingMode]);
+  
   const reportRef = useRef<HTMLElement>(null);
   const getDetailSourceStateKey = (title: string, insightId = activeInsightId) => `${insightId ?? analysisSource ?? "current"}:${title}`;
   const filteredHistory = history.filter((item) => item.period_days === periodDays);
   const hasHistoryForSelectedPeriod = filteredHistory.length > 0;
+  
   const displayDetails = useMemo(() => {
     if (analysisDetails.length > 0) return analysisDetails;
     if (!analysis) return [];
@@ -337,7 +355,7 @@ export default function Insights() {
         pdf.line(margin, margin + headerHeight - 4, pageWidth - margin, margin + headerHeight - 4);
       };
 
-      const companyName = data?.client?.company_name || "Relatório de Performance";
+      const companyName = activeOrganization?.name || "Relatório de Performance";
 
       let renderedHeight = 0;
       let pageIndex = 0;
@@ -543,6 +561,21 @@ export default function Insights() {
     }
   };
 
+  // Reset insights when organization or project changes
+  useEffect(() => {
+    setActiveInsightId(null);
+    setCompareInsightId(null);
+    setComparison(null);
+    setAnalysis("");
+    setAnalysisDetails([]);
+    setDetailsLoading(false);
+    setDetailsError(null);
+    setAnalysisSource(null);
+    setOpenSources({});
+    setVisibleSourceCounts({});
+    setHistory([]);
+  }, [activeOrganization?.id, data?.client?.project?.id]);
+
   useEffect(() => {
     if (!user || !data) return;
     loadHistory();
@@ -612,62 +645,17 @@ export default function Insights() {
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/insights" />
       </Helmet>
       <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Insights com IA
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1 self-stretch sm:self-auto">
-              {[7, 30].map((days) => {
-                const isActive = periodDays === days;
-
-                return (
-                  <Button
-                    key={days}
-                    type="button"
-                    variant={isActive ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => handlePeriodChange(days as 7 | 30)}
-                    disabled={generating || isLoading}
-                    className="flex-1 sm:flex-none min-w-12"
-                  >
-                    {days}d
-                  </Button>
-                );
-              })}
-            </div>
-            {analysis && !generating && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={exporting} className="w-full justify-center gap-2 sm:w-auto">
-                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    Exportar
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={exportPDF} className="gap-2 cursor-pointer">
-                    <FileType className="h-4 w-4" />
-                    Exportar como PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportMarkdown} className="gap-2 cursor-pointer">
-                    <FileText className="h-4 w-4" />
-                    Exportar como Markdown
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Button onClick={generate} disabled={generating || isLoading} className="w-full justify-center gap-2 sm:w-auto">
-              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-               {generating ? "Atualizando..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
-            </Button>
-          </div>
-        </div>
+        <InsightsHeader
+          periodDays={periodDays}
+          onPeriodChange={handlePeriodChange}
+          analysis={analysis}
+          generating={generating}
+          isLoading={isLoading}
+          exporting={exporting}
+          onGenerate={generate}
+          onExportPDF={exportPDF}
+          onExportMarkdown={exportMarkdown}
+        />
 
         <p className="mb-4 text-xs text-muted-foreground">
           A nova versão só é criada quando você clicar no botão. Enquanto a atualização roda, a versão atual continua visível e o histórico anterior é preservado.
@@ -692,117 +680,6 @@ export default function Insights() {
             Os insights são gerados a partir dos dados consolidados exibidos no dashboard e refletem o comportamento real dos seus visitantes.
           </p>
         </div>
-
-        <Card className="mb-6 p-4">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
-            <div className="space-y-1 text-sm">
-              <p className="font-medium text-foreground">
-                {!hasHistoryForSelectedPeriod
-                  ? `Atualização com IA necessária para ${periodDays} dias`
-                  : analysisSource === "generated"
-                    ? `Análise de ${periodDays} dias atualizada com IA`
-                    : `Histórico de ${periodDays} dias carregado sem IA`}
-              </p>
-              <p className="text-muted-foreground">
-                {!hasHistoryForSelectedPeriod
-                  ? "Ainda não existe uma versão salva para esse período. Se quiser visualizar esse recorte, gere uma nova análise manualmente."
-                  : analysisSource === "generated"
-                    ? "Você está vendo uma versão recém-atualizada. Só será necessário rodar IA de novo se quiser renovar os insights."
-                    : "Você está vendo uma versão já salva no histórico. Só use a atualização com IA se quiser gerar uma leitura nova dos dados."}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="mb-6 p-4 sm:p-6">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-base font-semibold text-foreground">O que a IA analisa</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                A IA cruza os principais sinais do período para transformar números soltos em leitura de desempenho e oportunidades de ação.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  title: "Tráfego",
-                  description: "Volume de visitantes, evolução no período e tendências de alta ou queda.",
-                  example: "Ex.: crescimento acima da média nos últimos dias ou perda de volume em relação ao período anterior.",
-                },
-                {
-                  title: "Conversões",
-                  description: "Leads, cliques em WhatsApp, formulários e CTAs com mais resposta.",
-                  example: "Ex.: qual caminho gera mais conversões e onde existe fricção no funil.",
-                },
-                {
-                  title: "Origem dos acessos",
-                  description: "Canais e fontes que mais trazem visitantes para o site.",
-                  example: "Ex.: dependência excessiva de um canal ou oportunidade em busca orgânica e social.",
-                },
-                {
-                  title: "Engajamento",
-                  description: "Comportamento dos visitantes nas páginas, rejeição e qualidade da navegação.",
-                  example: "Ex.: páginas com muito acesso, mas pouco avanço para conversão.",
-                },
-                {
-                  title: "Sazonalidade",
-                  description: "Padrões por dia da semana e horários com maior atenção.",
-                  example: "Ex.: melhores janelas para publicar, anunciar ou reforçar ofertas.",
-                },
-              ].map((item) => (
-                <div key={item.title} className="rounded-lg border border-border bg-muted/20 p-4">
-                  <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.example}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {!generating && !historyLoading && !hasHistoryForSelectedPeriod && (
-          <Card className="mb-6 border-warning/30 bg-warning/5 p-4 shadow-sm">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
-              <div className="space-y-1 text-sm">
-                <p className="font-medium text-foreground">Nenhum histórico salvo para {periodDays} dias</p>
-                <p className="text-muted-foreground">
-                  Se você quiser esse período, gere uma nova análise manualmente. Enquanto isso, não vamos consumir IA automaticamente.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {!analysis && !generating && (
-          <Card className="p-6 sm:p-12 text-center border-dashed glass-card">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <Sparkles className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Ao clicar em "Gerar análise com IA", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
-            </p>
-          </Card>
-        )}
-
-        {generating && (
-          <Card className="p-6 sm:p-12 text-center glass-card relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/5 animate-pulse" />
-            <div className="relative z-10">
-              <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
-              </p>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Status atual: coletando métricas, cruzando padrões e organizando os resultados.
-              </p>
-            </div>
-          </Card>
-        )}
 
         {analysis && !generating && (
           <div className="space-y-6">
@@ -836,161 +713,33 @@ export default function Insights() {
                     {readingMode ? "Modo leitura ativo" : "Modo leitura"}
                   </Button>
                 </div>
-                <Accordion type="single" collapsible className="w-full sm:w-auto">
-                  <AccordionItem value="details" className="border-none">
-                    <AccordionTrigger className="w-full rounded-md border border-border px-3 sm:px-4 py-2 text-sm font-medium text-foreground hover:no-underline sm:min-w-52">
-                      Ver detalhes da IA
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-3">
-                      <div className="rounded-lg border border-border bg-muted/20 p-3 sm:p-4">
-                        {detailsLoading ? (
-                          <div className="space-y-3">
-                            <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
-                              <Skeleton className="h-4 w-40 shimmer" />
-                              <Skeleton className="h-4 w-full shimmer" />
-                              <Skeleton className="h-4 w-11/12 shimmer" />
-                              <Skeleton className="h-9 w-28 shimmer" />
-                            </div>
-                            <div className="rounded-lg border border-border bg-background p-4 space-y-3 animate-fade-in">
-                              <Skeleton className="h-4 w-32 shimmer" />
-                              <Skeleton className="h-4 w-full shimmer" />
-                              <Skeleton className="h-4 w-10/12 shimmer" />
-                            </div>
-                          </div>
-                        ) : detailsError ? (
-                          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                            <p className="text-sm font-medium text-foreground">Não foi possível carregar os detalhes da IA</p>
-                            <p className="mt-1 text-sm text-muted-foreground">{detailsError}</p>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={retryDetails}
-                              disabled={analysisSource !== "generated"}
-                              className="mt-3"
-                            >
-                              Tentar novamente
-                            </Button>
-                          </div>
-                        ) : (
-                          <ul className="space-y-3">
-                            {displayDetails.map((detail) => (
-                              <li key={detail.title} className="rounded-lg border border-border bg-background p-4 text-sm text-foreground/90">
-                                <p className="font-medium text-foreground">• {detail.title}</p>
-                                <p className="mt-1 text-muted-foreground">{detail.reason}</p>
-                                <p className="mt-1"><span className="font-medium text-foreground">Ação sugerida:</span> {detail.recommendation}</p>
-                                <div className="mt-3 flex flex-col items-start gap-3">
-                                  {detail.sources.length > 0 && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => toggleSource(detail.title)}
-                                    >
-                                      {openSources[getDetailSourceStateKey(detail.title)] ? "Ocultar fonte" : "Ver fonte"}
-                                    </Button>
-                                  )}
-                                  {openSources[getDetailSourceStateKey(detail.title)] && detail.sources.length > 0 && (
-                                    <div className="w-full rounded-md border border-border bg-muted/30 p-3">
-                                      <p className="text-xs font-medium text-foreground">Métricas que alimentaram este insight</p>
-                                      {detail.sources.length > VIRTUALIZATION_THRESHOLD && (
-                                        <Input
-                                          value={sourceSearchTerms[getDetailSourceStateKey(detail.title)] ?? ""}
-                                          onChange={(event) => handleSourceSearch(detail.title, event.target.value)}
-                                          placeholder="Buscar métrica ou valor"
-                                          className="mt-3"
-                                        />
-                                      )}
-                                      {(() => {
-                                        const visibleSources = getVirtualizedSources(detail);
-
-                                        if (visibleSources.sources.length === 0) {
-                                          return <p className="mt-3 text-xs text-muted-foreground">Nenhuma métrica encontrada para essa busca.</p>;
-                                        }
-
-                                        if (!visibleSources.virtualized) {
-                                          return (
-                                            <ul className="mt-2 space-y-2">
-                                              {visibleSources.sources.map((source) => (
-                                                <li key={`${detail.title}-${source.label}`} className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                                  <span className="text-xs text-muted-foreground">{source.label}</span>
-                                                  <span className="text-sm font-medium text-foreground">{source.value}</span>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          );
-                                        }
-
-                                        return (
-                                          <div
-                                            className="mt-2 overflow-y-auto rounded-md"
-                                            style={{ maxHeight: `${VIRTUAL_SOURCE_VIEWPORT_HEIGHT}px` }}
-                                            onScroll={(event) => handleSourcesScroll(detail.title, event.currentTarget.scrollTop)}
-                                          >
-                                            <div className="relative" style={{ height: `${visibleSources.totalHeight}px` }}>
-                                              <ul
-                                                className="absolute inset-x-0 top-0"
-                                                style={{ transform: `translateY(${visibleSources.startIndex * VIRTUAL_SOURCE_ROW_HEIGHT}px)` }}
-                                              >
-                                                {visibleSources.sources.map((source) => (
-                                                  <li
-                                                    key={`${detail.title}-${source.label}`}
-                                                    className="flex min-h-12 flex-col justify-center gap-0.5 border-b border-border/60 px-1 py-1 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-                                                  >
-                                                    <span className="text-xs text-muted-foreground">{source.label}</span>
-                                                    <span className="text-sm font-medium text-foreground">{source.value}</span>
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            </div>
-                                          </div>
-                                        );
-                                      })()}
-                                      {getFilteredSources(detail).length > getCurrentVisibleSourceCount(detail.title) && (
-                                        <div className="mt-3 flex items-center justify-between gap-3">
-                                          <p className="text-xs text-muted-foreground">
-                                            Mostrando {Math.min(getCurrentVisibleSourceCount(detail.title), getFilteredSources(detail).length)} de {getFilteredSources(detail).length} fontes
-                                          </p>
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => loadMoreSources(detail.title)}
-                                            disabled={loadingMoreSources[getDetailSourceStateKey(detail.title)]}
-                                          >
-                                            {loadingMoreSources[getDetailSourceStateKey(detail.title)] ? (
-                                              <>
-                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                Carregando...
-                                              </>
-                                            ) : (
-                                              "Carregar mais"
-                                            )}
-                                          </Button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                <InsightsDetailsAccordion
+                  detailsLoading={detailsLoading}
+                  detailsError={detailsError}
+                  displayDetails={displayDetails}
+                  analysisSource={analysisSource}
+                  openSources={openSources}
+                  sourceSearchTerms={sourceSearchTerms}
+                  loadingMoreSources={loadingMoreSources}
+                  retryDetails={retryDetails}
+                  toggleSource={toggleSource}
+                  getDetailSourceStateKey={getDetailSourceStateKey}
+                  handleSourceSearch={handleSourceSearch}
+                  getVirtualizedSources={getVirtualizedSources}
+                  getFilteredSources={getFilteredSources}
+                  getCurrentVisibleSourceCount={getCurrentVisibleSourceCount}
+                  handleSourcesScroll={handleSourcesScroll}
+                  loadMoreSources={loadMoreSources}
+                  VIRTUAL_SOURCE_VIEWPORT_HEIGHT={VIRTUAL_SOURCE_VIEWPORT_HEIGHT}
+                  VIRTUAL_SOURCE_ROW_HEIGHT={VIRTUAL_SOURCE_ROW_HEIGHT}
+                  VIRTUALIZATION_THRESHOLD={VIRTUALIZATION_THRESHOLD}
+                />
               </div>
-              <article
-                ref={reportRef}
-                className={`text-foreground bg-card transition-all duration-200 ${
-                  readingMode
-                    ? "leading-loose space-y-6 [&_h1]:text-[1.7rem] [&_h2]:text-xl sm:[&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h3]:mt-8 [&_h3]:mb-3 [&_p]:text-base [&_p]:leading-loose [&_p]:my-3 [&_ul]:space-y-3 [&_ul]:my-4 [&_ul>li]:text-base [&_ul>li]:leading-relaxed [&_ol]:space-y-3 [&_ol>li]:text-base [&_ol>li]:leading-relaxed [&_table]:text-sm"
-                    : "leading-relaxed space-y-4 [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:mt-6 sm:[&_h2]:mt-8 [&_h2]:mb-3 [&_p]:text-sm [&_p]:leading-relaxed [&_ul]:space-y-2 [&_ul]:my-3 [&_ul>li]:text-sm [&_ol]:space-y-2 [&_ol]:my-3 [&_ol>li]:text-sm [&_table]:text-xs sm:[&_table]:text-sm"
-                } [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-foreground [&_h1]:mb-2 [&_h1]:mt-0 [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-border [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:text-foreground/90 [&_strong]:text-foreground [&_strong]:font-semibold [&_ul]:pl-0 [&_ul]:list-none [&_ul>li]:text-foreground/90 [&_ul>li]:pl-5 [&_ul>li]:relative [&_ul>li]:before:content-[''] [&_ul>li]:before:absolute [&_ul>li]:before:left-0 [&_ul>li]:before:top-[0.55rem] [&_ul>li]:before:w-2 [&_ul>li]:before:h-2 [&_ul>li]:before:rounded-full [&_ul>li]:before:bg-primary/70 [&_ol]:pl-5 [&_ol]:list-decimal [&_ol>li]:text-foreground/90 [&_ol>li]:pl-1 [&_code]:bg-muted [&_code]:text-foreground [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono [&_table]:w-full [&_table]:my-4 [&_table]:border [&_table]:border-border [&_table]:rounded-lg [&_table]:block [&_table]:overflow-x-auto sm:[&_table]:table [&_thead]:bg-muted/50 [&_th]:text-left [&_th]:font-semibold [&_th]:text-foreground [&_th]:px-3 [&_th]:py-2 [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-wide [&_th]:whitespace-nowrap [&_td]:px-3 [&_td]:py-2 [&_td]:border-t [&_td]:border-border [&_td]:text-foreground/90 [&_td]:whitespace-nowrap [&_tr:hover]:bg-muted/30 [&_hr]:my-6 [&_hr]:border-border [&_em]:text-muted-foreground [&_em]:text-xs [&_em]:not-italic [&_em]:block`}
-              >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{analysis}</ReactMarkdown>
-              </article>
+              <InsightsMarkdown 
+                ref={reportRef} 
+                analysis={analysis} 
+                readingMode={readingMode} 
+              />
             </Card>
           </div>
         )}
@@ -1009,3 +758,4 @@ export default function Insights() {
     </AppLayout>
   );
 }
+

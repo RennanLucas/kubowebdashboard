@@ -17,6 +17,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 /**
  * Global project switcher in the topbar. Uses the shared `useSelectedProject`
@@ -25,12 +26,21 @@ import { cn } from "@/lib/utils";
 export const GlobalProjectSwitcher = () => {
   const { data: projects, isLoading } = useAllUserProjects();
   const { selectedProjectId, setSelectedProjectId } = useSelectedProject();
+  const { activeOrganization } = useOrganization();
   const [open, setOpen] = useState(false);
 
-  // Pick a default if nothing stored yet.
+  // Pick a default if nothing stored yet, or if current project doesn't belong to org
   useEffect(() => {
-    if (!selectedProjectId && projects && projects.length > 0) {
+    if (!projects) return;
+    
+    // Check if the currently selected project exists in the new organization's projects
+    const isValidProject = projects.some(p => p.id === selectedProjectId);
+    
+    if ((!selectedProjectId || !isValidProject) && projects.length > 0) {
       setSelectedProjectId(projects[0].id);
+    } else if (projects.length === 0 && selectedProjectId) {
+      // Clear if org has no projects
+      setSelectedProjectId(undefined);
     }
   }, [projects, selectedProjectId, setSelectedProjectId]);
 
@@ -42,7 +52,7 @@ export const GlobalProjectSwitcher = () => {
   const activeId = selectedProjectId;
   const active = projects?.find((p) => p.id === activeId) ?? projects?.[0];
 
-  if (isLoading || !projects || projects.length === 0) return null;
+  if (!activeOrganization || isLoading || !projects || projects.length === 0) return null;
 
   // Only show if user has more than one project — single-project accounts
   // don't need a switcher cluttering the header.
@@ -74,7 +84,7 @@ export const GlobalProjectSwitcher = () => {
               {projects.map((p) => (
                 <CommandItem
                   key={p.id}
-                  value={`${p.clientName} ${p.name}`}
+                  value={`${p.organizationName} ${p.name}`}
                   onSelect={() => handleSelect(p.id)}
                   className="gap-2"
                 >
@@ -87,7 +97,7 @@ export const GlobalProjectSwitcher = () => {
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-[13px] truncate">{p.name}</span>
                     <span className="text-[11px] text-muted-foreground truncate">
-                      {p.clientName}
+                      {p.organizationName}
                     </span>
                   </div>
                 </CommandItem>

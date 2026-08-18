@@ -58,6 +58,15 @@ vi.mock("@/hooks/usePlan", () => ({
   usePlan: () => ({ loading: false, maxHistoryDays: 365 }),
 }));
 
+// --- OrganizationContext mock so useDashboardData gets an orgId ----------------
+vi.mock("@/contexts/OrganizationContext", () => ({
+  useOrganization: () => ({
+    activeOrganization: { id: "mocked-org-id", name: "Mocked Org" },
+    loading: false,
+    error: null,
+  }),
+}));
+
 // Imported AFTER the mocks above are declared
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";

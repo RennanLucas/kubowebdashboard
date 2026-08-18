@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "./usePlan";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const decodeJwtPayload = (token: string) => {
   try {
@@ -21,212 +22,220 @@ const isTokenStale = (token?: string | null, bufferSeconds = 60) => {
   return payload.exp <= Math.floor(Date.now() / 1000) + bufferSeconds;
 };
 
-interface BreakdownItem {
-  name: string;
-  count: number;
-  percentage: number;
-}
-
-interface AnalyticsResponse {
-  client: {
-    id: string;
-    company_name: string;
-    domain: string | null;
-    project: { id: string; name: string; url: string | null } | null;
-    projects: Array<{ id: string; name: string; url: string | null }>;
-  } | null;
-  metrics: Array<{
-    date: string;
-    visitors: number;
-    views?: number;
-    leads: number;
-    conversion_rate: number;
-    estimated_value: number;
-    whatsapp_clicks: number;
-    form_submissions: number;
-    button_clicks: number;
-  }> | null;
-  trafficSources: Array<{
-    source: string;
-    visitors: number;
-    percentage: number;
-    color: string;
-  }> | null;
-  topPages: Array<{
-    path: string;
-    name: string;
-    views: number;
-    avgTime: string;
-    bounceRate: number;
-  }> | null;
-  comparison: {
-    visitors: number;
-    views: number;
-    leads?: number;
-    conversionRate?: number;
-    estimatedValue?: number;
-    prevVisitors: number;
-    prevViews: number;
-    prevLeads?: number;
-    prevConversionRate?: number;
-    prevEstimatedValue?: number;
-  } | null;
-  conversions: {
-    whatsapp_clicks: number;
-    button_clicks: number;
-    form_submissions: number;
-    phone_clicks: number;
-    email_clicks: number;
-    changes: {
-      whatsapp: number;
-      buttons: number;
-      forms: number;
-    };
-    recent: Array<{
-      type: string;
-      label: string;
-      page: string;
-      time: string;
-      metadata: Record<string, any>;
-    }>;
-  } | null;
-  devices: BreakdownItem[] | null;
-  browsers: BreakdownItem[] | null;
-  operatingSystems: BreakdownItem[] | null;
-  countries: BreakdownItem[] | null;
-  cities: BreakdownItem[] | null;
-  engagement: {
-    bounceRate: number;
-    avgSessionDuration: number;
-    totalSessions: number;
-    pagesPerSession: number;
-  } | null;
-  activeVisitors: number | null;
-  summary?: {
-    totalVisitors: number;
-    totalViews: number;
-    totalLeads: number;
-    totalSessions: number;
-  };
-}
-
 interface FetchOptions {
   source?: string;
   device?: string;
 }
 
-const fetchAnalytics = async (
+const fetchEndpoint = async (
+  endpoint: string,
   days: number,
   projectId: string | undefined,
   accessToken: string,
   opts: FetchOptions = {},
 ) => {
   const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  let url = `https://${pid}.supabase.co/functions/v1/get-analytics?days=${days}`;
+  let url = `https://${pid}.supabase.co/functions/v1/${endpoint}?days=${days}`;
   if (projectId) url += `&project_id=${projectId}`;
   if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
   if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;
 
-  return fetch(url, {
+  const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
   });
+
+  if (!response.ok) {
+    let message = `Erro ao buscar dados (${response.status})`;
+    try {
+      const err = await response.json();
+      message = err.error || err.message || message;
+    } catch { }
+    throw new Error(message);
+  }
+
+  return response.json();
 };
 
-export const useDashboardAnalytics = (
-  days: number,
-  projectId?: string,
-  filters?: { source?: string; device?: string },
-) => {
-  const { session, loading: authLoading } = useAuth();
-  const userId = session?.user?.id;
+const useValidSession = () => {
+  const { session, loading } = useAuth();
+  
+  const getSession = async () => {
+    let activeSession = session;
+    if (isTokenStale(activeSession?.access_token)) {
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      activeSession = refreshData.session;
+    }
+    if (!activeSession?.access_token) {
+      await supabase.auth.signOut({ scope: "local" });
+      throw new Error("AUTH_EXPIRED");
+    }
+    return activeSession.access_token;
+  };
+
+  return { getSession, session, loading };
+};
+
+// --- GRANULAR HOOKS ---
+
+export const useOverview = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const { getSession, session, loading: authLoading } = useValidSession();
+  const { activeOrganization } = useOrganization();
   const plan = usePlan(!!session);
   const cappedDays = Math.min(days, plan.maxHistoryDays);
-  const source = filters?.source ?? "all";
-  const device = filters?.device ?? "all";
+  const orgId = activeOrganization?.id;
+
   return useQuery({
-    queryKey: ["dashboard-analytics", userId, cappedDays, projectId, source, device],
+    queryKey: ["dashboard-overview", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
     refetchInterval: 60000,
-    refetchIntervalInBackground: false,
-    enabled: !authLoading && !!session?.access_token && !!userId && !plan.loading,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
     queryFn: async () => {
-      const days = cappedDays;
-      const { data: sessionData } = await supabase.auth.getSession();
-      let activeSession = sessionData.session ?? session;
-
-      if (isTokenStale(activeSession?.access_token)) {
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        activeSession = refreshData.session;
-      }
-
-      if (!activeSession?.access_token) {
-        await supabase.auth.signOut({ scope: "local" });
-        throw new Error("AUTH_EXPIRED");
-      }
-
-      const opts = { source, device };
-      let response = await fetchAnalytics(days, projectId, activeSession.access_token, opts);
-      for (let attempt = 0; attempt < 2 && response.status >= 500; attempt++) {
-        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
-        response = await fetchAnalytics(days, projectId, activeSession.access_token, opts);
-      }
-
-      if (response.status === 401) {
-        const { data: refreshData } = await supabase.auth.refreshSession();
-        const refreshedToken = refreshData.session?.access_token;
-
-        if (!refreshedToken) {
-          await supabase.auth.signOut({ scope: "local" });
-          throw new Error("AUTH_EXPIRED");
-        }
-
-        response = await fetchAnalytics(days, projectId, refreshedToken, opts);
-      }
-
-      if (response.status === 401) {
-        await supabase.auth.signOut({ scope: "local" });
-        throw new Error("AUTH_EXPIRED");
-      }
-
-      if (!response.ok) {
-        let message = `Erro ao buscar dados (${response.status})`;
-        try {
-          const err = await response.json();
-          message = err.error || err.message || message;
-        } catch {
-          /* non-JSON */
-        }
-        throw new Error(message);
-      }
-
-      return (await response.json()) as AnalyticsResponse;
-    },
-    retry: (failureCount, error) => {
-      if (error.message === "AUTH_EXPIRED") return false;
-      return failureCount < 2;
+      const token = await getSession();
+      return fetchEndpoint("get-dashboard-overview", cappedDays, projectId, token, filters);
     },
   });
 };
 
+export const useTopPages = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const { getSession, session, loading: authLoading } = useValidSession();
+  const { activeOrganization } = useOrganization();
+  const plan = usePlan(!!session);
+  const cappedDays = Math.min(days, plan.maxHistoryDays);
+  const orgId = activeOrganization?.id;
+
+  return useQuery({
+    queryKey: ["dashboard-pages", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
+    refetchInterval: 60000,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
+    queryFn: async () => {
+      const token = await getSession();
+      return fetchEndpoint("get-dashboard-pages", cappedDays, projectId, token, filters);
+    },
+  });
+};
+
+export const useTrafficSources = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const { getSession, session, loading: authLoading } = useValidSession();
+  const { activeOrganization } = useOrganization();
+  const plan = usePlan(!!session);
+  const cappedDays = Math.min(days, plan.maxHistoryDays);
+  const orgId = activeOrganization?.id;
+
+  return useQuery({
+    queryKey: ["dashboard-sources", session?.user?.id, orgId, cappedDays, projectId, filters?.device],
+    refetchInterval: 60000,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
+    queryFn: async () => {
+      const token = await getSession();
+      return fetchEndpoint("get-dashboard-sources", cappedDays, projectId, token, { device: filters?.device });
+    },
+  });
+};
+
+export const useDevices = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const { getSession, session, loading: authLoading } = useValidSession();
+  const { activeOrganization } = useOrganization();
+  const plan = usePlan(!!session);
+  const cappedDays = Math.min(days, plan.maxHistoryDays);
+  const orgId = activeOrganization?.id;
+
+  return useQuery({
+    queryKey: ["dashboard-devices", session?.user?.id, orgId, cappedDays, projectId, filters?.source],
+    refetchInterval: 60000,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
+    queryFn: async () => {
+      const token = await getSession();
+      return fetchEndpoint("get-dashboard-devices", cappedDays, projectId, token, { source: filters?.source });
+    },
+  });
+};
+
+export const useGeo = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const { getSession, session, loading: authLoading } = useValidSession();
+  const { activeOrganization } = useOrganization();
+  const plan = usePlan(!!session);
+  const cappedDays = Math.min(days, plan.maxHistoryDays);
+  const orgId = activeOrganization?.id;
+
+  return useQuery({
+    queryKey: ["dashboard-geo", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
+    refetchInterval: 60000,
+    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId,
+    queryFn: async () => {
+      const token = await getSession();
+      return fetchEndpoint("get-dashboard-geo", cappedDays, projectId, token, filters);
+    },
+  });
+};
+
+// --- LEGACY COMPATIBILITY HOOK ---
+export const useDashboardAnalytics = (days: number, projectId?: string, filters?: FetchOptions) => {
+  const overview = useOverview(days, projectId, filters);
+  const pages = useTopPages(days, projectId, filters);
+  const sources = useTrafficSources(days, projectId, filters);
+  const devices = useDevices(days, projectId, filters);
+  const geo = useGeo(days, projectId, filters);
+
+  const isLoading = overview.isLoading || pages.isLoading || sources.isLoading || devices.isLoading || geo.isLoading;
+  const error = overview.error || pages.error || sources.error || devices.error || geo.error;
+
+  const data = useMemo(() => {
+    if (!overview.data) return undefined;
+    
+    return {
+      ...overview.data,
+      topPages: pages.data?.topPages || null,
+      trafficSources: sources.data?.trafficSources || null,
+      devices: devices.data?.devices || null,
+      browsers: devices.data?.browsers || null,
+      operatingSystems: devices.data?.operatingSystems || null,
+      countries: geo.data?.countries || null,
+      cities: geo.data?.cities || null,
+    };
+  }, [overview.data, pages.data, sources.data, devices.data, geo.data]);
+
+  return {
+    data,
+    isLoading,
+    error,
+    refetch: () => {
+      overview.refetch();
+      pages.refetch();
+      sources.refetch();
+      devices.refetch();
+      geo.refetch();
+    }
+  };
+};
+
+/**
+ * @deprecated useOrganization() should be used instead. 
+ * Kept only for temporary bridge compatibility for components 
+ * that still depend on the client's name or lead_value.
+ */
 export const useClientData = () => {
-  const { data, isLoading, error } = useDashboardAnalytics(30);
+  const { activeOrganization, loading, error: orgError } = useOrganization();
+  const { data: overviewData, isLoading: overviewLoading, error: overviewError } = useOverview(30);
+  
   const client = useMemo(() => {
-    if (!data?.client) return null;
+    if (!activeOrganization) return null;
 
     return {
-      ...data.client,
-      company_name: data.client.company_name,
-      lead_value: (Number((data.client as any).lead_value) > 0 ? Number((data.client as any).lead_value) : 25),
-      projects: data.client.projects || (data.client.project ? [data.client.project] : []),
+      // Temporarily map the active organization to the old 'client' structure
+      id: activeOrganization.id,
+      company_name: activeOrganization.name,
+      // fallback to overview data if needed (e.g. lead_value which wasn't moved to org yet)
+      lead_value: overviewData?.client?.lead_value || 25,
+      projects: overviewData?.client?.projects || (overviewData?.client?.project ? [overviewData?.client?.project] : []),
     };
-  }, [data?.client]);
+  }, [activeOrganization, overviewData]);
 
   return {
     data: client,
-    isLoading,
-    error,
+    isLoading: loading || overviewLoading,
+    error: orgError || overviewError,
   };
 };

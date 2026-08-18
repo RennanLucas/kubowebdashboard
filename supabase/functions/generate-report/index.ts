@@ -39,36 +39,41 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const days = parseInt(url.searchParams.get("days") || "30", 10);
-    const selectedProjectId = url.searchParams.get("project_id") || null;
-
-    // Get client data
-    const { data: clientData, error: clientError } = await supabaseAdmin
-      .from("clients")
-      .select("*, projects(*)")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
-
-    if (clientError) throw clientError;
-    if (!clientData) {
-      return new Response(JSON.stringify({ error: "Cliente não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const projects = clientData.projects || [];
-    const projectId = selectedProjectId && projects.some((p: any) => p.id === selectedProjectId)
-      ? selectedProjectId
-      : projects[0]?.id;
-    const currentProject = projects.find((p: any) => p.id === projectId);
+    const projectId = url.searchParams.get("project_id");
 
     if (!projectId) {
-      return new Response(JSON.stringify({ error: "Nenhum projeto encontrado" }), {
-        status: 404,
+      return new Response(JSON.stringify({ error: "Missing project_id" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Verify user access to project via organization
+    const { data: projData, error: projErr } = await supabaseAdmin
+      .from("projects")
+      .select("name, organization_id, organizations!inner(name, domain, lead_value)")
+      .eq("id", projectId)
+      .single();
+
+    if (projErr || !projData) {
+      return new Response(JSON.stringify({ error: "Projeto não encontrado" }), { status: 403, headers: corsHeaders });
+    }
+
+    const { data: memberData, error: memberErr } = await supabaseAdmin
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", projData.organization_id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (memberErr || !memberData) {
+      return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
+    }
+
+    const clientData = {
+      company_name: projData.organizations.name
+    };
+    const currentProject = { name: projData.name };
 
     // Fetch pageviews
     const endDate = new Date();

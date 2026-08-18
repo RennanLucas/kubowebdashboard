@@ -176,3 +176,4 @@ Deno.serve(async (req) => {
     return json({ error: (e as Error).message ?? "Erro inesperado" }, 500);
   }
 });
+

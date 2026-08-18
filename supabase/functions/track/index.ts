@@ -1,4 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,14 +7,123 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Rate Limiting in-memory (Per Edge Isolate)
+// Atenção: Esta é uma camada de contenção por isolate e não garante limite global entre todas as instâncias Edge.
+const ipLimits = new Map<string, { count: number; expiresAt: number }>();
+const pidLimits = new Map<string, { count: number; expiresAt: number }>();
+
+function checkRateLimit(ip: string | null, pids: string[]): { allowed: boolean; reason?: string } {
+  const now = Date.now();
+  
+  if (ip) {
+    let ipRec = ipLimits.get(ip);
+    if (!ipRec || ipRec.expiresAt < now) {
+      ipRec = { count: 0, expiresAt: now + 60000 };
+    }
+    ipRec.count++;
+    ipLimits.set(ip, ipRec);
+    if (ipRec.count > 100) return { allowed: false, reason: "IP_RATE_LIMITED" };
+  }
+
+  for (const pid of pids) {
+    let pidRec = pidLimits.get(pid);
+    if (!pidRec || pidRec.expiresAt < now) {
+      pidRec = { count: 0, expiresAt: now + 60000 };
+    }
+    pidRec.count++;
+    pidLimits.set(pid, pidRec);
+    if (pidRec.count > 1000) return { allowed: false, reason: "PROJECT_RATE_LIMITED" };
+  }
+
+  return { allowed: true };
+}
+
+// Zod Schemas for Payload Validation
+const eventSchema = z.object({
+  type: z.enum(["event", "pageview"]).optional().default("pageview"),
+  pid: z.string().min(10).max(100),
+  path: z.string().max(1000).optional().default("/"),
+  ref: z.string().max(1000).optional(),
+  sid: z.string().max(200).optional(),
+  event_type: z.string().max(200).optional(),
+  event_label: z.string().max(1000).optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+// Cache for plan status
+const planCache = new Map<string, { active: boolean; expiresAt: number }>();
+
+async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Promise<boolean> {
+  const now = Date.now();
+  const cached = planCache.get(pid);
+  if (cached && cached.expiresAt > now) {
+    return cached.active;
+  }
+
+  try {
+    const { data: projectData } = await supabaseAdmin
+      .from("projects")
+      .select("organization_id, clients(user_id)")
+      .eq("id", pid)
+      .maybeSingle();
+
+    if (!projectData) {
+      planCache.set(pid, { active: false, expiresAt: now + 5 * 60 * 1000 });
+      return false;
+    }
+
+    let isActive = true;
+
+    // 1. Tenta a assinatura da Organização (Fase 3 Multi-tenant)
+    if (projectData.organization_id) {
+      const { data: orgSub } = await supabaseAdmin
+        .from("subscriptions")
+        .select("status")
+        .eq("organization_id", projectData.organization_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (orgSub) {
+        isActive = !["canceled", "unpaid"].includes(orgSub.status);
+        planCache.set(pid, { active: isActive, expiresAt: now + 5 * 60 * 1000 });
+        return isActive;
+      }
+    }
+
+    // 2. Fallback de Migração: Usa a assinatura legada do user_id do client
+    // Tolerado apenas enquanto organization_id na subscription for NULL (migration pending)
+    if (projectData.clients?.user_id) {
+      const { data: subData } = await supabaseAdmin
+        .from("subscriptions")
+        .select("status, organization_id")
+        .eq("user_id", projectData.clients.user_id)
+        .is("organization_id", null) // Garante que só puxa as antigas não migradas
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (subData && ["canceled", "unpaid"].includes(subData.status)) {
+        isActive = false;
+      }
+    }
+
+    planCache.set(pid, { active: isActive, expiresAt: now + 5 * 60 * 1000 });
+    return isActive;
+  } catch (e) {
+    // Fail open apenas para instabilidades de banco (não de regra de negócio)
+    return true;
+  }
+}
+
+function getIP(req: Request): string | null {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+         req.headers.get("x-real-ip") ||
+         req.headers.get("cf-connecting-ip") || null;
+}
+
 function getCountryFromHeaders(req: Request): string | null {
-  // Try multiple Cloudflare / proxy headers (case-insensitive in Deno)
-  const candidates = [
-    "cf-ipcountry",
-    "x-country",
-    "x-vercel-ip-country",
-    "x-real-ip-country",
-  ];
+  const candidates = ["cf-ipcountry", "x-country", "x-vercel-ip-country", "x-real-ip-country"];
   for (const h of candidates) {
     const val = req.headers.get(h);
     if (val && val !== "XX" && val !== "T1") return val.toUpperCase();
@@ -23,9 +133,7 @@ function getCountryFromHeaders(req: Request): string | null {
 
 async function getGeoFromIP(req: Request): Promise<{ country: string | null; city: string | null }> {
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-               req.headers.get("x-real-ip") ||
-               req.headers.get("cf-connecting-ip");
+    const ip = getIP(req);
     if (!ip || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) return { country: null, city: null };
 
     const res = await fetch(`https://ipapi.co/${ip}/json/`, {
@@ -37,35 +145,77 @@ async function getGeoFromIP(req: Request): Promise<{ country: string | null; cit
       const city = data.city || null;
       return { country, city };
     }
-  } catch {
-    // Geo lookup failed silently
+  } catch (_err) { 
+    // Ignore IP fetching errors
   }
   return { country: null, city: null };
 }
 
+function jsonResponse(body: unknown, status: number = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...publicCorsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: publicCorsHeaders });
   }
 
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+    return jsonResponse({ error: { code: "METHOD_NOT_ALLOWED", message: "Only POST allowed" } }, 405);
+  }
+
+  let body;
+  try {
+    // Limits body size theoretically, req.json() buffers.
+    body = await req.json();
+  } catch (e) {
+    return jsonResponse({ error: { code: "BAD_REQUEST", message: "Invalid JSON body" } }, 400);
   }
 
   try {
-    const body = await req.json();
-    const { type, pid, path, ref, sid, event_type, event_label, metadata } = body;
-
-    if (!pid || typeof pid !== "string") {
-      return new Response(JSON.stringify({ error: "Missing pid" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Normalization
+    const payloadEvents = Array.isArray(body.events) ? body.events : [body];
+    
+    // Batch limit: max 30 events per request
+    if (payloadEvents.length > 30) {
+      return jsonResponse({ error: { code: "PAYLOAD_TOO_LARGE", message: "Max 30 events per batch" } }, 413);
+    }
+    
+    if (payloadEvents.length === 0) {
+      return jsonResponse({ ok: true });
     }
 
+    // Validation via Zod
+    const parsedEvents: z.infer<typeof eventSchema>[] = [];
+    for (const ev of payloadEvents) {
+      const result = eventSchema.safeParse(ev);
+      if (!result.success) {
+        console.error(JSON.stringify({ event: "validation_failed", errors: result.error.errors }));
+        return jsonResponse({ error: { code: "UNPROCESSABLE_ENTITY", message: "Invalid event format" } }, 422);
+      }
+      parsedEvents.push(result.data);
+    }
+
+    // Identify unique PIDs
+    const pids = [...new Set(parsedEvents.map(e => e.pid))];
+    const ip = getIP(req);
+
+    // Rate Limiting
+    const rateLimit = checkRateLimit(ip, pids);
+    if (!rateLimit.allowed) {
+      console.error(JSON.stringify({ event: "tracking_rejected", code: rateLimit.reason, ip, pids }));
+      return jsonResponse({ error: { code: "RATE_LIMITED", message: "Too many requests" } }, 429);
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
     const userAgent = req.headers.get("user-agent") || null;
-    
-    // Try headers first for country, then fallback to IP geo lookup for both
     let country = getCountryFromHeaders(req);
     let city: string | null = null;
     if (!country) {
@@ -74,56 +224,54 @@ Deno.serve(async (req) => {
       city = geo.city;
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    if (type === "event" && event_type) {
-      const { error } = await supabaseAdmin.from("events").insert({
-        project_id: pid,
-        event_type: event_type,
-        event_label: event_label || null,
-        page_path: path || "/",
-        session_id: sid || null,
-        metadata: metadata || {},
-      });
-
-      if (error) {
-        console.error("Event insert error:", error.message);
-        return new Response(JSON.stringify({ error: "Failed to record event" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    const activePids = new Set<string>();
+    for (const pid of pids) {
+      if (await isProjectActive(pid, supabaseAdmin)) {
+        activePids.add(pid);
       }
-    } else {
-      const { error } = await supabaseAdmin.from("pageviews").insert({
-        project_id: pid,
-        page_path: path || "/",
-        referrer: ref || null,
-        user_agent: userAgent,
-        country: country,
-        city: city,
-        session_id: sid || null,
-      });
+    }
 
-      if (error) {
-        console.error("Insert error:", error.message);
-        return new Response(JSON.stringify({ error: "Failed to record" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const eventsToInsert = [];
+    const pageviewsToInsert = [];
+
+    for (const ev of parsedEvents) {
+      if (!activePids.has(ev.pid)) continue;
+
+      if (ev.type === "event" && ev.event_type) {
+        eventsToInsert.push({
+          project_id: ev.pid,
+          event_type: ev.event_type,
+          event_label: ev.event_label || null,
+          page_path: ev.path,
+          session_id: ev.sid || null,
+          metadata: ev.metadata || {},
+        });
+      } else if (ev.type === "pageview") {
+        pageviewsToInsert.push({
+          project_id: ev.pid,
+          page_path: ev.path,
+          referrer: ev.ref || null,
+          user_agent: userAgent,
+          country: country,
+          city: city,
+          session_id: ev.sid || null,
         });
       }
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("Track error:", e);
-    return new Response(JSON.stringify({ error: "Invalid request" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (eventsToInsert.length > 0) {
+      const { error } = await supabaseAdmin.from("events").insert(eventsToInsert);
+      if (error) console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
+    }
+    
+    if (pageviewsToInsert.length > 0) {
+      const { error } = await supabaseAdmin.from("pageviews").insert(pageviewsToInsert);
+      if (error) console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
+    }
+
+    return jsonResponse({ ok: true, processed: eventsToInsert.length + pageviewsToInsert.length });
+  } catch (e: unknown) {
+    console.error(JSON.stringify({ event: "internal_error", details: (e as Error)?.message || "Unknown error" }));
+    return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Internal server error" } }, 500);
   }
 });

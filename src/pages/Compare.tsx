@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useAllUserProjects } from "@/hooks/useAllUserProjects";
+
 
 interface Stats {
   visitors: number;
@@ -132,32 +134,15 @@ const Compare = () => {
   const [days, setDays] = useState(30);
   const { data: baseData, isLoading: baseLoading, error } = useDashboardAnalytics(days);
 
-  // Buscar TODOS os projetos do usuário (de todos os clientes dele)
-  const { data: allProjects } = useQuery({
-    queryKey: ["all-user-projects", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data: clients } = await supabase
-        .from("clients")
-        .select("id, company_name")
-        .eq("user_id", user!.id);
-      if (!clients || clients.length === 0) return [];
-      const ids = clients.map((c) => c.id);
-      const { data: projs } = await supabase
-        .from("projects")
-        .select("id, name, client_id")
-        .in("client_id", ids);
-      const clientMap = new Map(clients.map((c) => [c.id, c.company_name]));
-      return (projs ?? []).map((p) => ({
-        id: p.id,
-        name: `${clientMap.get(p.client_id) ?? "?"} · ${p.name}`,
-      }));
-    },
-  });
-  const projects = allProjects ?? [];
+  const { data: projectsData } = useAllUserProjects();
+  const projects = projectsData?.map(p => ({
+    id: p.id,
+    name: p.name, // Since the project switcher now already shows org context, maybe we don't need the org name prefix, or we can use it.
+  })) ?? [];
 
   const [projectA, setProjectA] = useState<string | undefined>();
   const [projectB, setProjectB] = useState<string | undefined>();
+
 
   // Default selection
   useEffect(() => {

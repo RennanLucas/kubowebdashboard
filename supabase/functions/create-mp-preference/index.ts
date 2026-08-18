@@ -4,10 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getPlan, type PlanId } from "../_shared/plans.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -35,6 +32,22 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const planId = body.planId as PlanId | undefined;
     const returnUrl = (body.returnUrl as string | undefined) ?? "";
+    const organizationId = body.organizationId as string | undefined;
+
+    if (!organizationId) {
+      return json({ error: "organizationId is required" }, 400);
+    }
+
+    const { data: memberData, error: memberErr } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (memberErr || !memberData || !['owner', 'admin'].includes(memberData.role)) {
+      return json({ error: "Acesso negado para gerenciar faturamento desta organização" }, 403);
+    }
 
     const plan = planId ? getPlan(planId) : null;
     if (!plan) return json({ error: "Invalid planId" }, 400);
@@ -50,7 +63,7 @@ Deno.serve(async (req) => {
     // Assinatura recorrente (cartão) com 7 dias grátis
     const payload = {
       reason: plan.reason,
-      external_reference: `${userId}|${planId}`,
+      external_reference: `v2|org:${organizationId}|plan:${planId}|user:${userId}`,
       payer_email: email,
       back_url: baseReturn,
       auto_recurring: {
@@ -88,3 +101,4 @@ function json(body: unknown, status = 200) {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
+

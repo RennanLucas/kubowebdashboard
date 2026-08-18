@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, memo } from "react";
 import {
   AreaChart,
   Area,
@@ -548,4 +548,4 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
   );
 };
 
-export default VisitorsChart;
+export default memo(VisitorsChart);

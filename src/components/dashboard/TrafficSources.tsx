@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, memo } from "react";
 import { Globe, Search, Share2, MousePointerClick, Mail, Video, ExternalLink, Download, FileImage, FileText } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { Button } from "@/components/ui/button";
@@ -250,4 +250,4 @@ const TrafficSources = ({ data, dateRangeDays }: { data: TrafficSource[]; dateRa
   );
 };
 
-export default TrafficSources;
+export default memo(TrafficSources);

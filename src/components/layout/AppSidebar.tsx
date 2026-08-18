@@ -6,6 +6,7 @@ import logoKubowebDark from "@/assets/logo-kuboweb.png";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import {
   Sidebar,
   SidebarContent,
@@ -134,6 +135,11 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        {!collapsed && (
+          <div className="px-2 pb-2">
+            <OrganizationSwitcher />
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent className="px-1.5 py-2">

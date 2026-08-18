@@ -48,20 +48,53 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const action = url.searchParams.get("action") ?? "status";
+    const organizationId = url.searchParams.get("organization_id");
 
-    // Descobre plano ativo do usuário (Pro vs Pro+)
-    const { data: subRow } = await admin
+    if (!organizationId) {
+      return new Response(JSON.stringify({ error: "Missing organization_id" }), { status: 400, headers: corsHeaders });
+    }
+
+    const { data: memberData, error: memberErr } = await admin
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (memberErr || !memberData) {
+      return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
+    }
+
+    // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
+    let isProPlus = false;
+    let MONTHLY_LIMIT = 0;
+    let tier = "free";
+
+    const { data: orgSub } = await admin
       .from("subscriptions")
       .select("plan_id, status, current_period_end")
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const tier = resolveTier(subRow);
-    
-    const MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
 
-    // Calcula uso no mês corrente
+    if (orgSub) {
+      tier = resolveTier(orgSub);
+      MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
+      isProPlus = true;
+    } else {
+      const { data: subRow } = await admin
+        .from("subscriptions")
+        .select("plan_id, status, current_period_end")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      tier = resolveTier(subRow);
+      MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
+      isProPlus = true;
+    }
+
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const { count: usedThisMonth } = await admin
@@ -73,7 +106,6 @@ Deno.serve(async (req) => {
     const used = usedThisMonth ?? 0;
     const remaining = Math.max(0, MONTHLY_LIMIT - used);
 
-    // Pega o último insight gerado
     const { data: latest } = await admin
       .from("ai_insights")
       .select("id, content, created_at, period_days, model")
@@ -83,65 +115,35 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (action === "status") {
-      return new Response(
-        JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action !== "generate") {
-      return new Response(JSON.stringify({ error: "action inválida" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "action inválida" }), { status: 400, headers: corsHeaders });
     }
 
     if (MONTHLY_LIMIT <= 0) {
-      return new Response(
-        JSON.stringify({
-          error: "PLAN_REQUIRED",
-          message: "Resumos com IA estão disponíveis nos planos Pro (3/mês) e Pro+ (6/mês).",
-          used,
-          limit: 0,
-          plan: tier,
-        }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "PLAN_REQUIRED", message: "Requer plano Pro/Pro+.", used, limit: 0, plan: tier }), { status: 402, headers: corsHeaders });
     }
 
     if (remaining <= 0) {
-      return new Response(
-        JSON.stringify({
-          error: "LIMIT_REACHED",
-          message: `Você já usou seus ${MONTHLY_LIMIT} insights deste mês. Tente novamente no próximo mês.`,
-          used,
-          limit: MONTHLY_LIMIT,
-        }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "LIMIT_REACHED", message: "Limite atingido.", used, limit: MONTHLY_LIMIT }), { status: 429, headers: corsHeaders });
     }
 
-    // Coleta dados dos últimos 7 dias do projeto do usuário
-    const { data: client, error: clientErr } = await admin
-      .from("clients")
-      .select("id, company_name, lead_value")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    const { data: orgData, error: orgErr } = await admin
+      .from("organizations")
+      .select("id, name, lead_value")
+      .eq("id", organizationId)
+      .single();
 
-    if (clientErr) console.error("client lookup error", clientErr);
-    if (!client) {
-      return new Response(JSON.stringify({ error: "Cliente não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (orgErr || !orgData) {
+      return new Response(JSON.stringify({ error: "Organização não encontrada" }), { status: 404, headers: corsHeaders });
     }
 
     const { data: projects } = await admin
       .from("projects")
       .select("id, name, url")
-      .eq("client_id", client.id);
+      .eq("organization_id", orgData.id);
 
     const projectIds = (projects ?? []).map((p) => p.id);
     if (projectIds.length === 0) {
@@ -219,7 +221,7 @@ Deno.serve(async (req) => {
     }, {});
 
     const dataSummary = {
-      empresa: client.company_name,
+      empresa: orgData.name,
       periodo: "últimos 7 dias",
       comparativo: "vs 7 dias anteriores",
       totais_7d: { visitantes: visitors7, leads: leads7, valor_estimado: value7 },

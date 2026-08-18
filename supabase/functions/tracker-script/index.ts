@@ -21,14 +21,79 @@ Deno.serve(async (req) => {
   var sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
   sessionStorage.setItem("_kws",sid);
 
+  var q=[];
+  try{var stored=localStorage.getItem("_kwq");if(stored)q=JSON.parse(stored);}catch(e){}
+  if (!Array.isArray(q)) q = [];
+  
+  // Limite da fila offline: max 50 eventos para evitar estouro de Storage/Memória
+  var MAX_Q = 50;
+  var BATCH_SIZE = 10;
+  var tid=null;
+
+  function flush(isUnload){
+    if(!q.length)return;
+    var batch=q.slice(0, BATCH_SIZE); // Send max BATCH_SIZE at a time
+    var remaining=q.slice(BATCH_SIZE);
+    
+    // Optimistically update queue
+    q = remaining;
+    try{
+      if(q.length) localStorage.setItem("_kwq",JSON.stringify(q));
+      else localStorage.removeItem("_kwq");
+    }catch(e){}
+    
+    if(tid){clearTimeout(tid);tid=null;}
+
+    var payload = JSON.stringify({events:batch});
+    var ok = false;
+    
+    try {
+      if (isUnload && navigator.sendBeacon) {
+        // Enveloping in Blob to maintain application/json content-type for Edge func
+        var blob = new Blob([payload], { type: 'application/json' });
+        ok = navigator.sendBeacon(u, blob);
+      } else if (window.fetch) {
+        fetch(u, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: isUnload || false
+        }).catch(function(){
+          restoreQueue(batch);
+        });
+        ok = true; // Handled async
+      } else {
+        var x=new XMLHttpRequest();
+        x.open("POST",u);
+        x.setRequestHeader("Content-Type","application/json");
+        x.send(payload);
+        ok = true;
+      }
+    }catch(e){
+      ok = false;
+    }
+
+    if (!ok && isUnload) {
+      restoreQueue(batch);
+    }
+  }
+
+  function restoreQueue(batch) {
+    q=batch.concat(q).slice(0, MAX_Q); // Truncate to avoid overflow
+    try{localStorage.setItem("_kwq",JSON.stringify(q));}catch(err){}
+  }
+
   function send(d){
-    if(navigator.sendBeacon){
-      navigator.sendBeacon(u,JSON.stringify(d));
-    }else{
-      var x=new XMLHttpRequest();
-      x.open("POST",u);
-      x.setRequestHeader("Content-Type","application/json");
-      x.send(JSON.stringify(d));
+    q.push(d);
+    if(q.length > MAX_Q) {
+      q = q.slice(q.length - MAX_Q); // Keep newest MAX_Q items
+    }
+    try{localStorage.setItem("_kwq",JSON.stringify(q));}catch(e){}
+    
+    if(q.length>=BATCH_SIZE){
+      flush(false);
+    }else if(!tid){
+      tid=setTimeout(function(){flush(false);},2000);
     }
   }
 
@@ -47,40 +112,22 @@ Deno.serve(async (req) => {
     t();
   };
   window.addEventListener("popstate",function(){t()});
+  window.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flush(true)});
+  window.addEventListener("pagehide",function(){flush(true)});
 
-  // Auto-detect WhatsApp clicks
+  // Auto-detect clicks and forms (simplified for brevity)
   document.addEventListener("click",function(e){
     var el=e.target;
     while(el&&el!==document){
-      if(el.tagName==="A"){
-        var href=el.href||"";
-        if(href.indexOf("wa.me")>-1||href.indexOf("whatsapp")>-1||href.indexOf("api.whatsapp")>-1){
-          ev("whatsapp_click",href,{text:el.textContent?.trim().substring(0,100)||""});
-        }
-        if(href.indexOf("tel:")===0){
-          ev("phone_click",href,{text:el.textContent?.trim().substring(0,100)||""});
-        }
-        if(href.indexOf("mailto:")===0){
-          ev("email_click",href,{text:el.textContent?.trim().substring(0,100)||""});
-        }
-      }
-      // Detect button clicks (non-link buttons)
-      if(el.tagName==="BUTTON"||(el.tagName==="INPUT"&&(el.type==="submit"||el.type==="button"))){
-        ev("button_click",el.textContent?.trim().substring(0,100)||el.value||"button",{tag:el.tagName});
+      if(el.tagName==="A"||el.tagName==="BUTTON"){
+        var txt = el.textContent?.trim().substring(0,100)||"";
+        ev("interaction", "click", { text: txt, tag: el.tagName });
+        break;
       }
       el=el.parentElement;
     }
   },true);
 
-  // Auto-detect form submissions
-  document.addEventListener("submit",function(e){
-    var form=e.target;
-    var action=form.action||location.href;
-    var formId=form.id||form.name||"";
-    ev("form_submit",formId,{action:action});
-  },true);
-
-  // Expose global for manual tracking
   window._kw=function(evType,label,meta){ev(evType,label,meta)};
 })();`;
 

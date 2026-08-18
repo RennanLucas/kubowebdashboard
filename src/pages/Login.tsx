@@ -57,18 +57,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const isBusy = loading || authLoading;
 
-  // Se já está logado, redireciona conforme tem ou não cliente
+  // Se já está logado, redireciona conforme tem ou não cliente/org
   useEffect(() => {
     if (authLoading || !session?.user) return;
     let cancelled = false;
     (async () => {
-      const { data: client } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .limit(1)
-        .maybeSingle();
-      if (!cancelled) navigate(client ? "/dashboard" : "/onboarding", { replace: true });
+      const [{ data: client }, { data: orgMember }] = await Promise.all([
+        supabase.from("clients").select("id").eq("user_id", session.user.id).limit(1).maybeSingle(),
+        supabase.from("organization_members").select("id").eq("user_id", session.user.id).limit(1).maybeSingle()
+      ]);
+      if (!cancelled) navigate((client || orgMember) ? "/dashboard" : "/onboarding", { replace: true });
     })();
     return () => { cancelled = true; };
   }, [session, authLoading, navigate]);
@@ -105,16 +103,14 @@ const Login = () => {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      // Decide rota: se já tem cliente, vai pro dashboard; senão pro onboarding
+      // Decide rota: se já tem cliente ou organização, vai pro dashboard; senão pro onboarding
       const userId = signInData.user?.id;
       if (userId) {
-        const { data: client } = await supabase
-          .from("clients")
-          .select("id")
-          .eq("user_id", userId)
-          .limit(1)
-          .maybeSingle();
-        navigate(client ? "/dashboard" : "/onboarding");
+        const [{ data: client }, { data: orgMember }] = await Promise.all([
+          supabase.from("clients").select("id").eq("user_id", userId).limit(1).maybeSingle(),
+          supabase.from("organization_members").select("id").eq("user_id", userId).limit(1).maybeSingle()
+        ]);
+        navigate((client || orgMember) ? "/dashboard" : "/onboarding");
         return;
       }
       navigate("/dashboard");

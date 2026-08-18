@@ -292,40 +292,62 @@ Deno.serve(async (req) => {
     const hasSourceFilter = sourceFilter !== "all";
     const hasDeviceFilter = deviceFilter !== "all";
 
-    // Get all clients for this user (a user may have more than one client row).
-    const { data: allClients, error: clientError } = await supabaseAdmin
-      .from("clients")
-      .select("*, projects(*)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true });
-
-    if (clientError) throw clientError;
-    if (!allClients || allClients.length === 0) {
-      return new Response(JSON.stringify({ client: null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Pick the client that owns the selected project. If none specified
-    // (or it doesn't match), prefer the first client that actually has
-    // projects, falling back to the first client overall.
-    let clientData: any = null;
+    // Pick the organization that owns the selected project.
+    let orgData: any = null;
+    let currentProject: any = null;
+    let projects: any[] = [];
+    
     if (selectedProjectId) {
-      clientData = allClients.find((c: any) =>
-        (c.projects || []).some((p: any) => p.id === selectedProjectId)
-      ) || null;
+      // Find the project and its organization
+      const { data: projData } = await supabaseAdmin
+        .from("projects")
+        .select("organization_id, name")
+        .eq("id", selectedProjectId)
+        .single();
+        
+      if (projData && projData.organization_id) {
+        // Verify user is member of this organization
+        const { data: memberData } = await supabaseAdmin
+          .from("organization_members")
+          .select("role")
+          .eq("organization_id", projData.organization_id)
+          .eq("user_id", userId)
+          .single();
+          
+        if (memberData) {
+          const { data: org } = await supabaseAdmin
+            .from("organizations")
+            .select("*")
+            .eq("id", projData.organization_id)
+            .single();
+          
+          if (org) {
+            orgData = org;
+            // Get all projects for this org to populate the switcher
+            const { data: orgProjects } = await supabaseAdmin
+              .from("projects")
+              .select("*")
+              .eq("organization_id", org.id);
+            projects = orgProjects || [];
+            currentProject = projects.find(p => p.id === selectedProjectId) || null;
+          }
+        }
+      }
     }
-    if (!clientData) {
-      clientData = allClients.find((c: any) => (c.projects || []).length > 0) || allClients[0];
+    
+    // Fallback if no project_id or invalid project_id
+    if (!orgData) {
+       return new Response(JSON.stringify({ error: "Missing or invalid project_id" }), { status: 400, headers: corsHeaders });
     }
 
-    // Select project within the chosen client
-    const projects = clientData.projects || [];
-    const projectId = selectedProjectId && projects.some((p: any) => p.id === selectedProjectId)
-      ? selectedProjectId
-      : projects[0]?.id;
-    const currentProject = projects.find((p: any) => p.id === projectId) || null;
-    const analyticsPropertyId = clientData.analytics_property_id;
+    const projectId = currentProject?.id;
+    const analyticsPropertyId = orgData.analytics_property_id;
+    const clientData = {
+      id: orgData.id,
+      company_name: orgData.name,
+      domain: orgData.domain,
+      lead_value: orgData.lead_value
+    };
 
     // Calculate dates
     const endDate = new Date();

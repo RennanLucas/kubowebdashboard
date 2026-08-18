@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { lazyWithRetry } from "@/lib/chunk-reload";
@@ -37,7 +38,15 @@ const Heatmaps = lazyWithRetry(() => import("./pages/Heatmaps"), "heatmaps");
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes default for historical data
+      refetchOnWindowFocus: false, // Prevent aggressive refetching on tab switch
+      retry: 1, // Only retry once by default
+    },
+  },
+});
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -54,37 +63,39 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AuthProvider>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/install" element={<Install />} />
-              <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
-              <Route path="/subscription" element={<ProtectedRoute requireSubscription><Subscription /></ProtectedRoute>} />
-              <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
-              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/insights" element={<ProtectedRoute requireFeature="ai_insights"><Insights /></ProtectedRoute>} />
-              <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
-              <Route path="/compare" element={<ProtectedRoute requireFeature="compare"><Compare /></ProtectedRoute>} />
-              <Route path="/presentation" element={<ProtectedRoute requireFeature="presentation"><Presentation /></ProtectedRoute>} />
-              <Route path="/live" element={<ProtectedRoute><Live /></ProtectedRoute>} />
-              <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-              <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />
-              <Route path="/goals" element={<ProtectedRoute requireFeature="goals"><Goals /></ProtectedRoute>} />
-              <Route path="/heatmaps" element={<ProtectedRoute requireFeature="heatmap"><Heatmaps /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+            <OrganizationProvider>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+                  <Route path="/subscription" element={<ProtectedRoute requireSubscription><Subscription /></ProtectedRoute>} />
+                  <Route path="/checkout/return" element={<ProtectedRoute><CheckoutReturn /></ProtectedRoute>} />
+                  <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                  <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/insights" element={<ProtectedRoute requireFeature="ai_insights"><Insights /></ProtectedRoute>} />
+                  <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+                  <Route path="/compare" element={<ProtectedRoute requireFeature="compare"><Compare /></ProtectedRoute>} />
+                  <Route path="/presentation" element={<ProtectedRoute requireFeature="presentation"><Presentation /></ProtectedRoute>} />
+                  <Route path="/live" element={<ProtectedRoute><Live /></ProtectedRoute>} />
+                  <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />
+                  <Route path="/goals" element={<ProtectedRoute requireFeature="goals"><Goals /></ProtectedRoute>} />
+                  <Route path="/heatmaps" element={<ProtectedRoute requireFeature="heatmap"><Heatmaps /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </OrganizationProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   </ErrorBoundary>
 );
 

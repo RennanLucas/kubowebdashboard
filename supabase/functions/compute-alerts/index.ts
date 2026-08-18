@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,7 +46,7 @@ function alertEmailHtml(opts: { title: string; message: string; projectName: str
       Projeto: <strong style="color:#0f1117">${opts.projectName}</strong>
     </div>
     <a href="https://cubie-dash.lovable.app/alerts" style="display:inline-block;margin-top:18px;background:#6366f1;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500">Ver no painel</a>
-    <p style="font-size:11px;color:#9ca3af;margin-top:24px">Você recebeu este email porque assina o plano Pro+. Para ajustar alertas, acesse Configurações.</p>
+    <p style="font-size:11px;color:#9ca3af;margin-top:24px">Você recebeu este email porque sua organização assina o plano Pro+. Para ajustar alertas, acesse Configurações.</p>
   </div></body></html>`;
 }
 
@@ -64,8 +64,6 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
   }
 }
 
-// Only internal callers (cron / service_role) may run this job: it processes
-// every tenant and sends real transactional emails.
 function isAuthorized(req: Request): boolean {
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
@@ -76,6 +74,75 @@ function isAuthorized(req: Request): boolean {
 
   const claims = parseJwtClaims(token);
   return claims?.role === "service_role";
+}
+
+/**
+ * TEMPORARY FALLBACK (FASE 3.2):
+ * Procura assinaturas pelo Owner original caso a org não tenha a sua própria ainda vinculada.
+ * // TODO: Remover na Fase 3.3 após migração do Mercado Pago
+ */
+async function getOrgPlanStatus(supabase: SupabaseClient, orgId: string): Promise<boolean> {
+  // 1. Tenta a assinatura direta da Org
+  const { data: orgSub } = await supabase
+    .from("subscriptions")
+    .select("plan_id, status, current_period_end")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const isProPlus = (sub: any) => sub?.plan_id === "kuboweb_pro_plus_monthly";
+  const planActive = (sub: any) => {
+    const okStatus = sub && ["active", "trialing", "authorized", "approved"].includes(sub.status);
+    const periodOk = !sub?.current_period_end || new Date(sub.current_period_end) > new Date();
+    return !!(okStatus && periodOk);
+  };
+
+  if (orgSub) {
+    return isProPlus(orgSub) && planActive(orgSub);
+  }
+
+  // 2. Fallback: Procura o owner e checa a assinatura antiga dele
+  const { data: owners } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", orgId)
+    .eq("role", "owner");
+
+  if (owners && owners.length > 0) {
+    for (const owner of owners) {
+      const { data: ownerSub } = await supabase
+        .from("subscriptions")
+        .select("plan_id, status, current_period_end")
+        .eq("user_id", owner.user_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (ownerSub && isProPlus(ownerSub) && planActive(ownerSub)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+async function getAdminEmailsForOrg(supabase: SupabaseClient, orgId: string): Promise<string[]> {
+  const { data: members } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", orgId)
+    .in("role", ["owner", "admin"]);
+
+  if (!members || members.length === 0) return [];
+
+  const emails: string[] = [];
+  for (const m of members) {
+    const { data: u } = await supabase.auth.admin.getUserById(m.user_id);
+    if (u?.user?.email) emails.push(u.user.email);
+  }
+  return emails;
 }
 
 Deno.serve(async (req) => {
@@ -100,8 +167,8 @@ Deno.serve(async (req) => {
   const yEnd = new Date(yesterday); yEnd.setHours(23, 59, 59, 999);
   const sevenAgo = new Date(today); sevenAgo.setDate(sevenAgo.getDate() - 8);
 
-  const { data: projects } = await supabase.from("projects").select("id, name, client_id");
-  if (!projects) {
+  const { data: organizations } = await supabase.from("organizations").select("id, name");
+  if (!organizations) {
     return new Response(JSON.stringify({ ok: true, alerts: 0 }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -110,125 +177,105 @@ Deno.serve(async (req) => {
   let created = 0;
   let emailsSent = 0;
 
-  // Cache user_id -> { email, isProPlus }
-  const userCache = new Map<string, { email: string | null; isProPlus: boolean }>();
-  async function getUserPlan(clientId: string) {
-    const { data: client } = await supabase
-      .from("clients").select("user_id").eq("id", clientId).maybeSingle();
-    const userId = client?.user_id;
-    if (!userId) return null;
-    if (userCache.has(userId)) return userCache.get(userId)!;
-
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("plan_id, status, current_period_end, payer_email")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const isProPlus = sub?.plan_id === "kuboweb_pro_plus_monthly";
-    const okStatus = sub && ["active", "trialing", "authorized", "approved"].includes(sub.status);
-    const periodOk = !sub?.current_period_end || new Date(sub.current_period_end) > new Date();
-    const planActive = !!(okStatus && periodOk);
-
-    let email: string | null = sub?.payer_email ?? null;
-    if (!email) {
-      const { data: u } = await supabase.auth.admin.getUserById(userId);
-      email = u?.user?.email ?? null;
-    }
-    const result = { email, isProPlus: isProPlus && planActive };
-    userCache.set(userId, result);
-    return result;
-  }
-
-  async function createAlertAndMaybeEmail(
-    project: { id: string; name: string; client_id: string },
-    payload: { type: string; severity: string; title: string; message: string; metadata: any },
-  ) {
-    await supabase.from("alerts").insert({ project_id: project.id, ...payload });
-    created++;
-
-    const userPlan = await getUserPlan(project.client_id);
-    if (userPlan?.isProPlus && userPlan.email) {
-      await sendEmail(
-        userPlan.email,
-        `[KUBOWEB] ${payload.title}`,
-        alertEmailHtml({ title: payload.title, message: payload.message, projectName: project.name }),
-      );
-      emailsSent++;
-    }
-  }
-
-  for (const project of projects) {
-    const { data: pref } = await supabase
-      .from("alert_preferences")
-      .select("*")
-      .eq("project_id", project.id)
-      .maybeSingle();
-
-    if (pref && !pref.enabled) continue;
-    const threshold = pref?.traffic_threshold_pct ?? 20;
-    const leadsGoal = pref?.leads_goal_daily ?? null;
-
-    const { count: yesterdayCount } = await supabase
-      .from("pageviews")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id)
-      .gte("created_at", yStart.toISOString())
-      .lte("created_at", yEnd.toISOString());
-
-    const prevStart = new Date(sevenAgo); prevStart.setHours(0, 0, 0, 0);
-    const prevEnd = new Date(yesterday); prevEnd.setDate(prevEnd.getDate() - 1); prevEnd.setHours(23, 59, 59, 999);
-    const { count: prevCount } = await supabase
-      .from("pageviews")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", project.id)
-      .gte("created_at", prevStart.toISOString())
-      .lte("created_at", prevEnd.toISOString());
-
-    const avg7 = (prevCount ?? 0) / 7;
-    const yCount = yesterdayCount ?? 0;
-
-    if (avg7 > 0) {
-      const change = ((yCount - avg7) / avg7) * 100;
-      if (change >= threshold) {
-        await createAlertAndMaybeEmail(project, {
-          type: "traffic_spike",
-          severity: "success",
-          title: `📈 Tráfego subiu ${change.toFixed(0)}%`,
-          message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da média semanal (${avg7.toFixed(0)}).`,
-          metadata: { yesterday: yCount, avg7, change },
-        });
-      } else if (change <= -threshold) {
-        await createAlertAndMaybeEmail(project, {
-          type: "traffic_drop",
-          severity: "warning",
-          title: `📉 Tráfego caiu ${Math.abs(change).toFixed(0)}%`,
-          message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da média semanal (${avg7.toFixed(0)}).`,
-          metadata: { yesterday: yCount, avg7, change },
-        });
+  for (const org of organizations) {
+    try {
+      const isProPlusActive = await getOrgPlanStatus(supabase, org.id);
+      let targetEmails: string[] = [];
+      if (isProPlusActive) {
+        targetEmails = await getAdminEmailsForOrg(supabase, org.id);
       }
-    }
 
-    if (leadsGoal && leadsGoal > 0) {
-      const { count: leadsCount } = await supabase
-        .from("events")
-        .select("*", { count: "exact", head: true })
-        .eq("project_id", project.id)
-        .in("event_type", ["whatsapp_click", "form_submit"])
-        .gte("created_at", yStart.toISOString())
-        .lte("created_at", yEnd.toISOString());
+      const { data: projects } = await supabase.from("projects").select("id, name").eq("organization_id", org.id);
+      if (!projects) continue;
 
-      const leads = leadsCount ?? 0;
-      if (leads >= leadsGoal) {
-        await createAlertAndMaybeEmail(project, {
-          type: "leads_goal",
-          severity: "success",
-          title: `🎯 Meta de leads batida!`,
-          message: `${project.name} gerou ${leads} leads ontem (meta: ${leadsGoal}).`,
-          metadata: { leads, goal: leadsGoal },
-        });
+      for (const project of projects) {
+        const { data: pref } = await supabase
+          .from("alert_preferences")
+          .select("*")
+          .eq("project_id", project.id)
+          .maybeSingle();
+
+        if (pref && !pref.enabled) continue;
+        const threshold = pref?.traffic_threshold_pct ?? 20;
+        const leadsGoal = pref?.leads_goal_daily ?? null;
+
+        const { count: yesterdayCount } = await supabase
+          .from("pageviews")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", project.id)
+          .gte("created_at", yStart.toISOString())
+          .lte("created_at", yEnd.toISOString());
+
+        const prevStart = new Date(sevenAgo); prevStart.setHours(0, 0, 0, 0);
+        const prevEnd = new Date(yesterday); prevEnd.setDate(prevEnd.getDate() - 1); prevEnd.setHours(23, 59, 59, 999);
+        const { count: prevCount } = await supabase
+          .from("pageviews")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", project.id)
+          .gte("created_at", prevStart.toISOString())
+          .lte("created_at", prevEnd.toISOString());
+
+        const avg7 = (prevCount ?? 0) / 7;
+        const yCount = yesterdayCount ?? 0;
+
+        const sendAlert = async (payload: any) => {
+          await supabase.from("alerts").insert({ project_id: project.id, ...payload });
+          created++;
+          for (const email of targetEmails) {
+            await sendEmail(
+              email,
+              `[KUBOWEB] ${payload.title}`,
+              alertEmailHtml({ title: payload.title, message: payload.message, projectName: project.name }),
+            );
+            emailsSent++;
+          }
+        };
+
+        if (avg7 > 0) {
+          const change = ((yCount - avg7) / avg7) * 100;
+          if (change >= threshold) {
+            await sendAlert({
+              type: "traffic_spike",
+              severity: "success",
+              title: `📈 Tráfego subiu ${change.toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da média semanal (${avg7.toFixed(0)}).`,
+              metadata: { yesterday: yCount, avg7, change },
+            });
+          } else if (change <= -threshold) {
+            await sendAlert({
+              type: "traffic_drop",
+              severity: "warning",
+              title: `📉 Tráfego caiu ${Math.abs(change).toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da média semanal (${avg7.toFixed(0)}).`,
+              metadata: { yesterday: yCount, avg7, change },
+            });
+          }
+        }
+
+        if (leadsGoal && leadsGoal > 0) {
+          const { count: leadsCount } = await supabase
+            .from("events")
+            .select("*", { count: "exact", head: true })
+            .eq("project_id", project.id)
+            .in("event_type", ["whatsapp_click", "form_submit"])
+            .gte("created_at", yStart.toISOString())
+            .lte("created_at", yEnd.toISOString());
+
+          const leads = leadsCount ?? 0;
+          if (leads >= leadsGoal) {
+            await sendAlert({
+              type: "leads_goal",
+              severity: "success",
+              title: `🎯 Meta de leads batida!`,
+              message: `${project.name} gerou ${leads} leads ontem (meta: ${leadsGoal}).`,
+              metadata: { leads, goal: leadsGoal },
+            });
+          }
+        }
       }
+    } catch (err) {
+      console.error(`Erro ao processar organização ${org.id}`, err);
+      // Isolamento: Falha em uma org não interrompe as outras
     }
   }
 

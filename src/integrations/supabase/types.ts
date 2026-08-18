@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -10,10 +10,58 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
+      aggregation_status: {
+        Row: {
+          last_aggregated_at: string
+          project_id: string
+        }
+        Insert: {
+          last_aggregated_at?: string
+          project_id: string
+        }
+        Update: {
+          last_aggregated_at?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aggregation_status_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_insights: {
         Row: {
           content: string
@@ -131,6 +179,214 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_events: {
+        Row: {
+          count: number
+          date: string
+          device: string
+          event_type: string
+          project_id: string
+          source: string
+        }
+        Insert: {
+          count?: number
+          date: string
+          device: string
+          event_type: string
+          project_id: string
+          source: string
+        }
+        Update: {
+          count?: number
+          date?: string
+          device?: string
+          event_type?: string
+          project_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_geo: {
+        Row: {
+          city: string
+          country: string
+          date: string
+          device: string
+          project_id: string
+          source: string
+          views: number
+          visitors: number
+        }
+        Insert: {
+          city: string
+          country: string
+          date: string
+          device: string
+          project_id: string
+          source: string
+          views?: number
+          visitors?: number
+        }
+        Update: {
+          city?: string
+          country?: string
+          date?: string
+          device?: string
+          project_id?: string
+          source?: string
+          views?: number
+          visitors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_geo_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_overview: {
+        Row: {
+          bounces: number
+          date: string
+          device: string
+          project_id: string
+          sessions: number
+          source: string
+          total_duration: number
+          views: number
+          visitors: number
+        }
+        Insert: {
+          bounces?: number
+          date: string
+          device: string
+          project_id: string
+          sessions?: number
+          source: string
+          total_duration?: number
+          views?: number
+          visitors?: number
+        }
+        Update: {
+          bounces?: number
+          date?: string
+          device?: string
+          project_id?: string
+          sessions?: number
+          source?: string
+          total_duration?: number
+          views?: number
+          visitors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_overview_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_pages: {
+        Row: {
+          bounces: number
+          date: string
+          device: string
+          page_path: string
+          project_id: string
+          sessions: number
+          source: string
+          total_duration: number
+          views: number
+          visitors: number
+        }
+        Insert: {
+          bounces?: number
+          date: string
+          device: string
+          page_path: string
+          project_id: string
+          sessions?: number
+          source: string
+          total_duration?: number
+          views?: number
+          visitors?: number
+        }
+        Update: {
+          bounces?: number
+          date?: string
+          device?: string
+          page_path?: string
+          project_id?: string
+          sessions?: number
+          source?: string
+          total_duration?: number
+          views?: number
+          visitors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_pages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_daily_tech: {
+        Row: {
+          browser: string
+          date: string
+          device: string
+          os: string
+          project_id: string
+          source: string
+          views: number
+          visitors: number
+        }
+        Insert: {
+          browser: string
+          date: string
+          device: string
+          os: string
+          project_id: string
+          source: string
+          views?: number
+          visitors?: number
+        }
+        Update: {
+          browser?: string
+          date?: string
+          device?: string
+          os?: string
+          project_id?: string
+          source?: string
+          views?: number
+          visitors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_tech_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -384,6 +640,121 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          role: string
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          role: string
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          role?: string
+          status?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          analytics_property_id: string | null
+          created_at: string
+          domain: string | null
+          id: string
+          lead_value: number
+          legacy_client_id: string | null
+          monthly_ad_spend: number
+          name: string
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          analytics_property_id?: string | null
+          created_at?: string
+          domain?: string | null
+          id?: string
+          lead_value?: number
+          legacy_client_id?: string | null
+          monthly_ad_spend?: number
+          name: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analytics_property_id?: string | null
+          created_at?: string
+          domain?: string | null
+          id?: string
+          lead_value?: number
+          legacy_client_id?: string | null
+          monthly_ad_spend?: number
+          name?: string
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_metrics: {
         Row: {
           avg_time_on_page: number
@@ -502,6 +873,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          organization_id: string | null
           url: string | null
         }
         Insert: {
@@ -509,6 +881,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          organization_id?: string | null
           url?: string | null
         }
         Update: {
@@ -516,6 +889,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          organization_id?: string | null
           url?: string | null
         }
         Relationships: [
@@ -524,6 +898,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -538,6 +919,8 @@ export type Database = {
           environment: string
           external_id: string | null
           id: string
+          last_event_ts: string | null
+          organization_id: string | null
           payer_email: string | null
           plan_id: string | null
           price_id: string | null
@@ -559,6 +942,8 @@ export type Database = {
           environment?: string
           external_id?: string | null
           id?: string
+          last_event_ts?: string | null
+          organization_id?: string | null
           payer_email?: string | null
           plan_id?: string | null
           price_id?: string | null
@@ -580,6 +965,8 @@ export type Database = {
           environment?: string
           external_id?: string | null
           id?: string
+          last_event_ts?: string | null
+          organization_id?: string | null
           payer_email?: string | null
           plan_id?: string | null
           price_id?: string | null
@@ -592,7 +979,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
@@ -765,15 +1160,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aggregate_analytics_jit: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
+      classify_source: { Args: { referrer: string }; Returns: string }
+      cleanup_old_raw_data: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_user_organizations: { Args: never; Returns: string[] }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -794,6 +1195,9 @@ export type Database = {
         }
         Returns: number
       }
+      parse_browser: { Args: { ua: string }; Returns: string }
+      parse_device: { Args: { ua: string }; Returns: string }
+      parse_os: { Args: { ua: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -801,6 +1205,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      user_has_role: {
+        Args: { p_org_id: string; p_required_roles: string[] }
+        Returns: boolean
       }
     }
     Enums: {
@@ -931,6 +1339,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       annotation_category: ["campaign", "launch", "event", "other"],

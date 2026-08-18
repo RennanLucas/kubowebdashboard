@@ -3,10 +3,7 @@
 // O usuário mantém acesso até current_period_end (validado por has_active_subscription).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -39,16 +36,34 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // Busca a assinatura ativa mais recente desse usuário
+    const body = await req.json().catch(() => ({}));
+    const organizationId = body.organizationId as string | undefined;
+
+    if (!organizationId) {
+      return json({ error: "organizationId is required" }, 400);
+    }
+
+    const { data: memberData, error: memberErr } = await admin
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (memberErr || !memberData || !['owner', 'admin'].includes(memberData.role)) {
+      return json({ error: "Acesso negado para gerenciar faturamento desta organização" }, 403);
+    }
+
+    // Busca a assinatura ativa mais recente dessa ORG
     const { data: sub, error: subErr } = await admin
       .from("subscriptions")
       .select("*")
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (subErr || !sub) return json({ error: "Nenhuma assinatura encontrada" }, 404);
+    if (subErr || !sub) return json({ error: "Nenhuma assinatura encontrada para a organização" }, 404);
 
     const preapprovalId = sub.external_id as string | null;
     let mpUpdated = false;
@@ -92,3 +107,4 @@ function json(body: unknown, status = 200) {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
+

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { TrendingDown } from "lucide-react";
 import { SectionCard } from "./SectionCard";
 
@@ -15,7 +16,7 @@ interface ConversionFunnelProps {
   conversions: number;
 }
 
-export function ConversionFunnel({ visitors, engaged, clicks, conversions }: ConversionFunnelProps) {
+export const ConversionFunnel = memo(function ConversionFunnel({ visitors, engaged, clicks, conversions }: ConversionFunnelProps) {
   const steps: FunnelStep[] = [
     { label: "Visitantes", value: visitors, dotClass: "bg-chart-blue", barClass: "bg-gradient-to-r from-chart-blue to-chart-blue/60" },
     { label: "Engajados", value: engaged, dotClass: "bg-chart-purple", barClass: "bg-gradient-to-r from-chart-purple to-chart-purple/60" },
@@ -29,53 +30,31 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
     <SectionCard
       title="Funil de Conversão"
       subtitle="Jornada do visitante até a conversão"
-      tooltip={
-        <div className="space-y-1.5">
-          <p>Mostra a jornada do visitante em 4 etapas:</p>
-          <ul className="list-disc pl-3 space-y-0.5">
-            <li><strong>Visitantes:</strong> total de pessoas que entraram</li>
-            <li><strong>Engajados:</strong> visitantes que não saíram imediatamente (ficaram navegando)</li>
-            <li><strong>Cliques em CTA:</strong> clicaram em botões ou WhatsApp</li>
-            <li><strong>Conversões:</strong> completaram uma ação (lead)</li>
-          </ul>
-          <p className="pt-1">A queda entre etapas mostra onde você está perdendo público.</p>
-        </div>
-      }
+      tooltip="Acompanhe a perda de visitantes em cada etapa chave da jornada, desde o primeiro acesso até o momento do contato ou conversão."
     >
-
-      <div className="space-y-4">
+      <div className="space-y-5 mt-2">
         {steps.map((step, i) => {
-          const widthPct = max > 0 ? (step.value / max) * 100 : 0;
-          const prev = i > 0 ? steps[i - 1].value : null;
-          const dropOff = prev !== null && prev > 0 ? ((prev - step.value) / prev) * 100 : 0;
-          const conversionPct = prev !== null && prev > 0 ? (step.value / prev) * 100 : 100;
+          const width = Math.max((step.value / max) * 100, 2);
+          const dropOff = i > 0 ? ((steps[i - 1].value - step.value) / Math.max(steps[i - 1].value, 1)) * 100 : 0;
 
           return (
-            <div key={step.label} className="group">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`h-2 w-2 rounded-full shrink-0 ${step.dotClass}`}
-                  />
-                  <span className="text-xs font-medium text-foreground">{step.label}</span>
+            <div key={step.label} className="relative group">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                <div className="flex items-center gap-1.5 font-medium text-foreground">
+                  <span className={`h-2 w-2 rounded-full ${step.dotClass}`} />
+                  {step.label}
                 </div>
-                <div className="flex items-center gap-2 tabular-nums">
-                  <span className="text-sm font-semibold text-foreground">
-                    {step.value.toLocaleString("pt-BR")}
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground tabular-nums">{step.value.toLocaleString("pt-BR")}</span>
+                  <span className="text-muted-foreground w-12 text-right">
+                    {((step.value / max) * 100).toFixed(1)}%
                   </span>
-                  {i > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
-                      {conversionPct.toFixed(1)}%
-                    </span>
-                  )}
                 </div>
               </div>
-              <div className="h-9 bg-muted/60 rounded-lg overflow-hidden relative">
+              <div className="h-6 w-full rounded-md bg-muted/30 overflow-hidden">
                 <div
-                  className={`h-full rounded-lg transition-all duration-700 ease-out opacity-90 ${step.barClass}`}
-                  style={{
-                    width: `${Math.max(widthPct, 2)}%`,
-                  }}
+                  className={`h-full rounded-md transition-all duration-500 ease-out ${step.barClass}`}
+                  style={{ width: `${width}%` }}
                 />
               </div>
               {i > 0 && dropOff > 0 && (
@@ -99,4 +78,4 @@ export function ConversionFunnel({ visitors, engaged, clicks, conversions }: Con
       </div>
     </SectionCard>
   );
-}
+});

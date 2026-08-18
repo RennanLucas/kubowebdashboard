@@ -1,2 +1,8 @@
-REVOKE EXECUTE ON FUNCTION public.email_queue_dispatch() FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.email_queue_wake() FROM PUBLIC, anon, authenticated;
+-- [2026-08-15] Correção de Bloqueio em STAGING (Fase 3.3)
+-- As funções public.email_queue_dispatch() e public.email_queue_wake() 
+-- nunca existiram no histórico do projeto. A arquitetura de emails
+-- (migration 20260419030222_email_infra.sql) utiliza chamadas HTTP
+-- via pg_net (net.http_post) orquestradas pelo pg_cron.
+-- Portanto, estas revogações foram comentadas para evitar quebra do build.
+-- REVOKE EXECUTE ON FUNCTION public.email_queue_dispatch() FROM PUBLIC, anon, authenticated;
+-- REVOKE EXECUTE ON FUNCTION public.email_queue_wake() FROM PUBLIC, anon, authenticated;

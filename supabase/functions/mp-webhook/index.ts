@@ -1,10 +1,7 @@
 // Webhook do Mercado Pago: processa notificações de payment e preapproval
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -62,7 +59,7 @@ Deno.serve(async (req) => {
     const queryType = url.searchParams.get("type") || url.searchParams.get("topic");
     const queryId = url.searchParams.get("id") || url.searchParams.get("data.id");
 
-    let body: any = {};
+    let body: { type?: string; topic?: string; resource?: string; data?: { id?: string } } = {};
     try { body = await req.json(); } catch { /* GET ping */ }
 
     const type = body.type || body.topic || queryType;
@@ -112,6 +109,38 @@ async function mpFetch(path: string) {
   return res.json();
 }
 
+function parseExternalReference(extRef: string) {
+  if (extRef.startsWith("v2|")) {
+    const parts = extRef.split("|");
+    let orgId, planId, userId;
+    for (const p of parts) {
+      if (p.startsWith("org:")) orgId = p.replace("org:", "");
+      if (p.startsWith("plan:")) planId = p.replace("plan:", "");
+      if (p.startsWith("user:")) userId = p.replace("user:", "");
+    }
+    return { organizationId: orgId, planId, userId };
+  } else {
+    const [userId, planId] = extRef.split("|");
+    return { organizationId: undefined, planId, userId };
+  }
+}
+
+async function getExistingSub(externalId: string) {
+  const { data } = await admin
+    .from("subscriptions")
+    .select("id, organization_id, last_event_ts, status")
+    .eq("external_id", externalId)
+    .single();
+  return data;
+}
+
+function isOutdated(eventDateStr: string | undefined, existingTsStr: string | null | undefined): boolean {
+  if (!eventDateStr || !existingTsStr) return false;
+  const eventTime = new Date(eventDateStr).getTime();
+  const existingTime = new Date(existingTsStr).getTime();
+  return eventTime <= existingTime;
+}
+
 async function handlePayment(paymentId: string) {
   const payment = await mpFetch(`/v1/payments/${paymentId}`);
   if (!payment) return;
@@ -121,8 +150,9 @@ async function handlePayment(paymentId: string) {
     console.warn("Payment without external_reference:", paymentId);
     return;
   }
-  const [userId, planId] = extRef.split("|");
-  if (!userId) return;
+  
+  const { organizationId, planId, userId } = parseExternalReference(extRef);
+  if (!userId || !planId) return;
 
   const status = payment.status as string; // approved, pending, rejected, refunded
   const isAnnual = planId === "kuboweb_pro_yearly";
@@ -130,23 +160,36 @@ async function handlePayment(paymentId: string) {
 
   if (!isAnnual) return; // recorrentes vêm via subscription_authorized_payment
 
+  const eventTs = payment.date_last_updated || payment.date_created || new Date().toISOString();
+  const existingSub = await getExistingSub(String(paymentId));
+
+  if (isOutdated(eventTs, existingSub?.last_event_ts)) {
+    console.log(`Payment ${paymentId} webhook ignored (outdated event)`);
+    return;
+  }
+
   const periodEnd = isApproved
     ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
     : null;
 
+  // Se a subscrição já existe e tem org_id mas o payload é V1 (orgId undef), mantém o org_id atual.
+  const finalOrgId = organizationId || existingSub?.organization_id || null;
+
   await admin.from("subscriptions").upsert(
     {
+      id: existingSub?.id, // ajuda no upsert caso external_id tenha mudado (raro)
       user_id: userId,
+      organization_id: finalOrgId,
       provider: "mercadopago",
       external_id: String(paymentId),
       plan_id: planId,
-      status: isApproved ? "active" : status,
+      status: isApproved ? "active" : (status === "rejected" ? "unpaid" : status),
       amount: payment.transaction_amount,
       payer_email: payment.payer?.email,
-      current_period_start: new Date().toISOString(),
+      current_period_start: payment.date_created || new Date().toISOString(),
       current_period_end: periodEnd,
+      last_event_ts: eventTs,
       environment: "live",
-      // Compatibilidade com schema legado
       stripe_subscription_id: `mp_${paymentId}`,
       stripe_customer_id: `mp_${payment.payer?.id ?? userId}`,
       product_id: planId,
@@ -162,8 +205,9 @@ async function handlePreapproval(preapprovalId: string) {
 
   const extRef = sub.external_reference as string | undefined;
   if (!extRef) return;
-  const [userId, planId] = extRef.split("|");
-  if (!userId) return;
+  
+  const { organizationId, planId, userId } = parseExternalReference(extRef);
+  if (!userId || !planId) return;
 
   const status = sub.status as string; // pending, authorized, paused, cancelled
   const nextPayment = sub.next_payment_date ? new Date(sub.next_payment_date).toISOString() : null;
@@ -176,9 +220,21 @@ async function handlePreapproval(preapprovalId: string) {
     status === "cancelled" ? "canceled" :
     status === "paused" ? "paused" : status;
 
+  const eventTs = sub.last_modified || sub.date_created || new Date().toISOString();
+  const existingSub = await getExistingSub(preapprovalId);
+
+  if (isOutdated(eventTs, existingSub?.last_event_ts)) {
+    console.log(`Preapproval ${preapprovalId} webhook ignored (outdated event)`);
+    return;
+  }
+
+  const finalOrgId = organizationId || existingSub?.organization_id || null;
+
   await admin.from("subscriptions").upsert(
     {
+      id: existingSub?.id,
       user_id: userId,
+      organization_id: finalOrgId,
       provider: "mercadopago",
       external_id: preapprovalId,
       plan_id: planId,
@@ -188,6 +244,7 @@ async function handlePreapproval(preapprovalId: string) {
       current_period_start: sub.date_created ? new Date(sub.date_created).toISOString() : new Date().toISOString(),
       current_period_end: nextPayment,
       trial_end: trialEnd,
+      last_event_ts: eventTs,
       environment: "live",
       stripe_subscription_id: `mp_${preapprovalId}`,
       stripe_customer_id: `mp_${sub.payer_id ?? userId}`,
@@ -201,5 +258,7 @@ async function handlePreapproval(preapprovalId: string) {
 async function handleAuthorizedPayment(authPaymentId: string) {
   const auth = await mpFetch(`/authorized_payments/${authPaymentId}`);
   if (!auth?.preapproval_id) return;
+  // Apenas delega para o preapproval que fará o sync correto baseado em data mais recente
   await handlePreapproval(String(auth.preapproval_id));
 }
+
