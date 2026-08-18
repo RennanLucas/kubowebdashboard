@@ -76,7 +76,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
     (async () => {
       try {
         const { data } = await supabase
-          .from("clients")
+          .from("organization_members")
           .select("id")
           .eq("user_id", user.id)
           .limit(1)
@@ -100,15 +100,17 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
 
     try {
       if (editMode && existingClient) {
-        const { error: clientError } = await supabase
-          .from("clients")
+        // Obter organization vinculada a este client antigo para compatibilidade
+        // ou editar diretamente a organization
+        const { error: orgError } = await supabase
+          .from("organizations")
           .update({
-            company_name: form.companyName,
+            name: form.companyName,
             domain: form.domain || null,
           })
-          .eq("id", existingClient.id);
+          .eq("legacy_client_id", existingClient.id);
 
-        if (clientError) throw clientError;
+        if (orgError) throw orgError;
 
         if (existingClient.projects?.[0]) {
           const { error: projectError } = await supabase
@@ -125,22 +127,31 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
         toast.success("Dados atualizados com sucesso!");
         navigate("/dashboard");
       } else {
-        const { data: client, error: clientError } = await supabase
-          .from("clients")
+        const { data: org, error: orgError } = await supabase
+          .from("organizations")
           .insert({
-            user_id: user.id,
-            company_name: form.companyName,
+            name: form.companyName,
             domain: form.domain || null,
           })
           .select()
           .single();
 
-        if (clientError) throw clientError;
+        if (orgError) throw orgError;
+
+        const { error: memberError } = await supabase
+          .from("organization_members")
+          .insert({
+            organization_id: org.id,
+            user_id: user.id,
+            role: "owner",
+          });
+
+        if (memberError) throw memberError;
 
         const { error: projectError } = await supabase
           .from("projects")
           .insert({
-            client_id: client.id,
+            organization_id: org.id,
             name: form.projectName || form.companyName,
             url: form.domain || null,
           });
