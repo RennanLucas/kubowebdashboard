@@ -19,8 +19,8 @@ interface QuickStartGuideProps {
  */
 export function QuickStartGuide({ query = "", filter = null }: QuickStartGuideProps) {
   const navigate = useNavigate();
-  const supabaseProjectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const scriptExample = `<script src="https://${supabaseProjectId}.supabase.co/functions/v1/tracker-script?pid=SEU_PROJECT_ID" defer></script>`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const scriptExample = `<script src="${supabaseUrl}/functions/v1/tracker-script?pid=SEU_PROJECT_ID" defer></script>`;
 
   const whatsappExample = `<a href="https://wa.me/5511999999999" data-track="whatsapp">
   Falar no WhatsApp

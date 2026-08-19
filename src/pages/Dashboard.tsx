@@ -226,8 +226,8 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     toast.info("Gerando relatório PDF...");
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      let url = `https://${pid}.supabase.co/functions/v1/generate-report?days=${dateRange}`;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      let url = `${supabaseUrl}/functions/v1/generate-report?days=${dateRange}`;
       if (selectedProjectId) url += `&project_id=${selectedProjectId}`;
 
       const response = await fetch(url, {

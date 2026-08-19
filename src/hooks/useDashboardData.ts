@@ -34,8 +34,8 @@ const fetchEndpoint = async (
   accessToken: string,
   opts: FetchOptions = {},
 ) => {
-  const pid = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  let url = `https://${pid}.supabase.co/functions/v1/${endpoint}?days=${days}`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  let url = `${supabaseUrl}/functions/v1/${endpoint}?days=${days}`;
   if (projectId) url += `&project_id=${projectId}`;
   if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
   if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;

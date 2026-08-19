@@ -8,8 +8,8 @@ interface TrackingSnippetProps {
 
 const TrackingSnippet = ({ projectId }: TrackingSnippetProps) => {
   const [copied, setCopied] = useState(false);
-  const supabaseProjectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const scriptUrl = `https://${supabaseProjectId}.supabase.co/functions/v1/tracker-script?pid=${projectId}`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const scriptUrl = `${supabaseUrl}/functions/v1/tracker-script?pid=${projectId}`;
   const snippet = `<script src="${scriptUrl}" defer></script>`;
 
   const handleCopy = async () => {
