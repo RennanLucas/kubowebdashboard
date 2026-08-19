@@ -111,8 +111,8 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
     planCache.set(pid, { active: isActive, expiresAt: now + 5 * 60 * 1000 });
     return isActive;
   } catch (e) {
-    // Fail open apenas para instabilidades de banco (não de regra de negócio)
-    return true;
+    // Fail closed: qualquer erro resulta em DENY de tracking.
+    return false;
   }
 }
 

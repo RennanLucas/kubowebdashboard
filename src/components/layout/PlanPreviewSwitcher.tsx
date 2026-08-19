@@ -25,9 +25,7 @@ export const PlanPreviewSwitcher = () => {
   const { isAdmin } = useIsAdmin();
   const { preview, setPreview } = usePlanPreview();
 
-  const email = (user?.email || "").toLowerCase();
-  const isOwner = email.includes("rennan") || email.includes("kuboweb");
-  const showSwitcher = isAdmin || isOwner;
+      const showSwitcher = isAdmin;
 
   if (!showSwitcher) return null;
 

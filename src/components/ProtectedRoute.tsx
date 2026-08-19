@@ -9,7 +9,6 @@ interface Props {
   children: React.ReactNode;
   requireSubscription?: boolean;
   requireAdmin?: boolean;
-  /** Bloqueia a rota se o plano atual não liberar este recurso */
   requireFeature?: FeatureKey;
 }
 
@@ -26,13 +25,9 @@ const ProtectedRoute = ({
   const { isAdmin, loading: adminLoading } = useIsAdmin(needsAccessCheck);
   const location = useLocation();
 
-  const email = (session?.user?.email || "").toLowerCase();
-  const isOwner = email.includes("rennan") || email.includes("kuboweb");
-  const effectiveAdmin = isAdmin || isOwner;
-
   if (
     loading ||
-    (!effectiveAdmin && session && needsAccessCheck && (subLoading || adminLoading || (!!requireFeature && plan.loading)))
+    (!isAdmin && session && needsAccessCheck && (subLoading || adminLoading || (!!requireFeature && plan.loading)))
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -43,15 +38,15 @@ const ProtectedRoute = ({
 
   if (!session) return <Navigate to="/login" replace state={{ from: location }} />;
 
-  if (requireAdmin && !effectiveAdmin) {
+  if (requireAdmin && !isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (requireSubscription && !isActive && !effectiveAdmin) {
+  if (requireSubscription && !isActive && !isAdmin) {
     return <Navigate to="/pricing" replace />;
   }
 
-  if (requireFeature && !plan.can(requireFeature) && (!effectiveAdmin || plan.isPreview)) {
+  if (requireFeature && !plan.can(requireFeature) && (!isAdmin || plan.isPreview)) {
     return <Navigate to="/pricing" replace state={{ lockedFeature: requireFeature }} />;
   }
 
