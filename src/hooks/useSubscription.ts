@@ -98,21 +98,20 @@ export function useSubscription(enabled = true) {
     };
   }, [isReady, orgId, user?.id, refetch]);
 
-  const isActive = (() => {
-    const subToCheck = subscription || ambiguousSubscription;
-    if (!subToCheck) return false;
-    const okStatus = ["active", "trialing", "authorized", "approved"].includes(subToCheck.status);
-    const periodOk =
-      !subToCheck.current_period_end || new Date(subToCheck.current_period_end) > new Date();
+  const isSubValid = (sub: any) => {
+    if (!sub) return false;
+    const okStatus = ["active", "trialing", "authorized", "approved"].includes(sub.status);
+    const periodOk = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
     if (okStatus && periodOk) return true;
     if (
-      ["canceled", "cancelled"].includes(subToCheck.status) &&
-      subToCheck.current_period_end &&
-      new Date(subToCheck.current_period_end) > new Date()
-    )
-      return true;
+      ["canceled", "cancelled"].includes(sub.status) &&
+      sub.current_period_end &&
+      new Date(sub.current_period_end) > new Date()
+    ) return true;
     return false;
-  })();
+  };
+
+  const isActive = isSubValid(subscription) || isSubValid(ambiguousSubscription);
 
   return {
     subscription,
