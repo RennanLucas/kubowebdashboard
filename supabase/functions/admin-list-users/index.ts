@@ -39,9 +39,12 @@ serve(async (req) => {
     const action = body.action || "list";
 
     if (action === "list") {
+      const page = body.page || 1;
+      const perPage = body.perPage || 50;
+
       const { data: usersList, error: listErr } = await admin.auth.admin.listUsers({
-        page: 1,
-        perPage: 200,
+        page,
+        perPage,
       });
       if (listErr) return json({ error: listErr.message }, 500);
 
@@ -62,7 +65,13 @@ serve(async (req) => {
         subscription: subs?.find((s) => s.user_id === u.id) ?? null,
       }));
 
-      return json({ users: result });
+      return json({ 
+        users: result,
+        // @ts-ignore: Total might exist on usersList depending on the Supabase version
+        total: usersList.total,
+        // @ts-ignore
+        nextPage: usersList.nextPage
+      });
     }
 
     if (action === "promote" || action === "demote") {

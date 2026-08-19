@@ -239,6 +239,14 @@ export default function ProjectsManager({ organizationId }: Props) {
                             return;
                           }
                           toast.success("Projeto excluído");
+                          
+                          // Clear active project if the deleted one was selected
+                          const currentActive = localStorage.getItem("dashboard:last-project-id");
+                          if (currentActive === p.id) {
+                            localStorage.removeItem("dashboard:last-project-id");
+                            window.dispatchEvent(new Event("project-changed"));
+                          }
+
                           await refetch();
                           await qc.invalidateQueries({ queryKey: ["projects"] });
                           await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });

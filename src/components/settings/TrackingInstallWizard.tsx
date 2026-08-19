@@ -53,11 +53,37 @@ export function TrackingInstallWizard({
     }
   }, [open]);
 
+  const [verificationStartedAt, setVerificationStartedAt] = useState<Date | null>(null);
+
   const verifyInstallation = async () => {
     setVerifying(true);
     setHasError(false);
+    
+    // Set timestamp exactly when user clicks verify
+    const startTime = new Date();
+    setVerificationStartedAt(startTime);
+
     try {
-      const { data, error } = await supabase
+      // First check if there's any new visit since the button was clicked
+      const { data: newVisits, error: newErr } = await supabase
+        .from("pageviews")
+        .select("created_at")
+        .eq("project_id", projectId)
+        .gte("created_at", startTime.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (newErr) throw newErr;
+      
+      if (newVisits && newVisits.created_at) {
+        setLastSeen(new Date(newVisits.created_at));
+        setStep(3); // 🟢 Instalação confirmada
+        return;
+      }
+
+      // If no new visits, check if there are ANY past visits
+      const { data: oldVisits, error: oldErr } = await supabase
         .from("pageviews")
         .select("created_at")
         .eq("project_id", projectId)
@@ -65,12 +91,15 @@ export function TrackingInstallWizard({
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
-      
-      if (data && data.created_at) {
-        setLastSeen(new Date(data.created_at));
-        setStep(3);
+      if (oldErr) throw oldErr;
+
+      if (oldVisits && oldVisits.created_at) {
+        // 🟡 Aguardando nova visita (old visits exist, but no new ones)
+        setLastSeen(new Date(oldVisits.created_at));
+        setHasError(false); // don't show full error, let's keep step 2 but we'll adapt UI
       } else {
+        // 🔴 Nenhum dado (never visited)
+        setLastSeen(null);
         setHasError(true);
       }
     } catch (err) {
@@ -311,21 +340,32 @@ export function TrackingInstallWizard({
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   ) : hasError ? (
                     <XCircle className="h-8 w-8 text-destructive" />
+                  ) : verificationStartedAt && lastSeen ? (
+                    // Aguardando nova visita (tem dado antigo mas não novo pós-clique)
+                    <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
                   ) : (
                     <Globe className="h-8 w-8 text-muted-foreground" />
                   )}
                 </div>
                 
                 <h3 className="text-xl font-bold">
-                  {verifying ? "Verificando seu site..." : hasError ? "Ainda não detectamos a instalação" : "Aguardando instalação"}
+                  {verifying 
+                    ? "Verificando seu site..." 
+                    : hasError 
+                    ? "Ainda não detectamos a instalação" 
+                    : verificationStartedAt && lastSeen
+                    ? "Aguardando nova visita"
+                    : "Aguardando instalação"}
                 </h3>
                 
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   {verifying 
-                    ? "Estamos buscando dados recentes associados a este projeto..." 
+                    ? "Estamos buscando acessos recebidos após o início deste teste..." 
                     : hasError 
-                    ? "Confira se o código está dentro do <head> do seu site e se as alterações foram publicadas."
-                    : "Ainda não recebemos dados desse site. Faça o teste abaixo."}
+                    ? "Nenhum dado recebido. Confira se o código está dentro do <head> do seu site e se as alterações foram publicadas."
+                    : verificationStartedAt && lastSeen
+                    ? "Detectamos visitas anteriores, mas nenhuma nova visita após você clicar em verificar. Abra seu site em outra aba e recarregue a página."
+                    : "Ainda não recebemos novos dados desse site. Faça o teste abaixo."}
                 </p>
               </div>
 
@@ -335,11 +375,11 @@ export function TrackingInstallWizard({
                     <Sparkles className="h-4 w-4 text-primary" /> Faça este teste
                   </h4>
                   <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
-                    <li>Abra seu site em outra aba.</li>
-                    <li>Entre em qualquer página.</li>
-                    <li>Aguarde alguns segundos.</li>
-                    <li>Volte para o Kubo.</li>
-                    <li>Clique em <strong>Verificar instalação</strong>.</li>
+                    <li>Abra seu site em outra aba (ou janela anônima).</li>
+                    <li>Navegue na página inicial.</li>
+                    <li>Aguarde 2 a 5 segundos.</li>
+                    <li>Volte para esta janela.</li>
+                    <li>Clique em <strong>Tentar novamente</strong> abaixo.</li>
                   </ol>
                 </div>
               )}
@@ -351,7 +391,7 @@ export function TrackingInstallWizard({
                   disabled={verifying}
                   className="w-full text-base"
                 >
-                  {verifying ? "Verificando..." : "Verificar instalação"}
+                  {verifying ? "Verificando..." : (hasError || (verificationStartedAt && lastSeen)) ? "Tentar novamente" : "Verificar instalação"}
                 </Button>
                 
                 {hasError && (

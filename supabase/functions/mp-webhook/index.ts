@@ -155,10 +155,7 @@ async function handlePayment(paymentId: string) {
   if (!userId || !planId) return;
 
   const status = payment.status as string; // approved, pending, rejected, refunded
-  const isAnnual = planId === "kuboweb_pro_yearly";
   const isApproved = status === "approved";
-
-  if (!isAnnual) return; // recorrentes vêm via subscription_authorized_payment
 
   const eventTs = payment.date_last_updated || payment.date_created || new Date().toISOString();
   const existingSub = await getExistingSub(String(paymentId));
@@ -169,7 +166,7 @@ async function handlePayment(paymentId: string) {
   }
 
   const periodEnd = isApproved
-    ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    ? new Date(Date.now() + (planId.includes("yearly") ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
     : null;
 
   // Se a subscrição já existe e tem org_id mas o payload é V1 (orgId undef), mantém o org_id atual.

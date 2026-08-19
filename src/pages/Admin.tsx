@@ -59,22 +59,34 @@ export default function Admin() {
   const [grantDialogState, setGrantDialogState] = useState<{ open: boolean; target: AdminUser | null; days: string }>({ open: false, target: null, days: "365" });
   const [revokeDialogState, setRevokeDialogState] = useState<{ open: boolean; target: AdminUser | null }>({ open: false, target: null });
 
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [totalUsers, setTotalUsers] = useState(0);
+
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("admin-list-users", {
-      body: { action: "list" },
+      body: { action: "list", page, perPage },
     });
     if (error || data?.error) {
       toast.error(data?.error || error?.message || "Falha ao carregar usuários");
     } else {
       setUsers(data.users || []);
+      if (data.total !== undefined) {
+        setTotalUsers(data.total);
+      } else {
+        // Fallback for when total isn't returned correctly by the API
+        // If we received exactly perPage items, assume there are more.
+        const returned = data.users?.length || 0;
+        setTotalUsers(returned === perPage ? page * perPage + 1 : (page - 1) * perPage + returned);
+      }
     }
     setLoading(false);
   };
 
   useEffect(() => {
     if (isAdmin) fetchUsers();
-  }, [isAdmin]);
+  }, [isAdmin, page, perPage]);
 
   if (authLoading || adminLoading) {
     return (
@@ -291,6 +303,30 @@ export default function Admin() {
                   })}
                 </tbody>
               </table>
+              <div className="p-4 border-t border-border flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Página {page}
+                  {totalUsers > 0 && ` (Total: ~${totalUsers})`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1 || loading}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={filtered.length < perPage || loading}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </Card>

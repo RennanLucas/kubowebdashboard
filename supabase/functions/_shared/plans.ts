@@ -3,7 +3,7 @@
 // Para descontinuar/pausar um plano, defina `enabled: false` — a UI o desabilita
 // automaticamente e a edge function de checkout recusa novas assinaturas dele.
 
-export type PlanId = "kuboweb_pro_monthly" | "kuboweb_pro_plus_monthly";
+export type PlanId = "kuboweb_pro_monthly";
 
 export interface PlanDefinition {
   id: PlanId;
@@ -22,7 +22,6 @@ export interface PlanDefinition {
   features: string[];
   recommended?: boolean;
   enabled: boolean;
-  // Mensagem opcional exibida quando o plano está desabilitado.
   disabledReason?: string;
 }
 
@@ -53,24 +52,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Relatórios em PDF e Exportação CSV",
     ],
     enabled: true,
-  },
-  kuboweb_pro_plus_monthly: {
-    id: "kuboweb_pro_plus_monthly",
-    name: "Pro+",
-    tagline: "KUBOWEB Pro+ — descontinuado",
-    price: "R$ 49,90",
-    cadence: "/mês",
-    amount: 49.90,
-    currency: "BRL",
-    frequency: 1,
-    frequency_type: "months",
-    free_trial: { frequency: 7, frequency_type: "days" },
-    reason: "KUBOWEB Pro+ - Mensal",
-    highlight: "Plano legado",
-    cta: "Indisponível",
-    features: [],
-    enabled: false,
-    disabledReason: "Plano descontinuado.",
   },
 };
 
@@ -117,7 +98,7 @@ export function resolveTier(sub: SubscriptionRow | null | undefined): PlanTier {
   const active = (ACTIVE_STATUS.includes(status) && periodOk)
     || (["canceled", "cancelled"].includes(status) && !!sub.current_period_end && new Date(sub.current_period_end) > new Date());
   if (!active) return "free";
-  return "pro"; // Legacy pro_plus and new pro both resolve to 'pro' tier
+  return "pro"; // Legacy plans and new pro both resolve to 'pro' tier
 }
 
 export function limitsForTier(tier: PlanTier): TierLimits {

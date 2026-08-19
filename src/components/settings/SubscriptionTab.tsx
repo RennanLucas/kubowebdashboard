@@ -21,7 +21,14 @@ export function SubscriptionTab({ subscription, activeOrganization }: Subscripti
       {subscription ? (
         <>
           <div className="rounded-lg border border-border bg-muted/40 p-4 space-y-1 text-sm">
-            <p className="text-foreground">
+            <h3 className="font-semibold text-foreground mb-2">Detalhes do Plano Pro</h3>
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground mb-4">
+              <li>Projetos e sites ilimitados</li>
+              <li>Histórico de dados estendido de 365 dias</li>
+              <li>10 Resumos Semanais com IA por mês</li>
+              <li>Relatórios em PDF e Exportação CSV</li>
+            </ul>
+            <p className="text-foreground border-t border-border/50 pt-3 mt-3">
               Status:{" "}
               <span className="font-medium capitalize">
                 {subscription.status === "trialing"

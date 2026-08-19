@@ -51,13 +51,18 @@ const eventSchema = z.object({
 });
 
 // Cache for plan status
-const planCache = new Map<string, { active: boolean; expiresAt: number }>();
+interface ProjectStatus {
+  active: boolean;
+  reason?: 'NOT_FOUND' | 'INACTIVE' | 'ERROR';
+}
 
-async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Promise<boolean> {
+const planCache = new Map<string, { status: ProjectStatus; expiresAt: number }>();
+
+async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Promise<ProjectStatus> {
   const now = Date.now();
   const cached = planCache.get(pid);
   if (cached && cached.expiresAt > now) {
-    return cached.active;
+    return cached.status;
   }
 
   try {
@@ -68,8 +73,9 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
       .maybeSingle();
 
     if (!projectData) {
-      planCache.set(pid, { active: false, expiresAt: now + 5 * 60 * 1000 });
-      return false;
+      const status: ProjectStatus = { active: false, reason: 'NOT_FOUND' };
+      planCache.set(pid, { status, expiresAt: now + 5 * 60 * 1000 });
+      return status;
     }
 
     let isActive = true;
@@ -86,19 +92,14 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
 
       if (orgSub) {
         isActive = !["canceled", "unpaid"].includes(orgSub.status);
-        planCache.set(pid, { active: isActive, expiresAt: now + 5 * 60 * 1000 });
-        return isActive;
       }
-    }
-
-    // 2. Fallback de Migração: Usa a assinatura legada do user_id do client
-    // Tolerado apenas enquanto organization_id na subscription for NULL (migration pending)
-    if (projectData.clients?.user_id) {
+    } else if (projectData.clients?.user_id) {
+      // 2. Fallback de Migração: Usa a assinatura legada do user_id do client
       const { data: subData } = await supabaseAdmin
         .from("subscriptions")
         .select("status, organization_id")
         .eq("user_id", projectData.clients.user_id)
-        .is("organization_id", null) // Garante que só puxa as antigas não migradas
+        .is("organization_id", null)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -108,11 +109,12 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
       }
     }
 
-    planCache.set(pid, { active: isActive, expiresAt: now + 5 * 60 * 1000 });
-    return isActive;
+    const status: ProjectStatus = { active: isActive, reason: isActive ? undefined : 'INACTIVE' };
+    planCache.set(pid, { status, expiresAt: now + 5 * 60 * 1000 });
+    return status;
   } catch (e) {
     // Fail closed: qualquer erro resulta em DENY de tracking.
-    return false;
+    return { active: false, reason: 'ERROR' };
   }
 }
 
@@ -225,9 +227,24 @@ Deno.serve(async (req) => {
     }
 
     const activePids = new Set<string>();
+    let lastReason: 'NOT_FOUND' | 'INACTIVE' | 'ERROR' | undefined = undefined;
+    
     for (const pid of pids) {
-      if (await isProjectActive(pid, supabaseAdmin)) {
+      const status = await isProjectActive(pid, supabaseAdmin);
+      if (status.active) {
         activePids.add(pid);
+      } else {
+        lastReason = status.reason;
+      }
+    }
+
+    if (activePids.size === 0) {
+      if (lastReason === 'NOT_FOUND') {
+        return jsonResponse({ error: { code: "PROJECT_NOT_FOUND", message: "Project not found" } }, 404);
+      } else if (lastReason === 'INACTIVE') {
+        return jsonResponse({ error: { code: "PROJECT_INACTIVE", message: "Project or subscription is inactive" } }, 403);
+      } else {
+        return jsonResponse({ error: { code: "PROJECT_VALIDATION_ERROR", message: "Error validating project" } }, 500);
       }
     }
 
@@ -259,17 +276,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    let inserted = 0;
+
     if (eventsToInsert.length > 0) {
       const { error } = await supabaseAdmin.from("events").insert(eventsToInsert);
-      if (error) console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
+      if (error) {
+        console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
+        return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store events" } }, 500);
+      }
+      inserted += eventsToInsert.length;
     }
     
     if (pageviewsToInsert.length > 0) {
       const { error } = await supabaseAdmin.from("pageviews").insert(pageviewsToInsert);
-      if (error) console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
+      if (error) {
+        console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
+        return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store pageviews" } }, 500);
+      }
+      inserted += pageviewsToInsert.length;
     }
 
-    return jsonResponse({ ok: true, processed: eventsToInsert.length + pageviewsToInsert.length });
+    return jsonResponse({ ok: true, processed: inserted });
   } catch (e: unknown) {
     console.error(JSON.stringify({ event: "internal_error", details: (e as Error)?.message || "Unknown error" }));
     return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Internal server error" } }, 500);
