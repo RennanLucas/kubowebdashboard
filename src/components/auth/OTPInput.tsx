@@ -29,20 +29,24 @@ export function OTPInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value;
-    if (isNaN(Number(value))) return;
+    
+    // Only accept numeric digits, ignore spaces or letters
+    if (value && !/^\d+$/.test(value)) return;
 
     const newOtp = [...otp];
-    // Take only the last character entered
-    newOtp[index] = value.substring(value.length - 1);
+    // Take only the last character entered (for normal typing)
+    const digit = value.length > 0 ? value.substring(value.length - 1) : "";
+    newOtp[index] = digit;
     setOtp(newOtp);
 
     // Auto-advance
-    if (value && index < length - 1 && inputRefs.current[index + 1]) {
+    if (digit !== "" && index < length - 1 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1]?.focus();
     }
 
     const code = newOtp.join("");
-    if (code.length === length && !newOtp.includes("")) {
+    // Strict validation before calling verifyOtp
+    if (code.length === length && !newOtp.includes("") && /^\d{6}$/.test(code)) {
       onComplete(code);
     }
   };
