@@ -62,42 +62,59 @@ export default function Admin() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("admin-list-users", {
-      body: { action: "list", page, perPage },
-    });
-    if (error || data?.error) {
-      toast.error(data?.error || error?.message || "Falha ao carregar usuários");
-    } else {
+    setApiError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-list-users", {
+        body: { action: "list", page, perPage },
+      });
+      
+      // Handle non-2xx responses that throw FunctionsHttpError
+      if (error) {
+        let msg = "Não foi possível carregar o painel administrativo.";
+        if (error.message.includes("401")) msg = "Sua sessão expirou. Entre novamente.";
+        if (error.message.includes("403")) msg = "Você não possui permissão para acessar o painel administrativo.";
+        setApiError(msg);
+        return;
+      }
+
+      if (data?.error) {
+        let msg = "Não foi possível carregar o painel administrativo.";
+        if (data.error.includes("Unauthorized") || data.error.includes("401")) msg = "Sua sessão expirou. Entre novamente.";
+        if (data.error.includes("Forbidden") || data.error.includes("403")) msg = "Você não possui permissão para acessar o painel administrativo.";
+        setApiError(msg);
+        return;
+      }
+
       setUsers(data.users || []);
       if (data.total !== undefined) {
         setTotalUsers(data.total);
       } else {
-        // Fallback for when total isn't returned correctly by the API
-        // If we received exactly perPage items, assume there are more.
         const returned = data.users?.length || 0;
         setTotalUsers(returned === perPage ? page * perPage + 1 : (page - 1) * perPage + returned);
       }
+    } catch (e: any) {
+      setApiError("Não foi possível carregar o painel administrativo.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     if (isAdmin) fetchUsers();
   }, [isAdmin, page, perPage]);
 
-  if (authLoading || adminLoading) {
+  if (loading && users.length === 0 && !apiError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground font-medium">Carregando usuários...</p>
       </div>
     );
   }
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   const togglePromote = async (target: AdminUser) => {
     const isTargetAdmin = target.roles.includes("admin");
@@ -170,6 +187,17 @@ export default function Admin() {
     }).length,
     trialing: users.filter((u) => u.subscription?.status === "trialing").length,
   };
+
+  if (apiError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+        <Ban className="h-12 w-12 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold mb-2">Erro ao carregar painel</h1>
+        <p className="text-muted-foreground mb-6 max-w-md">{apiError}</p>
+        <Button onClick={fetchUsers}>Tentar novamente</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

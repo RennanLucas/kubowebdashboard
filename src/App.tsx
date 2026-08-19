@@ -87,7 +87,7 @@ const App = () => (
                   <Route path="/live" element={<ProtectedRoute><Live /></ProtectedRoute>} />
                   <Route path="/help/*" element={<ProtectedRoute><Help /></ProtectedRoute>} />
                   <Route path="/feedback/*" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-                  <Route path="/admin/*" element={<ProtectedRoute requireAdmin><AdminRouter /></ProtectedRoute>} />
+                  <Route path="/admin/*" element={<ProtectedRoute ><AdminRouter /></ProtectedRoute>} />
                   <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />
                   <Route path="/goals" element={<ProtectedRoute requireFeature="goals"><Goals /></ProtectedRoute>} />

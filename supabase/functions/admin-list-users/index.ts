@@ -48,6 +48,10 @@ serve(async (req) => {
       });
       if (listErr) return json({ error: listErr.message }, 500);
 
+      if (!usersList.users || usersList.users.length === 0) {
+        return json({ users: [], total: usersList.total || 0, nextPage: usersList.nextPage });
+      }
+
       const userIds = usersList.users.map((u) => u.id);
       const [{ data: subs }, { data: roles }, { data: profiles }] = await Promise.all([
         admin.from("subscriptions").select("user_id, status, current_period_end, trial_end, cancel_at_period_end, environment, stripe_subscription_id").in("user_id", userIds),
