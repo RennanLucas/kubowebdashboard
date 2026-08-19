@@ -70,7 +70,7 @@ export const CommandPalette = () => {
             <CreditCard className="mr-2 h-4 w-4" /> Assinatura
           </CommandItem>
           <CommandItem onSelect={() => go("/help")}>
-            <HelpCircle className="mr-2 h-4 w-4" /> Ajuda / Glossário
+            <HelpCircle className="mr-2 h-4 w-4" /> Central de Ajuda
           </CommandItem>
           {isAdmin && (
             <CommandItem onSelect={() => go("/admin")}>

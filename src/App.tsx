@@ -84,7 +84,7 @@ const App = () => (
                   <Route path="/compare" element={<ProtectedRoute requireFeature="compare"><Compare /></ProtectedRoute>} />
                   <Route path="/presentation" element={<ProtectedRoute requireFeature="presentation"><Presentation /></ProtectedRoute>} />
                   <Route path="/live" element={<ProtectedRoute><Live /></ProtectedRoute>} />
-                  <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+                  <Route path="/help/*" element={<ProtectedRoute><Help /></ProtectedRoute>} />
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
                   <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />

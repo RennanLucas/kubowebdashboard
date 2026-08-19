@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import { HelpCenter } from "./help/HelpCenter";
-import { HelpArticle } from "./help/HelpArticle";
+import { HelpCenter } from "./HelpCenter";
+import { HelpArticle } from "./HelpArticle";
 
 export default function HelpRouter() {
   return (
