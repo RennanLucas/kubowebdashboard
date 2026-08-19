@@ -37,7 +37,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const queryClient = useQueryClient();
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
-  const { data: allProjects } = useAllUserProjects();
+  const { data: allProjects, isLoading: allProjectsLoading } = useAllUserProjects();
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
@@ -51,14 +51,26 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
   useEffect(() => {
-    if (!allProjects || allProjects.length === 0) return;
+    if (allProjectsLoading || !allProjects) return;
+    
+    // Se o usuário não tem nenhum projeto, limpe o localStorage
+    if (allProjects.length === 0) {
+      if (selectedProjectId) setSelectedProjectId("");
+      return;
+    }
+
+    // Se tem projetos mas não há nada selecionado, seleciona o primeiro
     if (!selectedProjectId) {
       setSelectedProjectId(allProjects[0].id);
       return;
     }
+
+    // Se o ID selecionado (stale) não pertencer à lista atual (nova conta), fallback
     const exists = allProjects.some((p) => p.id === selectedProjectId);
-    if (!exists) setSelectedProjectId(allProjects[0].id);
-  }, [allProjects, selectedProjectId, setSelectedProjectId]);
+    if (!exists) {
+      setSelectedProjectId(allProjects[0].id);
+    }
+  }, [allProjects, allProjectsLoading, selectedProjectId, setSelectedProjectId]);
 
   // Persist the resolved active project so other surfaces (topbar switcher,
   // next page load) restore the same choice.
@@ -173,11 +185,12 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     return <Navigate to="/login" replace />;
   }
 
-  if (!isLoading && !error && data && !clientData && (!allProjects || allProjects.length === 0)) {
+  // Se a query de todos os projetos terminou de carregar e está vazia, força onboarding imediatamente
+  if (!allProjectsLoading && allProjects && allProjects.length === 0) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  if (isLoading) {
+  if (isLoading || allProjectsLoading) {
     return (
       <AppLayout>
         <DashboardSkeleton />
