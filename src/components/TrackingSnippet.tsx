@@ -45,7 +45,7 @@ const TrackingSnippet = ({ projectId }: TrackingSnippetProps) => {
         </Button>
       </div>
       <div className="relative group">
-        <code className="block text-xs sm:text-sm bg-background p-4 rounded-md border border-border select-all break-all font-mono text-muted-foreground overflow-x-auto whitespace-nowrap scrollbar-thin">
+        <code className="block text-xs sm:text-sm bg-background p-4 rounded-md border border-border select-all font-mono text-muted-foreground break-words whitespace-pre-wrap">
           {snippet}
         </code>
       </div>

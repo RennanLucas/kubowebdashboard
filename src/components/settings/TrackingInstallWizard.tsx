@@ -195,7 +195,7 @@ export function TrackingInstallWizard({
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background flex flex-col md:flex-row h-[90vh] md:h-auto max-h-[800px]">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background flex flex-col md:flex-row h-[90vh] md:h-auto max-h-[85vh]">
         
         {/* Left Sidebar - Steps */}
         <div className="bg-muted/30 p-6 border-b md:border-b-0 md:border-r border-border md:w-64 shrink-0 flex flex-col gap-6">
