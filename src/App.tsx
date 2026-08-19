@@ -22,10 +22,11 @@ const Settings = lazyWithRetry(() => import("./pages/Settings"), "settings");
 const Pricing = lazyWithRetry(() => import("./pages/Pricing"), "pricing");
 const CheckoutReturn = lazyWithRetry(() => import("./pages/CheckoutReturn"), "checkout-return");
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"), "not-found");
-const Admin = lazyWithRetry(() => import("./pages/Admin"), "admin");
+const AdminRouter = lazyWithRetry(() => import("./pages/admin"), "admin");
 const Insights = lazyWithRetry(() => import("./pages/Insights"), "insights");
 const Alerts = lazyWithRetry(() => import("./pages/Alerts"), "alerts");
 const Help = lazyWithRetry(() => import("./pages/Help"), "help");
+const Feedback = lazyWithRetry(() => import("./pages/Feedback"), "feedback");
 const Compare = lazyWithRetry(() => import("./pages/Compare"), "compare");
 const Presentation = lazyWithRetry(() => import("./pages/Presentation"), "presentation");
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"), "reset-password");
@@ -85,7 +86,8 @@ const App = () => (
                   <Route path="/presentation" element={<ProtectedRoute requireFeature="presentation"><Presentation /></ProtectedRoute>} />
                   <Route path="/live" element={<ProtectedRoute><Live /></ProtectedRoute>} />
                   <Route path="/help/*" element={<ProtectedRoute><Help /></ProtectedRoute>} />
-                  <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+                  <Route path="/feedback/*" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+                  <Route path="/admin/*" element={<ProtectedRoute requireAdmin><AdminRouter /></ProtectedRoute>} />
                   <Route path="/admin/pwa-qa" element={<ProtectedRoute requireAdmin><PWAQA /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute requireFeature="pdf_report"><Reports /></ProtectedRoute>} />
                   <Route path="/goals" element={<ProtectedRoute requireFeature="goals"><Goals /></ProtectedRoute>} />

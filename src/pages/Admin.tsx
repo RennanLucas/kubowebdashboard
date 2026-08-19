@@ -192,6 +192,18 @@ export default function Admin() {
           </Button>
         </div>
 
+        <div className="flex items-center gap-4 border-b border-border mb-6">
+          <Link to="/admin" className={`pb-2 border-b-2 font-medium ${window.location.pathname === '/admin' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            Usuários
+          </Link>
+          <Link to="/admin/feedback" className={`pb-2 border-b-2 font-medium ${window.location.pathname.startsWith('/admin/feedback') ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            Feedback & Melhorias
+          </Link>
+          <Link to="/admin/roadmap" className={`pb-2 border-b-2 font-medium ${window.location.pathname.startsWith('/admin/roadmap') ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            Roadmap
+          </Link>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatCard label="Usuários" value={stats.total} />
           <StatCard label="Admins" value={stats.admins} />

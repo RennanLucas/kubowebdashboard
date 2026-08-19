@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock, Target, Flame, FileText } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock, Target, Flame, FileText, Lightbulb } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import type { FeatureKey } from "@/lib/plan-features";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
@@ -46,6 +46,7 @@ const accountItems = [
   { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
   { title: "Instalar app", url: "/install", icon: Download },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
+  { title: "Feedback & Melhorias", url: "/feedback", icon: Lightbulb },
 ];
 
 interface NavItemProps {
