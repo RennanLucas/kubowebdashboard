@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Globe } from "lucide-react";
+import { ChevronDown, FileDown, BarChart3, FileText, FileSpreadsheet, FileType, Globe, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -8,6 +8,42 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DateRangePicker } from "./DateRangePicker";
+import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+const SyncIndicator = ({ lastUpdate, isUpdating, onRefresh }: { lastUpdate?: Date, isUpdating?: boolean, onRefresh?: () => void }) => {
+  const [timeAgo, setTimeAgo] = useState("agora mesmo");
+
+  useEffect(() => {
+    if (!lastUpdate) return;
+    const updateTime = () => {
+      const distance = formatDistanceToNow(lastUpdate, { addSuffix: true, locale: ptBR });
+      setTimeAgo(distance.replace("aproximadamente ", ""));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 5000);
+    return () => clearInterval(interval);
+  }, [lastUpdate]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-xs text-muted-foreground hidden sm:inline-block">
+        {isUpdating ? "Atualizando..." : `Atualizado ${timeAgo}`}
+      </span>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60"
+        onClick={onRefresh}
+        disabled={isUpdating}
+        title="Atualizar dados"
+      >
+        <RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
+      </Button>
+    </div>
+  );
+};
 
 interface Project {
   id: string;
@@ -27,6 +63,9 @@ interface DashboardHeaderProps {
   onExportPDF?: () => void;
   onExportCSV?: () => void;
   onExportExcel?: () => void;
+  lastUpdate?: Date;
+  isUpdating?: boolean;
+  onRefresh?: () => void;
 }
 
 const formatHost = (url?: string | null) => {
@@ -49,6 +88,9 @@ const DashboardHeader = ({
   onExportPDF,
   onExportCSV,
   onExportExcel,
+  lastUpdate,
+  isUpdating,
+  onRefresh,
 }: DashboardHeaderProps) => {
   const { user } = useAuth();
 
@@ -117,6 +159,7 @@ const DashboardHeader = ({
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <SyncIndicator lastUpdate={lastUpdate} isUpdating={isUpdating} onRefresh={onRefresh} />
           <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
           
           {(onExportPDF || onExportCSV || onExportExcel) && (

@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
+import { useDashboardRealtime } from "@/hooks/useDashboardRealtime";
 
 interface DashboardContentProps {
   selectedProjectId?: string;
@@ -38,6 +39,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const { source, device } = useDashboardFilters();
   const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
   const { data: allProjects, isLoading: allProjectsLoading } = useAllUserProjects();
+  const { lastUpdate, isUpdating, triggerManualRefresh } = useDashboardRealtime(selectedProjectId);
 
   const [monthlyAdSpend, setMonthlyAdSpend] = useState(0);
   const clientData = data?.client;
@@ -201,15 +203,23 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   if (error) {
     return (
       <AppLayout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6">
-            <h2 className="text-lg font-semibold text-destructive mb-2">Não foi possível carregar o Dashboard</h2>
-            <p className="text-sm text-destructive/80 mb-4">
-              Atualize a página em alguns instantes. Seus dados de acesso e onboarding foram preservados.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="flex flex-col items-center justify-center text-center">
+            <h2 className="text-lg font-semibold text-foreground mb-2">
+              Não foi possível atualizar seus dados
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-md mb-6">
+              Verifique sua conexão e tente novamente.
             </p>
-            <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50">
+            <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50 mb-6 max-w-md break-all">
               Detalhes técnicos: {(error as Error).message || String(error)}
             </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+            >
+              Tentar novamente
+            </button>
           </div>
         </div>
       </AppLayout>
@@ -321,6 +331,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
           onExportPDF={hasData ? handleExportPDF : undefined}
           onExportCSV={hasData ? handleExportCSV : undefined}
           onExportExcel={hasData ? handleExportExcel : undefined}
+          lastUpdate={lastUpdate}
+          isUpdating={isUpdating}
+          onRefresh={triggerManualRefresh}
         />
 
         {!hasData ? (
@@ -330,10 +343,13 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
               Ainda não há dados disponíveis
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mb-2">
-              Instale o código de rastreamento no seu site para começar a ver os dados. Vá em Configurações para copiar o snippet.
+              Instale o código de rastreamento no seu site para começar a ver os dados.
             </p>
-            <a href="/settings" className="text-sm text-primary hover:underline mt-2">
-              Ir para Configurações â†’
+            <p className="text-sm text-muted-foreground max-w-md mb-4">
+              Vá em <strong>Configurações → Projetos → Instalação</strong> para copiar o código.
+            </p>
+            <a href="/settings" className="text-sm font-medium text-primary hover:underline mt-2">
+              Ir para Configurações →
             </a>
           </div>
         ) : (
