@@ -101,13 +101,18 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
   const activeMembership = memberships.find((m) => m.organization.id === activeOrgId);
 
+  // If we have memberships but haven't resolved the active one yet, we are still conceptually loading
+  // because the useEffect is about to set the default organization.
+  const isResolvingDefaultOrg = !isLoading && memberships.length > 0 && !activeMembership;
+  const contextLoading = isLoading || isResolvingDefaultOrg;
+
   return (
     <OrganizationContext.Provider
       value={{
         activeOrganization: activeMembership?.organization ?? null,
         organizations: memberships,
         currentRole: activeMembership?.role ?? null,
-        loading: isLoading,
+        loading: contextLoading,
         error: error as Error | null,
         setOrganization,
       }}
