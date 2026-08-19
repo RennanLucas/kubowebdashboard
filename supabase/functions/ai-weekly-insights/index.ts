@@ -63,10 +63,7 @@ Deno.serve(async (req) => {
 
     if (memberErr || !memberData) {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
-    }
-
-    // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
-    let isProPlus = false;
+       // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
     let MONTHLY_LIMIT = 0;
     let tier = "free";
 
@@ -81,7 +78,6 @@ Deno.serve(async (req) => {
     if (orgSub) {
       tier = resolveTier(orgSub);
       MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
-      isProPlus = true;
     } else {
       const { data: subRow } = await admin
         .from("subscriptions")
@@ -92,7 +88,6 @@ Deno.serve(async (req) => {
         .maybeSingle();
       tier = resolveTier(subRow);
       MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
-      isProPlus = true;
     }
 
     const now = new Date();
@@ -119,11 +114,11 @@ Deno.serve(async (req) => {
     }
 
     if (action !== "generate") {
-      return new Response(JSON.stringify({ error: "action inválida" }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "ação inválida" }), { status: 400, headers: corsHeaders });
     }
 
     if (MONTHLY_LIMIT <= 0) {
-      return new Response(JSON.stringify({ error: "PLAN_REQUIRED", message: "Requer plano Pro/Pro+.", used, limit: 0, plan: tier }), { status: 402, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "PLAN_REQUIRED", message: "Requer plano Pro.", used, limit: 0, plan: tier }), { status: 402, headers: corsHeaders });
     }
 
     if (remaining <= 0) {

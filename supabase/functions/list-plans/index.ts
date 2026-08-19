@@ -17,21 +17,23 @@ Deno.serve((req) => {
   }
 
   // Expõe apenas os campos relevantes ao cliente.
-  const plans = listPlans().map((p) => ({
-    id: p.id,
-    name: p.name,
-    tagline: p.tagline,
-    price: p.price,
-    cadence: p.cadence,
-    amount: p.amount,
-    currency: p.currency,
-    highlight: p.highlight,
-    cta: p.cta,
-    features: p.features,
-    recommended: p.recommended ?? false,
-    enabled: p.enabled,
-    disabledReason: p.disabledReason ?? null,
-  }));
+  const plans = listPlans()
+    .filter((p) => p.enabled)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      tagline: p.tagline,
+      price: p.price,
+      cadence: p.cadence,
+      amount: p.amount,
+      currency: p.currency,
+      highlight: p.highlight,
+      cta: p.cta,
+      features: p.features,
+      recommended: p.recommended ?? false,
+      enabled: p.enabled,
+      disabledReason: p.disabledReason ?? null,
+    }));
 
   return new Response(JSON.stringify({ plans }), {
     status: 200,

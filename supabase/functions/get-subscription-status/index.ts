@@ -90,13 +90,16 @@ Deno.serve(async (req) => {
       return json({ error: "Falha ao consultar assinatura" }, 500);
     }
 
-    const availablePlans = listPlans().map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      cadence: p.cadence,
-      enabled: p.enabled,
-    }));
+    const availablePlans = listPlans()
+      .filter((p) => p.enabled)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        cadence: p.cadence,
+        enabled: p.enabled,
+        disabledReason: p.disabledReason ?? null,
+      }));
 
     if (!data) {
       return json({

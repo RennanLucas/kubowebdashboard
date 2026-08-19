@@ -30,53 +30,47 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
   kuboweb_pro_monthly: {
     id: "kuboweb_pro_monthly",
     name: "Pro",
-    tagline: "KUBOWEB Pro · tudo incluso",
-    price: "R$ 29,99",
+    tagline: "KUBOWEB Pro — tudo incluso",
+    price: "R$ 49,90",
     cadence: "/mês",
-    amount: 29.99,
+    amount: 49.90,
     currency: "BRL",
     frequency: 1,
     frequency_type: "months",
     free_trial: { frequency: 7, frequency_type: "days" },
     reason: "KUBOWEB Pro - Mensal",
-    highlight: "7 dias grátis · cancele a qualquer momento",
+    highlight: "7 dias grátis — cancele a qualquer momento",
     cta: "Começar 7 dias grátis",
     features: [
+      "Tudo incluído, sem limites artificiais",
+      "Projetos / sites ilimitados",
       "Rastreamento ilimitado de visitantes",
       "Conversões: WhatsApp, formulários e botões",
       "Visitantes em tempo real",
-      "Geolocalização e dispositivos",
-      "Relatórios em PDF sob demanda",
-      "Até 3 projetos / sites",
-      "Histórico de 3 meses",
-      "3 resumos com IA por mês",
+      "Mapas de Calor (Heatmaps)",
+      "Resumos com IA e Alertas",
+      "Histórico estendido de 12 meses",
+      "Relatórios em PDF e Exportação CSV",
     ],
     enabled: true,
   },
   kuboweb_pro_plus_monthly: {
     id: "kuboweb_pro_plus_monthly",
     name: "Pro+",
-    tagline: "KUBOWEB Pro+ · sem limites",
-    price: "R$ 49,99",
+    tagline: "KUBOWEB Pro+ — descontinuado",
+    price: "R$ 49,90",
     cadence: "/mês",
-    amount: 49.99,
+    amount: 49.90,
     currency: "BRL",
     frequency: 1,
     frequency_type: "months",
     free_trial: { frequency: 7, frequency_type: "days" },
     reason: "KUBOWEB Pro+ - Mensal",
-    highlight: "7 dias grátis · tudo incluso, sem limites",
-    cta: "Começar 7 dias grátis",
-    features: [
-      "Tudo do plano Pro, e mais:",
-      "6 resumos com IA por mês (o dobro)",
-      "Alertas inteligentes por email (quedas e metas)",
-      "Projetos / sites ilimitados",
-      "Histórico estendido de 12 meses",
-      "Suporte prioritário",
-    ],
-    recommended: true,
-    enabled: true,
+    highlight: "Plano legado",
+    cta: "Indisponível",
+    features: [],
+    enabled: false,
+    disabledReason: "Plano descontinuado.",
   },
 };
 
@@ -92,7 +86,7 @@ export function getPlan(id: string): PlanDefinition | null {
 // Tiers e limites por plano (fonte única compartilhada com src/lib/plan-features.ts)
 // ---------------------------------------------------------------------------
 
-export type PlanTier = "free" | "pro" | "pro_plus";
+export type PlanTier = "free" | "pro";
 
 export interface TierLimits {
   tier: PlanTier;
@@ -104,8 +98,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<PlanTier, TierLimits> = {
   free: { tier: "free", maxProjects: 1, maxHistoryDays: 7, aiMonthlyLimit: 0, emailAlerts: false },
-  pro: { tier: "pro", maxProjects: 3, maxHistoryDays: 90, aiMonthlyLimit: 3, emailAlerts: false },
-  pro_plus: { tier: "pro_plus", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365, aiMonthlyLimit: 6, emailAlerts: true },
+  pro: { tier: "pro", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365, aiMonthlyLimit: 10, emailAlerts: true },
 };
 
 interface SubscriptionRow {
@@ -124,7 +117,7 @@ export function resolveTier(sub: SubscriptionRow | null | undefined): PlanTier {
   const active = (ACTIVE_STATUS.includes(status) && periodOk)
     || (["canceled", "cancelled"].includes(status) && !!sub.current_period_end && new Date(sub.current_period_end) > new Date());
   if (!active) return "free";
-  return sub.plan_id === "kuboweb_pro_plus_monthly" ? "pro_plus" : "pro";
+  return "pro"; // Legacy pro_plus and new pro both resolve to 'pro' tier
 }
 
 export function limitsForTier(tier: PlanTier): TierLimits {

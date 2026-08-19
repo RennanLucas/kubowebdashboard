@@ -9,6 +9,8 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
+  domain?: string | null;
+  lead_value?: number;
 }
 
 export interface OrgMembership {
@@ -53,7 +55,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         .from("organization_members")
         .select(`
           role,
-          organization:organizations(id, name, slug)
+          organization:organizations(id, name, slug, domain, lead_value)
         `)
         .eq("user_id", userId!);
 

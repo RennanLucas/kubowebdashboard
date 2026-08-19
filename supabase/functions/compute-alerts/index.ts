@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+﻿import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +10,7 @@ const BREVO_FROM_EMAIL = Deno.env.get("BREVO_FROM_EMAIL") ?? "no-reply@kuboweb.c
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!BREVO_SMTP_KEY) {
-    console.warn("BREVO_SMTP_KEY não configurada — email não enviado");
+    console.warn("BREVO_SMTP_KEY nÃ£o configurada â€” email nÃ£o enviado");
     return;
   }
   try {
@@ -39,14 +39,14 @@ async function sendEmail(to: string, subject: string, html: string) {
 function alertEmailHtml(opts: { title: string; message: string; projectName: string }) {
   return `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f8f9fb;padding:24px;color:#0f1117">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;border:1px solid #e5e7eb">
-    <div style="font-size:12px;color:#6366f1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">KUBOWEB Pro+ · Alerta inteligente</div>
+    <div style="font-size:12px;color:#6366f1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">KUBOWEB Pro Â· Alerta inteligente</div>
     <h1 style="font-size:20px;margin:8px 0 12px;color:#0f1117">${opts.title}</h1>
     <p style="font-size:14px;color:#374151;line-height:1.5;margin:0 0 16px">${opts.message}</p>
     <div style="font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:14px;margin-top:18px">
       Projeto: <strong style="color:#0f1117">${opts.projectName}</strong>
     </div>
     <a href="https://cubie-dash.lovable.app/alerts" style="display:inline-block;margin-top:18px;background:#6366f1;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500">Ver no painel</a>
-    <p style="font-size:11px;color:#9ca3af;margin-top:24px">Você recebeu este email porque sua organização assina o plano Pro+. Para ajustar alertas, acesse Configurações.</p>
+    <p style="font-size:11px;color:#9ca3af;margin-top:24px">VocÃª recebeu este email porque sua organizaÃ§Ã£o assina o plano Pro. Para ajustar alertas, acesse ConfiguraÃ§Ãµes.</p>
   </div></body></html>`;
 }
 
@@ -76,13 +76,9 @@ function isAuthorized(req: Request): boolean {
   return claims?.role === "service_role";
 }
 
-/**
- * TEMPORARY FALLBACK (FASE 3.2):
- * Procura assinaturas pelo Owner original caso a org não tenha a sua própria ainda vinculada.
- * // TODO: Remover na Fase 3.3 após migração do Mercado Pago
- */
-async function getOrgPlanStatus(supabase: SupabaseClient, orgId: string): Promise<boolean> {
-  // 1. Tenta a assinatura direta da Org
+// Fonte Ãºnica para checagem de plano
+const getOrgPlanStatus = async (supabase: any, orgId: string) => {
+  // 1. Assinatura pela organizaÃ§Ã£o
   const { data: orgSub } = await supabase
     .from("subscriptions")
     .select("plan_id, status, current_period_end")
@@ -91,42 +87,43 @@ async function getOrgPlanStatus(supabase: SupabaseClient, orgId: string): Promis
     .limit(1)
     .maybeSingle();
 
-  const isProPlus = (sub: any) => sub?.plan_id === "kuboweb_pro_plus_monthly";
   const planActive = (sub: any) => {
     const okStatus = sub && ["active", "trialing", "authorized", "approved"].includes(sub.status);
     const periodOk = !sub?.current_period_end || new Date(sub.current_period_end) > new Date();
-    return !!(okStatus && periodOk);
+    return okStatus && periodOk;
   };
 
+  const isPro = (sub: any) => sub?.plan_id === "kuboweb_pro_plus_monthly" || sub?.plan_id === "kuboweb_pro_monthly";
+
   if (orgSub) {
-    return isProPlus(orgSub) && planActive(orgSub);
+    return isPro(orgSub) && planActive(orgSub);
   }
 
   // 2. Fallback: Procura o owner e checa a assinatura antiga dele
-  const { data: owners } = await supabase
+  const { data: memberships } = await supabase
     .from("organization_members")
-    .select("user_id")
-    .eq("organization_id", orgId)
-    .eq("role", "owner");
-
-  if (owners && owners.length > 0) {
-    for (const owner of owners) {
+    .select("user_id, role")
+    .eq("organization_id", orgId);
+  
+  if (memberships) {
+    const owner = memberships.find((m: any) => m.role === "owner");
+    if (owner) {
       const { data: ownerSub } = await supabase
         .from("subscriptions")
         .select("plan_id, status, current_period_end")
         .eq("user_id", owner.user_id)
+        .is("organization_id", null)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       
-      if (ownerSub && isProPlus(ownerSub) && planActive(ownerSub)) {
+      if (ownerSub && isPro(ownerSub) && planActive(ownerSub)) {
         return true;
       }
     }
   }
-
   return false;
-}
+};
 
 async function getAdminEmailsForOrg(supabase: SupabaseClient, orgId: string): Promise<string[]> {
   const { data: members } = await supabase
@@ -237,16 +234,16 @@ Deno.serve(async (req) => {
             await sendAlert({
               type: "traffic_spike",
               severity: "success",
-              title: `📈 Tráfego subiu ${change.toFixed(0)}%`,
-              message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da média semanal (${avg7.toFixed(0)}).`,
+              title: `ðŸ“ˆ TrÃ¡fego subiu ${change.toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da mÃ©dia semanal (${avg7.toFixed(0)}).`,
               metadata: { yesterday: yCount, avg7, change },
             });
           } else if (change <= -threshold) {
             await sendAlert({
               type: "traffic_drop",
               severity: "warning",
-              title: `📉 Tráfego caiu ${Math.abs(change).toFixed(0)}%`,
-              message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da média semanal (${avg7.toFixed(0)}).`,
+              title: `ðŸ“‰ TrÃ¡fego caiu ${Math.abs(change).toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da mÃ©dia semanal (${avg7.toFixed(0)}).`,
               metadata: { yesterday: yCount, avg7, change },
             });
           }
@@ -266,7 +263,7 @@ Deno.serve(async (req) => {
             await sendAlert({
               type: "leads_goal",
               severity: "success",
-              title: `🎯 Meta de leads batida!`,
+              title: `ðŸŽ¯ Meta de leads batida!`,
               message: `${project.name} gerou ${leads} leads ontem (meta: ${leadsGoal}).`,
               metadata: { leads, goal: leadsGoal },
             });
@@ -274,8 +271,8 @@ Deno.serve(async (req) => {
         }
       }
     } catch (err) {
-      console.error(`Erro ao processar organização ${org.id}`, err);
-      // Isolamento: Falha em uma org não interrompe as outras
+      console.error(`Erro ao processar organizaÃ§Ã£o ${org.id}`, err);
+      // Isolamento: Falha em uma org nÃ£o interrompe as outras
     }
   }
 

@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +22,7 @@ import InvitesManager from "@/components/settings/InvitesManager";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { activeOrganization, currentRole, loading: orgLoading, setOrganization } = useOrganization();
   const { subscription, isLoading: subLoading } = useSubscription();
@@ -61,6 +63,7 @@ export default function Settings() {
       if (error) throw error;
       toast.success("Organização atualizada com sucesso!");
       // Temporarily reload or invalidate to show new name in UI
+      queryClient.invalidateQueries({ queryKey: ["organizations", user?.id] });
       window.dispatchEvent(new CustomEvent("organization-changed", { detail: { current: activeOrganization.id } }));
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar.");
