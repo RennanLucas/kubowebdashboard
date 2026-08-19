@@ -202,9 +202,14 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-2">Não foi possível carregar o Dashboard</h2>
-            <p className="text-sm text-muted-foreground">Atualize a página em alguns instantes. Seus dados de acesso e onboarding foram preservados.</p>
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6">
+            <h2 className="text-lg font-semibold text-destructive mb-2">Não foi possível carregar o Dashboard</h2>
+            <p className="text-sm text-destructive/80 mb-4">
+              Atualize a página em alguns instantes. Seus dados de acesso e onboarding foram preservados.
+            </p>
+            <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50">
+              Detalhes técnicos: {(error as Error).message || String(error)}
+            </div>
           </div>
         </div>
       </AppLayout>
