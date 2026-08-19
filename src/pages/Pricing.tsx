@@ -57,6 +57,32 @@ export default function Pricing() {
     }
   };
 
+  const freePlan = {
+    id: "free",
+    name: "Gratuito",
+    tagline: "Para quem está começando",
+    price: "R$ 0,00",
+    cadence: "/mês",
+    amount: 0,
+    currency: "BRL",
+    highlight: "Sempre grátis",
+    cta: "Plano Atual",
+    features: [
+      "Até 1 projeto / site",
+      "Histórico de 7 dias",
+      "Alertas no painel",
+      "Sem visitantes em tempo real",
+      "Sem resumos com IA",
+      "Sem mapas de calor",
+      "Sem relatórios em PDF/CSV",
+    ],
+    recommended: false,
+    enabled: true,
+    disabledReason: null,
+  };
+
+  const displayPlans = plans.length > 0 ? [freePlan, ...plans] : [];
+
   return (
     <>
       <Helmet>
@@ -74,7 +100,7 @@ export default function Pricing() {
       {plans.length > 0 && (
         <script type="application/ld+json">
           {JSON.stringify(
-            plans.map((plan) => ({
+            displayPlans.map((plan) => ({
               "@context": "https://schema.org",
               "@type": "Product",
               name: `KUBOWEB ${plan.name}`,
@@ -149,15 +175,16 @@ export default function Pricing() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            : plans.map((plan) => {
+            : displayPlans.map((plan) => {
                 const isLoading = loadingPlan === plan.id;
-                const isCurrent = currentPlanId === plan.id && isActive;
-                const isDisabled = !plan.enabled || isCurrent;
+                const isCurrent = (plan.id === "free" && !isActive) || (currentPlanId === plan.id && isActive);
+                const isFree = plan.id === "free";
+                const isDisabled = !plan.enabled || isCurrent || isFree;
                 const disabledLabel = isCurrent
                   ? "Plano atual"
                   : !plan.enabled
                     ? plan.disabledReason || "Indisponível no momento"
-                    : null;
+                    : isFree ? "Plano Atual" : null;
 
                 return (
                   <div
