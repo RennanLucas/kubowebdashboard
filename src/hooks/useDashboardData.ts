@@ -90,8 +90,7 @@ export const useOverview = (days: number, projectId?: string, filters?: FetchOpt
 
   return useQuery({
     queryKey: ["dashboard-overview", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
-    refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
+        enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-overview", cappedDays, projectId, token, filters);
@@ -108,8 +107,7 @@ export const useTopPages = (days: number, projectId?: string, filters?: FetchOpt
 
   return useQuery({
     queryKey: ["dashboard-pages", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
-    refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
+        enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-pages", cappedDays, projectId, token, filters);
@@ -126,8 +124,7 @@ export const useTrafficSources = (days: number, projectId?: string, filters?: Fe
 
   return useQuery({
     queryKey: ["dashboard-sources", session?.user?.id, orgId, cappedDays, projectId, filters?.device],
-    refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
+        enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-sources", cappedDays, projectId, token, { device: filters?.device });
@@ -144,8 +141,7 @@ export const useDevices = (days: number, projectId?: string, filters?: FetchOpti
 
   return useQuery({
     queryKey: ["dashboard-devices", session?.user?.id, orgId, cappedDays, projectId, filters?.source],
-    refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
+        enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-devices", cappedDays, projectId, token, { source: filters?.source });
@@ -162,8 +158,7 @@ export const useGeo = (days: number, projectId?: string, filters?: FetchOptions)
 
   return useQuery({
     queryKey: ["dashboard-geo", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
-    refetchInterval: 60000,
-    enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
+        enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
       return fetchEndpoint("get-dashboard-geo", cappedDays, projectId, token, filters);

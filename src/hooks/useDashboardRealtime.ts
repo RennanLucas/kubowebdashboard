@@ -10,7 +10,10 @@ export const useDashboardRealtime = (projectId?: string) => {
   useEffect(() => {
     if (!projectId) return;
 
-    const handleUpdate = () => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let pendingUpdate = false;
+
+    const runInvalidation = () => {
       setIsUpdating(true);
       queryClient.invalidateQueries({
         predicate: (query) => {
@@ -20,7 +23,16 @@ export const useDashboardRealtime = (projectId?: string) => {
       }).then(() => {
         setLastUpdate(new Date());
         setIsUpdating(false);
+        pendingUpdate = false;
       });
+    };
+
+    const handleUpdate = () => {
+      if (!pendingUpdate) {
+        pendingUpdate = true;
+        // Throttle updates to at most once every 15 seconds to avoid overloading Edge Functions
+        timeoutId = setTimeout(runInvalidation, 15000);
+      }
     };
 
     const pageviewsChannel = supabase
@@ -44,6 +56,7 @@ export const useDashboardRealtime = (projectId?: string) => {
     return () => {
       supabase.removeChannel(pageviewsChannel);
       supabase.removeChannel(eventsChannel);
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [projectId, queryClient]);
 
