@@ -19,31 +19,41 @@ const TrackingSnippet = ({ projectId }: TrackingSnippetProps) => {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <Code2 className="h-4 w-4 text-primary" />
-        <p className="text-sm font-medium text-foreground">Código de Rastreamento</p>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Cole este código antes do <code className="bg-background px-1 rounded">&lt;/head&gt;</code> do seu site para começar a rastrear visitantes:
-      </p>
-      <div className="relative">
-        <code className="block text-xs bg-background px-3 py-2 rounded border border-border select-all break-all font-mono">
-          {snippet}
-        </code>
+    <div className="rounded-lg border border-border bg-muted/30 p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Code2 className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">Código de Rastreamento</h3>
+        </div>
         <Button
           type="button"
-          variant="ghost"
+          variant={copied ? "default" : "secondary"}
           size="sm"
-          className="absolute top-1 right-1 h-7 w-7 p-0"
+          className={`gap-2 h-8 transition-all ${copied ? "bg-green-600 hover:bg-green-700 text-white" : ""}`}
           onClick={handleCopy}
+          aria-label="Copiar código de rastreamento"
         >
-          {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5" /> Copiado!
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5" /> Copiar código
+            </>
+          )}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        ✅ Leve (~1KB) • Sem cookies • Respeita a privacidade • Dados aparecem em minutos
-      </p>
+      <div className="relative group">
+        <code className="block text-xs sm:text-sm bg-background p-4 rounded-md border border-border select-all break-all font-mono text-muted-foreground overflow-x-auto whitespace-nowrap scrollbar-thin">
+          {snippet}
+        </code>
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground pt-2 border-t border-border/50">
+        <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Leve (~1KB)</span>
+        <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Sem uso de cookies</span>
+        <span className="flex items-center gap-1"><Check className="h-3 w-3 text-green-500" /> Privacidade garantida</span>
+      </div>
     </div>
   );
 };

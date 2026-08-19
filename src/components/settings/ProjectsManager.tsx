@@ -11,8 +11,7 @@ import { toast } from "sonner";
 import { Plus, Globe, Trash2, Layers, Sparkles } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import { Link } from "react-router-dom";
-import TrackingSnippet from "@/components/TrackingSnippet";
-import TrackingStatus from "@/components/settings/TrackingStatus";
+import { TrackingInstallWizard } from "@/components/settings/TrackingInstallWizard";
 
 interface Props {
   organizationId: string;
@@ -24,6 +23,7 @@ export default function ProjectsManager({ organizationId }: Props) {
   const userId = session?.user?.id;
   const plan = usePlan();
   const [open, setOpen] = useState(false);
+  const [autoOpenWizard, setAutoOpenWizard] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", url: "" });
 
@@ -60,22 +60,25 @@ export default function ProjectsManager({ organizationId }: Props) {
     }
     setSaving(true);
     try {
-      const { error } = await supabase.from("projects").insert({
+      const { data, error } = await supabase.from("projects").insert({
         organization_id: organizationId,
-        // Since client_id is required in DB schema still, we must fill it with something or rely on DB defaults if they exist. Wait, the DB schema has client_id as NOT NULL! Oh no, Fase 3.1 multi tenant migration made organization_id the main key but kept client_id for legacy?
-        // Let's pass a dummy or we need to find the user's first client_id. Wait! The Fase 3.1 Multi Tenant SQL:
-        // `ALTER TABLE public.projects ALTER COLUMN client_id DROP NOT NULL;`
-        // Let's assume it's dropped NOT NULL.
         name: form.name.trim(),
         url: form.url.trim() || null,
-      });
+      }).select("id").single();
+      
       if (error) throw error;
-      toast.success("Projeto criado!");
+      
+      toast.success("Projeto criado! Siga as instruções para instalar o código.");
       setForm({ name: "", url: "" });
       setOpen(false);
       await refetch();
       await qc.invalidateQueries({ queryKey: ["projects"] });
       await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
+      
+      // Auto open wizard for the newly created project
+      if (data?.id) {
+        setAutoOpenWizard(data.id);
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar projeto");
     } finally {
@@ -152,22 +155,16 @@ export default function ProjectsManager({ organizationId }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2 text-xs h-8">
-                      <Sparkles className="h-3.5 w-3.5" /> Instalação
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Instalação do Projeto: {p.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6 py-4">
-                      <TrackingStatus projectId={p.id} />
-                      <TrackingSnippet projectId={p.id} />
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <TrackingInstallWizard 
+                  projectId={p.id} 
+                  projectName={p.name} 
+                  defaultOpen={autoOpenWizard === p.id}
+                  onOpenChange={(isOpen) => {
+                    if (!isOpen && autoOpenWizard === p.id) {
+                      setAutoOpenWizard(null);
+                    }
+                  }}
+                />
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
