@@ -93,21 +93,28 @@ export default function Pricing() {
       )}
       <div className="min-h-screen bg-background">
         <div className="border-b bg-card/60 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-              {(user?.email?.[0] ?? "?").toUpperCase()}
+          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                {(user?.email?.[0] ?? "?").toUpperCase()}
+              </div>
+              <span className="text-sm text-muted-foreground truncate hidden sm:inline">
+                Logado como <span className="text-foreground font-medium">{user?.email}</span>
+              </span>
             </div>
-            <span className="text-sm text-muted-foreground truncate">
-              Logado como <span className="text-foreground font-medium">{user?.email}</span>
-            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              {isActive && (
+                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+                  Voltar ao Dashboard
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut} className="shrink-0">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
         </div>
-      </div>
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="text-center mb-10 max-w-2xl mx-auto">
           <span className="inline-block text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary mb-4">

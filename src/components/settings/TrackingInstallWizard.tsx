@@ -233,7 +233,7 @@ export function TrackingInstallWizard({
           </nav>
           
           <div className="mt-auto hidden md:block">
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2">O que o Kubo vai acompanhar?</h4>
+            <h4 className="text-xs font-semibold text-foreground tracking-wider mb-2">O que o Kubo vai acompanhar?</h4>
             <ul className="text-[11px] text-muted-foreground space-y-1.5">
               <li className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3 text-green-500" /> Visitantes</li>
               <li className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3 text-green-500" /> Páginas visualizadas</li>
@@ -269,11 +269,11 @@ export function TrackingInstallWizard({
                       <Button
                         key={p.id}
                         variant="outline"
-                        className="h-20 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
+                        className="h-20 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all text-wrap"
                         onClick={() => setPlatform(p.id)}
                       >
-                        <span className="text-2xl">{p.icon}</span>
-                        <span className="text-xs font-medium">{p.name}</span>
+                        <span className="text-2xl shrink-0">{p.icon}</span>
+                        <span className="text-xs font-medium text-center leading-tight whitespace-normal">{p.name}</span>
                       </Button>
                     ))}
                   </div>

@@ -10,13 +10,17 @@ import { Navigate } from "react-router-dom";
 import { FeatureLock } from "@/components/FeatureLock";
 
 export default function Live() {
-  const { data, error } = useDashboardAnalytics(1);
-  const projectId = data?.client?.project?.id ?? null;
+  // Use the globally selected project ID
+  const projectId = localStorage.getItem("selectedProjectId");
+  const { data, error } = useDashboardAnalytics(1, projectId || undefined);
   const { visitors, loading } = useLiveFeed(projectId, 100);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
   }
+
+  // Find the selected project name if we need it for display
+  const projectName = data?.client?.company_name || "Projeto";
 
   // Aggregate stats from current feed
   const uniqueCountries = new Set(visitors.map((v) => v.country).filter(Boolean)).size;
