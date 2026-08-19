@@ -67,9 +67,9 @@ serve(async (req) => {
 
       return json({ 
         users: result,
-        // @ts-ignore: Total might exist on usersList depending on the Supabase version
+        // @ts-expect-error: Total might exist on usersList depending on the Supabase version
         total: usersList.total,
-        // @ts-ignore
+        // @ts-expect-error: Pagination might exist
         nextPage: usersList.nextPage
       });
     }

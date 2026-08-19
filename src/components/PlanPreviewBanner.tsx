@@ -4,7 +4,7 @@ import { usePlanPreview } from "@/hooks/usePlanPreview";
 import { PLAN_CAPABILITIES } from "@/lib/plan-features";
 import { toast } from "sonner";
 
-/** Faixa exibida enquanto o usuÃ¡rio prÃ©-visualiza outro plano. */
+/** Faixa exibida enquanto o usuário pré-visualiza outro plano. */
 export const PlanPreviewBanner = () => {
   const { preview, setPreview } = usePlanPreview();
   if (!preview) return null;
@@ -20,7 +20,7 @@ export const PlanPreviewBanner = () => {
     <div className="flex items-center justify-center gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-600 dark:text-amber-400 font-medium z-40 sticky top-14 backdrop-blur-md">
       <Eye className="h-4 w-4 shrink-0 text-amber-500 animate-pulse" />
       <span>
-        VocÃª estÃ¡ simulando o painel como plano{" "}
+        Você está simulando o painel como plano{" "}
         <strong className="underline underline-offset-2">{planLabel}</strong> (modo teste).
       </span>
       <Button
@@ -30,7 +30,7 @@ export const PlanPreviewBanner = () => {
         onClick={handleExit}
       >
         <X className="h-3 w-3" />
-        Sair da simulaÃ§Ã£o
+        Sair da simulação
       </Button>
     </div>
   );

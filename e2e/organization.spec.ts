@@ -60,9 +60,11 @@ test.describe('Organization Context and RBAC', () => {
     await page.locator('[data-testid="org-item"]').nth(1).click();
     
     // Data should be different and queries invalidated
-    await page.waitForSelector('h1.tracking-tight');
-    const org2Text = await page.locator('h1.tracking-tight').first().innerText();
+    // Use toHaveText which has auto-retry so it waits for the React state change
+    const titleLocator = page.locator('h1.tracking-tight').first();
+    await expect(titleLocator).not.toHaveText(org1Text, { timeout: 10000 });
     
+    const org2Text = await titleLocator.innerText();
     expect(org1Text).not.toEqual(org2Text);
   });
 });

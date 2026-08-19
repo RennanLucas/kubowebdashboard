@@ -10,7 +10,7 @@ const BREVO_FROM_EMAIL = Deno.env.get("BREVO_FROM_EMAIL") ?? "no-reply@kuboweb.c
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!BREVO_SMTP_KEY) {
-    console.warn("BREVO_SMTP_KEY nÃ£o configurada â€” email nÃ£o enviado");
+    console.warn("BREVO_SMTP_KEY não configurada â€” email não enviado");
     return;
   }
   try {
@@ -46,7 +46,7 @@ function alertEmailHtml(opts: { title: string; message: string; projectName: str
       Projeto: <strong style="color:#0f1117">${opts.projectName}</strong>
     </div>
     <a href="https://cubie-dash.lovable.app/alerts" style="display:inline-block;margin-top:18px;background:#6366f1;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500">Ver no painel</a>
-    <p style="font-size:11px;color:#9ca3af;margin-top:24px">VocÃª recebeu este email porque sua organizaÃ§Ã£o assina o plano Pro. Para ajustar alertas, acesse ConfiguraÃ§Ãµes.</p>
+    <p style="font-size:11px;color:#9ca3af;margin-top:24px">Você recebeu este email porque sua organização assina o plano Pro. Para ajustar alertas, acesse Configurações.</p>
   </div></body></html>`;
 }
 
@@ -76,9 +76,9 @@ function isAuthorized(req: Request): boolean {
   return claims?.role === "service_role";
 }
 
-// Fonte Ãºnica para checagem de plano
+// Fonte única para checagem de plano
 const getOrgPlanStatus = async (supabase: any, orgId: string) => {
-  // 1. Assinatura pela organizaÃ§Ã£o
+  // 1. Assinatura pela organização
   const { data: orgSub } = await supabase
     .from("subscriptions")
     .select("plan_id, status, current_period_end")
@@ -234,16 +234,16 @@ Deno.serve(async (req) => {
             await sendAlert({
               type: "traffic_spike",
               severity: "success",
-              title: `ðŸ“ˆ TrÃ¡fego subiu ${change.toFixed(0)}%`,
-              message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da mÃ©dia semanal (${avg7.toFixed(0)}).`,
+              title: `ðŸ“ˆ Tráfego subiu ${change.toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${change.toFixed(0)}% acima da média semanal (${avg7.toFixed(0)}).`,
               metadata: { yesterday: yCount, avg7, change },
             });
           } else if (change <= -threshold) {
             await sendAlert({
               type: "traffic_drop",
               severity: "warning",
-              title: `ðŸ“‰ TrÃ¡fego caiu ${Math.abs(change).toFixed(0)}%`,
-              message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da mÃ©dia semanal (${avg7.toFixed(0)}).`,
+              title: `ðŸ“‰ Tráfego caiu ${Math.abs(change).toFixed(0)}%`,
+              message: `${project.name} teve ${yCount} visitas ontem, ${Math.abs(change).toFixed(0)}% abaixo da média semanal (${avg7.toFixed(0)}).`,
               metadata: { yesterday: yCount, avg7, change },
             });
           }
@@ -271,8 +271,8 @@ Deno.serve(async (req) => {
         }
       }
     } catch (err) {
-      console.error(`Erro ao processar organizaÃ§Ã£o ${org.id}`, err);
-      // Isolamento: Falha em uma org nÃ£o interrompe as outras
+      console.error(`Erro ao processar organização ${org.id}`, err);
+      // Isolamento: Falha em uma org não interrompe as outras
     }
   }
 

@@ -53,7 +53,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   useEffect(() => {
     if (allProjectsLoading || !allProjects) return;
     
-    // Se o usuÃ¡rio nÃ£o tem nenhum projeto, limpe o localStorage
+    // Se o usuário não tem nenhum projeto, limpe o localStorage
     if (allProjects.length === 0) {
       if (selectedProjectId) setSelectedProjectId("");
       return;
@@ -164,17 +164,17 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     const out: Array<{ type: "growth" | "drop" | "info" | "warning"; title: string; message: string }> = [];
     if (totalVisitors > 0) {
       if (avgConversion > 3) {
-        out.push({ type: "growth", title: "ConversÃ£o Forte", message: `Sua taxa de conversÃ£o de ${avgConversion}% estÃ¡ acima da mÃ©dia do mercado de 2,5%.` });
+        out.push({ type: "growth", title: "Conversão Forte", message: `Sua taxa de conversão de ${avgConversion}% está acima da média do mercado de 2,5%.` });
       }
       if (trafficSources && trafficSources.length > 0) {
-        out.push({ type: "info", title: "Canal Principal", message: `${trafficSources[0].source} Ã© o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do trÃ¡fego.` });
+        out.push({ type: "info", title: "Canal Principal", message: `${trafficSources[0].source} é o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do tráfego.` });
       }
       if (comparison && comparison.visitors !== 0) {
         const dir = comparison.visitors > 0 ? "cresceu" : "caiu";
         out.push({
           type: comparison.visitors > 0 ? "growth" : "warning",
-          title: "ComparaÃ§Ã£o com PerÃ­odo Anterior",
-          message: `O trÃ¡fego ${dir} ${Math.abs(comparison.visitors)}% comparado ao perÃ­odo anterior (${comparison.prevVisitors} visitantes).`,
+          title: "Comparação com Período Anterior",
+          message: `O tráfego ${dir} ${Math.abs(comparison.visitors)}% comparado ao período anterior (${comparison.prevVisitors} visitantes).`,
         });
       }
     }
@@ -185,7 +185,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     return <Navigate to="/login" replace />;
   }
 
-  // Se a query de todos os projetos terminou de carregar e estÃ¡ vazia, forÃ§a onboarding imediatamente
+  // Se a query de todos os projetos terminou de carregar e está vazia, força onboarding imediatamente
   if (!allProjectsLoading && allProjects && allProjects.length === 0) {
     return <Navigate to="/onboarding" replace />;
   }
@@ -203,12 +203,12 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6">
-            <h2 className="text-lg font-semibold text-destructive mb-2">NÃ£o foi possÃ­vel carregar o Dashboard</h2>
+            <h2 className="text-lg font-semibold text-destructive mb-2">Não foi possível carregar o Dashboard</h2>
             <p className="text-sm text-destructive/80 mb-4">
-              Atualize a pÃ¡gina em alguns instantes. Seus dados de acesso e onboarding foram preservados.
+              Atualize a página em alguns instantes. Seus dados de acesso e onboarding foram preservados.
             </p>
             <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50">
-              Detalhes tÃ©cnicos: {(error as Error).message || String(error)}
+              Detalhes técnicos: {(error as Error).message || String(error)}
             </div>
           </div>
         </div>
@@ -220,10 +220,10 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
   const handleExportPDF = async () => {
     if (!plan.can("pdf_report")) {
-      toast.error("RelatÃ³rios em PDF estÃ£o disponÃ­veis no plano Pro.");
+      toast.error("Relatórios em PDF estão disponíveis no plano Pro.");
       return;
     }
-    toast.info("Gerando relatÃ³rio PDF...");
+    toast.info("Gerando relatório PDF...");
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -237,7 +237,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
         },
       });
 
-      if (!response.ok) throw new Error("Erro ao gerar relatÃ³rio");
+      if (!response.ok) throw new Error("Erro ao gerar relatório");
 
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
@@ -246,9 +246,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       a.download = `relatorio-${clientData?.company_name || "kuboweb"}-${dateRange}d.html`;
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
-      toast.success("RelatÃ³rio baixado! Abra o arquivo e use Ctrl+P para salvar como PDF.");
+      toast.success("Relatório baixado! Abra o arquivo e use Ctrl+P para salvar como PDF.");
     } catch (error: any) {
-      toast.error("Erro ao gerar relatÃ³rio: " + error.message);
+      toast.error("Erro ao gerar relatório: " + error.message);
     }
   };
 
@@ -264,7 +264,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
   const handleExportCSV = () => {
     if (!plan.can("csv_export")) {
-      toast.error("A exportaÃ§Ã£o de dados estÃ¡ disponÃ­vel no plano Pro.");
+      toast.error("A exportação de dados está disponível no plano Pro.");
       return;
     }
     try {
@@ -277,7 +277,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
   const handleExportExcel = () => {
     if (!plan.can("csv_export")) {
-      toast.error("A exportaÃ§Ã£o de dados estÃ¡ disponÃ­vel no plano Pro.");
+      toast.error("A exportação de dados está disponível no plano Pro.");
       return;
     }
     try {
@@ -305,7 +305,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     <AppLayout>
       <Helmet>
         <title>Dashboard â€” KUBOWEB</title>
-        <meta name="description" content="Acompanhe visitantes, leads e mÃ©tricas do seu site em tempo real." />
+        <meta name="description" content="Acompanhe visitantes, leads e métricas do seu site em tempo real." />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/dashboard" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -327,13 +327,13 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BarChart3 className="h-16 w-16 text-muted-foreground/40 mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              Ainda nÃ£o hÃ¡ dados disponÃ­veis
+              Ainda não há dados disponíveis
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mb-2">
-              Instale o cÃ³digo de rastreamento no seu site para comeÃ§ar a ver os dados. VÃ¡ em ConfiguraÃ§Ãµes para copiar o snippet.
+              Instale o código de rastreamento no seu site para começar a ver os dados. Vá em Configurações para copiar o snippet.
             </p>
             <a href="/settings" className="text-sm text-primary hover:underline mt-2">
-              Ir para ConfiguraÃ§Ãµes â†’
+              Ir para Configurações â†’
             </a>
           </div>
         ) : (
@@ -344,7 +344,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
                 { label: "Visitantes", current: totalVisitors, previous: comparison?.prevVisitors ?? 0 },
                 { label: "Leads", current: totalLeads, previous: comparison?.prevLeads ?? 0 },
                 {
-                  label: "ConversÃ£o",
+                  label: "Conversão",
                   current: avgConversion,
                   previous: comparison?.prevConversionRate ?? 0,
                   format: (v) => v.toFixed(2),
