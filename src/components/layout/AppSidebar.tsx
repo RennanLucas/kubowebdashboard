@@ -57,32 +57,39 @@ interface NavItemProps {
   locked?: boolean;
 }
 
-const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps) => (
-  <SidebarMenuItem>
-    <SidebarMenuButton
-      asChild
-      isActive={active}
-      tooltip={locked ? `${title} · disponível em planos pagos` : title}
-      className={[
-        "h-9 rounded-md text-[13px] font-medium",
-        "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
-        "data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold",
-        "transition-all duration-200 ease-in-out",
-      ].join(" ")}
-    >
-      <NavLink
-        to={url}
-        end
-        data-tour={tour}
-        className="flex items-center gap-2.5 px-2"
+const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+  
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        tooltip={locked ? `${title} é disponível em planos pagos` : title}
+        className={[
+          "h-9 rounded-md text-[13px] font-medium",
+          "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
+          "data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold",
+          "transition-all duration-200 ease-in-out",
+        ].join(" ")}
       >
-        <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
-        <span className={`truncate ${locked ? "opacity-55" : ""}`}>{title}</span>
-        {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60" />}
-      </NavLink>
-    </SidebarMenuButton>
-  </SidebarMenuItem>
-);
+        <NavLink
+          to={url}
+          end
+          data-tour={tour}
+          className="flex items-center gap-2.5 px-2"
+          onClick={() => {
+            if (isMobile) setOpenMobile(false);
+          }}
+        >
+          <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
+          <span className={`truncate group-data-[collapsible=icon]:hidden ${locked ? "opacity-55" : ""}`}>{title}</span>
+          {locked && <Lock className="ml-auto h-3 w-3 shrink-0 opacity-60 group-data-[collapsible=icon]:hidden" />}
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
 
 export function AppSidebar() {
   const { state } = useSidebar();
