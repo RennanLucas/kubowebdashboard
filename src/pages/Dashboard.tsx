@@ -1,4 +1,4 @@
-﻿import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
 import { usePlan } from "@/hooks/usePlan";
 import { useQueryClient } from "@tanstack/react-query";
@@ -59,13 +59,13 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       return;
     }
 
-    // Se tem projetos mas nÃ£o hÃ¡ nada selecionado, seleciona o primeiro
+    // Se tem projetos mas nao ha nada selecionado, seleciona o primeiro
     if (!selectedProjectId) {
       setSelectedProjectId(allProjects[0].id);
       return;
     }
 
-    // Se o ID selecionado (stale) nÃ£o pertencer Ã  lista atual (nova conta), fallback
+    // Se o ID selecionado nao pertencer a lista atual (fallback)
     const exists = allProjects.some((p) => p.id === selectedProjectId);
     if (!exists) {
       setSelectedProjectId(allProjects[0].id);

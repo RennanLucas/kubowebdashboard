@@ -154,13 +154,13 @@ async function getGeoFromIP(req: Request): Promise<{ country: string | null; cit
 function jsonResponse(body: unknown, status: number = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...publicCorsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: publicCorsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {

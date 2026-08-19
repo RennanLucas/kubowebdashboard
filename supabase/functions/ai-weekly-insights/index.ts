@@ -63,7 +63,9 @@ Deno.serve(async (req) => {
 
     if (memberErr || !memberData) {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
-       // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
+    }
+
+    // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
     let MONTHLY_LIMIT = 0;
     let tier = "free";
 

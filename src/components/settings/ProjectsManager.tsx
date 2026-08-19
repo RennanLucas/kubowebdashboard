@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Globe, Trash2, Layers, Sparkles } from "lucide-react";
+import { Plus, Globe, Trash2, Layers, Sparkles, Pencil } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import { Link } from "react-router-dom";
 import { TrackingInstallWizard } from "@/components/settings/TrackingInstallWizard";
@@ -26,6 +26,9 @@ export default function ProjectsManager({ organizationId }: Props) {
   const [autoOpenWizard, setAutoOpenWizard] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", url: "" });
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<{ id: string; name: string; url: string } | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   const { data: projects, refetch } = useQuery({
     queryKey: ["org-projects", organizationId],
@@ -83,6 +86,42 @@ export default function ProjectsManager({ organizationId }: Props) {
       toast.error(e.message || "Erro ao criar projeto");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEditOpen = (p: { id: string; name: string; url: string | null }) => {
+    setEditingProject({ id: p.id, name: p.name, url: p.url || "" });
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editingProject) return;
+    if (!editingProject.name.trim()) {
+      toast.error("Informe um nome para o projeto");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .update({
+          name: editingProject.name.trim(),
+          url: editingProject.url.trim() || null,
+        })
+        .eq("id", editingProject.id);
+
+      if (error) throw error;
+
+      toast.success("Projeto atualizado com sucesso!");
+      setEditOpen(false);
+      setEditingProject(null);
+      await refetch();
+      await qc.invalidateQueries({ queryKey: ["projects"] });
+      await qc.invalidateQueries({ queryKey: ["dashboard-overview"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao atualizar projeto");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -155,6 +194,16 @@ export default function ProjectsManager({ organizationId }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground shrink-0 h-8 w-8"
+                  title="Editar projeto"
+                  onClick={() => handleEditOpen(p)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
                 <TrackingInstallWizard 
                   projectId={p.id} 
                   projectName={p.name} 
@@ -207,6 +256,41 @@ export default function ProjectsManager({ organizationId }: Props) {
           <div className="text-sm text-muted-foreground italic">Nenhum projeto ainda.</div>
         )}
       </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar projeto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="ep-name">Nome do projeto</Label>
+              <Input
+                id="ep-name"
+                placeholder="Ex.: Loja Online"
+                value={editingProject?.name || ""}
+                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, name: e.target.value } : null)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ep-url">URL (opcional)</Label>
+              <Input
+                id="ep-url"
+                type="url"
+                placeholder="https://www.exemplo.com"
+                value={editingProject?.url || ""}
+                onChange={(e) => setEditingProject((prev) => prev ? { ...prev, url: e.target.value } : null)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEditSave} disabled={editSaving}>
+              {editSaving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
