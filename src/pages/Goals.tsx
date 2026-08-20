@@ -38,11 +38,11 @@ const Goals = () => {
     const sales = Math.round(totalLeads * 0.1); // Estimativa
 
     return [
-      { name: "Visitantes �nicos", value: visitors, color: "hsl(var(--primary))" },
-      { name: "Visualiza��es", value: views, color: "hsl(var(--primary) / 0.8)" },
+      { name: "Visitantes Únicos", value: visitors, color: "hsl(var(--primary))" },
+      { name: "Visualizações", value: views, color: "hsl(var(--primary) / 0.8)" },
       { name: "Cliques em CTA", value: buttons, color: "hsl(var(--primary) / 0.6)" },
       { name: "Iniciaram Contato", value: totalLeads, color: "hsl(var(--primary) / 0.4)" },
-      { name: "Convers�es", value: sales, color: "hsl(var(--success))" },
+      { name: "Conversões", value: sales, color: "hsl(var(--success))" },
     ];
   }, [data]);
 
@@ -63,16 +63,16 @@ const Goals = () => {
   return (
       <AppLayout>
         <Helmet>
-          <title>Metas e Funis � KUBOWEB</title>
+          <title>Metas e Funis - KUBOWEB</title>
         </Helmet>
         <div className="p-4 sm:p-6 max-w-[1200px] mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="page-title flex items-center gap-2">
                 <Target className="h-6 w-6 text-primary" />
-                Metas de Convers�o
+                Metas de Conversão
               </h1>
-              <p className="page-subtitle">Acompanhe a jornada do cliente e descubra onde est�o as quedas.</p>
+              <p className="page-subtitle">Acompanhe a jornada do cliente e descubra onde estão as quedas.</p>
             </div>
             <Button className="gap-2 shadow-md" disabled>
               <Plus className="h-4 w-4" />
@@ -88,8 +88,8 @@ const Goals = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 shadow-sm border-border/50">
               <CardHeader>
-                <CardTitle>Funil de Convers�o Principal</CardTitle>
-                <CardDescription>Convers�o de Visitante at� Convers�o (�ltimos {dateRange} dias)</CardDescription>
+                <CardTitle>Funil de Conversão Principal</CardTitle>
+                <CardDescription>Conversão de Visitante até Conversão (últimos {dateRange} dias)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[350px] w-full mt-4">
@@ -100,7 +100,7 @@ const Goals = () => {
                       <Tooltip 
                         cursor={{ fill: 'transparent' }}
                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)' }}
-                        formatter={(value: number) => [new Intl.NumberFormat('pt-BR').format(value), 'Usu�rios']}
+                        formatter={(value: number) => [new Intl.NumberFormat('pt-BR').format(value), 'Usuários']}
                       />
                       <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                         {funnelData.map((entry, index) => (
@@ -113,7 +113,7 @@ const Goals = () => {
                 
                 <div className="flex items-center justify-between mt-6 pt-6 border-t">
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Taxa de Convers�o Final</p>
+                    <p className="text-sm text-muted-foreground">Taxa de Conversão Final</p>
                     <p className="text-2xl font-bold text-success mt-1">{finalConversion}%</p>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ const Goals = () => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <MousePointerClick className="h-4 w-4 text-primary" />
-                    Envios de Formul�rio
+                    Envios de Formulário
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

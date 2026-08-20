@@ -23,7 +23,6 @@ export function AdminFeedback() {
         .from("feedback" as any)
         .select(`
           *,
-          users:user_id (email, raw_user_meta_data),
           organizations:organization_id (name)
         `)
         .order("created_at", { ascending: false });
@@ -53,7 +52,7 @@ export function AdminFeedback() {
       const q = search.toLowerCase();
       return f.title?.toLowerCase().includes(q) || 
              f.description?.toLowerCase().includes(q) ||
-             f.users?.email?.toLowerCase().includes(q);
+             f.user_id?.toLowerCase().includes(q);
     }
     return true;
   });
@@ -141,7 +140,7 @@ export function AdminFeedback() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline">{item.type}</Badge>
                       <Badge variant="secondary">{item.category}</Badge>
-                      <span className="text-xs text-muted-foreground">Org: {item.organizations?.name || 'Desconhecida'} • Usuário: {item.users?.email}</span>
+                      <span className="text-xs text-muted-foreground">Org: {item.organizations?.name || 'Desconhecida'} • Usuário: {item.user_id}</span>
                     </div>
                     <h3 className="text-lg font-bold">{item.title}</h3>
                     <p className="text-muted-foreground text-sm whitespace-pre-wrap">{item.description}</p>

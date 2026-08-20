@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Users, TrendingUp, DollarSign, Percent, X, Maximize2, RefreshCw } from "lucide-react";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -35,9 +36,10 @@ function BigStat({
 
 const Presentation = () => {
   const navigate = useNavigate();
+  const { selectedProjectId } = useSelectedProject();
   const [tick, setTick] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(REFRESH_MS / 1000);
-  const { data, isLoading, error, refetch } = useDashboardAnalytics(30);
+  const { data, isLoading, error, refetch } = useDashboardAnalytics(30, selectedProjectId);
 
   // Auto refresh every 30s
   useEffect(() => {

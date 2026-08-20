@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "qa:pwa": "node scripts/qa-pwa.mjs",
-    "qa:build": "vite build && node scripts/qa-pwa.mjs"
+    "qa:build": "vite build && node scripts/qa-pwa.mjs",
+    "test:encoding": "node test/check-encoding.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
