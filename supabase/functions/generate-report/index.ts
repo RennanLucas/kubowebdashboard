@@ -1,9 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import { corsHeaders } from "../_shared/cors.ts";
+import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature } from "../_shared/plan-gate.ts";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -68,6 +66,15 @@ Deno.serve(async (req) => {
 
     if (memberErr || !memberData) {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
+    }
+
+    try {
+      const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
+      enforcePremiumFeature(tier, "pdf_report");
+      enforceHistoryLimit(days, maxHistoryDays);
+    } catch (planError: any) {
+      const status = planError.message.includes("PLAN_REQUIRED") ? 402 : 403;
+      return new Response(JSON.stringify({ error: planError.message }), { status, headers: corsHeaders });
     }
 
     const clientData = {

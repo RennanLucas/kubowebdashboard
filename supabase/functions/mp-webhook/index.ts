@@ -41,14 +41,19 @@ async function verifyMpSignature(req: Request, dataId: string): Promise<boolean>
     new TextEncoder().encode(MP_WEBHOOK_SECRET),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"],
+    ["verify"],
   );
-  const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
-  const expected = Array.from(new Uint8Array(sigBuf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  return expected === v1.toLowerCase();
+  
+  const hexMatch = v1.toLowerCase().match(/.{1,2}/g);
+  if (!hexMatch) return false;
+  
+  const sigBytes = new Uint8Array(hexMatch.map((byte) => parseInt(byte, 16)));
+  
+  try {
+    return await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(manifest));
+  } catch {
+    return false;
+  }
 }
 
 Deno.serve(async (req) => {

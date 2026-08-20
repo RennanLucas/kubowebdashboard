@@ -26,3 +26,4 @@ dist-ssr
 .env
 .env.*
 !.env.example
+\nscratch/\nplaywright-report/\ntest-results/\nfailure_dom.html\nimplementation_plan.md\nbun.lock\nbun.lockb\n

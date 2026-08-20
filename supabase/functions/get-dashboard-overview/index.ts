@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -56,6 +57,9 @@ Deno.serve(async (req) => {
     if (memberErr || !memberData) {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
     }
+
+    const { maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
+    enforceHistoryLimit(days, maxHistoryDays);
 
     const leadValue = Number(projData.organizations.lead_value) > 0 ? Number(projData.organizations.lead_value) : 25;
 
@@ -227,7 +231,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error("Overview error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    const status = error.message.includes("PLAN_REQUIRED") ? 402 : error.message.includes("LIMIT_EXCEEDED") ? 403 : 500;
+    return new Response(JSON.stringify({ error: error.message }), { status, headers: corsHeaders });
   }
 });
 

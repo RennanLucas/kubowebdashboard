@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -90,7 +91,8 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    const status = error.message.includes("PLAN_REQUIRED") ? 402 : error.message.includes("LIMIT_EXCEEDED") ? 403 : 500;
+    return new Response(JSON.stringify({ error: error.message }), { status, headers: corsHeaders });
   }
 });
 
