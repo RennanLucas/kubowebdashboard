@@ -33,6 +33,10 @@ export const TrafficSection = ({
   refetchHeatmap,
 }: Props) => (
   <>
+    <div className="mb-2.5">
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Tráfego</p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">De onde vêm os visitantes e como se comportam ao longo do período</p>
+    </div>
     <div className="grid grid-cols-1 gap-4 mb-6 stagger-children">
       <WidgetBoundary
         isLoading={heatmapLoading}

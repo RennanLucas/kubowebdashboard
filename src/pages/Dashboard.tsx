@@ -16,6 +16,7 @@ import { TopPagesSection } from "@/components/dashboard/sections/TopPagesSection
 import { InsightsSection } from "@/components/dashboard/sections/InsightsSection";
 import { PeriodComparisonStrip } from "@/components/dashboard/PeriodComparisonStrip";
 import { AnnotationsHistoryCard } from "@/components/dashboard/AnnotationsHistoryCard";
+import { QuickFilters } from "@/components/dashboard/QuickFilters";
 import { DashboardFiltersProvider, useDashboardFilters } from "@/contexts/DashboardFiltersContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useAllUserProjects } from "@/hooks/useAllUserProjects";
@@ -335,6 +336,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
           isUpdating={isUpdating}
           onRefresh={triggerManualRefresh}
         />
+
+        {/* Filtros rápidos de canal e dispositivo */}
+        <QuickFilters />
 
         {!hasData ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">

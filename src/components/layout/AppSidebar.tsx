@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock, Target, Flame, FileText, Lightbulb } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Sparkles, CreditCard, LogOut, Bell, HelpCircle, GitCompare, Maximize2, Activity, Download, Lock, Target, Flame, FileText, Lightbulb, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import type { FeatureKey } from "@/lib/plan-features";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
@@ -37,16 +37,16 @@ const mainItems: {
   { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
   { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
-  { title: "Relatórios", url: "/reports", icon: FileText, feature: "pdf_report" },
-  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
+  { title: "Relatorios", url: "/reports", icon: FileText, feature: "pdf_report" },
+  { title: "Apresentacao", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 
 const accountItems = [
-  { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
+  { title: "Configuracoes", url: "/settings", icon: Settings, tour: "sidebar-settings" },
   { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
   { title: "Instalar app", url: "/install", icon: Download },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
-  { title: "Feedback & Melhorias", url: "/feedback", icon: Lightbulb },
+  { title: "Feedback e Melhorias", url: "/feedback", icon: Lightbulb },
 ];
 
 interface NavItemProps {
@@ -60,13 +60,12 @@ interface NavItemProps {
 
 const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
         asChild
         isActive={active}
-        tooltip={locked ? `${title} é disponível em planos pagos` : title}
+        tooltip={locked ? `${title} disponivel em planos pagos` : title}
         className={[
           "h-9 rounded-md text-[13px] font-medium",
           "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",
@@ -79,9 +78,7 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
           end
           data-tour={tour}
           className="flex items-center gap-2.5 px-2"
-          onClick={() => {
-            if (isMobile) setOpenMobile(false);
-          }}
+          onClick={() => { if (isMobile) setOpenMobile(false); }}
         >
           <Icon className={`h-[15px] w-[15px] shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-105"} ${locked ? "opacity-55" : ""}`} />
           <span className={`truncate group-data-[collapsible=icon]:hidden ${locked ? "opacity-55" : ""}`}>{title}</span>
@@ -93,7 +90,7 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
 };
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
@@ -102,20 +99,11 @@ export function AppSidebar() {
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
-  };
-
+  const handleSignOut = async () => { await signOut(); navigate("/login"); };
   const initials = (user?.email || "U").slice(0, 2).toUpperCase();
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-sidebar-border/30"
-      style={{ background: "var(--gradient-sidebar)" }}
-    >
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/30" style={{ background: "var(--gradient-sidebar)" }}>
       <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
       <SidebarHeader className="border-b border-sidebar-border/70">
         <div className="flex items-center gap-2 px-2 py-3">
@@ -130,40 +118,22 @@ export function AppSidebar() {
                 <img src={logoKubowebDark} alt="KUBOWEB" className="h-6 w-auto max-w-[110px] object-contain shrink-0 dark:hidden block" />
                 <img src={logoKubowebWhite} alt="KUBOWEB" className="h-6 w-auto max-w-[110px] object-contain shrink-0 hidden dark:block" />
               </div>
-              <span
-                className={[
-                  "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300 shrink-0",
-                  plan.isFree
-                    ? "bg-sidebar-accent text-sidebar-foreground/70"
-                    : "bg-gradient-to-r from-primary to-purple-600 text-white shadow-primary/20",
-                ].join(" ")}
-              >
+              <span className={["rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300 shrink-0", plan.isFree ? "bg-sidebar-accent text-sidebar-foreground/70" : "bg-gradient-to-r from-primary to-purple-600 text-white shadow-primary/20"].join(" ")}>
                 {plan.loading ? "..." : plan.label}
               </span>
             </div>
           )}
         </div>
-        {!collapsed && (
-          <div className="px-2 pb-2">
-            <OrganizationSwitcher />
-          </div>
-        )}
+        {!collapsed && <div className="px-2 pb-2"><OrganizationSwitcher /></div>}
       </SidebarHeader>
 
       <SidebarContent className="px-1.5 py-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">
-            Principal
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
               {mainItems.map(({ feature, ...item }) => (
-                <NavItem
-                  key={item.title}
-                  {...item}
-                  active={isActive(item.url)}
-                  locked={!!feature && !plan.loading && !plan.can(feature)}
-                />
+                <NavItem key={item.title} {...item} active={isActive(item.url)} locked={!!feature && !plan.loading && !plan.can(feature)} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -172,53 +142,42 @@ export function AppSidebar() {
         <div className="my-2 mx-2 border-t border-sidebar-border/60" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">
-            Conta
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/45 font-semibold px-2 mb-1">Conta</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {accountItems.map((item) => (
-                <NavItem key={item.title} {...item} active={isActive(item.url)} />
-              ))}
-              {isAdmin && (
-                <NavItem
-                  url="/admin"
-                  title="Admin"
-                  icon={Shield}
-                  active={isActive("/admin")}
-                />
-              )}
+              {accountItems.map((item) => (<NavItem key={item.title} {...item} active={isActive(item.url)} />))}
+              {isAdmin && <NavItem url="/admin" title="Admin" icon={Shield} active={isActive("/admin")} />}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/70 bg-sidebar/40">
+        {/* Collapse toggle */}
+        <div className={`flex ${collapsed ? "justify-center" : "justify-end"} px-2 pt-2`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            onClick={() => toggleSidebar()}
+            title={collapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        {/* User info */}
         <div className="flex items-center gap-2 p-2">
           <Avatar className="h-7 w-7 shrink-0 ring-1 ring-sidebar-border">
-            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-[11px] font-semibold">
-              {initials}
-            </AvatarFallback>
+            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-[11px] font-semibold">{initials}</AvatarFallback>
           </Avatar>
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-medium text-sidebar-foreground truncate leading-tight">
-                  {user?.email}
-                </div>
-                {isAdmin && (
-                  <div className="text-[10px] text-sidebar-foreground/55 font-medium leading-tight mt-0.5">
-                    Administrador
-                  </div>
-                )}
+                <div className="text-[12px] font-medium text-sidebar-foreground truncate leading-tight">{user?.email}</div>
+                {isAdmin && <div className="text-[10px] text-sidebar-foreground/55 font-medium leading-tight mt-0.5">Administrador</div>}
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                onClick={handleSignOut}
-                title="Sair"
-              >
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleSignOut} title="Sair">
                 <LogOut className="h-3.5 w-3.5" />
               </Button>
             </>

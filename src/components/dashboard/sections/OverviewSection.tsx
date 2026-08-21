@@ -39,6 +39,10 @@ export const OverviewSection = ({
 
   return (
   <>
+    <div className="mb-2.5">
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Visão Geral</p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">Resumo de saúde e performance do seu site neste período</p>
+    </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-children">
       <DailySummaryCard
         visitors={totalVisitors}

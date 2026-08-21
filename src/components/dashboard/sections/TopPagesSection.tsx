@@ -21,7 +21,12 @@ export const TopPagesSection = ({
   heatmapError,
   refetchHeatmap,
 }: Props) => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 stagger-children">
+  <>
+    <div className="mb-2.5">
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Páginas & Referências</p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">Páginas com maior volume de acessos e origens de tráfego externo</p>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 stagger-children">
     <WidgetBoundary title="Não foi possível carregar páginas">
       <TopPages pages={topPages ?? []} />
     </WidgetBoundary>
@@ -34,4 +39,5 @@ export const TopPagesSection = ({
       <TopReferrers data={referrers} isLoading={false} />
     </WidgetBoundary>
   </div>
+  </>
 );

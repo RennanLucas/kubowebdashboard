@@ -34,6 +34,10 @@ export const InsightsSection = ({
   insights,
 }: Props) => (
   <>
+    <div className="mb-2.5">
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Comportamento & Localização</p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">Dispositivos, navegadores e localização geográfica dos visitantes</p>
+    </div>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 stagger-children">
       {engagement && <EngagementCard data={engagement} />}
       <DevicesBrowsersCard

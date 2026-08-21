@@ -47,7 +47,12 @@ export const KPIsSection = ({
   valueSeries,
   conversionSeries,
 }: Props) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 stagger-children">
+  <div className="mb-6">
+    <div className="mb-3">
+      <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Indicadores do Período</p>
+      <p className="text-xs text-muted-foreground/70 mt-0.5">Métricas consolidadas de tráfego, leads e desempenho geral do site</p>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 stagger-children">
     <KPICard
       title="Visitantes"
       value={fmtNum(totalVisitors)}
@@ -100,5 +105,6 @@ export const KPIsSection = ({
       tooltip="Valor potencial gerado pelos leads no período. Calculado multiplicando o número de leads pelo valor configurado por lead em Configurações."
     />
     <ActiveVisitorsCard count={activeVisitors} />
+  </div>
   </div>
 );
