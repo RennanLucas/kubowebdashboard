@@ -72,12 +72,24 @@ export default defineConfig(({ mode }) => ({
     // bundle stays small and unused JS is deferred.
     rollupOptions: {
       output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "query-vendor": ["@tanstack/react-query", "@tanstack/query-core"],
-          "supabase-vendor": ["@supabase/supabase-js"],
-          "charts-vendor": ["recharts"],
-          "date-vendor": ["date-fns"],
+        manualChunks(id: string) {
+          if (id.includes("node_modules")) {
+            if (/[\\/]react[\\/]|[\\/]react-dom[\\/]|[\\/]react-router-dom[\\/]/.test(id)) {
+              return "react-vendor";
+            }
+            if (/[\\/]@tanstack[\\/](react-query|query-core)[\\/]/.test(id)) {
+              return "query-vendor";
+            }
+            if (id.includes("@supabase/supabase-js")) {
+              return "supabase-vendor";
+            }
+            if (id.includes("recharts")) {
+              return "charts-vendor";
+            }
+            if (id.includes("date-fns")) {
+              return "date-vendor";
+            }
+          }
         },
       },
     },

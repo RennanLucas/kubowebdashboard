@@ -75,15 +75,58 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select(
-        "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
-      )
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // BL3 fix: verificar membership antes de expor dados de assinatura da organização.
+    // O usuário só pode consultar assinaturas de organizações das quais é membro.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Obter organizações das quais o usuário é membro ativo
+    const { data: memberships } = await supabaseAdmin
+      .from("organization_members")
+      .select("organization_id")
+      .eq("user_id", userId);
+
+    const memberOrgIds = (memberships ?? []).map((m: { organization_id: string }) => m.organization_id);
+
+    // Buscar assinatura: prioriza assinatura da organização (B2B), com fallback para user_id (legado)
+    let data: SubscriptionRow | null = null;
+    let error: { message: string } | null = null;
+
+    if (memberOrgIds.length > 0) {
+      // Tenta primeiro buscar assinatura por organização
+      const { data: orgSub, error: orgErr } = await supabaseAdmin
+        .from("subscriptions")
+        .select(
+          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
+        )
+        .in("organization_id", memberOrgIds)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (orgSub) {
+        data = orgSub as SubscriptionRow;
+        error = orgErr;
+      }
+    }
+
+    if (!data) {
+      // Fallback legado: assinatura por user_id (sem org) — usa cliente com RLS
+      const { data: userSub, error: userErr } = await supabase
+        .from("subscriptions")
+        .select(
+          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
+        )
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      data = userSub as SubscriptionRow | null;
+      error = userErr;
+    }
 
     if (error) {
       console.error("[get-subscription-status] db error", error);
