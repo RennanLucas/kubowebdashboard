@@ -45,6 +45,7 @@ const eventSchema = z.object({
   path: z.string().max(1000).optional().default("/"),
   ref: z.string().max(1000).optional(),
   sid: z.string().max(200).optional(),
+  event_id: z.string().uuid().optional(), // Idempotency key for deduplication
   event_type: z.string().max(200).optional(),
   event_label: z.string().max(1000).optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -262,8 +263,11 @@ Deno.serve(async (req) => {
           page_path: ev.path,
           session_id: ev.sid || null,
           metadata: ev.metadata || {},
+          ...(ev.event_id ? { event_id: ev.event_id } : {}),
         });
       } else if (ev.type === "pageview") {
+        // Extrair UTMs do campo metadata (enviado pelo tracker client)
+        const meta = (ev.metadata || {}) as Record<string, unknown>;
         pageviewsToInsert.push({
           project_id: ev.pid,
           page_path: ev.path,
@@ -272,6 +276,12 @@ Deno.serve(async (req) => {
           country: country,
           city: city,
           session_id: ev.sid || null,
+          ...(ev.event_id ? { event_id: ev.event_id } : {}),
+          ...(meta.utm_source ? { utm_source: String(meta.utm_source) } : {}),
+          ...(meta.utm_medium ? { utm_medium: String(meta.utm_medium) } : {}),
+          ...(meta.utm_campaign ? { utm_campaign: String(meta.utm_campaign) } : {}),
+          ...(meta.utm_term ? { utm_term: String(meta.utm_term) } : {}),
+          ...(meta.utm_content ? { utm_content: String(meta.utm_content) } : {}),
         });
       }
     }
@@ -279,7 +289,8 @@ Deno.serve(async (req) => {
     let inserted = 0;
 
     if (eventsToInsert.length > 0) {
-      const { error } = await supabaseAdmin.from("events").insert(eventsToInsert);
+      // ignoreDuplicates: true → ON CONFLICT DO NOTHING (deduplication via event_id unique constraint)
+      const { error } = await supabaseAdmin.from("events").insert(eventsToInsert, { ignoreDuplicates: true });
       if (error) {
         console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
         return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store events" } }, 500);
@@ -288,7 +299,8 @@ Deno.serve(async (req) => {
     }
     
     if (pageviewsToInsert.length > 0) {
-      const { error } = await supabaseAdmin.from("pageviews").insert(pageviewsToInsert);
+      // ignoreDuplicates: true → ON CONFLICT DO NOTHING (deduplication via event_id unique constraint)
+      const { error } = await supabaseAdmin.from("pageviews").insert(pageviewsToInsert, { ignoreDuplicates: true });
       if (error) {
         console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
         return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store pageviews" } }, 500);

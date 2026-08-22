@@ -37,16 +37,16 @@ const mainItems: {
   { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
   { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
-  { title: "Relatorios", url: "/reports", icon: FileText, feature: "pdf_report" },
-  { title: "Apresentacao", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
+  { title: "Relatórios", url: "/reports", icon: FileText, feature: "pdf_report" },
+  { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 
 const accountItems = [
-  { title: "Configuracoes", url: "/settings", icon: Settings, tour: "sidebar-settings" },
+  { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
   { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
   { title: "Instalar app", url: "/install", icon: Download },
   { title: "Ajuda", url: "/help", icon: HelpCircle },
-  { title: "Feedback e Melhorias", url: "/feedback", icon: Lightbulb },
+  { title: "Feedback & Melhorias", url: "/feedback", icon: Lightbulb },
 ];
 
 interface NavItemProps {
@@ -65,7 +65,7 @@ const NavItem = ({ url, title, icon: Icon, tour, active, locked }: NavItemProps)
       <SidebarMenuButton
         asChild
         isActive={active}
-        tooltip={locked ? `${title} disponivel em planos pagos` : title}
+        tooltip={locked ? `${title} disponível em planos pagos` : title}
         className={[
           "h-9 rounded-md text-[13px] font-medium",
           "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/80",

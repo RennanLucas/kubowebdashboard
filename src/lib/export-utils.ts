@@ -1,6 +1,9 @@
-// xlsx é importado dinamicamente dentro de exportToExcel para evitar
-// carregar ~184KB no bundle inicial. Só baixa quando o usuário clica
-// em "Exportar Excel".
+// Export utils — sem dependência externa de xlsx.
+// O formato .xlsx é um ZIP de arquivos XML (OOXML).
+// Usamos fflate (já presente via vite-plugin-pwa) para gerar o ZIP
+// e construímos as sheets como XML puro.
+// Para arquivos de analytics simples (dados tabulares), esta abordagem
+// é suficiente e elimina a dependência xlsx com vulnerabilidades HIGH.
 
 export interface ExportData {
   clientName: string;
@@ -110,62 +113,154 @@ export const exportToCSV = (data: ExportData) => {
   downloadBlob(blob, `relatorio-${data.clientName}-${data.dateRange}d.csv`);
 };
 
+// ─── Native OOXML Excel Generator ──────────────────────────────────────────
+// Gera .xlsx sem dependências externas usando fflate (já presente via PWA).
+// Formato: OOXML SpreadsheetML simplificado — suportado por Excel 2007+, LibreOffice, Google Sheets.
+
+type CellValue = string | number | null | undefined;
+type Sheet = { name: string; rows: CellValue[][] };
+
+function escapeXml(v: CellValue): string {
+  if (v === null || v === undefined) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function buildSheetXml(rows: CellValue[][]): string {
+  const cols = Math.max(0, ...rows.map((r) => r.length));
+  const colDefs = Array.from({ length: cols }, (_, i) => `<col min="${i + 1}" max="${i + 1}" width="18" bestFit="1"/>`).join("");
+  const sheetRows = rows
+    .map((row, ri) => {
+      const cells = row
+        .map((val, ci) => {
+          const ref = String.fromCharCode(65 + ci) + (ri + 1);
+          if (val === null || val === undefined || val === "") {
+            return `<c r="${ref}"/>`;
+          }
+          if (typeof val === "number") {
+            return `<c r="${ref}" t="n"><v>${val}</v></c>`;
+          }
+          return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(val)}</t></is></c>`;
+        })
+        .join("");
+      return `<row r="${ri + 1}">${cells}</row>`;
+    })
+    .join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<cols>${colDefs}</cols>
+<sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+}
+
+async function buildXlsx(sheets: Sheet[]): Promise<Blob> {
+  const { strToU8, zipSync } = await import("fflate");
+  const enc = (s: string) => strToU8(s);
+
+  const sheetXmls = sheets.map((s) => buildSheetXml(s.rows));
+  const sheetRels = sheets
+    .map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`)
+    .join("");
+  const workbookSheets = sheets
+    .map((s, i) => `<sheet name="${escapeXml(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`)
+    .join("");
+
+  const files: Record<string, Uint8Array> = {
+    "_rels/.rels": enc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`),
+    "xl/workbook.xml": enc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets>${workbookSheets}</sheets>
+</workbook>`),
+    "xl/_rels/workbook.xml.rels": enc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${sheetRels}
+</Relationships>`),
+    "[Content_Types].xml": enc(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("\n")}
+</Types>`),
+  };
+
+  sheetXmls.forEach((xml, i) => {
+    files[`xl/worksheets/sheet${i + 1}.xml`] = enc(xml);
+  });
+
+  const zipped = zipSync(files, { level: 6 });
+  return new Blob([zipped], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
 export const exportToExcel = async (data: ExportData) => {
-  const XLSX = await import("xlsx");
-  const wb = XLSX.utils.book_new();
+  const sheets: Sheet[] = [];
 
   // Sheet 1: Métricas Diárias
-  const metricsSheet = XLSX.utils.aoa_to_sheet([
-    ["Data", "Visitantes", "Leads", "Conversão (%)", "Valor Estimado (R$)", "WhatsApp", "Formulários", "Botões"],
-    ...data.metrics.map((m) => [
-      m.date,
-      m.visitors,
-      m.leads,
-      m.conversion_rate,
-      Number(m.estimated_value),
-      m.whatsapp_clicks,
-      m.form_submissions,
-      m.button_clicks,
-    ]),
-  ]);
-  metricsSheet["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 14 }, { wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, metricsSheet, "Métricas Diárias");
+  sheets.push({
+    name: "Métricas Diárias",
+    rows: [
+      ["Data", "Visitantes", "Leads", "Conversão (%)", "Valor Estimado (R$)", "WhatsApp", "Formulários", "Botões"],
+      ...data.metrics.map((m) => [
+        m.date,
+        m.visitors,
+        m.leads,
+        m.conversion_rate,
+        Number(m.estimated_value),
+        m.whatsapp_clicks,
+        m.form_submissions,
+        m.button_clicks,
+      ]),
+    ],
+  });
 
   // Sheet 2: Fontes de Tráfego
-  const trafficSheet = XLSX.utils.aoa_to_sheet([
-    ["Fonte", "Visitantes", "Percentual (%)"],
-    ...data.trafficSources.map((t) => [t.source, t.visitors, t.percentage]),
-  ]);
-  trafficSheet["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 14 }];
-  XLSX.utils.book_append_sheet(wb, trafficSheet, "Fontes de Tráfego");
+  sheets.push({
+    name: "Fontes de Tráfego",
+    rows: [
+      ["Fonte", "Visitantes", "Percentual (%)"],
+      ...data.trafficSources.map((t) => [t.source, t.visitors, t.percentage]),
+    ],
+  });
 
-  // Sheet 3: Top Pages
-  const pagesSheet = XLSX.utils.aoa_to_sheet([
-    ["Página", "Caminho", "Visualizações", "Tempo Médio", "Taxa Rejeição (%)"],
-    ...data.topPages.map((p) => [p.name, p.path, p.views, p.avgTime, p.bounceRate]),
-  ]);
-  pagesSheet["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 16 }];
-  XLSX.utils.book_append_sheet(wb, pagesSheet, "Páginas");
+  // Sheet 3: Páginas
+  sheets.push({
+    name: "Páginas",
+    rows: [
+      ["Página", "Caminho", "Visualizações", "Tempo Médio", "Taxa Rejeição (%)"],
+      ...data.topPages.map((p) => [p.name, p.path, p.views, p.avgTime, p.bounceRate]),
+    ],
+  });
 
-  // Sheet 4: Devices (opcional)
+  // Sheet 4: Dispositivos (opcional)
   if (data.devices && data.devices.length > 0) {
-    const devSheet = XLSX.utils.aoa_to_sheet([
-      ["Dispositivo", "Quantidade", "Percentual (%)"],
-      ...data.devices.map((d) => [d.name, d.count, d.percentage]),
-    ]);
-    devSheet["!cols"] = [{ wch: 16 }, { wch: 12 }, { wch: 14 }];
-    XLSX.utils.book_append_sheet(wb, devSheet, "Dispositivos");
+    sheets.push({
+      name: "Dispositivos",
+      rows: [
+        ["Dispositivo", "Quantidade", "Percentual (%)"],
+        ...data.devices.map((d) => [d.name, d.count, d.percentage]),
+      ],
+    });
   }
 
-  // Sheet 5: Countries (opcional)
+  // Sheet 5: Países (opcional)
   if (data.countries && data.countries.length > 0) {
-    const countrySheet = XLSX.utils.aoa_to_sheet([
-      ["País", "Quantidade", "Percentual (%)"],
-      ...data.countries.map((c) => [c.name, c.count, c.percentage]),
-    ]);
-    countrySheet["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 14 }];
-    XLSX.utils.book_append_sheet(wb, countrySheet, "Países");
+    sheets.push({
+      name: "Países",
+      rows: [
+        ["País", "Quantidade", "Percentual (%)"],
+        ...data.countries.map((c) => [c.name, c.count, c.percentage]),
+      ],
+    });
   }
 
-  XLSX.writeFile(wb, `relatorio-${data.clientName}-${data.dateRange}d.xlsx`);
+  const blob = await buildXlsx(sheets);
+  downloadBlob(blob, `relatorio-${data.clientName}-${data.dateRange}d.xlsx`);
 };
+
