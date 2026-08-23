@@ -7,6 +7,8 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const pid = url.searchParams.get("pid") || "";
+  // consent=required ativa modo estrito: nada é coletado até window.kuboweb.consent(true)
+  const consentRequired = url.searchParams.get("consent") === "required";
 
   const supabaseProjectId = Deno.env.get("SUPABASE_URL")!
     .replace("https://", "")
@@ -24,6 +26,34 @@ Deno.serve(async (req) => {
   if(botRe.test(ua))return;
 
   var u="${trackUrl}";
+  var CONSENT_REQUIRED=${consentRequired ? "true" : "false"};
+  var CONSENT_KEY="_kwc";
+
+  // ── Consent API (LGPD) ──────────────────────────────────────────────
+  // getConsent(): "granted" | "denied" | null (sem decisão registrada)
+  function getConsent(){
+    try{return localStorage.getItem(CONSENT_KEY);}catch(e){return null;}
+  }
+  function setConsent(v){
+    try{
+      if(v===null)localStorage.removeItem(CONSENT_KEY);
+      else localStorage.setItem(CONSENT_KEY,v);
+    }catch(e){}
+  }
+  // Coleta é permitida se: modo estrito exige consentimento explícito "granted",
+  // OU modo padrão (não estrito) permite a menos que o usuário tenha negado.
+  function canCollect(){
+    var c=getConsent();
+    if(CONSENT_REQUIRED)return c==="granted";
+    return c!=="denied";
+  }
+  function purgeLocalData(){
+    try{
+      localStorage.removeItem("_kwq");
+      sessionStorage.removeItem("_kws");
+    }catch(e){}
+    q=[];
+  }
 
   // Session ID (per browser tab)
   var sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
@@ -84,6 +114,7 @@ Deno.serve(async (req) => {
   }
 
   function send(d){
+    if(!canCollect())return;
     d.event_id=d.event_id||newId();
     q.push(d);
     if(q.length>MAX_Q)q=q.slice(q.length-MAX_Q);
@@ -93,6 +124,7 @@ Deno.serve(async (req) => {
   }
 
   function t(p){
+    if(!canCollect())return;
     var utms=getUTMs();
     var ev={type:"pageview",pid:pid,path:p||location.pathname,ref:document.referrer,sid:sid};
     if(Object.keys(utms).length)ev.metadata=utms;
@@ -100,10 +132,11 @@ Deno.serve(async (req) => {
   }
 
   function ev(evType,label,meta){
+    if(!canCollect())return;
     send({type:"event",pid:pid,path:location.pathname,sid:sid,event_type:evType,event_label:label||"",metadata:meta||{}});
   }
 
-  t();
+  if(canCollect())t();
   var pushState=history.pushState;
   history.pushState=function(){pushState.apply(history,arguments);t();};
   window.addEventListener("popstate",function(){t();});
@@ -124,6 +157,22 @@ Deno.serve(async (req) => {
     }
   },true);
 
+  // ── API pública ──────────────────────────────────────────────────────
+  // window.kuboweb.consent(true)  → concede consentimento, inicia coleta
+  // window.kuboweb.consent(false) → revoga consentimento, apaga dados locais
+  // window.kuboweb.hasConsent()   → "granted" | "denied" | null
+  window.kuboweb=window.kuboweb||{};
+  window.kuboweb.consent=function(granted){
+    if(granted){
+      var wasBlocked=!canCollect();
+      setConsent("granted");
+      if(wasBlocked)t(); // dispara o pageview inicial agora que há consentimento
+    }else{
+      setConsent("denied");
+      purgeLocalData();
+    }
+  };
+  window.kuboweb.hasConsent=function(){return getConsent();};
   window._kw=function(evType,label,meta){ev(evType,label,meta);};
 })();`;
 
