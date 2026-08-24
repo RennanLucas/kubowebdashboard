@@ -14,7 +14,10 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const csvEscape = (val: unknown): string => {
+// Cópia local de propósito: importar de export-utils arrastaria fflate para o
+// chunk deste componente. A paridade com export-utils.csvEscape é garantida
+// por teste (annotations-export.test.ts).
+export const csvEscape = (val: unknown): string => {
   if (val === null || val === undefined) return "";
   const str = String(val);
   if (/[",\n;]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
@@ -27,12 +30,14 @@ export interface AnnotationsExportContext {
   annotations: Annotation[];
 }
 
-const fileBase = (ctx: AnnotationsExportContext) => {
+export const annotationsFileBase = (ctx: AnnotationsExportContext) => {
   const slug = (ctx.projectName ?? "projeto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   return `anotacoes-${slug}-${ctx.periodDays}d`;
 };
 
-export const exportAnnotationsCSV = (ctx: AnnotationsExportContext) => {
+// Builder puro: monta o CSV completo (incluindo o BOM UTF-8 que faz o Excel
+// reconhecer a codificação). Sem efeito colateral, para ser testável sem DOM.
+export const buildAnnotationsCSV = (ctx: AnnotationsExportContext): string => {
   const headerLines = [
     `Anotações - ${ctx.projectName ?? "Projeto"} - Últimos ${ctx.periodDays} dias`,
     `Total: ${ctx.annotations.length}`,
@@ -47,14 +52,26 @@ export const exportAnnotationsCSV = (ctx: AnnotationsExportContext) => {
       a.notes ?? "",
     ]),
   ];
-  const csv =
+  return (
     "\ufeff" +
     headerLines.join("\n") +
-    rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${fileBase(ctx)}.csv`);
+    rows.map((r) => r.map(csvEscape).join(",")).join("\n")
+  );
 };
 
-export const exportAnnotationsPDF = async (ctx: AnnotationsExportContext) => {
+export const exportAnnotationsCSV = (ctx: AnnotationsExportContext) => {
+  downloadBlob(
+    new Blob([buildAnnotationsCSV(ctx)], { type: "text/csv;charset=utf-8;" }),
+    `${annotationsFileBase(ctx)}.csv`,
+  );
+};
+
+// `now` é injetável para deixar o cabeçalho "Exportado em" determinístico nos
+// testes; em produção os callers usam o default.
+export const exportAnnotationsPDF = async (
+  ctx: AnnotationsExportContext,
+  now: Date = new Date(),
+) => {
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -76,7 +93,7 @@ export const exportAnnotationsPDF = async (ctx: AnnotationsExportContext) => {
     y,
   );
   y += 8;
-  doc.text(`Exportado em ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, marginX, y);
+  doc.text(`Exportado em ${format(now, "dd/MM/yyyy HH:mm", { locale: ptBR })}`, marginX, y);
   y += 18;
 
   doc.setDrawColor(220);
@@ -160,5 +177,5 @@ export const exportAnnotationsPDF = async (ctx: AnnotationsExportContext) => {
     doc.text(`Página ${i} de ${total}`, pageWidth - marginX, pageHeight - 24, { align: "right" });
   }
 
-  doc.save(`${fileBase(ctx)}.pdf`);
+  doc.save(`${annotationsFileBase(ctx)}.pdf`);
 };
