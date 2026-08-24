@@ -1,42 +1,12 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents } from "./_ingest.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-// Rate Limiting in-memory (Per Edge Isolate)
-// Atenção: Esta é uma camada de contenção por isolate e não garante limite global entre todas as instâncias Edge.
-const ipLimits = new Map<string, { count: number; expiresAt: number }>();
-const pidLimits = new Map<string, { count: number; expiresAt: number }>();
-
-function checkRateLimit(ip: string | null, pids: string[]): { allowed: boolean; reason?: string } {
-  const now = Date.now();
-  
-  if (ip) {
-    let ipRec = ipLimits.get(ip);
-    if (!ipRec || ipRec.expiresAt < now) {
-      ipRec = { count: 0, expiresAt: now + 60000 };
-    }
-    ipRec.count++;
-    ipLimits.set(ip, ipRec);
-    if (ipRec.count > 100) return { allowed: false, reason: "IP_RATE_LIMITED" };
-  }
-
-  for (const pid of pids) {
-    let pidRec = pidLimits.get(pid);
-    if (!pidRec || pidRec.expiresAt < now) {
-      pidRec = { count: 0, expiresAt: now + 60000 };
-    }
-    pidRec.count++;
-    pidLimits.set(pid, pidRec);
-    if (pidRec.count > 1000) return { allowed: false, reason: "PROJECT_RATE_LIMITED" };
-  }
-
-  return { allowed: true };
-}
 
 // Zod Schemas for Payload Validation
 const eventSchema = z.object({
@@ -117,21 +87,6 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
     // Fail closed: qualquer erro resulta em DENY de tracking.
     return { active: false, reason: 'ERROR' };
   }
-}
-
-function getIP(req: Request): string | null {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-         req.headers.get("x-real-ip") ||
-         req.headers.get("cf-connecting-ip") || null;
-}
-
-function getCountryFromHeaders(req: Request): string | null {
-  const candidates = ["cf-ipcountry", "x-country", "x-vercel-ip-country", "x-real-ip-country"];
-  for (const h of candidates) {
-    const val = req.headers.get(h);
-    if (val && val !== "XX" && val !== "T1") return val.toUpperCase();
-  }
-  return null;
 }
 
 async function getGeoFromIP(req: Request): Promise<{ country: string | null; city: string | null }> {
@@ -249,42 +204,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    const eventsToInsert = [];
-    const pageviewsToInsert = [];
-
-    for (const ev of parsedEvents) {
-      if (!activePids.has(ev.pid)) continue;
-
-      if (ev.type === "event" && ev.event_type) {
-        eventsToInsert.push({
-          project_id: ev.pid,
-          event_type: ev.event_type,
-          event_label: ev.event_label || null,
-          page_path: ev.path,
-          session_id: ev.sid || null,
-          metadata: ev.metadata || {},
-          ...(ev.event_id ? { event_id: ev.event_id } : {}),
-        });
-      } else if (ev.type === "pageview") {
-        // Extrair UTMs do campo metadata (enviado pelo tracker client)
-        const meta = (ev.metadata || {}) as Record<string, unknown>;
-        pageviewsToInsert.push({
-          project_id: ev.pid,
-          page_path: ev.path,
-          referrer: ev.ref || null,
-          user_agent: userAgent,
-          country: country,
-          city: city,
-          session_id: ev.sid || null,
-          ...(ev.event_id ? { event_id: ev.event_id } : {}),
-          ...(meta.utm_source ? { utm_source: String(meta.utm_source) } : {}),
-          ...(meta.utm_medium ? { utm_medium: String(meta.utm_medium) } : {}),
-          ...(meta.utm_campaign ? { utm_campaign: String(meta.utm_campaign) } : {}),
-          ...(meta.utm_term ? { utm_term: String(meta.utm_term) } : {}),
-          ...(meta.utm_content ? { utm_content: String(meta.utm_content) } : {}),
-        });
-      }
-    }
+    const { eventsToInsert, pageviewsToInsert } = buildRowsFromEvents(
+      parsedEvents,
+      activePids,
+      { userAgent, country, city },
+    );
 
     let inserted = 0;
 
