@@ -65,7 +65,11 @@ export function useSubscriptionStatus(enabled = true) {
       setStatus(data as SubscriptionStatus);
     } catch (e) {
       setError((e as Error).message || "Falha ao carregar assinatura");
-      setStatus(null);
+      // Deliberately keep the last known good status. This hook feeds the
+      // billing page, which renders a null subscription as "you have no
+      // active plan" next to a buy button — so nulling out on a transient
+      // Edge Function error invites a paying customer into a second charge.
+      // Callers must gate on `error`, not infer absence from a null status.
     } finally {
       setLoading(false);
     }
