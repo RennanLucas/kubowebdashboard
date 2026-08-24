@@ -16,13 +16,13 @@ export default defineConfig({
       // there would be misleading.
       include: ["src/lib/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
       exclude: ["src/test/**", "src/**/*.d.ts"],
-      // Baseline gate for the logic layer (currently ~34% lines / ~64% branch).
+      // Baseline gate for the logic layer (currently ~47% lines / ~70% branch).
       // Kept a few points below the achieved numbers to leave headroom.
       thresholds: {
-        lines: 30,
-        statements: 30,
-        functions: 45,
-        branches: 55,
+        lines: 44,
+        statements: 44,
+        functions: 62,
+        branches: 67,
       },
     },
   },
