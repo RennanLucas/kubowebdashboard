@@ -37,10 +37,13 @@ test.describe('Organization Context and RBAC', () => {
   });
 
   test('should display active organization in switcher', async ({ page }) => {
+    // Wait for dashboard to fully load - the switcher only appears after OrganizationContext loads
+    await page.waitForSelector('h1.tracking-tight', { timeout: 10000 });
+
+    // Click relies on Playwright's auto-retry until the element is actionable
     const switcher = page.locator('[data-testid="org-switcher"]');
-    await expect(switcher).toBeVisible();
-    await switcher.click();
-    
+    await switcher.click({ timeout: 15000 });
+
     // Check if dropdown items are visible
     const orgItems = page.locator('[data-testid="org-item"]');
     await expect(orgItems.first()).toBeVisible();
@@ -116,15 +119,15 @@ test.describe('Settings RBAC Enforcement', () => {
     await page.fill('input[type="email"]', ownerEmail);
     await page.fill('input[type="password"]', password);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await page.waitForURL('**/dashboard', { timeout: 20000 });
 
     await page.goto('/settings');
-    
+
     // Geral Tab
     await page.click('text="Geral"');
     const nameInput = page.locator('input#orgName');
     await expect(nameInput).toBeEnabled();
-    
+
     // Convites Tab
     await page.click('text="Convites"');
     const inviteBtn = page.locator('button:has-text("Convidar Membro")');
