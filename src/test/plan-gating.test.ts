@@ -1,62 +1,17 @@
 import { describe, it, expect } from "vitest";
-
-// Mirror the plan-gate logic from supabase/functions/_shared/plans.ts
-// so we can test it in vitest without Deno imports.
-
-type PlanTier = "free" | "pro";
-
-interface SubscriptionRow {
-  plan_id?: string | null;
-  status?: string | null;
-  current_period_end?: string | null;
-}
-
-const ACTIVE_STATUS = ["active", "trialing", "authorized", "approved"];
-
-function resolveTier(sub: SubscriptionRow | null | undefined): PlanTier {
-  if (!sub) return "free";
-  const status = (sub.status ?? "").toLowerCase();
-  const periodOk =
-    !sub.current_period_end ||
-    new Date(sub.current_period_end) > new Date();
-  const active =
-    (ACTIVE_STATUS.includes(status) && periodOk) ||
-    (["canceled", "cancelled"].includes(status) &&
-      !!sub.current_period_end &&
-      new Date(sub.current_period_end) > new Date());
-  if (!active) return "free";
-  return "pro";
-}
-
-interface TierLimits {
-  tier: PlanTier;
-  maxProjects: number;
-  maxHistoryDays: number;
-}
-
-const TIER_LIMITS: Record<PlanTier, TierLimits> = {
-  free: { tier: "free", maxProjects: 1, maxHistoryDays: 7 },
-  pro: { tier: "pro", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365 },
-};
-
-function enforceHistoryLimit(requestedDays: number, maxHistoryDays: number): number {
-  if (requestedDays > maxHistoryDays) {
-    throw new Error(
-      `HISTORY_LIMIT_EXCEEDED: O limite de historico do plano foi excedido. (${maxHistoryDays} dias maximo)`,
-    );
-  }
-  return requestedDays;
-}
-
-function enforcePremiumFeature(tier: PlanTier, featureName: string) {
-  if (tier !== "pro") {
-    throw new Error(
-      `PLAN_REQUIRED: A funcionalidade ${featureName} e exclusiva do plano Pro.`,
-    );
-  }
-}
-
-// ─── Tests ──────────────────────────────────────────────────────────────────
+// Import the REAL shared plan logic instead of hand-copied duplicates, so these
+// tests fail if the edge-function source drifts. `plans.ts` is pure TS; the
+// `SupabaseClient` import in `plan-gate.ts` is type-only, so both load under
+// Vitest without Deno.
+import {
+  resolveTier,
+  limitsForTier,
+  TIER_LIMITS,
+} from "../../supabase/functions/_shared/plans.ts";
+import {
+  enforceHistoryLimit,
+  enforcePremiumFeature,
+} from "../../supabase/functions/_shared/plan-gate.ts";
 
 describe("resolveTier", () => {
   it("returns 'free' when subscription is null", () => {
@@ -114,17 +69,31 @@ describe("resolveTier", () => {
     const future = new Date(Date.now() + 30 * 86400000).toISOString();
     expect(resolveTier({ status: "cancelled", current_period_end: future })).toBe("pro");
   });
+
+  it("is case-insensitive about the status string", () => {
+    expect(resolveTier({ status: "ACTIVE" })).toBe("pro");
+    expect(resolveTier({ status: "Trialing" })).toBe("pro");
+  });
 });
 
-describe("TIER_LIMITS", () => {
-  it("free tier: maxHistoryDays = 7, maxProjects = 1", () => {
+describe("TIER_LIMITS / limitsForTier", () => {
+  it("free tier: maxHistoryDays = 7, maxProjects = 1, no AI, no email alerts", () => {
     expect(TIER_LIMITS.free.maxHistoryDays).toBe(7);
     expect(TIER_LIMITS.free.maxProjects).toBe(1);
+    expect(TIER_LIMITS.free.aiMonthlyLimit).toBe(0);
+    expect(TIER_LIMITS.free.emailAlerts).toBe(false);
   });
 
-  it("pro tier: maxHistoryDays = 365, maxProjects = MAX_SAFE_INTEGER", () => {
+  it("pro tier: maxHistoryDays = 365, unlimited projects, AI + email alerts", () => {
     expect(TIER_LIMITS.pro.maxHistoryDays).toBe(365);
     expect(TIER_LIMITS.pro.maxProjects).toBe(Number.MAX_SAFE_INTEGER);
+    expect(TIER_LIMITS.pro.aiMonthlyLimit).toBeGreaterThan(0);
+    expect(TIER_LIMITS.pro.emailAlerts).toBe(true);
+  });
+
+  it("limitsForTier returns the matching TIER_LIMITS entry", () => {
+    expect(limitsForTier("free")).toBe(TIER_LIMITS.free);
+    expect(limitsForTier("pro")).toBe(TIER_LIMITS.pro);
   });
 });
 
