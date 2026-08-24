@@ -33,18 +33,21 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const csvEscape = (val: any): string => {
+export const csvEscape = (val: unknown): string => {
   if (val === null || val === undefined) return "";
   const str = String(val);
   if (/[",\n;]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
   return str;
 };
 
-const buildCSV = (rows: Array<Array<string | number>>): string => {
+export const buildCSV = (rows: Array<Array<string | number>>): string => {
   return rows.map((r) => r.map(csvEscape).join(",")).join("\n");
 };
 
-export const exportToCSV = (data: ExportData) => {
+// Pure builder: assembles the full CSV report (including the UTF-8 BOM that
+// makes Excel recognise the encoding). Kept side-effect free so it is testable
+// independently of the download.
+export const buildReportCSV = (data: ExportData): string => {
   const sections: string[] = [];
 
   sections.push(`Relatório - ${data.clientName} - Últimos ${data.dateRange} dias`);
@@ -108,7 +111,11 @@ export const exportToCSV = (data: ExportData) => {
   }
 
   // BOM para Excel reconhecer UTF-8
-  const csv = "\ufeff" + sections.join("\n");
+  return "﻿" + sections.join("\n");
+};
+
+export const exportToCSV = (data: ExportData) => {
+  const csv = buildReportCSV(data);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   downloadBlob(blob, `relatorio-${data.clientName}-${data.dateRange}d.csv`);
 };
@@ -117,10 +124,10 @@ export const exportToCSV = (data: ExportData) => {
 // Gera .xlsx sem dependências externas usando fflate (já presente via PWA).
 // Formato: OOXML SpreadsheetML simplificado — suportado por Excel 2007+, LibreOffice, Google Sheets.
 
-type CellValue = string | number | null | undefined;
-type Sheet = { name: string; rows: CellValue[][] };
+export type CellValue = string | number | null | undefined;
+export type Sheet = { name: string; rows: CellValue[][] };
 
-function escapeXml(v: CellValue): string {
+export function escapeXml(v: CellValue): string {
   if (v === null || v === undefined) return "";
   return String(v)
     .replace(/&/g, "&amp;")
@@ -130,7 +137,7 @@ function escapeXml(v: CellValue): string {
     .replace(/'/g, "&apos;");
 }
 
-function buildSheetXml(rows: CellValue[][]): string {
+export function buildSheetXml(rows: CellValue[][]): string {
   const cols = Math.max(0, ...rows.map((r) => r.length));
   const colDefs = Array.from({ length: cols }, (_, i) => `<col min="${i + 1}" max="${i + 1}" width="18" bestFit="1"/>`).join("");
   const sheetRows = rows
@@ -157,7 +164,7 @@ function buildSheetXml(rows: CellValue[][]): string {
 </worksheet>`;
 }
 
-async function buildXlsx(sheets: Sheet[]): Promise<Blob> {
+export async function zipXlsx(sheets: Sheet[]): Promise<Uint8Array> {
   const { strToU8, zipSync } = await import("fflate");
   const enc = (s: string) => strToU8(s);
 
@@ -196,10 +203,17 @@ ${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" Co
   });
 
   const zipped = zipSync(files, { level: 6 });
+  return zipped;
+}
+
+export async function buildXlsx(sheets: Sheet[]): Promise<Blob> {
+  const zipped = await zipXlsx(sheets);
   return new Blob([zipped], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }
 
-export const exportToExcel = async (data: ExportData) => {
+// Pure builder: maps report data to the ordered list of worksheets. Side-effect
+// free so it can be asserted without generating the zip or triggering a download.
+export const buildReportSheets = (data: ExportData): Sheet[] => {
   const sheets: Sheet[] = [];
 
   // Sheet 1: Métricas Diárias
@@ -260,7 +274,11 @@ export const exportToExcel = async (data: ExportData) => {
     });
   }
 
+  return sheets;
+};
+
+export const exportToExcel = async (data: ExportData) => {
+  const sheets = buildReportSheets(data);
   const blob = await buildXlsx(sheets);
   downloadBlob(blob, `relatorio-${data.clientName}-${data.dateRange}d.xlsx`);
 };
-

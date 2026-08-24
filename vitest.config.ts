@@ -11,8 +11,19 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}", "test/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.{ts,tsx}"],
+      // Scope coverage to the logic layer. UI (pages/components) is exercised
+      // via Playwright E2E, not jsdom unit tests, so measuring line coverage
+      // there would be misleading.
+      include: ["src/lib/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
       exclude: ["src/test/**", "src/**/*.d.ts"],
+      // Baseline gate for the logic layer (currently ~34% lines / ~64% branch).
+      // Kept a few points below the achieved numbers to leave headroom.
+      thresholds: {
+        lines: 30,
+        statements: 30,
+        functions: 45,
+        branches: 55,
+      },
     },
   },
   resolve: {
