@@ -2,6 +2,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import {
+  parseExternalReference,
+  isOutdated,
+  mapPaymentStatus,
+  mapPreapprovalStatus,
+  computePeriodEnd,
+  computeTrialEnd,
+} from "./_billing.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -114,22 +122,6 @@ async function mpFetch(path: string) {
   return res.json();
 }
 
-function parseExternalReference(extRef: string) {
-  if (extRef.startsWith("v2|")) {
-    const parts = extRef.split("|");
-    let orgId, planId, userId;
-    for (const p of parts) {
-      if (p.startsWith("org:")) orgId = p.replace("org:", "");
-      if (p.startsWith("plan:")) planId = p.replace("plan:", "");
-      if (p.startsWith("user:")) userId = p.replace("user:", "");
-    }
-    return { organizationId: orgId, planId, userId };
-  } else {
-    const [userId, planId] = extRef.split("|");
-    return { organizationId: undefined, planId, userId };
-  }
-}
-
 async function getExistingSub(externalId: string) {
   const { data } = await admin
     .from("subscriptions")
@@ -137,13 +129,6 @@ async function getExistingSub(externalId: string) {
     .eq("external_id", externalId)
     .single();
   return data;
-}
-
-function isOutdated(eventDateStr: string | undefined, existingTsStr: string | null | undefined): boolean {
-  if (!eventDateStr || !existingTsStr) return false;
-  const eventTime = new Date(eventDateStr).getTime();
-  const existingTime = new Date(existingTsStr).getTime();
-  return eventTime <= existingTime;
 }
 
 async function handlePayment(paymentId: string) {
@@ -170,9 +155,7 @@ async function handlePayment(paymentId: string) {
     return;
   }
 
-  const periodEnd = isApproved
-    ? new Date(Date.now() + (planId.includes("yearly") ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString()
-    : null;
+  const periodEnd = computePeriodEnd(planId, isApproved, Date.now());
 
   // Se a subscrição já existe e tem org_id mas o payload é V1 (orgId undef), mantém o org_id atual.
   const finalOrgId = organizationId || existingSub?.organization_id || null;
@@ -185,7 +168,7 @@ async function handlePayment(paymentId: string) {
       provider: "mercadopago",
       external_id: String(paymentId),
       plan_id: planId,
-      status: isApproved ? "active" : (status === "rejected" ? "unpaid" : status),
+      status: mapPaymentStatus(status),
       amount: payment.transaction_amount,
       payer_email: payment.payer?.email,
       current_period_start: payment.date_created || new Date().toISOString(),
@@ -213,14 +196,9 @@ async function handlePreapproval(preapprovalId: string) {
 
   const status = sub.status as string; // pending, authorized, paused, cancelled
   const nextPayment = sub.next_payment_date ? new Date(sub.next_payment_date).toISOString() : null;
-  const trialEnd = sub.auto_recurring?.free_trial && sub.date_created
-    ? new Date(new Date(sub.date_created).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    : null;
+  const trialEnd = computeTrialEnd(!!sub.auto_recurring?.free_trial, sub.date_created);
 
-  const mappedStatus =
-    status === "authorized" ? (trialEnd && new Date(trialEnd) > new Date() ? "trialing" : "active") :
-    status === "cancelled" ? "canceled" :
-    status === "paused" ? "paused" : status;
+  const mappedStatus = mapPreapprovalStatus(status, trialEnd, Date.now());
 
   const eventTs = sub.last_modified || sub.date_created || new Date().toISOString();
   const existingSub = await getExistingSub(preapprovalId);
