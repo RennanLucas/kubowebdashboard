@@ -30,5 +30,5 @@ export function isDashboardQueryForProject(
 ): boolean {
   const head = key[0];
   if (head === null || head === undefined) return false;
-  return String(head).startsWith(DASHBOARD_QUERY_PREFIX);
+  return String(head).startsWith(DASHBOARD_QUERY_PREFIX) && key.includes(projectId);
 }
