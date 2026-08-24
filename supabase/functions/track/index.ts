@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents } from "./_ingest.ts";
+import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents, isBot } from "./_ingest.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -168,12 +168,30 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: { code: "RATE_LIMITED", message: "Too many requests" } }, 429);
     }
 
+    const userAgent = req.headers.get("user-agent") || null;
+
+    // Server-side bot gate. tracker-script already refuses to send for known
+    // crawlers, but that check runs in the visitor's browser, so a direct POST
+    // to this endpoint sails past it and lands in the same tables a client is
+    // billed against. Answering 200 keeps well-behaved crawlers from retrying
+    // and does not advertise that we filter; the batch is dropped before the
+    // admin client exists, so bot traffic costs no geo lookup, no reads and no
+    // writes.
+    if (isBot(userAgent)) {
+      console.log(JSON.stringify({
+        event: "tracking_bot_filtered",
+        ua: userAgent,
+        pids,
+        dropped: parsedEvents.length,
+      }));
+      return jsonResponse({ ok: true, processed: 0, filtered: "bot" });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const userAgent = req.headers.get("user-agent") || null;
     let country = getCountryFromHeaders(req);
     let city: string | null = null;
     if (!country) {

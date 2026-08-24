@@ -60,6 +60,42 @@ export function checkRateLimit(
 }
 
 // ---------------------------------------------------------------------------
+// Bot / crawler detection
+// ---------------------------------------------------------------------------
+//
+// tracker-script also refuses to send when it recognizes a bot, but that check
+// runs in the visitor's browser: anything POSTing straight at /track skips it
+// entirely, and crawlers that never execute JS were never subject to it. So the
+// server has to decide too, and this is the copy that actually protects the
+// numbers. tracker-script interpolates these patterns into the emitted script
+// so the two sides cannot drift.
+//
+// The tuning is deliberately two-sided. Over-filtering deletes real visitors,
+// which is just as wrong as counting robots: both show up as a number the client
+// is billed against and reads in a report. So generic tokens are anchored, and
+// vendor names that also ship a real browser (yandex, baidu, sogou) are left out
+// entirely — their crawlers all end in "bot" or "spider" and are caught by the
+// generic tokens anyway.
+export const BOT_UA_PATTERN =
+  /(?:bot\b|crawl|spider|scrap|slurp|headless|prerender|phantom|puppeteer|playwright|selenium|lighthouse|pagespeed|gtmetrix|pingdom|ahrefs|semrush|facebookexternalhit|bingpreview|embedly|whatsapp|feedfetcher|mediapartners|curl\/|wget|python-requests|axios\/|go-http-client|java\/|okhttp|libwww|apache-httpclient|node-fetch|scrapy)/i;
+
+// `bot\b` matches "CUBOT NOTE 20" — a real Android handset, not a crawler.
+// Checked first, so a device brand can never be filtered as a robot.
+export const BOT_UA_ALLOWLIST = /cubot/i;
+
+/**
+ * A missing or empty user-agent is NOT treated as a bot. It is suspicious, but
+ * privacy tooling strips the header on real people, and the fail-open direction
+ * here (count a doubtful hit) loses less than deleting a paying client's real
+ * visitor. Rate limiting is what handles volume abuse.
+ */
+export function isBot(userAgent: string | null | undefined): boolean {
+  if (!userAgent) return false;
+  if (BOT_UA_ALLOWLIST.test(userAgent)) return false;
+  return BOT_UA_PATTERN.test(userAgent);
+}
+
+// ---------------------------------------------------------------------------
 // Request header parsing
 // ---------------------------------------------------------------------------
 

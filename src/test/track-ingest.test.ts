@@ -8,6 +8,9 @@ import {
   getIP,
   getCountryFromHeaders,
   buildRowsFromEvents,
+  isBot,
+  BOT_UA_PATTERN,
+  BOT_UA_ALLOWLIST,
   IP_MAX_PER_WINDOW,
   PROJECT_MAX_PER_WINDOW,
   RATE_LIMIT_WINDOW_MS,
@@ -266,5 +269,139 @@ describe("buildRowsFromEvents", () => {
     );
     expect(pageviewsToInsert.map((r) => r.page_path)).toEqual(["/a", "/b"]);
     expect(eventsToInsert.map((r) => r.event_type)).toEqual(["signup"]);
+  });
+});
+
+/**
+ * Bot filtering is a two-sided risk and both sides are graded here. A crawler
+ * that gets counted inflates the visitor number a client reads in a report and
+ * is billed against; a real browser that gets filtered silently deletes that
+ * same client's traffic. So every assertion below names which side it protects.
+ */
+describe("isBot — filters non-human agents", () => {
+  const crawlers = [
+    ["Googlebot", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"],
+    ["Bingbot", "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"],
+    ["YandexBot", "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"],
+    ["Baiduspider", "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"],
+    ["DuckDuckBot", "DuckDuckBot/1.1; (+http://duckduckgo.com/duckduckbot.html)"],
+    ["AhrefsBot", "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)"],
+    ["AhrefsSiteAudit (no 'bot' in the name)", "Mozilla/5.0 (compatible; AhrefsSiteAudit/6.1; +http://ahrefs.com/robot/)"],
+    ["SemrushBot", "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)"],
+    ["Applebot", "Mozilla/5.0 (Device; like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15 (Applebot/0.1)"],
+    ["PetalBot", "Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)"],
+    ["Bytespider", "Mozilla/5.0 (Linux; Android 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Bytespider;)"],
+    ["MJ12bot", "Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://mj12bot.com/)"],
+    ["Scrapy", "Scrapy/2.11.0 (+https://scrapy.org)"],
+    ["generic crawler", "SomeNewCrawler/1.0 (+https://example.test)"],
+  ] as const;
+
+  for (const [name, ua] of crawlers) {
+    it(`filters ${name}`, () => {
+      // Counted, this would show up as a visitor the client never had.
+      expect(isBot(ua)).toBe(true);
+    });
+  }
+
+  const automation = [
+    ["HeadlessChrome", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36"],
+    ["Lighthouse", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Chrome-Lighthouse"],
+    ["PhantomJS", "Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1"],
+    ["Pingdom", "Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)"],
+    ["curl", "curl/8.4.0"],
+    ["wget", "Wget/1.21.4"],
+    ["python-requests", "python-requests/2.31.0"],
+    ["axios", "axios/1.6.7"],
+    ["Go http client", "Go-http-client/2.0"],
+    ["Java", "Java/17.0.9"],
+    ["OkHttp", "okhttp/4.12.0"],
+    ["node-fetch", "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"],
+  ] as const;
+
+  for (const [name, ua] of automation) {
+    it(`filters ${name}`, () => {
+      // These reach the endpoint only by direct POST — the browser-side check in
+      // tracker-script never saw them, which is why the server needs this.
+      expect(isBot(ua)).toBe(true);
+    });
+  }
+
+  const previewFetchers = [
+    ["facebookexternalhit", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"],
+    ["BingPreview (no 'bot' in the name)", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) BingPreview/1.0b"],
+    ["WhatsApp link preview", "WhatsApp/2.23.20.0 A"],
+    ["Slackbot link expander", "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)"],
+    ["Embedly", "Mozilla/5.0 (compatible; Embedly/0.2; +http://support.embed.ly/)"],
+  ] as const;
+
+  for (const [name, ua] of previewFetchers) {
+    it(`filters ${name}`, () => {
+      // A link unfurl is one machine fetch per share, not a person visiting.
+      expect(isBot(ua)).toBe(true);
+    });
+  }
+});
+
+describe("isBot — never filters real visitors", () => {
+  const browsers = [
+    ["Chrome on Windows", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"],
+    ["Safari on macOS", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15"],
+    ["Safari on iPhone", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Mobile/15E148 Safari/604.1"],
+    ["Chrome on Android", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36"],
+    ["Firefox on Linux", "Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0"],
+    ["Edge on Windows", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0"],
+    ["Samsung Internet", "Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36"],
+    ["Opera", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 OPR/107.0.0.0"],
+    ["Android WebView (in-app browser)", "Mozilla/5.0 (Linux; Android 13; SM-A536E; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/121.0.0.0 Mobile Safari/537.36"],
+    ["Instagram in-app browser", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 320.0.0.0.0"],
+  ] as const;
+
+  for (const [name, ua] of browsers) {
+    it(`counts ${name}`, () => {
+      // A false positive here silently deletes a paying client's real traffic.
+      expect(isBot(ua)).toBe(false);
+    });
+  }
+
+  it("counts Yandex Browser, a real browser from a search vendor", () => {
+    // Matching the vendor name instead of its crawler would drop real people.
+    // YandexBot is caught by the generic `bot` token, which is why the bare
+    // vendor name is deliberately absent from the pattern.
+    expect(isBot("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 YaBrowser/23.11.0.0 Safari/537.36")).toBe(false);
+  });
+
+  it("counts the Baidu mobile browser app", () => {
+    expect(isBot("Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 baiduboxapp/13.30.0.10")).toBe(false);
+  });
+
+  it("counts a CUBOT handset even though its brand name ends in 'bot'", () => {
+    // The allowlist exists for exactly this: a device brand is not a robot.
+    expect(isBot("Mozilla/5.0 (Linux; Android 11; CUBOT NOTE 20) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36")).toBe(false);
+    expect(BOT_UA_ALLOWLIST.test("CUBOT NOTE 20")).toBe(true);
+  });
+
+  it("counts a hit with no user-agent at all", () => {
+    // Fail open: privacy tooling strips this header on real people, and volume
+    // abuse is rate limiting's job, not the bot gate's.
+    expect(isBot(null)).toBe(false);
+    expect(isBot(undefined)).toBe(false);
+    expect(isBot("")).toBe(false);
+  });
+});
+
+describe("isBot — pattern is shared with the browser script", () => {
+  it("exposes patterns that survive being rebuilt from source", () => {
+    // tracker-script serializes `.source` into the emitted JS via new RegExp,
+    // so anything that breaks that round-trip breaks client-side filtering.
+    const rebuilt = new RegExp(BOT_UA_PATTERN.source, "i");
+    expect(rebuilt.test("Googlebot/2.1")).toBe(true);
+    expect(rebuilt.test("Mozilla/5.0 (Windows NT 10.0) Chrome/122.0.0.0 Safari/537.36")).toBe(false);
+    expect(new RegExp(BOT_UA_ALLOWLIST.source, "i").test("CUBOT_X30")).toBe(true);
+  });
+
+  it("is case-insensitive, since crawlers do not agree on casing", () => {
+    expect(isBot("GOOGLEBOT/2.1")).toBe(true);
+    expect(isBot("googlebot/2.1")).toBe(true);
+    expect(isBot("CURL/8.4.0")).toBe(true);
   });
 });

@@ -1,3 +1,5 @@
+import { BOT_UA_ALLOWLIST, BOT_UA_PATTERN } from "../track/_ingest.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/javascript",
@@ -18,10 +20,13 @@ Deno.serve(async (req) => {
   var pid="${pid}";
   if(!pid)return;
 
-  // Bot / crawler detection — skip tracking for non-human agents
+  // Bot / crawler detection — skip tracking for non-human agents.
+  // Patterns come from track/_ingest.ts (single source of truth, shared with the
+  // server-side gate) so the two checks can never disagree about who is a robot.
   var ua=navigator.userAgent||"";
-  var botRe=/bot|crawler|spider|crawling|headless|prerender|phantom|slurp|googlebot|bingbot|yandex|baidu|duckduckbot|facebookexternalhit|linkedinbot|twitterbot/i;
-  if(botRe.test(ua))return;
+  var botRe=new RegExp(${JSON.stringify(BOT_UA_PATTERN.source)},"i");
+  var botOk=new RegExp(${JSON.stringify(BOT_UA_ALLOWLIST.source)},"i");
+  if(!botOk.test(ua)&&botRe.test(ua))return;
 
   var u="${trackUrl}";
 
