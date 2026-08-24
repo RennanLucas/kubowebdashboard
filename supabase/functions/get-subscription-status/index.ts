@@ -6,6 +6,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 import { getPlan, listPlans } from "../_shared/plans.ts";
+import {
+  computeIsActive,
+  computeIsTrialing,
+  computeNextChargeAt,
+} from "./_subscription.ts";
 
 interface SubscriptionRow {
   id: string;
@@ -23,31 +28,11 @@ interface SubscriptionRow {
   created_at: string | null;
 }
 
-const ACTIVE_STATUSES = ["active", "trialing", "authorized", "approved"];
-const CANCELED_STATUSES = ["canceled", "cancelled"];
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-function computeIsActive(sub: SubscriptionRow): boolean {
-  const periodOk = !sub.current_period_end ||
-    new Date(sub.current_period_end) > new Date();
-  if (ACTIVE_STATUSES.includes(sub.status) && periodOk) return true;
-  if (
-    CANCELED_STATUSES.includes(sub.status) && sub.current_period_end &&
-    new Date(sub.current_period_end) > new Date()
-  ) return true;
-  return false;
-}
-
-function computeIsTrialing(sub: SubscriptionRow): boolean {
-  if (sub.status === "trialing") return true;
-  if (sub.trial_end && new Date(sub.trial_end) > new Date()) return true;
-  return false;
 }
 
 Deno.serve(async (req) => {
@@ -117,14 +102,13 @@ Deno.serve(async (req) => {
 
     const sub = data as SubscriptionRow;
     const planDef = sub.plan_id ? getPlan(sub.plan_id) : null;
-    const isActive = computeIsActive(sub);
-    const isTrialing = computeIsTrialing(sub);
+    const now = Date.now();
+    const isActive = computeIsActive(sub, now);
+    const isTrialing = computeIsTrialing(sub, now);
     const willCancel = !!sub.cancel_at_period_end;
 
     const accessUntil = sub.current_period_end ?? null;
-    const nextChargeAt = willCancel
-      ? null
-      : (isTrialing ? (sub.trial_end ?? sub.current_period_end) : sub.current_period_end);
+    const nextChargeAt = computeNextChargeAt(sub, isTrialing, willCancel);
 
     return json({
       hasSubscription: true,
