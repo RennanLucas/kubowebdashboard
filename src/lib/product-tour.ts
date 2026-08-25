@@ -18,7 +18,6 @@ const baseSteps: DriveStep[] = [
       title: "Bem-vindo ao KUBOWEB Analytics",
       description:
         "Esta é uma apresentação guiada da plataforma. Em poucos minutos você conhecerá <b>cada módulo do menu</b>, o objetivo de uso e os principais recursos disponíveis.<br/><br/>É possível encerrar o tour a qualquer momento e retomá-lo posteriormente em <b>Ajuda → Refazer tour</b>.",
-      side: "over",
       align: "center",
     },
   },
@@ -100,7 +99,6 @@ const baseSteps: DriveStep[] = [
       title: "Busca rápida — Atalho ⌘K / Ctrl+K",
       description:
         "<b>Objetivo:</b> agilizar a navegação entre módulos e ações sem uso do mouse.<br/><br/><b>Como utilizar:</b><br/>• Pressione <kbd>⌘</kbd>+<kbd>K</kbd> (macOS) ou <kbd>Ctrl</kbd>+<kbd>K</kbd> (Windows / Linux)<br/>• Digite o nome da página ou ação desejada<br/>• Selecione com as setas e confirme com <kbd>Enter</kbd><br/><br/>Disponível em qualquer tela da plataforma.",
-      side: "over",
       align: "center",
     },
   },
@@ -109,7 +107,6 @@ const baseSteps: DriveStep[] = [
       title: "Instalar como aplicativo (PWA)",
       description:
         "<b>Objetivo:</b> utilizar a plataforma como um aplicativo nativo no dispositivo.<br/><br/><b>Benefícios:</b><br/>• <b>Ícone</b> na tela inicial do celular ou área de trabalho<br/>• Execução em <b>tela cheia</b>, sem barras do navegador<br/>• <b>Funcionamento offline</b> com dados em cache<br/>• <b>Notificações automáticas</b> de novas versões<br/>• <b>Carregamento mais rápido</b> em acessos recorrentes<br/><br/><b>Onde encontrar:</b> menu <b>Conta → Instalar app</b>, com instruções específicas para iPhone, Android e desktop.",
-      side: "over",
       align: "center",
     },
   },
@@ -118,7 +115,6 @@ const baseSteps: DriveStep[] = [
       title: "Ajuda — Documentação completa",
       description:
         "<b>Objetivo:</b> centralizar a documentação de uso da plataforma.<br/><br/><b>Conteúdo disponível:</b><br/>• <b>Glossário</b> com definição e fórmula de cada métrica (KPIs, engajamento, funil, geolocalização)<br/>• <b>Descrição detalhada</b> de cada funcionalidade do menu<br/>• <b>Botão para refazer este tour</b> a qualquer momento<br/><br/><b>Acesso:</b> menu <b>Conta → Ajuda</b> ou botão flutuante de ajuda no canto inferior direito da tela.",
-      side: "over",
       align: "center",
     },
   },
@@ -127,7 +123,6 @@ const baseSteps: DriveStep[] = [
       title: "Próximos passos recomendados",
       description:
         "Para começar a coletar dados imediatamente:<br/><br/>1. Acesse <b>Configurações</b> e crie seu primeiro projeto<br/>2. Copie o <b>script de tracking</b> e instale em todas as páginas do site<br/>3. Defina o <b>valor por lead</b> para habilitar o cálculo de ROI<br/>4. Configure suas <b>metas mensais</b> para acompanhamento de progresso<br/>5. Aguarde alguns minutos e retorne ao <b>Dashboard</b> para visualizar os primeiros dados<br/><br/>Em caso de dúvidas, a documentação completa está disponível em <b>Ajuda</b>.",
-      side: "over",
       align: "center",
     },
   },

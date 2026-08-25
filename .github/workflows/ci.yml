@@ -30,8 +30,8 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Unit Tests (Vitest)
-        run: npm run test
+      - name: Unit Tests (Vitest) + Coverage Gate
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build

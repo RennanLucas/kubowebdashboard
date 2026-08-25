@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, Link } from "react-router-dom";
-import AdminUsers from "../Admin";
+import AdminUsers from "./AdminUsers";
 import { AdminFeedback } from "./AdminFeedback";
 import { AdminRoadmap } from "./AdminRoadmap";
 import { useAuth } from "@/contexts/AuthContext";
