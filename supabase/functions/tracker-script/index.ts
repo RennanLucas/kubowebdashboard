@@ -6,9 +6,19 @@ const corsHeaders = {
   "Cache-Control": "public, max-age=3600",
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  const pid = url.searchParams.get("pid") || "";
+  const pidRaw = url.searchParams.get("pid") || "";
+  const pid = UUID_RE.test(pidRaw) ? pidRaw : "";
+
+  if (!pid) {
+    return new Response("// invalid or missing pid", {
+      status: 400,
+      headers: corsHeaders,
+    });
+  }
 
   const supabaseProjectId = Deno.env.get("SUPABASE_URL")!
     .replace("https://", "")

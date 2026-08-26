@@ -58,7 +58,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const baseReturn = returnUrl || `${new URL(req.url).origin}/checkout/return`;
+    const ALLOWED_RETURN_ORIGINS = [
+      new URL(req.url).origin,
+      Deno.env.get("PUBLIC_SITE_URL"),
+    ].filter(Boolean) as string[];
+
+    let baseReturn = `${new URL(req.url).origin}/checkout/return`;
+    if (returnUrl) {
+      try {
+        const parsed = new URL(returnUrl);
+        if (ALLOWED_RETURN_ORIGINS.some((o) => parsed.origin === o)) {
+          baseReturn = returnUrl;
+        }
+      } catch { /* invalid URL — use default */ }
+    }
 
     // Assinatura recorrente (cartão) com 7 dias grátis
     const payload = {

@@ -44,11 +44,15 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
     }
 
+    // Enforce plan-based history limit
+    const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
+    const enforcedDays = enforceHistoryLimit(days, maxHistoryDays);
+
     await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
 
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setDate(startDate.getDate() - (enforcedDays - 1));
     const startStr = startDate.toISOString().split("T")[0];
     const endStr = endDate.toISOString().split("T")[0];
 
