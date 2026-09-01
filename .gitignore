@@ -38,3 +38,8 @@ bun.lockb
 
 # Coverage reports
 coverage/
+
+# Test artifacts
+bfg.jar
+test-xss-tracker.html
+.env.e2e
