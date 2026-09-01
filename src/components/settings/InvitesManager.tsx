@@ -51,18 +51,27 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
 
     setSaving(true);
     try {
-      // Create the invite in DB - assuming the backend handles sending the email
-      // using Edge Functions or triggers (as specified in "Não manipular diretamente o token hash no frontend.")
-      const { error } = await supabase
-        .from("organization_invites")
-        .insert({
-          organization_id: organizationId,
-          email: email.trim().toLowerCase(),
-          role: role
-        });
+      // Call Edge Function to create invite with secure token generation
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Não autenticado");
 
-      if (error) throw error;
-      
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-invite`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          organizationId,
+          email: email.trim().toLowerCase(),
+          role
+        })
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Erro ao criar convite");
+
       toast.success(`Convite enviado para ${email}`);
       setEmail("");
       setRole("viewer");

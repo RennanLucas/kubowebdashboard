@@ -2,6 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
   parseExternalReference,
   isOutdated,
@@ -86,6 +87,18 @@ Deno.serve(async (req) => {
 
     // Rejeita qualquer notificação sem assinatura válida do Mercado Pago
     if (!(await verifyMpSignature(req, String(dataId)))) {
+      console.error("Assinatura MP inválida");
+      return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+    }
+
+    // Rate limiting por IP: 100 req/min (proteção contra replay attack ou webhook spam)
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+               req.headers.get("x-real-ip") ||
+               "unknown";
+    const rateCheck = checkRateLimit(ip, 100, "ip");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
       console.warn("MP webhook: assinatura inválida");
       return new Response(JSON.stringify({ error: "invalid signature" }), {
         status: 401,

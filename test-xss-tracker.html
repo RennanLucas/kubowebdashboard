@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>XSS Tracker Test</title>
+</head>
+<body>
+  <h1>XSS Tracker Script Test</h1>
+  <div id="results"></div>
+
+  <script>
+    const results = document.getElementById('results');
+
+    // Test cases
+    const tests = [
+      { name: 'UUID válido', pid: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', expected: 'PASS' },
+      { name: 'UUID inválido - curto', pid: '123', expected: 'FAIL' },
+      { name: 'XSS - script tag', pid: '<script>alert("xss")</script>', expected: 'FAIL' },
+      { name: 'XSS - img onerror', pid: '<img src=x onerror=alert(1)>', expected: 'FAIL' },
+      { name: 'XSS - javascript:', pid: 'javascript:alert(1)', expected: 'FAIL' },
+      { name: 'XSS - encoded', pid: '%3Cscript%3Ealert%281%29%3C%2Fscript%3E', expected: 'FAIL' },
+      { name: 'SQL injection attempt', pid: "' OR '1'='1", expected: 'FAIL' },
+      { name: 'Path traversal', pid: '../../../etc/passwd', expected: 'FAIL' },
+      { name: 'Null bytes', pid: 'test\x00malicious', expected: 'FAIL' },
+      { name: 'Unicode normalization', pid: 'Á', expected: 'FAIL' },
+      { name: 'UUID uppercase', pid: 'A1B2C3D4-E5F6-7890-1234-567890ABCDEF', expected: 'PASS' },
+      { name: 'UUID mixed case', pid: 'a1B2c3D4-e5F6-7890-1234-567890AbCdEf', expected: 'PASS' },
+      { name: 'Empty string', pid: '', expected: 'FAIL' },
+      { name: 'Whitespace', pid: '   ', expected: 'FAIL' },
+      { name: 'UUID with spaces', pid: ' a1b2c3d4-e5f6-7890-1234-567890abcdef ', expected: 'FAIL' },
+    ];
+
+    async function testEndpoint(pid) {
+      const url = `http://localhost:54321/functions/v1/tracker-script?pid=${encodeURIComponent(pid)}`;
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        return {
+          status: response.status,
+          body: text,
+          containsPayload: pid.length > 0 && text.includes(pid)
+        };
+      } catch (error) {
+        return { error: error.message };
+      }
+    }
+
+    async function runTests() {
+      results.innerHTML = '<h2>Running tests...</h2>';
+      let passed = 0;
+      let failed = 0;
+      let html = '<table border="1" cellpadding="8"><tr><th>Test</th><th>PID</th><th>Status</th><th>Result</th></tr>';
+
+      for (const test of tests) {
+        const result = await testEndpoint(test.pid);
+        let status = '❌ FAIL';
+
+        if (test.expected === 'PASS') {
+          // UUID válido deve retornar 200 e conter o script
+          if (result.status === 200 && result.body.includes('var pid=')) {
+            status = '✅ PASS';
+            passed++;
+          } else {
+            failed++;
+          }
+        } else {
+          // UUID inválido deve retornar 400 e NÃO conter payload malicioso
+          if (result.status === 400 && !result.containsPayload) {
+            status = '✅ PASS';
+            passed++;
+          } else {
+            failed++;
+          }
+        }
+
+        html += `<tr>
+          <td>${test.name}</td>
+          <td><code>${test.pid.substring(0, 50)}</code></td>
+          <td>${result.status || 'ERROR'}</td>
+          <td>${status}</td>
+        </tr>`;
+      }
+
+      html += '</table>';
+      html += `<h3>Summary: ${passed} passed, ${failed} failed</h3>`;
+      results.innerHTML = html;
+    }
+
+    runTests();
+  </script>
+</body>
+</html>

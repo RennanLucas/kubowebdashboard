@@ -27,13 +27,77 @@ interface FetchOptions {
   device?: string;
 }
 
-const fetchEndpoint = async (
+interface DailyMetric {
+  date: string;
+  visitors: number;
+  views: number;
+  leads: number;
+  whatsapp_clicks: number;
+  form_submissions: number;
+  button_clicks: number;
+  conversion_rate: number;
+  estimated_value: number;
+}
+
+interface DashboardOverview {
+  metrics: DailyMetric[];
+  summary: {
+    totalVisitors: number;
+    totalViews: number;
+    totalLeads: number;
+    totalSessions: number;
+  };
+  comparison: {
+    visitors: number;
+    views: number;
+    leads: number;
+    conversionRate: number;
+    estimatedValue: number;
+    prevVisitors: number;
+    prevViews: number;
+    prevLeads: number;
+    prevConversionRate: number;
+    prevEstimatedValue: number;
+  };
+  conversions: {
+    whatsapp_clicks?: number;
+    form_submissions?: number;
+    button_clicks?: number;
+    changes: { whatsapp?: number; forms?: number; buttons?: number };
+    recent?: any[];
+  };
+  engagement: {
+    bounceRate: number;
+    avgSessionDuration: number;
+    totalSessions: number;
+    pagesPerSession: number;
+  };
+  activeVisitors: number;
+  client: {
+    id?: string;
+    company_name: string;
+    domain: string;
+    lead_value: number;
+    project?: {
+      id: string;
+      name: string;
+      url: string;
+    };
+    projects?: Array<{
+      id: string;
+      name: string;
+      url: string;
+    }>;
+  };
+}
+
+const fetchEndpoint = async <T = unknown>(
   endpoint: string,
   days: number,
   projectId: string | undefined,
   accessToken: string,
   opts: FetchOptions = {},
-) => {
+): Promise<T> => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   let url = `${supabaseUrl}/functions/v1/${endpoint}?days=${days}`;
   if (projectId) url += `&project_id=${projectId}`;
@@ -93,7 +157,7 @@ export const useOverview = (days: number, projectId?: string, filters?: FetchOpt
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint("get-dashboard-overview", cappedDays, projectId, token, filters);
+      return fetchEndpoint<DashboardOverview>("get-dashboard-overview", cappedDays, projectId, token, filters);
     },
   });
 };
@@ -110,7 +174,7 @@ export const useTopPages = (days: number, projectId?: string, filters?: FetchOpt
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint("get-dashboard-pages", cappedDays, projectId, token, filters);
+      return fetchEndpoint<{ topPages: any }>("get-dashboard-pages", cappedDays, projectId, token, filters);
     },
   });
 };
@@ -127,7 +191,7 @@ export const useTrafficSources = (days: number, projectId?: string, filters?: Fe
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint("get-dashboard-sources", cappedDays, projectId, token, { device: filters?.device });
+      return fetchEndpoint<{ trafficSources: any }>("get-dashboard-sources", cappedDays, projectId, token, { device: filters?.device });
     },
   });
 };
@@ -144,7 +208,7 @@ export const useDevices = (days: number, projectId?: string, filters?: FetchOpti
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint("get-dashboard-devices", cappedDays, projectId, token, { source: filters?.source });
+      return fetchEndpoint<{ devices: any; browsers: any; operatingSystems: any }>("get-dashboard-devices", cappedDays, projectId, token, { source: filters?.source });
     },
   });
 };
@@ -161,7 +225,7 @@ export const useGeo = (days: number, projectId?: string, filters?: FetchOptions)
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint("get-dashboard-geo", cappedDays, projectId, token, filters);
+      return fetchEndpoint<{ countries: any; cities: any }>("get-dashboard-geo", cappedDays, projectId, token, filters);
     },
   });
 };

@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getPlan, type PlanId } from "../_shared/plans.ts";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -19,10 +20,17 @@ Deno.serve(async (req) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting: 5 req/min por usuário (evita abuse de checkout)
+    const rateCheck = checkRateLimit(token, 5, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
     const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
     if (claimsErr || !claims?.claims) return json({ error: "Unauthorized" }, 401);
 

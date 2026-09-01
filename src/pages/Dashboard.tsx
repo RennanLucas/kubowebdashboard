@@ -118,7 +118,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
   const chartData = useMemo(() => {
     if (!metrics || metrics.length === 0) return [];
-    const metricsMap = new Map(metrics.map((m) => [m.date, m]));
+    const metricsMap = new Map(metrics.map((m) => [m.date, m] as const));
     const result: Array<{ date: string; visitors: number; views: number; leads: number; rawDate: string }> = [];
     const today = new Date();
     for (let i = dateRange - 1; i >= 0; i--) {
@@ -143,12 +143,12 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const leadsSeries = chartData.map((d) => d.leads);
   const valueSeries = useMemo(() => {
     if (!metrics) return [];
-    const map = new Map(metrics.map((m) => [m.date, Number(m.estimated_value)]));
+    const map = new Map(metrics.map((m) => [m.date, Number(m.estimated_value)] as const));
     return chartData.map((d) => map.get(d.rawDate) ?? 0);
   }, [metrics, chartData]);
   const conversionSeries = useMemo(() => {
     if (!metrics) return [];
-    const map = new Map(metrics.map((m) => [m.date, m]));
+    const map = new Map(metrics.map((m) => [m.date, m] as const));
     return chartData.map((d) => {
       const m = map.get(d.rawDate);
       if (!m || m.visitors === 0) return 0;
@@ -304,7 +304,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const currentProject = currentProjectFromAll
     ?? clientData?.projects?.find(p => p.id === effectiveProjectId);
   const headerProjects = (allProjects && allProjects.length > 0)
-    ? allProjects.map(p => ({ id: p.id, name: p.name, url: p.url, clientName: p.clientName }))
+    ? allProjects.map(p => ({ id: p.id, name: p.name, url: p.url, clientName: p.organizationName }))
     : clientData?.projects;
 
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;

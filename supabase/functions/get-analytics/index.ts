@@ -1,5 +1,6 @@
 ﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { resolveTier, limitsForTier } from "../_shared/plans.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 import {
   parseDevice,
   classifySource,
@@ -7,11 +8,6 @@ import {
   deviceMatchesFilter,
   shouldUseGA4,
 } from "./_filters.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // --- Google Auth helpers ---
 

@@ -1,6 +1,7 @@
 // Creates organization invite with secure token generation
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -14,10 +15,17 @@ Deno.serve(async (req) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting: 10 req/min por usuário (evita spam de convites)
+    const rateCheck = checkRateLimit(token, 10, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !user) return json({ error: "Unauthorized" }, 401);
 

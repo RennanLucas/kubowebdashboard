@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -12,6 +13,13 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const token = authHeader.replace("Bearer ", "").trim();
+
+    // Rate limiting: 20 req/min por usuário
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
+
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
     if (!user) return new Response("Token inválido", { status: 401, headers: corsHeaders });
 

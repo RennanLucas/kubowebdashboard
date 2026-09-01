@@ -31,7 +31,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      annotation_category: "campaign" | "content" | "feature" | "incident" | "other"
+      app_role: "admin" | "user"
+      feedback_priority: "low" | "normal" | "high" | "critical"
+      feedback_status: "received" | "analyzing" | "planned" | "in_development" | "implemented" | "archived"
+      feedback_type: "like" | "improvement" | "bug" | "suggestion" | "feature" | "quick_feedback" | "other"
+      roadmap_status: "backlog" | "planned" | "in_development" | "testing" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -607,6 +612,82 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          admin_response: string | null
+          category: string | null
+          created_at: string
+          customer_priority: Database["public"]["Enums"]["feedback_priority"]
+          description: string | null
+          id: string
+          internal_priority: Database["public"]["Enums"]["feedback_priority"]
+          organization_id: string
+          origin: string | null
+          project_id: string | null
+          status: Database["public"]["Enums"]["feedback_status"]
+          title: string | null
+          type: Database["public"]["Enums"]["feedback_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          category?: string | null
+          created_at?: string
+          customer_priority?: Database["public"]["Enums"]["feedback_priority"]
+          description?: string | null
+          id?: string
+          internal_priority?: Database["public"]["Enums"]["feedback_priority"]
+          organization_id: string
+          origin?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title?: string | null
+          type?: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          category?: string | null
+          created_at?: string
+          customer_priority?: Database["public"]["Enums"]["feedback_priority"]
+          description?: string | null
+          id?: string
+          internal_priority?: Database["public"]["Enums"]["feedback_priority"]
+          organization_id?: string
+          origin?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title?: string | null
+          type?: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           created_at: string
@@ -1165,6 +1246,10 @@ export type Database = {
         Returns: undefined
       }
       classify_source: { Args: { referrer: string }; Returns: string }
+      create_organization: {
+        Args: { org_name: string; org_domain: string; project_name: string }
+        Returns: string
+      }
       cleanup_old_raw_data: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -1214,6 +1299,10 @@ export type Database = {
     Enums: {
       annotation_category: "campaign" | "launch" | "event" | "other"
       app_role: "admin" | "user"
+      feedback_priority: "low" | "normal" | "high" | "critical"
+      feedback_status: "received" | "analyzing" | "planned" | "in_development" | "implemented" | "archived"
+      feedback_type: "like" | "improvement" | "bug" | "suggestion" | "feature" | "quick_feedback" | "other"
+      roadmap_status: "backlog" | "planned" | "in_development" | "testing" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
