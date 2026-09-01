@@ -1,6 +1,8 @@
 ﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { resolveTier, limitsForTier } from "../_shared/plans.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
   parseDevice,
   classifySource,
@@ -237,6 +239,13 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "").trim();
+
+    // Rate limiting: 20 req/janela por usuário. Este endpoint pode chamar as
+    // APIs do GA4/Search Console, então o custo por requisição é externo.
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+    }
 
     // Prefer getClaims() (local JWKS validation — resilient to transient
     // Auth server hiccups). Fall back to getUser() if claims verification
@@ -1052,10 +1061,6 @@ Deno.serve(async (req) => {
 
 
   } catch (error) {
-    console.error("Analytics error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Erro interno" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse(error, corsHeaders, "get-analytics");
   }
 });

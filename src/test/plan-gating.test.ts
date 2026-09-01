@@ -11,6 +11,7 @@ import {
 import {
   enforceHistoryLimit,
   enforcePremiumFeature,
+  errorResponse,
 } from "../../supabase/functions/_shared/plan-gate.ts";
 
 describe("resolveTier", () => {
@@ -124,5 +125,63 @@ describe("enforcePremiumFeature", () => {
 
   it("includes feature name in error message", () => {
     expect(() => enforcePremiumFeature("free", "Heatmaps")).toThrow("Heatmaps");
+  });
+});
+
+describe("errorResponse", () => {
+  it("returns 402 and preserves the message for PLAN_REQUIRED", async () => {
+    let thrown: unknown;
+    try {
+      enforcePremiumFeature("free", "pdf_report");
+    } catch (e) {
+      thrown = e;
+    }
+
+    const res = errorResponse(thrown, {}, "test");
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.error).toContain("PLAN_REQUIRED");
+    expect(body.error).toContain("pdf_report");
+  });
+
+  it("returns 403 and preserves the message for HISTORY_LIMIT_EXCEEDED", async () => {
+    let thrown: unknown;
+    try {
+      enforceHistoryLimit(365, 7);
+    } catch (e) {
+      thrown = e;
+    }
+
+    const res = errorResponse(thrown, {}, "test");
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toContain("HISTORY_LIMIT_EXCEEDED");
+  });
+
+  it("returns 500 and hides the internal message for unexpected errors", async () => {
+    const res = errorResponse(
+      new Error('relation "public.pageviews" does not exist'),
+      {},
+      "test",
+    );
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe("Erro interno");
+    expect(body.error).not.toContain("pageviews");
+  });
+
+  it("hides internal detail for non-Error throwables too", async () => {
+    const res = errorResponse({ code: "42P01", table: "events" }, {}, "test");
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe("Erro interno");
+  });
+
+  it("merges the CORS headers it is given", () => {
+    const res = errorResponse(new Error("boom"), {
+      "Access-Control-Allow-Origin": "https://example.test",
+    }, "test");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://example.test");
+    expect(res.headers.get("Content-Type")).toBe("application/json");
   });
 });

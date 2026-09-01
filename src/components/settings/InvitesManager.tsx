@@ -20,6 +20,7 @@ interface Invite {
   email: string;
   role: string;
   created_at: string;
+  expires_at: string;
 }
 
 export default function InvitesManager({ organizationId, currentRole }: InvitesManagerProps) {
@@ -33,11 +34,17 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
     queryKey: ["invites", organizationId],
     enabled: !!organizationId,
     queryFn: async (): Promise<Invite[]> => {
+      // Filtra por status: o card se chama "Convites Pendentes", mas a query
+      // trazia também os aceitos/revogados/expirados (que agora persistem para
+      // auditoria em vez de serem deletados no accept).
       const { data, error } = await supabase
         .from("organization_invites")
-        .select("id, email, role, created_at")
-        .eq("organization_id", organizationId);
-      
+        .select("id, email, role, created_at, expires_at")
+        .eq("organization_id", organizationId)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data ?? [];
     }

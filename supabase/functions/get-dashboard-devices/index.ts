@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");
-    const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const days = parseDaysParam(url.searchParams.get("days"), 30);
     const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
 
     if (!projectId) return new Response("Missing project_id", { status: 400, headers: corsHeaders });
@@ -102,8 +102,7 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
-    const status = error.message.includes("PLAN_REQUIRED") ? 402 : error.message.includes("LIMIT_EXCEEDED") ? 403 : 500;
-    return new Response(JSON.stringify({ error: error.message }), { status, headers: corsHeaders });
+    return errorResponse(error, corsHeaders, "get-dashboard-devices");
   }
 });
 

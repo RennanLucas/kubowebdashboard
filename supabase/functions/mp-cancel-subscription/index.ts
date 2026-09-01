@@ -4,6 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -24,6 +25,13 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "").trim();
     if (!token) {
       return json({ error: "Não autenticado" }, 401);
+    }
+
+    // Rate limiting estrito (5 req/janela) — mesma faixa de create-mp-preference,
+    // por ser mutação de faturamento que chama a API do Mercado Pago.
+    const rateCheck = checkRateLimit(token, 5, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 5);
     }
 
     // Identifica o usuário a partir do JWT
@@ -97,7 +105,7 @@ Deno.serve(async (req) => {
     return json({ success: true, mpUpdated, accessUntil: sub.current_period_end });
   } catch (e) {
     console.error("mp-cancel-subscription error:", e);
-    return json({ error: (e as Error).message || "Erro interno" }, 500);
+    return json({ error: "Erro interno" }, 500);
   }
 });
 

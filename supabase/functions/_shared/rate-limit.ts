@@ -79,9 +79,17 @@ export function checkRateLimit(
 }
 
 /**
- * Retorna resposta 429 com headers apropriados
+ * Retorna resposta 429 com headers apropriados.
+ *
+ * `limit` é opcional para manter compatibilidade com as chamadas existentes,
+ * mas quando informado o header X-RateLimit-Limit reflete o limite real da
+ * função (que varia de 5 a 200 dependendo do endpoint).
  */
-export function rateLimitResponse(resetAt: number, headers: Record<string, string> = {}): Response {
+export function rateLimitResponse(
+  resetAt: number,
+  headers: Record<string, string> = {},
+  limit?: number,
+): Response {
   const retryAfter = Math.ceil((resetAt - Date.now()) / 1000);
 
   return new Response(
@@ -96,7 +104,7 @@ export function rateLimitResponse(resetAt: number, headers: Record<string, strin
         ...headers,
         "Content-Type": "application/json",
         "Retry-After": String(retryAfter),
-        "X-RateLimit-Limit": "20",
+        ...(limit !== undefined ? { "X-RateLimit-Limit": String(limit) } : {}),
         "X-RateLimit-Reset": new Date(resetAt).toISOString(),
       },
     }

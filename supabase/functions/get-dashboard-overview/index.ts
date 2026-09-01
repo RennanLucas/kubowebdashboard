@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -20,6 +21,13 @@ Deno.serve(async (req) => {
     );
     const token = authHeader.replace("Bearer ", "").trim();
 
+    // Rate limiting: 20 req/janela por usuário — mesmo limite dos outros
+    // endpoints de dashboard (devices/geo/pages/sources), que já eram limitados.
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+    }
+
     // Fast Auth
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
@@ -28,7 +36,7 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");
-    const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const days = parseDaysParam(url.searchParams.get("days"), 30);
     const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
     const deviceFilter = (url.searchParams.get("device") || "all").toLowerCase();
 
@@ -230,9 +238,7 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
-    console.error("Overview error:", error);
-    const status = error.message.includes("PLAN_REQUIRED") ? 402 : error.message.includes("LIMIT_EXCEEDED") ? 403 : 500;
-    return new Response(JSON.stringify({ error: error.message }), { status, headers: corsHeaders });
+    return errorResponse(error, corsHeaders, "get-dashboard-overview");
   }
 });
 

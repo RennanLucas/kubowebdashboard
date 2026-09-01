@@ -1,4 +1,5 @@
 import { BOT_UA_ALLOWLIST, BOT_UA_PATTERN } from "../track/_ingest.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,24 @@ Deno.serve(async (req) => {
     return new Response("// invalid or missing pid", {
       status: 400,
       headers: corsHeaders,
+    });
+  }
+
+  // Rate limiting por IP (200 req/window) para evitar geração excessiva de scripts.
+  // Resposta é JS (não JSON) porque este endpoint é carregado via <script src>,
+  // então rateLimitResponse() do helper compartilhado não serve aqui.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+             req.headers.get("x-real-ip") ||
+             "unknown";
+  const rateCheck = checkRateLimit(ip, 200, "ip");
+  if (!rateCheck.allowed) {
+    return new Response("// rate limit exceeded", {
+      status: 429,
+      headers: {
+        ...corsHeaders,
+        "Cache-Control": "no-store",
+        "Retry-After": String(Math.max(1, Math.ceil((rateCheck.resetAt - Date.now()) / 1000))),
+      },
     });
   }
 

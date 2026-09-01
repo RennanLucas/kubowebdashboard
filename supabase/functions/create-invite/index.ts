@@ -6,6 +6,10 @@ import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// Validação pragmática de formato (não RFC 5322 completa): um @, sem espaços,
+// domínio com ponto. Suficiente para rejeitar entrada obviamente inválida.
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -20,7 +24,7 @@ Deno.serve(async (req) => {
     // Rate limiting: 10 req/min por usuário (evita spam de convites)
     const rateCheck = checkRateLimit(token, 10, "user");
     if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
@@ -34,6 +38,20 @@ Deno.serve(async (req) => {
 
     if (!organizationId || !email || !role) {
       return json({ error: "organizationId, email, and role are required" }, 400);
+    }
+
+    if (typeof email !== "string") {
+      return json({ error: "Invalid email" }, 400);
+    }
+
+    // Normaliza antes de validar para que o valor checado seja o mesmo gravado.
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // `email` cai numa coluna TEXT sem CHECK e é usado depois como chave de
+    // busca em accept_invite. Sem limite de tamanho/formato dá para gravar
+    // megabytes de lixo ou um valor que nunca casaria com um usuário real.
+    if (normalizedEmail.length > 254 || !EMAIL_RE.test(normalizedEmail)) {
+      return json({ error: "Invalid email" }, 400);
     }
 
     if (!["owner", "admin", "editor", "viewer"].includes(role)) {
@@ -77,7 +95,7 @@ Deno.serve(async (req) => {
       .from("organization_invites")
       .insert({
         organization_id: organizationId,
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         role,
         token_hash,
         invited_by: user.id,
@@ -88,8 +106,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (insertErr) {
-      console.error("Insert error:", insertErr);
-      return json({ error: insertErr.message }, 500);
+      // Não devolve a mensagem do Postgres (vaza nomes de constraint/coluna).
+      console.error("create-invite insert error:", insertErr);
+      return json({ error: "Falha ao criar convite" }, 500);
     }
 
     // TODO: Send email with token_plain via process-email-queue or direct email service
@@ -102,7 +121,7 @@ Deno.serve(async (req) => {
 
   } catch (e) {
     console.error("create-invite error:", e);
-    return json({ error: (e as Error).message }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
 

@@ -106,13 +106,15 @@ Deno.serve(async (req) => {
     });
     const data = await res.json();
     if (!res.ok) {
+      // `details` trazia a resposta crua do Mercado Pago (ids internos, causas,
+      // eventualmente fragmentos do payload) para o navegador. Fica só no log.
       console.error("MP preapproval error:", data);
-      return json({ error: data.message || "Falha ao criar assinatura", details: data }, 500);
+      return json({ error: "Falha ao criar assinatura" }, 502);
     }
     return json({ url: data.init_point, id: data.id });
   } catch (e) {
     console.error("create-mp-preference error:", e);
-    return json({ error: (e as Error).message }, 500);
+    return json({ error: "Erro interno" }, 500);
   }
 });
 

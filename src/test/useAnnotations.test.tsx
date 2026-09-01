@@ -16,7 +16,7 @@ describe("useAnnotations", () => {
       id: "ann-1",
       date: "2026-09-01",
       label: "Release v2.0",
-      category: "product" as const,
+      category: "launch" as const,
       notes: "Major feature launch",
       created_at: "2026-09-01T10:00:00Z",
     },
@@ -105,7 +105,7 @@ describe("useAnnotations", () => {
         await result.current.add({
           date: "2026-09-02",
           label: "New feature",
-          category: "product",
+          category: "launch",
           notes: "Test notes",
         });
       });
@@ -144,7 +144,7 @@ describe("useAnnotations", () => {
         await result.current.add({
           date: "2026-09-02",
           label: `  ${longLabel}  `,
-          category: "product",
+          category: "launch",
         });
       });
 
@@ -164,7 +164,7 @@ describe("useAnnotations", () => {
         await result.current.add({
           date: "2026-09-02",
           label: "Test",
-          category: "product",
+          category: "launch",
         });
       });
 
@@ -189,7 +189,7 @@ describe("useAnnotations", () => {
         await result.current.add({
           date: "2026-09-02",
           label: "Test",
-          category: "product",
+          category: "launch",
         });
       });
 
@@ -225,7 +225,7 @@ describe("useAnnotations", () => {
         await result.current.update("ann-1", {
           date: "2026-09-03",
           label: "Updated label",
-          category: "marketing",
+          category: "campaign",
           notes: "Updated notes",
         });
       });

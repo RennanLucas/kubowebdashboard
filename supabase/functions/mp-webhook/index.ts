@@ -99,12 +99,6 @@ Deno.serve(async (req) => {
     if (!rateCheck.allowed) {
       return rateLimitResponse(rateCheck.resetAt, corsHeaders);
     }
-      console.warn("MP webhook: assinatura inválida");
-      return new Response(JSON.stringify({ error: "invalid signature" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
 
     if (type === "payment") {

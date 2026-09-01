@@ -4,8 +4,13 @@
 // está habilitado, próxima cobrança, trial e cancelamento agendado.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
+// CORS vem do módulo compartilhado do projeto (allowlist de origens). Antes este
+// arquivo importava `corsHeaders` de esm.sh/@supabase/supabase-js/cors, que
+// devolve Access-Control-Allow-Origin: * — furava a allowlist e adicionava uma
+// dependência de terceiros para algo que é configuração nossa.
+import { corsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
   computeIsActive,
   computeIsTrialing,
@@ -53,6 +58,14 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting por token (20 req/janela) — o frontend consulta este endpoint
+    // em toda montagem de tela de billing.
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+    }
+
     const { data: claimsData, error: claimsError } = await supabase.auth
       .getClaims(token);
     if (claimsError || !claimsData?.claims) {
@@ -159,8 +172,9 @@ Deno.serve(async (req) => {
       availablePlans,
     });
   } catch (e) {
+    // Log detalhado no servidor, mensagem genérica para o cliente.
     console.error("[get-subscription-status] unexpected", e);
-    return json({ error: (e as Error).message ?? "Erro inesperado" }, 500);
+    return json({ error: "Erro inesperado" }, 500);
   }
 });
 

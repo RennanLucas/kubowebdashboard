@@ -93,4 +93,14 @@ describe("rate-limit shared module", () => {
     const body = await res.json();
     expect(body.error).toBe("Too Many Requests");
   });
+
+  it("rateLimitResponse omite X-RateLimit-Limit quando o limite não é informado", () => {
+    const res = rateLimitResponse(Date.now() + 30_000, {});
+    expect(res.headers.get("X-RateLimit-Limit")).toBeNull();
+  });
+
+  it("rateLimitResponse reflete o limite real quando informado", () => {
+    const res = rateLimitResponse(Date.now() + 30_000, {}, 5);
+    expect(res.headers.get("X-RateLimit-Limit")).toBe("5");
+  });
 });

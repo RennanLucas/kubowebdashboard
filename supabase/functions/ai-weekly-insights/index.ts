@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { resolveTier, limitsForTier } from "../_shared/plans.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 
 Deno.serve(async (req) => {
@@ -31,6 +32,13 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Rate limiting por token (20 req/janela). A cota mensal de IA já limita o
+    // custo do provedor, mas não impede um loop de chamadas em `action=status`.
+    const rateCheck = checkRateLimit(authHeader.replace("Bearer ", "").trim(), 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+    }
 
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
@@ -313,9 +321,10 @@ REGRAS:
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (e: any) {
+  } catch (e) {
+    // Mensagem interna só no log — o cliente recebe texto genérico.
     console.error("ai-weekly-insights error", e);
-    return new Response(JSON.stringify({ error: e?.message ?? "Erro inesperado" }), {
+    return new Response(JSON.stringify({ error: "Erro inesperado" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
