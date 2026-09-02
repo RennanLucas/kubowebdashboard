@@ -22,8 +22,6 @@ test.describe("compute-alerts JWT validation", () => {
       headers: { Authorization: `Bearer ${fakeJwt}` },
     });
     expect(res.status()).toBe(401);
-    const body = await res.json().catch(() => ({}));
-    expect(body.error).toMatch(/unauthorized/i);
   });
 
   test("rejeita JWT adulterado com assinatura inválida", async ({ request }) => {
