@@ -33,7 +33,10 @@ interface SubscriptionRow {
   created_at: string | null;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// PostgreSQL's uuid type accepts any hexadecimal UUID-shaped value. Keep the
+// boundary validation aligned with the database instead of rejecting valid
+// fixture/import IDs whose version nibble is not RFC 4122-specific.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

@@ -66,43 +66,22 @@ test.describe("Plan Gating - Free vs Pro", () => {
     expect(url).toMatch(/\/(pricing|heatmaps)$/);
   });
 
-  test('Pricing page should display plan comparison', async ({ page }) => {
+  test('Active Pro user should be redirected away from pricing', async ({ page }) => {
     await page.goto('/pricing');
-
-    // Wait for pricing page to load
-    await page.waitForSelector('h1', { timeout: 10000 });
-
-    // Check for plan cards or comparison table
-    const freePlan = page.locator('text=Gratuito').or(page.locator('text=Free'));
-    const proPlan = page.locator('text=Pro');
-
-    await expect(freePlan.first()).toBeVisible();
-    await expect(proPlan.first()).toBeVisible();
+    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    await expect(page.getByTestId('date-range-picker')).toBeVisible();
   });
 
-  test('Date range picker should show upgrade prompt for Free users', async ({ page }) => {
-    // Dashboard date picker locks ranges beyond Free tier limit
+  test('Pro user should have the full 12-month date range', async ({ page }) => {
     await page.goto('/dashboard');
+    const datePicker = page.getByTestId('date-range-picker');
+    await expect(datePicker).toBeVisible({ timeout: 15000 });
+    await datePicker.click();
 
-    // Wait for dashboard to load
-    await page.waitForSelector('h1.tracking-tight', { timeout: 10000 });
-
-    // Find and click date range picker
-    const datePicker = page.locator('[data-testid="date-range-picker"]').or(
-      page.locator('button', { hasText: /últimos.*dias/i }).first()
-    );
-
-    if (await datePicker.isVisible()) {
-      await datePicker.click();
-
-      // Check if locked ranges show upgrade prompts (for Free users)
-      const upgradeText = page.locator('text=Disponível no plano Pro').or(
-        page.locator('text=Upgrade')
-      );
-
-      // Might not be visible if user is Pro
-      const visible = await upgradeText.isVisible().catch(() => false);
-      expect(typeof visible).toBe('boolean');
-    }
+    const twelveMonths = page.getByRole('button', { name: 'Últimos 12 meses' });
+    await expect(twelveMonths).toBeVisible();
+    await expect(twelveMonths.locator('svg.lucide-lock')).toHaveCount(0);
+    await twelveMonths.click();
+    await expect(datePicker).toContainText('Últimos 12 meses');
   });
 });
