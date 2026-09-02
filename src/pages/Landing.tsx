@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import { FEATURES } from "@/lib/feature-flags";
 
 // Component Imports
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -20,6 +21,9 @@ import { Pricing } from "@/components/landing/Pricing";
 import { FAQ } from "@/components/landing/FAQ";
 import { CTA } from "@/components/landing/CTA";
 import { Footer } from "@/components/landing/Footer";
+
+// Lazy load 3D component for better performance
+const KuboCore3D = lazy(() => import("@/components/landing/KuboCore3D").then(m => ({ default: m.KuboCore3D })));
 
 /* ─────────────────────────────────────────────────────────────
    Premium CSS & Animations (Injected dynamically)
@@ -193,7 +197,13 @@ const Landing = () => {
         <Navbar />
         
         <main>
-          <HeroSection />
+          {FEATURES.ENABLE_3D_LANDING ? (
+            <Suspense fallback={<HeroSection />}>
+              <KuboCore3D />
+            </Suspense>
+          ) : (
+            <HeroSection />
+          )}
           <TrustBar />
           <ProblemSolution />
           <FeaturesGrid />
