@@ -8,7 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 // arquivo importava `corsHeaders` de esm.sh/@supabase/supabase-js/cors, que
 // devolve Access-Control-Allow-Origin: * — furava a allowlist e adicionava uma
 // dependência de terceiros para algo que é configuração nossa.
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
@@ -38,14 +38,13 @@ interface SubscriptionRow {
 // fixture/import IDs whose version nibble is not RFC 4122-specific.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
+Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
 
-Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
