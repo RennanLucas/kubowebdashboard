@@ -15,6 +15,24 @@ import { OTPInput } from "@/components/auth/OTPInput";
 
 type AuthStep = "form" | "otp_signup" | "otp_magiclink" | "otp_recovery" | "reset_password";
 
+/**
+ * Traduz falhas de envio de email do Supabase Auth para uma mensagem acionável.
+ * O erro cru ("Error sending magic link email") chega em inglês e não diz ao
+ * usuário que o problema é do nosso lado, não do email dele.
+ */
+const describeEmailError = (error: any, fallback: string): string => {
+  const raw = String(error?.message ?? "");
+  const low = raw.toLowerCase();
+
+  if (low.includes("error sending") || low.includes("smtp")) {
+    return "Não conseguimos enviar o email agora (falha no nosso serviço de envio). Entre com email e senha ou tente novamente em alguns minutos.";
+  }
+  if (low.includes("rate limit") || low.includes("too many")) {
+    return "Muitas tentativas em pouco tempo. Aguarde alguns minutos antes de pedir um novo código.";
+  }
+  return raw || fallback;
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
@@ -132,7 +150,7 @@ const Login = () => {
       } else if (error.message?.includes("Invalid login")) {
         toast.error("E-mail ou senha incorretos.");
       } else {
-        toast.error(error.message);
+        toast.error(describeEmailError(error, "Não foi possível concluir."));
       }
     } finally {
       setLoading(false);
@@ -154,7 +172,7 @@ const Login = () => {
       setStep("otp_magiclink");
       setResendCooldown(60);
     } catch (error: any) {
-      toast.error(error.message || "Falha ao enviar código.");
+      toast.error(describeEmailError(error, "Falha ao enviar código."));
     } finally {
       setLoading(false);
     }
@@ -164,8 +182,9 @@ const Login = () => {
     if (isBusy) return;
     setLoading(true);
     try {
-      let otpType: "signup" | "magiclink" | "recovery" = "signup";
-      if (step === "otp_magiclink") otpType = "magiclink";
+      // "email" é o type documentado para o código de 6 dígitos do signInWithOtp.
+      let otpType: "signup" | "email" | "recovery" = "signup";
+      if (step === "otp_magiclink") otpType = "email";
       if (step === "otp_recovery") otpType = "recovery";
 
       const { data, error } = await supabase.auth.verifyOtp({
@@ -230,7 +249,7 @@ const Login = () => {
       toast.success("Novo código enviado! Verifique seu email.");
       setResendCooldown(60);
     } catch (err: any) {
-      toast.error(err.message || "Não foi possível reenviar o código.");
+      toast.error(describeEmailError(err, "Não foi possível reenviar o código."));
     } finally {
       setResending(false);
     }
@@ -249,7 +268,7 @@ const Login = () => {
       setStep("otp_recovery");
       setResendCooldown(60);
     } catch (err: any) {
-      toast.error(err.message || "Não foi possível enviar o código.");
+      toast.error(describeEmailError(err, "Não foi possível enviar o código."));
     } finally {
       setLoading(false);
     }
