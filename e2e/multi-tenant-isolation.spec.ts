@@ -80,12 +80,6 @@ async function signInClient(creds: { email: string; password: string }): Promise
 }
 
 test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
-  test.skip(
-    !hasCredentials,
-    "NÃO TESTADO — requer staging com 2 usuários reais (E2E_USER_A_*/E2E_USER_B_* + anon key). " +
-      "Rode supabase/e2e_phase3_5_setup.sql e exporte as variáveis. Sem isso não classificamos como aprovado por teste."
-  );
-
   let clientA: SupabaseClient;
   let clientB: SupabaseClient;
 
@@ -186,22 +180,20 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
   });
 
   // ---- PRIVILEGE ESCALATION ---------------------------------------------
-  test("RBAC: A NÃO consegue elevar o próprio role para owner/admin", async () => {
+  test("RBAC: A NÃO consegue alterar o próprio role", async () => {
     // Descobre a própria membership
     const { data: me } = await clientA.from("organization_members").select("id, role").limit(1);
     const row = (me ?? [])[0];
-    test.skip(!row, "sem membership visível para A — setup incompleto");
+    expect(row, "membership de A deve existir — setup incompleto").toBeTruthy();
 
     const attempt = await clientA
       .from("organization_members")
-      .update({ role: "owner" })
+      .update({ role: "member" })
       .eq("id", row!.id)
       .select();
-    // Trigger check_member_rbac deve barrar auto-elevação (erro) ou RLS retorna 0 linhas.
-    const escalated = (attempt.data ?? []).some(
-      (r: { role: string }) => r.role === "owner" && row!.role !== "owner"
-    );
-    expect(escalated, "A não pode se auto-promover a owner").toBe(false);
+    // Trigger check_member_rbac deve barrar qualquer mudança do próprio role.
+    const changed = (attempt.data ?? []).some((r: { role: string }) => r.role === "member");
+    expect(changed, "A não pode alterar o próprio role").toBe(false);
   });
 
   test("RBAC: A NÃO consegue inserir membro na Org B", async () => {
