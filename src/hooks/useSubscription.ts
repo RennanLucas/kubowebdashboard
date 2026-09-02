@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { isSubscriptionValid } from "@/lib/subscription-validity";
 
 export interface SubscriptionRow {
   id: string;
@@ -98,20 +99,8 @@ export function useSubscription(enabled = true) {
     };
   }, [isReady, orgId, user?.id, refetch]);
 
-  const isSubValid = (sub: any) => {
-    if (!sub) return false;
-    const okStatus = ["active", "trialing", "authorized", "approved"].includes(sub.status);
-    const periodOk = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
-    if (okStatus && periodOk) return true;
-    if (
-      ["canceled", "cancelled"].includes(sub.status) &&
-      sub.current_period_end &&
-      new Date(sub.current_period_end) > new Date()
-    ) return true;
-    return false;
-  };
-
-  const isActive = isSubValid(subscription) || isSubValid(ambiguousSubscription);
+  const isActive =
+    isSubscriptionValid(subscription) || isSubscriptionValid(ambiguousSubscription);
 
   return {
     subscription,

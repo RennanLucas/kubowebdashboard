@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export interface SubscriptionStatusPlan {
   id: string;
@@ -43,14 +44,16 @@ export interface SubscriptionStatus {
 
 export function useSubscriptionStatus(enabled = true) {
   const { user, loading: authLoading } = useAuth();
+  const { activeOrganization, loading: orgLoading } = useOrganization();
+  const organizationId = activeOrganization?.id;
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
-    if (!enabled || authLoading || !user) {
+    if (!enabled || authLoading || orgLoading || !user || !organizationId) {
       setStatus(null);
-      setLoading(enabled && authLoading);
+      setLoading(enabled && (authLoading || orgLoading));
       return;
     }
     setLoading(true);
@@ -58,18 +61,22 @@ export function useSubscriptionStatus(enabled = true) {
     try {
       const { data, error: fnError } = await supabase.functions.invoke(
         "get-subscription-status",
-        { method: "GET" },
+        { method: "GET", headers: { "X-Organization-Id": organizationId } },
       );
       if (fnError) throw new Error(fnError.message);
       if ((data as any)?.error) throw new Error((data as any).error);
       setStatus(data as SubscriptionStatus);
     } catch (e) {
       setError((e as Error).message || "Falha ao carregar assinatura");
-      setStatus(null);
+      // Deliberately keep the last known good status. This hook feeds the
+      // billing page, which renders a null subscription as "you have no
+      // active plan" next to a buy button — so nulling out on a transient
+      // Edge Function error invites a paying customer into a second charge.
+      // Callers must gate on `error`, not infer absence from a null status.
     } finally {
       setLoading(false);
     }
-  }, [enabled, authLoading, user]);
+  }, [enabled, authLoading, orgLoading, user, organizationId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -77,23 +84,23 @@ export function useSubscriptionStatus(enabled = true) {
       setLoading(false);
       return;
     }
-    if (authLoading) {
+    if (authLoading || orgLoading) {
       setLoading(true);
       return;
     }
     fetchStatus();
-    if (!user) return;
+    if (!user || !organizationId) return;
 
     // Realtime: re-busca quando a row do usuário muda (webhook MP, cancelamento, etc).
     const channel = supabase
-      .channel(`sub-status-${user.id}-${Math.random().toString(36).slice(2)}`)
+      .channel(`sub-status-${organizationId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "subscriptions",
-          filter: `user_id=eq.${user.id}`,
+          filter: `organization_id=eq.${organizationId}`,
         },
         () => fetchStatus(),
       )
@@ -102,7 +109,7 @@ export function useSubscriptionStatus(enabled = true) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [enabled, authLoading, user?.id, fetchStatus]);
+  }, [enabled, authLoading, orgLoading, user?.id, organizationId, fetchStatus]);
 
   return { status, loading, error, refresh: fetchStatus };
 }

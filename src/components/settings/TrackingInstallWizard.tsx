@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, Globe, Sparkles, ArrowRight, ArrowLeft, XCircle } from "lucide-react";
@@ -8,6 +8,11 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type Platform = "wordpress" | "shopify" | "wix" | "gtm" | "html" | "other" | null;
+
+// Janela de escuta após o clique em "Verificar": tempo suficiente para o
+// usuário abrir o site em outra aba e o evento chegar no banco.
+const POLL_TIMEOUT_MS = 90_000;
+const POLL_INTERVAL_MS = 3_000;
 
 interface TrackingInstallWizardProps {
   projectId: string;
@@ -31,6 +36,11 @@ export function TrackingInstallWizard({
   const [verifying, setVerifying] = useState(false);
   const [lastSeen, setLastSeen] = useState<Date | null>(null);
   const [hasError, setHasError] = useState(false);
+  const [waitingNewVisit, setWaitingNewVisit] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
+  // Aborta o polling quando o usuário fecha o wizard ou o componente desmonta.
+  const cancelRef = useRef(false);
 
   // Sync with defaultOpen
   useEffect(() => {
@@ -50,55 +60,69 @@ export function TrackingInstallWizard({
       setPlatform(null);
       setVerifying(false);
       setHasError(false);
+      setWaitingNewVisit(false);
+      setSecondsLeft(0);
+    } else {
+      // Fechou o wizard no meio da escuta: para o polling.
+      cancelRef.current = true;
     }
   }, [open]);
 
-  const [verificationStartedAt, setVerificationStartedAt] = useState<Date | null>(null);
+  useEffect(() => {
+    return () => {
+      cancelRef.current = true;
+    };
+  }, []);
+
+  const fetchLatestPageview = async (): Promise<Date | null> => {
+    const { data, error } = await supabase
+      .from("pageviews")
+      .select("created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.created_at ? new Date(data.created_at) : null;
+  };
 
   const verifyInstallation = async () => {
+    cancelRef.current = false;
     setVerifying(true);
     setHasError(false);
-    
-    // Set timestamp exactly when user clicks verify
-    const startTime = new Date();
-    setVerificationStartedAt(startTime);
+    setWaitingNewVisit(false);
 
     try {
-      // First check if there's any new visit since the button was clicked
-      const { data: newVisits, error: newErr } = await supabase
-        .from("pageviews")
-        .select("created_at")
-        .eq("project_id", projectId)
-        .gte("created_at", startTime.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Baseline = pageview mais recente ANTES de começarmos a escutar.
+      // Comparamos contra ele em vez do relógio do browser: uma query
+      // instantânea por created_at >= agora nunca acha nada, e qualquer
+      // diferença de clock entre cliente e servidor invalidaria o corte.
+      const baseline = await fetchLatestPageview();
+      setLastSeen(baseline);
 
-      if (newErr) throw newErr;
-      
-      if (newVisits && newVisits.created_at) {
-        setLastSeen(new Date(newVisits.created_at));
-        setStep(3); // 🟢 Instalação confirmada
-        return;
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+
+      while (!cancelRef.current && Date.now() < deadline) {
+        setSecondsLeft(Math.ceil((deadline - Date.now()) / 1000));
+
+        const latest = await fetchLatestPageview();
+        if (latest && (!baseline || latest.getTime() > baseline.getTime())) {
+          setLastSeen(latest);
+          setStep(3); // 🟢 Instalação confirmada
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
       }
 
-      // If no new visits, check if there are ANY past visits
-      const { data: oldVisits, error: oldErr } = await supabase
-        .from("pageviews")
-        .select("created_at")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      if (cancelRef.current) return;
 
-      if (oldErr) throw oldErr;
-
-      if (oldVisits && oldVisits.created_at) {
-        // 🟡 Aguardando nova visita (old visits exist, but no new ones)
-        setLastSeen(new Date(oldVisits.created_at));
-        setHasError(false); // don't show full error, let's keep step 2 but we'll adapt UI
+      if (baseline) {
+        // 🟡 Existem visitas antigas, mas nenhuma nova durante a escuta
+        setWaitingNewVisit(true);
       } else {
-        // 🔴 Nenhum dado (never visited)
+        // 🔴 Nunca recebemos nada deste projeto
         setLastSeen(null);
         setHasError(true);
       }
@@ -107,6 +131,7 @@ export function TrackingInstallWizard({
       setHasError(true);
     } finally {
       setVerifying(false);
+      setSecondsLeft(0);
     }
   };
 
@@ -340,58 +365,55 @@ export function TrackingInstallWizard({
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   ) : hasError ? (
                     <XCircle className="h-8 w-8 text-destructive" />
-                  ) : verificationStartedAt && lastSeen ? (
-                    // Aguardando nova visita (tem dado antigo mas não novo pós-clique)
+                  ) : waitingNewVisit ? (
+                    // Aguardando nova visita (tem dado antigo mas nada novo na janela de escuta)
                     <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
                   ) : (
                     <Globe className="h-8 w-8 text-muted-foreground" />
                   )}
                 </div>
-                
+
                 <h3 className="text-xl font-bold">
-                  {verifying 
-                    ? "Verificando seu site..." 
-                    : hasError 
-                    ? "Ainda não detectamos a instalação" 
-                    : verificationStartedAt && lastSeen
+                  {verifying
+                    ? "Abra seu site agora"
+                    : hasError
+                    ? "Ainda não detectamos a instalação"
+                    : waitingNewVisit
                     ? "Aguardando nova visita"
                     : "Aguardando instalação"}
                 </h3>
-                
+
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  {verifying 
-                    ? "Estamos buscando acessos recebidos após o início deste teste..." 
-                    : hasError 
+                  {verifying
+                    ? `Estamos escutando novos acessos em tempo real. Abra seu site em outra aba — detectamos automaticamente. (${secondsLeft}s)`
+                    : hasError
                     ? "Nenhum dado recebido. Confira se o código está dentro do <head> do seu site e se as alterações foram publicadas."
-                    : verificationStartedAt && lastSeen
-                    ? "Detectamos visitas anteriores, mas nenhuma nova visita após você clicar em verificar. Abra seu site em outra aba e recarregue a página."
+                    : waitingNewVisit
+                    ? "Detectamos visitas anteriores, mas nenhuma nova durante a escuta. Clique em Tentar novamente e abra seu site enquanto escutamos."
                     : "Ainda não recebemos novos dados desse site. Faça o teste abaixo."}
                 </p>
               </div>
 
-              {!verifying && (
-                <div className="bg-muted/40 p-5 rounded-xl border border-border">
-                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" /> Faça este teste
-                  </h4>
-                  <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
-                    <li>Abra seu site em outra aba (ou janela anônima).</li>
-                    <li>Navegue na página inicial.</li>
-                    <li>Aguarde 2 a 5 segundos.</li>
-                    <li>Volte para esta janela.</li>
-                    <li>Clique em <strong>Tentar novamente</strong> abaixo.</li>
-                  </ol>
-                </div>
-              )}
+              <div className="bg-muted/40 p-5 rounded-xl border border-border">
+                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" /> Faça este teste
+                </h4>
+                <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+                  <li>Clique em <strong>Verificar instalação</strong> abaixo.</li>
+                  <li>Sem fechar esta janela, abra seu site em outra aba (ou janela anônima).</li>
+                  <li>Navegue na página inicial e aguarde 2 a 5 segundos.</li>
+                  <li>A confirmação aparece aqui sozinha — não precisa voltar e clicar de novo.</li>
+                </ol>
+              </div>
 
               <div className="flex flex-col gap-3 pt-4">
-                <Button 
-                  size="lg" 
-                  onClick={verifyInstallation} 
+                <Button
+                  size="lg"
+                  onClick={verifyInstallation}
                   disabled={verifying}
                   className="w-full text-base"
                 >
-                  {verifying ? "Verificando..." : (hasError || (verificationStartedAt && lastSeen)) ? "Tentar novamente" : "Verificar instalação"}
+                  {verifying ? `Escutando... (${secondsLeft}s)` : (hasError || waitingNewVisit) ? "Tentar novamente" : "Verificar instalação"}
                 </Button>
                 
                 {hasError && (

@@ -10,6 +10,7 @@
  * mesmo jeito que o Deno.serve faz em produção.
  */
 
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -24,9 +25,11 @@ function extractScript(consentRequired: boolean): string {
   const match = src.match(/const script = `([\s\S]*)`;/);
   if (!match) throw new Error("Não foi possível extrair o script do tracker-script/index.ts");
   return match[1]
-    .replaceAll("${pid}", "test-project")
-    .replaceAll("${trackUrl}", "https://example.supabase.co/functions/v1/track")
-    .replaceAll('${consentRequired ? "true" : "false"}', consentRequired ? "true" : "false");
+    .split("${pid}").join("test-project")
+    .split("${trackUrl}").join("https://example.supabase.co/functions/v1/track")
+    .split("${JSON.stringify(BOT_UA_PATTERN.source)}").join(JSON.stringify("bot"))
+    .split("${JSON.stringify(BOT_UA_ALLOWLIST.source)}").join(JSON.stringify("$^"))
+    .split('${consentRequired ? "true" : "false"}').join(consentRequired ? "true" : "false");
 }
 
 const ORIGINAL_PUSH_STATE = history.pushState.bind(history);
@@ -42,7 +45,6 @@ function loadTracker(consentRequired: boolean) {
   // @ts-expect-error
   delete window._kw;
   const script = extractScript(consentRequired);
-  // eslint-disable-next-line no-new-func
   const fn = new Function(script);
   fn.call(window);
 }
@@ -50,7 +52,6 @@ function loadTracker(consentRequired: boolean) {
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
-  // @ts-expect-error - mock simples de sendBeacon, ausente por padrão no jsdom
   navigator.sendBeacon = vi.fn(() => true);
   vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true })));
 });
@@ -118,6 +119,8 @@ describe("Consent API — modo estrito (opt-in obrigatório via ?consent=require
   it("NÃO rastreia nada até consent(true) ser chamado", () => {
     loadTracker(true);
     expect(localStorage.getItem("_kwq")).toBeNull();
+    expect(sessionStorage.getItem("_kws")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("hasConsent() retorna null antes de qualquer decisão", () => {
@@ -142,6 +145,8 @@ describe("Consent API — modo estrito (opt-in obrigatório via ?consent=require
     loadTracker(true);
     history.pushState({}, "", "/outra-pagina");
     expect(localStorage.getItem("_kwq")).toBeNull();
+    expect(sessionStorage.getItem("_kws")).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("consent(false) explícito mantém bloqueio e não lança erro", () => {

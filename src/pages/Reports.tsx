@@ -7,10 +7,16 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
 import { useSelectedProject } from "@/hooks/useSelectedProject";
+import { useAllUserProjects } from "@/hooks/useAllUserProjects";
 import { usePlan } from "@/hooks/usePlan";
 
 const Reports = () => {
-  const { selectedProjectId, selectedProject } = useSelectedProject();
+  const { selectedProjectId } = useSelectedProject();
+  const { data: projects } = useAllUserProjects();
+  const selectedProject = useMemo(
+    () => projects?.find((p) => p.id === selectedProjectId),
+    [projects, selectedProjectId]
+  );
   const plan = usePlan();
   const dateRange = plan.maxHistoryDays >= 30 ? 30 : plan.maxHistoryDays;
   

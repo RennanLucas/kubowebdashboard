@@ -30,8 +30,8 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Unit Tests (Vitest)
-        run: npm run test
+      - name: Unit Tests (Vitest) + Coverage Gate
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
@@ -63,8 +63,17 @@ jobs:
           # Variáveis necessárias para E2E mockado/staging
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          E2E_USER_A_EMAIL: ${{ secrets.E2E_USER_A_EMAIL }}
+          E2E_USER_A_PASSWORD: ${{ secrets.E2E_USER_A_PASSWORD }}
+          E2E_USER_B_EMAIL: ${{ secrets.E2E_USER_B_EMAIL }}
+          E2E_USER_B_PASSWORD: ${{ secrets.E2E_USER_B_PASSWORD }}
+          E2E_ORG_A_ID: ${{ secrets.E2E_ORG_A_ID }}
+          E2E_PROJECT_A_ID: ${{ secrets.E2E_PROJECT_A_ID }}
+          E2E_ORG_B_ID: ${{ secrets.E2E_ORG_B_ID }}
+          E2E_PROJECT_B_ID: ${{ secrets.E2E_PROJECT_B_ID }}
 
       - name: Upload Playwright Report
         if: always()

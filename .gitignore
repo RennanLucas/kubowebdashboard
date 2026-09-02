@@ -15,6 +15,7 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.claude/
 .idea
 .DS_Store
 *.suo
@@ -26,4 +27,21 @@ dist-ssr
 .env
 .env.*
 !.env.example
-\nscratch/\nplaywright-report/\ntest-results/\nfailure_dom.html\nimplementation_plan.md\nbun.lock\nbun.lockb\n
+
+scratch/
+playwright-report/
+test-results/
+failure_dom.html
+implementation_plan.md
+bun.lock
+bun.lockb
+
+# Coverage reports
+coverage/
+
+# Test artifacts
+bfg.jar
+test-xss-tracker.html
+.env.e2e
+
+.vercel

@@ -12,17 +12,17 @@ export const getCorsHeaders = (req?: Request) => {
   
   return {
     "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || allowed,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE"
   };
 };
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://kubowebdashboard.vercel.app",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
 };
 
 export const publicCorsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
 };

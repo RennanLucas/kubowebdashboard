@@ -1,174 +1,187 @@
-/**
- * plan-gating.test.ts
- * Testa a lógica de resolução de tier e enforcement de limites do plano.
- * Garante que a lógica server-side de billing está correta — esta é a barreira
- * que impede usuários Free de acessar dados de 365 dias (feature Pro).
- *
- * NOTA: Estes testes são em Vitest/Node (não Deno), por isso importamos as
- * funções diretamente pelo arquivo. Para rodar os testes Deno do Edge Function,
- * use `deno test supabase/functions/`.
- */
-
 import { describe, it, expect } from "vitest";
-
-// ─── Reproduzir a lógica pura sem importar o módulo Deno ────────────────────
-// Copiado de _shared/plans.ts — deve ser mantido em sync se a lógica mudar.
-
-type PlanTier = "free" | "pro";
-
-const ACTIVE_STATUS = ["active", "trialing", "authorized", "approved"];
-
-function resolveTier(sub: { plan_id?: string | null; status?: string | null; current_period_end?: string | null } | null | undefined): PlanTier {
-  if (!sub) return "free";
-  const status = (sub.status ?? "").toLowerCase();
-  const periodOk =
-    !sub.current_period_end || new Date(sub.current_period_end) > new Date();
-  const active =
-    (ACTIVE_STATUS.includes(status) && periodOk) ||
-    (["canceled", "cancelled"].includes(status) &&
-      !!sub.current_period_end &&
-      new Date(sub.current_period_end) > new Date());
-  if (!active) return "free";
-  return "pro";
-}
-
-const TIER_LIMITS: Record<PlanTier, { maxProjects: number; maxHistoryDays: number }> = {
-  free: { maxProjects: 1, maxHistoryDays: 7 },
-  pro: { maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365 },
-};
-
-function limitsForTier(tier: PlanTier) {
-  return TIER_LIMITS[tier];
-}
-
-function enforceHistoryLimit(requestedDays: number, maxHistoryDays: number): number {
-  if (requestedDays > maxHistoryDays) {
-    throw new Error(`HISTORY_LIMIT_EXCEEDED: limite de ${maxHistoryDays} dias excedido`);
-  }
-  return requestedDays;
-}
-
-// ─── Testes de resolveTier ────────────────────────────────────────────────────
+// Import the REAL shared plan logic instead of hand-copied duplicates, so these
+// tests fail if the edge-function source drifts. `plans.ts` is pure TS; the
+// `SupabaseClient` import in `plan-gate.ts` is type-only, so both load under
+// Vitest without Deno.
+import {
+  resolveTier,
+  limitsForTier,
+  TIER_LIMITS,
+} from "../../supabase/functions/_shared/plans.ts";
+import {
+  enforceHistoryLimit,
+  enforcePremiumFeature,
+  errorResponse,
+} from "../../supabase/functions/_shared/plan-gate.ts";
 
 describe("resolveTier", () => {
-  it("retorna 'free' para assinatura nula", () => {
+  it("returns 'free' when subscription is null", () => {
     expect(resolveTier(null)).toBe("free");
+  });
+
+  it("returns 'free' when subscription is undefined", () => {
     expect(resolveTier(undefined)).toBe("free");
   });
 
-  it("retorna 'pro' para status 'active' dentro do período", () => {
-    const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    expect(resolveTier({ status: "active", current_period_end: future })).toBe("pro");
+  it("returns 'pro' for active subscription", () => {
+    expect(resolveTier({ status: "active" })).toBe("pro");
   });
 
-  it("retorna 'pro' para status 'trialing'", () => {
-    const future = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-    expect(resolveTier({ status: "trialing", current_period_end: future })).toBe("pro");
+  it("returns 'pro' for trialing subscription", () => {
+    expect(resolveTier({ status: "trialing" })).toBe("pro");
   });
 
-  it("retorna 'pro' para status 'authorized' (Mercado Pago)", () => {
-    const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    expect(resolveTier({ status: "authorized", current_period_end: future })).toBe("pro");
+  it("returns 'pro' for authorized subscription", () => {
+    expect(resolveTier({ status: "authorized" })).toBe("pro");
   });
 
-  it("retorna 'free' para assinatura com status 'active' mas período expirado", () => {
-    const past = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
-    expect(resolveTier({ status: "active", current_period_end: past })).toBe("free");
+  it("returns 'pro' for approved subscription", () => {
+    expect(resolveTier({ status: "approved" })).toBe("pro");
   });
 
-  it("retorna 'pro' para status 'canceled' mas ainda dentro do período pago", () => {
-    // Usuário cancelou mas tem acesso até o fim do período pago
-    const future = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString();
+  it("returns 'pro' for canceled sub with future period_end (grace period)", () => {
+    const future = new Date(Date.now() + 30 * 86400000).toISOString();
     expect(resolveTier({ status: "canceled", current_period_end: future })).toBe("pro");
   });
 
-  it("retorna 'free' para status 'canceled' após expiração do período", () => {
-    const past = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+  it("returns 'free' for canceled sub with past period_end", () => {
+    const past = new Date(Date.now() - 86400000).toISOString();
     expect(resolveTier({ status: "canceled", current_period_end: past })).toBe("free");
   });
 
-  it("retorna 'free' para status 'unpaid'", () => {
-    const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    expect(resolveTier({ status: "unpaid", current_period_end: future })).toBe("free");
+  it("returns 'free' for canceled sub without period_end", () => {
+    expect(resolveTier({ status: "canceled" })).toBe("free");
   });
 
-  it("retorna 'pro' quando não há data de expiração (período indefinido)", () => {
-    expect(resolveTier({ status: "active", current_period_end: null })).toBe("pro");
-  });
-});
-
-// ─── Testes de limitsForTier ─────────────────────────────────────────────────
-
-describe("limitsForTier", () => {
-  it("plano free tem 7 dias de histórico", () => {
-    expect(limitsForTier("free").maxHistoryDays).toBe(7);
+  it("returns 'free' for unknown status", () => {
+    expect(resolveTier({ status: "unknown" })).toBe("free");
   });
 
-  it("plano pro tem 365 dias de histórico", () => {
-    expect(limitsForTier("pro").maxHistoryDays).toBe(365);
+  it("returns 'free' for unpaid status", () => {
+    expect(resolveTier({ status: "unpaid" })).toBe("free");
   });
 
-  it("plano free tem 1 projeto máximo", () => {
-    expect(limitsForTier("free").maxProjects).toBe(1);
+  it("returns 'free' for active sub with expired period_end", () => {
+    const past = new Date(Date.now() - 86400000).toISOString();
+    expect(resolveTier({ status: "active", current_period_end: past })).toBe("free");
   });
 
-  it("plano pro tem projetos ilimitados", () => {
-    expect(limitsForTier("pro").maxProjects).toBe(Number.MAX_SAFE_INTEGER);
+  it("handles 'cancelled' (double-l British spelling) with grace period", () => {
+    const future = new Date(Date.now() + 30 * 86400000).toISOString();
+    expect(resolveTier({ status: "cancelled", current_period_end: future })).toBe("pro");
+  });
+
+  it("is case-insensitive about the status string", () => {
+    expect(resolveTier({ status: "ACTIVE" })).toBe("pro");
+    expect(resolveTier({ status: "Trialing" })).toBe("pro");
   });
 });
 
-// ─── Testes de enforceHistoryLimit ──────────────────────────────────────────
+describe("TIER_LIMITS / limitsForTier", () => {
+  it("free tier: maxHistoryDays = 7, maxProjects = 1, no AI, no email alerts", () => {
+    expect(TIER_LIMITS.free.maxHistoryDays).toBe(7);
+    expect(TIER_LIMITS.free.maxProjects).toBe(1);
+    expect(TIER_LIMITS.free.aiMonthlyLimit).toBe(0);
+    expect(TIER_LIMITS.free.emailAlerts).toBe(false);
+  });
+
+  it("pro tier: maxHistoryDays = 365, unlimited projects, AI + email alerts", () => {
+    expect(TIER_LIMITS.pro.maxHistoryDays).toBe(365);
+    expect(TIER_LIMITS.pro.maxProjects).toBe(Number.MAX_SAFE_INTEGER);
+    expect(TIER_LIMITS.pro.aiMonthlyLimit).toBeGreaterThan(0);
+    expect(TIER_LIMITS.pro.emailAlerts).toBe(true);
+  });
+
+  it("limitsForTier returns the matching TIER_LIMITS entry", () => {
+    expect(limitsForTier("free")).toBe(TIER_LIMITS.free);
+    expect(limitsForTier("pro")).toBe(TIER_LIMITS.pro);
+  });
+});
 
 describe("enforceHistoryLimit", () => {
-  it("permite acesso até o limite máximo", () => {
+  it("returns days when within limit", () => {
     expect(enforceHistoryLimit(7, 7)).toBe(7);
-    expect(enforceHistoryLimit(365, 365)).toBe(365);
+    expect(enforceHistoryLimit(30, 365)).toBe(30);
   });
 
-  it("lança erro quando ultrapassa o limite", () => {
+  it("throws HISTORY_LIMIT_EXCEEDED when days exceed limit", () => {
     expect(() => enforceHistoryLimit(30, 7)).toThrow("HISTORY_LIMIT_EXCEEDED");
     expect(() => enforceHistoryLimit(366, 365)).toThrow("HISTORY_LIMIT_EXCEEDED");
   });
 
-  it("lança erro com a mensagem contendo o limite correto", () => {
-    expect(() => enforceHistoryLimit(100, 7)).toThrow("7");
-  });
-
-  it("permite qualquer valor abaixo do limite", () => {
-    expect(enforceHistoryLimit(1, 7)).toBe(1);
-    expect(enforceHistoryLimit(6, 7)).toBe(6);
-    expect(enforceHistoryLimit(30, 365)).toBe(30);
+  it("includes max days in error message", () => {
+    expect(() => enforceHistoryLimit(30, 7)).toThrow("7 dias maximo");
   });
 });
 
-// ─── Testes de integração: Free vs Pro ──────────────────────────────────────
-
-describe("Integração: resolução correta de tier para gating de histórico", () => {
-  it("usuário Free não pode ver 30 dias", () => {
-    const tier = resolveTier(null); // sem assinatura = free
-    const limits = limitsForTier(tier);
-    expect(() => enforceHistoryLimit(30, limits.maxHistoryDays)).toThrow("HISTORY_LIMIT_EXCEEDED");
+describe("enforcePremiumFeature", () => {
+  it("does not throw for pro tier", () => {
+    expect(() => enforcePremiumFeature("pro", "AI Insights")).not.toThrow();
   });
 
-  it("usuário Pro pode ver 365 dias", () => {
-    const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const tier = resolveTier({ status: "active", current_period_end: future });
-    const limits = limitsForTier(tier);
-    expect(enforceHistoryLimit(365, limits.maxHistoryDays)).toBe(365);
+  it("throws PLAN_REQUIRED for free tier", () => {
+    expect(() => enforcePremiumFeature("free", "AI Insights")).toThrow("PLAN_REQUIRED");
   });
 
-  it("usuário Pro que cancelou mas ainda no período pode ver 90 dias", () => {
-    const future = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
-    const tier = resolveTier({ status: "canceled", current_period_end: future });
-    const limits = limitsForTier(tier);
-    expect(enforceHistoryLimit(90, limits.maxHistoryDays)).toBe(90);
+  it("includes feature name in error message", () => {
+    expect(() => enforcePremiumFeature("free", "Heatmaps")).toThrow("Heatmaps");
+  });
+});
+
+describe("errorResponse", () => {
+  it("returns 402 and preserves the message for PLAN_REQUIRED", async () => {
+    let thrown: unknown;
+    try {
+      enforcePremiumFeature("free", "pdf_report");
+    } catch (e) {
+      thrown = e;
+    }
+
+    const res = errorResponse(thrown, {}, "test");
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.error).toContain("PLAN_REQUIRED");
+    expect(body.error).toContain("pdf_report");
   });
 
-  it("usuário Pro com período expirado cai para Free", () => {
-    const past = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-    const tier = resolveTier({ status: "active", current_period_end: past });
-    const limits = limitsForTier(tier);
-    expect(tier).toBe("free");
-    expect(() => enforceHistoryLimit(30, limits.maxHistoryDays)).toThrow("HISTORY_LIMIT_EXCEEDED");
+  it("returns 403 and preserves the message for HISTORY_LIMIT_EXCEEDED", async () => {
+    let thrown: unknown;
+    try {
+      enforceHistoryLimit(365, 7);
+    } catch (e) {
+      thrown = e;
+    }
+
+    const res = errorResponse(thrown, {}, "test");
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toContain("HISTORY_LIMIT_EXCEEDED");
+  });
+
+  it("returns 500 and hides the internal message for unexpected errors", async () => {
+    const res = errorResponse(
+      new Error('relation "public.pageviews" does not exist'),
+      {},
+      "test",
+    );
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe("Erro interno");
+    expect(body.error).not.toContain("pageviews");
+  });
+
+  it("hides internal detail for non-Error throwables too", async () => {
+    const res = errorResponse({ code: "42P01", table: "events" }, {}, "test");
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe("Erro interno");
+  });
+
+  it("merges the CORS headers it is given", () => {
+    const res = errorResponse(new Error("boom"), {
+      "Access-Control-Allow-Origin": "https://example.test",
+    }, "test");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://example.test");
+    expect(res.headers.get("Content-Type")).toBe("application/json");
   });
 });

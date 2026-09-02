@@ -46,7 +46,7 @@ const daysUntil = (iso: string | null) => {
 };
 
 export default function SubscriptionPage() {
-  const { status, loading, refresh } = useSubscriptionStatus();
+  const { status, loading, error, refresh } = useSubscriptionStatus();
   const { plans, loading: plansLoading } = usePlans();
   const [canceling, setCanceling] = useState(false);
   const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
@@ -152,6 +152,26 @@ export default function SubscriptionPage() {
               <Skeleton className="h-6 w-48" />
               <Skeleton className="h-4 w-72" />
               <Skeleton className="h-4 w-56" />
+            </CardContent>
+          </Card>
+        ) : error && !subscription ? (
+          // Never fall through to the upsell below on a failed load: telling a
+          // paying customer they have no plan, next to a buy button, is how you
+          // get a double charge. Offer a retry instead.
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-destructive" />
+                Não foi possível carregar sua assinatura
+              </CardTitle>
+              <CardDescription>
+                Isso costuma ser temporário e não afeta sua cobrança. Tente novamente em instantes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" onClick={() => refresh()}>
+                Tentar novamente
+              </Button>
             </CardContent>
           </Card>
         ) : !subscription ? (

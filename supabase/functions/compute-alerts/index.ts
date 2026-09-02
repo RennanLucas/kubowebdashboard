@@ -1,7 +1,7 @@
 ﻿import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+// compute-alerts is cron-only, no browser access needed
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -50,30 +50,20 @@ function alertEmailHtml(opts: { title: string; message: string; projectName: str
   </div></body></html>`;
 }
 
-function parseJwtClaims(token: string): Record<string, unknown> | null {
-  const parts = token.split(".");
-  if (parts.length < 2) return null;
-  try {
-    const payload = parts[1]
-      .replaceAll("-", "+")
-      .replaceAll("_", "/")
-      .padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
-    return JSON.parse(atob(payload)) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
+/**
+ * Validates that the request is authorized via service_role key only.
+ * This function is cron-invoked, not user-invoked, so JWT validation is not appropriate.
+ * SECURITY: Only accepts exact match of SUPABASE_SERVICE_ROLE_KEY.
+ */
 function isAuthorized(req: Request): boolean {
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
   if (!token) return false;
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (serviceKey && token === serviceKey) return true;
 
-  const claims = parseJwtClaims(token);
-  return claims?.role === "service_role";
+  // Only accept exact service role key match - no JWT parsing
+  return serviceKey && token === serviceKey;
 }
 
 // Fonte única para checagem de plano

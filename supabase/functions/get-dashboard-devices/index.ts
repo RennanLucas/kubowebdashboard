@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 import { corsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -12,12 +13,19 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const token = authHeader.replace("Bearer ", "").trim();
+
+    // Rate limiting: 20 req/min por usuário
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
+
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
     if (!user) return new Response("Token inválido", { status: 401, headers: corsHeaders });
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");
-    const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const days = parseDaysParam(url.searchParams.get("days"), 30);
     const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
 
     if (!projectId) return new Response("Missing project_id", { status: 400, headers: corsHeaders });
@@ -44,11 +52,15 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
     }
 
+    // Enforce plan-based history limit
+    const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
+    const enforcedDays = enforceHistoryLimit(days, maxHistoryDays);
+
     await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
 
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setDate(startDate.getDate() - (enforcedDays - 1));
     const startStr = startDate.toISOString().split("T")[0];
     const endStr = endDate.toISOString().split("T")[0];
 
@@ -90,8 +102,7 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
-    const status = error.message.includes("PLAN_REQUIRED") ? 402 : error.message.includes("LIMIT_EXCEEDED") ? 403 : 500;
-    return new Response(JSON.stringify({ error: error.message }), { status, headers: corsHeaders });
+    return errorResponse(error, corsHeaders, "get-dashboard-devices");
   }
 });
 

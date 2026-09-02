@@ -78,7 +78,7 @@ describe("RBAC: Admin não pode criar/gerenciar Owner", () => {
       new: { organization_id: "org-1", user_id: "new-user", role: "owner" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot create owners");
+    if ("error" in result) expect(result.error).toContain("cannot create owners");
   });
 
   it("Admin NÃO pode modificar dados de um Owner existente", () => {
@@ -90,7 +90,7 @@ describe("RBAC: Admin não pode criar/gerenciar Owner", () => {
       new: { organization_id: "org-1", user_id: "owner-1", role: "owner" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot modify owners");
+    if ("error" in result) expect(result.error).toContain("cannot modify owners");
   });
 
   it("Admin NÃO pode promover outro membro para owner", () => {
@@ -102,7 +102,7 @@ describe("RBAC: Admin não pode criar/gerenciar Owner", () => {
       new: { organization_id: "org-1", user_id: "member-1", role: "owner" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot elevate any user to owner");
+    if ("error" in result) expect(result.error).toContain("cannot elevate any user to owner");
   });
 
   it("Admin NÃO pode remover um Owner", () => {
@@ -113,7 +113,7 @@ describe("RBAC: Admin não pode criar/gerenciar Owner", () => {
       old: { organization_id: "org-1", user_id: "owner-1", role: "owner" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot remove owners");
+    if ("error" in result) expect(result.error).toContain("cannot remove owners");
   });
 });
 
@@ -127,7 +127,7 @@ describe("RBAC: Admin não pode gerenciar outros Admins", () => {
       new: { organization_id: "org-1", user_id: "admin-2", role: "member" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot modify privileges of other admins");
+    if ("error" in result) expect(result.error).toContain("cannot modify privileges of other admins");
   });
 
   it("Admin NÃO pode remover outro Admin", () => {
@@ -138,7 +138,7 @@ describe("RBAC: Admin não pode gerenciar outros Admins", () => {
       old: { organization_id: "org-1", user_id: "admin-2", role: "admin" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot remove other admins");
+    if ("error" in result) expect(result.error).toContain("cannot remove other admins");
   });
 
   it("Admin PODE modificar seus próprios dados de membro (sem trocar role)", () => {
@@ -218,7 +218,7 @@ describe("RBAC: Ninguém pode auto-elevar seu próprio role", () => {
       new: { organization_id: "org-1", user_id: "owner-1", role: "member" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot elevate or change their own role");
+    if ("error" in result) expect(result.error).toContain("cannot elevate or change their own role");
   });
 
   it("Member tentando se auto-promover a admin é bloqueado", () => {
@@ -230,7 +230,7 @@ describe("RBAC: Ninguém pode auto-elevar seu próprio role", () => {
       new: { organization_id: "org-1", user_id: "member-1", role: "admin" },
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("cannot elevate or change their own role");
+    if ("error" in result) expect(result.error).toContain("cannot elevate or change their own role");
   });
 
   it("Atualização que NÃO muda o próprio role passa normalmente", () => {

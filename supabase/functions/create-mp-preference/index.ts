@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getPlan, type PlanId } from "../_shared/plans.ts";
 
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -19,10 +20,17 @@ Deno.serve(async (req) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting: 5 req/min por usuário (evita abuse de checkout)
+    const rateCheck = checkRateLimit(token, 5, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
     const { data: claims, error: claimsErr } = await supabase.auth.getClaims(token);
     if (claimsErr || !claims?.claims) return json({ error: "Unauthorized" }, 401);
 
@@ -58,7 +66,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const baseReturn = returnUrl || `${new URL(req.url).origin}/checkout/return`;
+    const ALLOWED_RETURN_ORIGINS = [
+      new URL(req.url).origin,
+      Deno.env.get("PUBLIC_SITE_URL"),
+    ].filter(Boolean) as string[];
+
+    let baseReturn = `${new URL(req.url).origin}/checkout/return`;
+    if (returnUrl) {
+      try {
+        const parsed = new URL(returnUrl);
+        if (ALLOWED_RETURN_ORIGINS.some((o) => parsed.origin === o)) {
+          baseReturn = returnUrl;
+        }
+      } catch { /* invalid URL — use default */ }
+    }
 
     // Assinatura recorrente (cartão) com 7 dias grátis
     const payload = {
@@ -85,13 +106,15 @@ Deno.serve(async (req) => {
     });
     const data = await res.json();
     if (!res.ok) {
+      // `details` trazia a resposta crua do Mercado Pago (ids internos, causas,
+      // eventualmente fragmentos do payload) para o navegador. Fica só no log.
       console.error("MP preapproval error:", data);
-      return json({ error: data.message || "Falha ao criar assinatura", details: data }, 500);
+      return json({ error: "Falha ao criar assinatura" }, 502);
     }
     return json({ url: data.init_point, id: data.id });
   } catch (e) {
     console.error("create-mp-preference error:", e);
-    return json({ error: (e as Error).message }, 500);
+    return json({ error: "Erro interno" }, 500);
   }
 });
 

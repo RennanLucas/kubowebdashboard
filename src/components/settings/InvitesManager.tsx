@@ -20,6 +20,7 @@ interface Invite {
   email: string;
   role: string;
   created_at: string;
+  expires_at: string;
 }
 
 export default function InvitesManager({ organizationId, currentRole }: InvitesManagerProps) {
@@ -33,11 +34,17 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
     queryKey: ["invites", organizationId],
     enabled: !!organizationId,
     queryFn: async (): Promise<Invite[]> => {
+      // Filtra por status: o card se chama "Convites Pendentes", mas a query
+      // trazia também os aceitos/revogados/expirados (que agora persistem para
+      // auditoria em vez de serem deletados no accept).
       const { data, error } = await supabase
         .from("organization_invites")
-        .select("id, email, role, created_at")
-        .eq("organization_id", organizationId);
-      
+        .select("id, email, role, created_at, expires_at")
+        .eq("organization_id", organizationId)
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data ?? [];
     }
@@ -51,18 +58,27 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
 
     setSaving(true);
     try {
-      // Create the invite in DB - assuming the backend handles sending the email
-      // using Edge Functions or triggers (as specified in "Não manipular diretamente o token hash no frontend.")
-      const { error } = await supabase
-        .from("organization_invites")
-        .insert({
-          organization_id: organizationId,
-          email: email.trim().toLowerCase(),
-          role: role
-        });
+      // Call Edge Function to create invite with secure token generation
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Não autenticado");
 
-      if (error) throw error;
-      
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-invite`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          organizationId,
+          email: email.trim().toLowerCase(),
+          role
+        })
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Erro ao criar convite");
+
       toast.success(`Convite enviado para ${email}`);
       setEmail("");
       setRole("viewer");

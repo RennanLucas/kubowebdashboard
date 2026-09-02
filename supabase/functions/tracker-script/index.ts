@@ -1,14 +1,45 @@
+import { BOT_UA_ALLOWLIST, BOT_UA_PATTERN } from "../track/_ingest.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/javascript",
   "Cache-Control": "public, max-age=3600",
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  const pid = url.searchParams.get("pid") || "";
+  const pidRaw = url.searchParams.get("pid") || "";
+  const pid = UUID_RE.test(pidRaw) ? pidRaw : "";
   // consent=required ativa modo estrito: nada é coletado até window.kuboweb.consent(true)
   const consentRequired = url.searchParams.get("consent") === "required";
+
+  if (!pid) {
+    return new Response("// invalid or missing pid", {
+      status: 400,
+      headers: corsHeaders,
+    });
+  }
+
+  // Rate limiting por IP (200 req/window) para evitar geração excessiva de scripts.
+  // Resposta é JS (não JSON) porque este endpoint é carregado via <script src>,
+  // então rateLimitResponse() do helper compartilhado não serve aqui.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+             req.headers.get("x-real-ip") ||
+             "unknown";
+  const rateCheck = checkRateLimit(ip, 200, "ip");
+  if (!rateCheck.allowed) {
+    return new Response("// rate limit exceeded", {
+      status: 429,
+      headers: {
+        ...corsHeaders,
+        "Cache-Control": "no-store",
+        "Retry-After": String(Math.max(1, Math.ceil((rateCheck.resetAt - Date.now()) / 1000))),
+      },
+    });
+  }
 
   const supabaseProjectId = Deno.env.get("SUPABASE_URL")!
     .replace("https://", "")
@@ -20,10 +51,13 @@ Deno.serve(async (req) => {
   var pid="${pid}";
   if(!pid)return;
 
-  // Bot / crawler detection — skip tracking for non-human agents
+  // Bot / crawler detection — skip tracking for non-human agents.
+  // Patterns come from track/_ingest.ts (single source of truth, shared with the
+  // server-side gate) so the two checks can never disagree about who is a robot.
   var ua=navigator.userAgent||"";
-  var botRe=/bot|crawler|spider|crawling|headless|prerender|phantom|slurp|googlebot|bingbot|yandex|baidu|duckduckbot|facebookexternalhit|linkedinbot|twitterbot/i;
-  if(botRe.test(ua))return;
+  var botRe=new RegExp(${JSON.stringify(BOT_UA_PATTERN.source)},"i");
+  var botOk=new RegExp(${JSON.stringify(BOT_UA_ALLOWLIST.source)},"i");
+  if(!botOk.test(ua)&&botRe.test(ua))return;
 
   var u="${trackUrl}";
   var CONSENT_REQUIRED=${consentRequired ? "true" : "false"};
@@ -55,14 +89,23 @@ Deno.serve(async (req) => {
     q=[];
   }
 
-  // Session ID (per browser tab)
-  var sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
-  sessionStorage.setItem("_kws",sid);
-
-  // Offline queue
+  // Session ID and offline queue are initialized lazily. In strict mode this
+  // prevents identifiers or queue data being read/written before opt-in.
+  var sid=null;
   var q=[];
-  try{var stored=localStorage.getItem("_kwq");if(stored)q=JSON.parse(stored);}catch(e){}
-  if(!Array.isArray(q))q=[];
+  var storageReady=false;
+
+  function ensureStorage(){
+    if(storageReady)return;
+    storageReady=true;
+    try{
+      sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
+      sessionStorage.setItem("_kws",sid);
+      var stored=localStorage.getItem("_kwq");
+      if(stored)q=JSON.parse(stored);
+    }catch(e){}
+    if(!Array.isArray(q))q=[];
+  }
 
   var MAX_Q=50,BATCH_SIZE=10,tid=null;
 
@@ -84,6 +127,8 @@ Deno.serve(async (req) => {
   }
 
   function flush(isUnload){
+    if(!canCollect())return;
+    ensureStorage();
     if(!q.length)return;
     var batch=q.slice(0,BATCH_SIZE);
     q=q.slice(BATCH_SIZE);
@@ -115,6 +160,7 @@ Deno.serve(async (req) => {
 
   function send(d){
     if(!canCollect())return;
+    ensureStorage();
     d.event_id=d.event_id||newId();
     q.push(d);
     if(q.length>MAX_Q)q=q.slice(q.length-MAX_Q);
@@ -125,6 +171,7 @@ Deno.serve(async (req) => {
 
   function t(p){
     if(!canCollect())return;
+    ensureStorage();
     var utms=getUTMs();
     var ev={type:"pageview",pid:pid,path:p||location.pathname,ref:document.referrer,sid:sid};
     if(Object.keys(utms).length)ev.metadata=utms;
@@ -133,6 +180,7 @@ Deno.serve(async (req) => {
 
   function ev(evType,label,meta){
     if(!canCollect())return;
+    ensureStorage();
     send({type:"event",pid:pid,path:location.pathname,sid:sid,event_type:evType,event_label:label||"",metadata:meta||{}});
   }
 

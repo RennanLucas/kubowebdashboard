@@ -7,8 +7,10 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Carrega variáveis do .env.staging para o processo do Playwright, se existir.
-const envPath = fs.existsSync(path.resolve(__dirname, '.env.staging'))
+// Prioriza .env.e2e se existir (testes de isolamento), senão .env.staging
+const envPath = fs.existsSync(path.resolve(__dirname, '.env.e2e'))
+  ? path.resolve(__dirname, '.env.e2e')
+  : fs.existsSync(path.resolve(__dirname, '.env.staging'))
   ? path.resolve(__dirname, '.env.staging')
   : path.resolve(__dirname, '.env');
 dotenv.config({ path: envPath });

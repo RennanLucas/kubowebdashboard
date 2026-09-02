@@ -4,8 +4,18 @@
 // está habilitado, próxima cobrança, trial e cancelamento agendado.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
+// CORS vem do módulo compartilhado do projeto (allowlist de origens). Antes este
+// arquivo importava `corsHeaders` de esm.sh/@supabase/supabase-js/cors, que
+// devolve Access-Control-Allow-Origin: * — furava a allowlist e adicionava uma
+// dependência de terceiros para algo que é configuração nossa.
+import { corsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import {
+  computeIsActive,
+  computeIsTrialing,
+  computeNextChargeAt,
+} from "./_subscription.ts";
 
 interface SubscriptionRow {
   id: string;
@@ -23,31 +33,13 @@ interface SubscriptionRow {
   created_at: string | null;
 }
 
-const ACTIVE_STATUSES = ["active", "trialing", "authorized", "approved"];
-const CANCELED_STATUSES = ["canceled", "cancelled"];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-function computeIsActive(sub: SubscriptionRow): boolean {
-  const periodOk = !sub.current_period_end ||
-    new Date(sub.current_period_end) > new Date();
-  if (ACTIVE_STATUSES.includes(sub.status) && periodOk) return true;
-  if (
-    CANCELED_STATUSES.includes(sub.status) && sub.current_period_end &&
-    new Date(sub.current_period_end) > new Date()
-  ) return true;
-  return false;
-}
-
-function computeIsTrialing(sub: SubscriptionRow): boolean {
-  if (sub.status === "trialing") return true;
-  if (sub.trial_end && new Date(sub.trial_end) > new Date()) return true;
-  return false;
 }
 
 Deno.serve(async (req) => {
@@ -68,12 +60,24 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting por token (20 req/janela) — o frontend consulta este endpoint
+    // em toda montagem de tela de billing.
+    const rateCheck = checkRateLimit(token, 20, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+    }
+
     const { data: claimsData, error: claimsError } = await supabase.auth
       .getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return json({ error: "Unauthorized" }, 401);
     }
     const userId = claimsData.claims.sub;
+    const organizationId = req.headers.get("X-Organization-Id")?.trim() ?? "";
+    if (!UUID_RE.test(organizationId)) {
+      return json({ error: "Organização inválida ou ausente" }, 400);
+    }
 
     // BL3 fix: verificar membership antes de expor dados de assinatura da organização.
     // O usuário só pode consultar assinaturas de organizações das quais é membro.
@@ -82,51 +86,40 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Obter organizações das quais o usuário é membro ativo
-    const { data: memberships } = await supabaseAdmin
+    // Autoriza exatamente a organização ativa informada pelo cliente. Nunca
+    // escolhe uma assinatura entre todas as organizações do usuário.
+    const { data: membership, error: membershipError } = await supabaseAdmin
       .from("organization_members")
       .select("organization_id")
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
 
-    const memberOrgIds = (memberships ?? []).map((m: { organization_id: string }) => m.organization_id);
+    // Fail closed: erro de banco e ausência de membership nunca liberam acesso.
+    if (membershipError) {
+      console.error("[get-subscription-status] membership error", membershipError);
+      return json({ error: "Falha ao validar acesso à organização" }, 500);
+    }
+    if (!membership) {
+      return json({ error: "Forbidden" }, 403);
+    }
 
-    // Buscar assinatura: prioriza assinatura da organização (B2B), com fallback para user_id (legado)
+    // Buscar somente a assinatura da organização ativa autorizada.
     let data: SubscriptionRow | null = null;
     let error: { message: string } | null = null;
 
-    if (memberOrgIds.length > 0) {
-      // Tenta primeiro buscar assinatura por organização
-      const { data: orgSub, error: orgErr } = await supabaseAdmin
-        .from("subscriptions")
-        .select(
-          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
-        )
-        .in("organization_id", memberOrgIds)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const { data: orgSub, error: orgErr } = await supabaseAdmin
+      .from("subscriptions")
+      .select(
+        "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
+      )
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-      if (orgSub) {
-        data = orgSub as SubscriptionRow;
-        error = orgErr;
-      }
-    }
-
-    if (!data) {
-      // Fallback legado: assinatura por user_id (sem org) — usa cliente com RLS
-      const { data: userSub, error: userErr } = await supabase
-        .from("subscriptions")
-        .select(
-          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
-        )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      data = userSub as SubscriptionRow | null;
-      error = userErr;
-    }
+    data = orgSub as SubscriptionRow | null;
+    error = orgErr;
 
     if (error) {
       console.error("[get-subscription-status] db error", error);
@@ -160,14 +153,13 @@ Deno.serve(async (req) => {
 
     const sub = data as SubscriptionRow;
     const planDef = sub.plan_id ? getPlan(sub.plan_id) : null;
-    const isActive = computeIsActive(sub);
-    const isTrialing = computeIsTrialing(sub);
+    const now = Date.now();
+    const isActive = computeIsActive(sub, now);
+    const isTrialing = computeIsTrialing(sub, now);
     const willCancel = !!sub.cancel_at_period_end;
 
     const accessUntil = sub.current_period_end ?? null;
-    const nextChargeAt = willCancel
-      ? null
-      : (isTrialing ? (sub.trial_end ?? sub.current_period_end) : sub.current_period_end);
+    const nextChargeAt = computeNextChargeAt(sub, isTrialing, willCancel);
 
     return json({
       hasSubscription: true,
@@ -218,8 +210,9 @@ Deno.serve(async (req) => {
       availablePlans,
     });
   } catch (e) {
+    // Log detalhado no servidor, mensagem genérica para o cliente.
     console.error("[get-subscription-status] unexpected", e);
-    return json({ error: (e as Error).message ?? "Erro inesperado" }, 500);
+    return json({ error: "Erro inesperado" }, 500);
   }
 });
 

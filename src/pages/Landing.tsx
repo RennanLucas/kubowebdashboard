@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import { FEATURES } from "@/lib/feature-flags";
 
 // Component Imports
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -20,6 +21,9 @@ import { Pricing } from "@/components/landing/Pricing";
 import { FAQ } from "@/components/landing/FAQ";
 import { CTA } from "@/components/landing/CTA";
 import { Footer } from "@/components/landing/Footer";
+
+// Lazy load 3D component for better performance
+const KuboCore3D = lazy(() => import("@/components/landing/KuboCore3D").then(m => ({ default: m.KuboCore3D })));
 
 /* ─────────────────────────────────────────────────────────────
    Premium CSS & Animations (Injected dynamically)
@@ -173,7 +177,18 @@ const Landing = () => {
     <>
       <Helmet>
         <title>Kubo Web | Analytics Premium Enterprise</title>
-        <meta name="description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta name="description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar. Conecte Google Ads, Meta Ads, CRM e dados de receita em uma plataforma inteligente." />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/" />
+        <meta property="og:title" content="Kubo Web | Analytics Premium Enterprise" />
+        <meta property="og:description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta property="og:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
+        <meta property="og:locale" content="pt_BR" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Kubo Web | Analytics Premium Enterprise" />
+        <meta name="twitter:description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta name="twitter:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
       </Helmet>
       
       <PremiumStyles />
@@ -182,7 +197,13 @@ const Landing = () => {
         <Navbar />
         
         <main>
-          <HeroSection />
+          {FEATURES.ENABLE_3D_LANDING ? (
+            <Suspense fallback={<HeroSection />}>
+              <KuboCore3D />
+            </Suspense>
+          ) : (
+            <HeroSection />
+          )}
           <TrustBar />
           <ProblemSolution />
           <FeaturesGrid />

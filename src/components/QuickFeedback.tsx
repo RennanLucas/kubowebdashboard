@@ -25,7 +25,7 @@ export function QuickFeedback({ feature }: QuickFeedbackProps) {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("feedback" as any).insert({
+      const { data, error } = await supabase.from("feedback").insert({
         organization_id: activeOrganization.id,
         user_id: user.id,
         type: "quick_feedback",
@@ -37,7 +37,7 @@ export function QuickFeedback({ feature }: QuickFeedbackProps) {
       }).select("id").single();
 
       if (error) throw error;
-      
+
       setFeedbackId(data.id);
       
       if (!isPositive) {
@@ -55,11 +55,11 @@ export function QuickFeedback({ feature }: QuickFeedbackProps) {
 
   const handleTextSubmit = async () => {
     if (!feedbackId || !text.trim()) return;
-    
+
     setLoading(true);
     try {
-      const { error } = await supabase.from("feedback" as any)
-        .update({ 
+      const { error } = await supabase.from("feedback")
+        .update({
           description: `Negativo (👎) - ${text}`,
           status: "received" // Un-archive so it goes to admin triage
         })

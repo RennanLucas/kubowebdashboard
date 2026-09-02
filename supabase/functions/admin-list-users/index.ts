@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -9,6 +10,12 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization")?.replace("Bearer ", "");
     if (!authHeader) {
       return json({ error: "Unauthorized" }, 401);
+    }
+
+    // Rate limiting geral para admin endpoints (20 req/window por usuário)
+    const generalRateCheck = checkRateLimit(authHeader, 20, "user");
+    if (!generalRateCheck.allowed) {
+      return rateLimitResponse(generalRateCheck.resetAt, corsHeaders, 20);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -35,14 +42,19 @@ serve(async (req) => {
     const action = body.action || "list";
 
     if (action === "list") {
-      const page = body.page || 1;
-      const perPage = body.perPage || 50;
+      // Clamp na paginação: perPage sem teto deixa uma única chamada puxar a
+      // base inteira de usuários (listUsers + 3 joins com .in()).
+      const page = Math.max(1, Math.min(10_000, Number(body.page) || 1));
+      const perPage = Math.max(1, Math.min(200, Number(body.perPage) || 50));
 
       const { data: usersList, error: listErr } = await admin.auth.admin.listUsers({
         page,
         perPage,
       });
-      if (listErr) return json({ error: listErr.message }, 500);
+      if (listErr) {
+        console.error("admin-list-users listUsers error:", listErr);
+        return json({ error: "Failed to list users" }, 500);
+      }
 
       if (!usersList.users || usersList.users.length === 0) {
         return json({ users: [], total: usersList.total || 0, nextPage: usersList.nextPage });
@@ -75,6 +87,12 @@ serve(async (req) => {
     }
 
     if (action === "promote" || action === "demote") {
+      // Rate limiting mais estrito para ações críticas (5 req/window)
+      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      if (!criticalRateCheck.allowed) {
+        return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
+      }
+
       const targetId = body.userId as string;
       if (!targetId) return json({ error: "userId required" }, 400);
       if (action === "promote") {
@@ -87,9 +105,15 @@ serve(async (req) => {
     }
 
     if (action === "grant_subscription") {
+      // Rate limiting mais estrito para ações críticas (5 req/window)
+      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      if (!criticalRateCheck.allowed) {
+        return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
+      }
+
       const targetId = body.userId as string;
       const days = Math.max(1, Math.min(3650, Number(body.days) || 365));
-      const env = (body.environment as string) || "sandbox";
+      const env = normalizeEnvironment(body.environment);
       if (!targetId) return json({ error: "userId required" }, 400);
 
       const periodEnd = new Date(Date.now() + days * 86400000).toISOString();
@@ -110,13 +134,22 @@ serve(async (req) => {
         },
         { onConflict: "stripe_subscription_id" },
       );
-      if (upsertErr) return json({ error: upsertErr.message }, 500);
+      if (upsertErr) {
+        console.error("admin-list-users grant error:", upsertErr);
+        return json({ error: "Failed to grant subscription" }, 500);
+      }
       return json({ ok: true, current_period_end: periodEnd });
     }
 
     if (action === "revoke_subscription") {
+      // Rate limiting mais estrito para ações críticas (5 req/window)
+      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      if (!criticalRateCheck.allowed) {
+        return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
+      }
+
       const targetId = body.userId as string;
-      const env = (body.environment as string) || "sandbox";
+      const env = normalizeEnvironment(body.environment);
       if (!targetId) return json({ error: "userId required" }, 400);
       const { error: delErr } = await admin
         .from("subscriptions")
@@ -124,15 +157,27 @@ serve(async (req) => {
         .eq("user_id", targetId)
         .eq("environment", env)
         .like("stripe_subscription_id", "manual_%");
-      if (delErr) return json({ error: delErr.message }, 500);
+      if (delErr) {
+        console.error("admin-list-users revoke error:", delErr);
+        return json({ error: "Failed to revoke subscription" }, 500);
+      }
       return json({ ok: true });
     }
 
     return json({ error: "Unknown action" }, 400);
-  } catch (e: any) {
-    return json({ error: e.message }, 500);
+  } catch (e) {
+    // Não vaza a mensagem interna para o cliente — apenas registra no log.
+    console.error("admin-list-users error:", e);
+    return json({ error: "Internal server error" }, 500);
   }
 });
+
+// `environment` é gravado em subscriptions e usado como filtro em revoke.
+// Aceitar string arbitrária deixaria criar grants em ambientes fantasma que
+// nenhum revoke encontraria depois, então restringimos ao par conhecido.
+function normalizeEnvironment(value: unknown): "live" | "sandbox" {
+  return value === "live" ? "live" : "sandbox";
+}
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {

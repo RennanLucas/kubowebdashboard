@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 import { corsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -27,6 +27,14 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
+
+    // Rate limiting estrito (5 req/janela): gerar relatório varre várias tabelas
+    // de analytics e monta HTML, então é o endpoint mais caro por requisição.
+    const rateCheck = checkRateLimit(token, 5, "user");
+    if (!rateCheck.allowed) {
+      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 5);
+    }
+
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Token inválido" }), {
@@ -36,7 +44,7 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const days = parseInt(url.searchParams.get("days") || "30", 10);
+    const days = parseDaysParam(url.searchParams.get("days"), 30);
     const projectId = url.searchParams.get("project_id");
 
     if (!projectId) {
@@ -72,9 +80,8 @@ Deno.serve(async (req) => {
       const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
       enforcePremiumFeature(tier, "pdf_report");
       enforceHistoryLimit(days, maxHistoryDays);
-    } catch (planError: any) {
-      const status = planError.message.includes("PLAN_REQUIRED") ? 402 : 403;
-      return new Response(JSON.stringify({ error: planError.message }), { status, headers: corsHeaders });
+    } catch (planError) {
+      return errorResponse(planError, corsHeaders, "generate-report:plan");
     }
 
     const clientData = {
@@ -229,10 +236,6 @@ Deno.serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error("Report error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Erro interno" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse(error, corsHeaders, "generate-report");
   }
 });

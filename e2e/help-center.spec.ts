@@ -2,21 +2,22 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Help Center', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
+    // Login before each test - use same credentials as organization tests
+    const email = process.env.E2E_OWNER_EMAIL || 'e2e_owner@example.test';
+    const password = process.env.E2E_USER_PASSWORD || 'sua_senha_real_aqui_123';
+
     await page.goto('/login');
-    const emailInput = page.getByPlaceholder('nome@exemplo.com');
-    await emailInput.fill('teste@kuboanalytics.com');
-    const passwordInput = page.getByPlaceholder('••••••••');
-    await passwordInput.fill('teste123');
-    await page.getByRole('button', { name: /Entrar/i }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await page.fill('input[type="email"]', email);
+    await page.fill('input[type="password"]', password);
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
   });
 
   test('should load Help Center and show categories', async ({ page }) => {
     await page.goto('/help');
     await expect(page.getByRole('heading', { name: 'Central de Ajuda' })).toBeVisible();
     await expect(page.getByText('Primeiros passos')).toBeVisible();
-    await expect(page.getByText('Analytics')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '📊 Analytics' })).toBeVisible();
   });
 
   test('search should filter articles', async ({ page }) => {

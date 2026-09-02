@@ -25,7 +25,7 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { activeOrganization, currentRole, loading: orgLoading, setOrganization } = useOrganization();
-  const { subscription, isLoading: subLoading } = useSubscription();
+  const { subscription, loading: subLoading } = useSubscription();
 
   const [saving, setSaving] = useState(false);
   const [orgName, setOrgName] = useState("");

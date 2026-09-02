@@ -1,6 +1,7 @@
 // Endpoint público que retorna a lista de planos disponíveis.
 // O frontend usa essa função como fonte única para renderizar Pricing/Subscription.
 import { listPlans } from "../_shared/plans.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +15,15 @@ Deno.serve((req) => {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+
+  // Rate limiting por IP (100 req/window) para evitar abuso de endpoint público
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+             req.headers.get("x-real-ip") ||
+             "unknown";
+  const rateCheck = checkRateLimit(ip, 100, "ip");
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck.resetAt, corsHeaders, 100);
   }
 
   // Expõe apenas os campos relevantes ao cliente.
