@@ -173,7 +173,18 @@ const Landing = () => {
     <>
       <Helmet>
         <title>Kubo Web | Analytics Premium Enterprise</title>
-        <meta name="description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta name="description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar. Conecte Google Ads, Meta Ads, CRM e dados de receita em uma plataforma inteligente." />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/" />
+        <meta property="og:title" content="Kubo Web | Analytics Premium Enterprise" />
+        <meta property="og:description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta property="og:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
+        <meta property="og:locale" content="pt_BR" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Kubo Web | Analytics Premium Enterprise" />
+        <meta name="twitter:description" content="O hub central para agências e clientes. Toda a sua operação de performance em um único lugar." />
+        <meta name="twitter:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
       </Helmet>
       
       <PremiumStyles />
