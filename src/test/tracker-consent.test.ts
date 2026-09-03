@@ -20,13 +20,14 @@ const SOURCE_PATH = path.resolve(
   "supabase/functions/tracker-script/index.ts"
 );
 
-function extractScript(consentRequired: boolean): string {
+function extractScript(consentRequired: boolean, clarityProjectId = ""): string {
   const src = readFileSync(SOURCE_PATH, "utf-8");
   const match = src.match(/const script = `([\s\S]*)`;/);
   if (!match) throw new Error("Não foi possível extrair o script do tracker-script/index.ts");
   return match[1]
     .split("${pid}").join("test-project")
     .split("${trackUrl}").join("https://example.supabase.co/functions/v1/track")
+    .split("${JSON.stringify(clarityProjectId)}").join(JSON.stringify(clarityProjectId))
     .split("${JSON.stringify(BOT_UA_PATTERN.source)}").join(JSON.stringify("bot"))
     .split("${JSON.stringify(BOT_UA_ALLOWLIST.source)}").join(JSON.stringify("$^"))
     .split('${consentRequired ? "true" : "false"}').join(consentRequired ? "true" : "false");
@@ -34,7 +35,7 @@ function extractScript(consentRequired: boolean): string {
 
 const ORIGINAL_PUSH_STATE = history.pushState.bind(history);
 
-function loadTracker(consentRequired: boolean) {
+function loadTracker(consentRequired: boolean, clarityProjectId = "") {
   // Cada carregamento do tracker monkey-patcha history.pushState. Como o jsdom
   // compartilha `window`/`history` entre os testes do mesmo arquivo, restauramos
   // o pushState original antes de cada load para evitar acumular wrappers de
@@ -44,7 +45,10 @@ function loadTracker(consentRequired: boolean) {
   delete window.kuboweb;
   // @ts-expect-error
   delete window._kw;
-  const script = extractScript(consentRequired);
+  // @ts-expect-error - propriedade opcional injetada pela integração do Clarity
+  delete window.clarity;
+  document.querySelectorAll('script[src*="clarity.ms/tag/"]').forEach((node) => node.remove());
+  const script = extractScript(consentRequired, clarityProjectId);
   const fn = new Function(script);
   fn.call(window);
 }
@@ -156,6 +160,18 @@ describe("Consent API — modo estrito (opt-in obrigatório via ?consent=require
     expect(localStorage.getItem("_kwq")).toBeNull();
     // @ts-expect-error
     expect(window.kuboweb.hasConsent()).toBe("denied");
+  });
+
+  it("não carrega o Clarity antes do consentimento e carrega depois da autorização", () => {
+    loadTracker(true, "clarity-test-123");
+    expect(document.querySelector('script[src*="clarity.ms/tag/"]')).toBeNull();
+
+    // @ts-expect-error
+    window.kuboweb.consent(true);
+
+    const clarityScript = document.querySelector('script[src*="clarity.ms/tag/"]');
+    expect(clarityScript).not.toBeNull();
+    expect(clarityScript?.getAttribute("src")).toContain("clarity-test-123");
   });
 });
 

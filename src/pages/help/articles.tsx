@@ -53,7 +53,7 @@ export const ARTICLE_COMPONENTS: Record<string, React.FC> = {
   </Article>,
 
   "goals": () => <Article>
-    <p>Metas e Funis mostra a passagem de visitantes por etapas de interesse e conversão.</p><Section title="O que existe hoje"><Checklist><Check>Visitantes e visualizações vêm do rastreamento.</Check><Check>WhatsApp, formulários e botões dependem dos eventos recebidos.</Check><Check>O funil ajuda a localizar a etapa com maior perda.</Check></Checklist></Section><Note warning>“Checkout” e “Vendas” são estimativas baseadas nos leads (40% e 10%). Não representam pedidos ou pagamentos confirmados. A criação de novas metas ainda aparece como “Em breve”.</Note>
+    <p>Metas e Funis mostra a passagem de visitantes por etapas de interesse e conversão, sempre no projeto selecionado.</p><Section title="O que você pode fazer"><Checklist><Check>Definir metas mensais de visitantes, leads e valor estimado.</Check><Check>Editar o mês atual e consultar metas recentes.</Check><Check>Acompanhar WhatsApp, formulários e botões a partir dos eventos recebidos.</Check><Check>Usar o funil para localizar a etapa com maior perda.</Check></Checklist></Section><Note warning>O último estágio é “Leads identificados”. O Kubo não apresenta vendas ou pagamentos simulados como conversões reais.</Note>
   </Article>,
 
   "events": () => <Article>
@@ -73,7 +73,7 @@ export const ARTICLE_COMPONENTS: Record<string, React.FC> = {
   </Article>,
 
   "billing-plans": () => <Article>
-    <Section title="Gratuito"><p>1 projeto e histórico de 7 dias. IA, Live, Comparar, Apresentação, PDF/CSV, alertas, anotações, metas e heatmaps ficam bloqueados.</p></Section><Section title="Pro"><p>Projetos ilimitados, histórico de 365 dias, até 10 análises de IA por mês e acesso aos recursos avançados.</p></Section><Section title="Cobrança e cancelamento"><p>A assinatura é processada pelo Mercado Pago. A tela de Assinatura mostra o plano atual. Ao cancelar, o acesso permanece até o fim do período já pago.</p></Section><Note>Os limites efetivos exibidos na tela de Assinatura são a referência para sua organização.</Note>
+    <Section title="Gratuito"><p>1 projeto e histórico de 7 dias. IA, Live, Comparar, Apresentação, PDF/CSV, alertas por e-mail, anotações, metas e heatmaps ficam bloqueados. Os alertas dentro do painel continuam disponíveis.</p></Section><Section title="Pro"><p>Projetos ilimitados, histórico de 365 dias, até 10 análises de IA por mês e acesso aos recursos avançados.</p></Section><Section title="Cobrança e cancelamento"><p>A assinatura é processada pelo Mercado Pago. A tela de Assinatura mostra o plano atual. Ao cancelar, o acesso permanece até o fim do período já pago.</p></Section><Note>Os limites efetivos exibidos na tela de Assinatura são a referência para sua organização.</Note>
   </Article>,
 
   "faq": () => <Article>
