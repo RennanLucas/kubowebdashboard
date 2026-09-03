@@ -1,5 +1,7 @@
 .driver-popover.kubo-product-tour {
-  position: relative;
+  /* Keep driver.js viewport positioning. Relative positioning makes the
+     popover drift with the document after the library calculates its coords. */
+  position: fixed;
   isolation: isolate;
   width: min(410px, calc(100vw - 28px));
   max-width: 410px;
