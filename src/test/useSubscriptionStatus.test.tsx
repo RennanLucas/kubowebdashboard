@@ -20,6 +20,7 @@ interface FakeChannel {
 
 const state = vi.hoisted(() => ({
   auth: { user: { id: "u1" } as { id: string } | null, loading: false },
+  organization: { activeOrganization: { id: "11111111-1111-4111-8111-111111111111" }, loading: false },
   invokes: [] as { fn: string; opts: unknown }[],
   result: {
     data: null as unknown,
@@ -61,6 +62,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => state.auth }));
+vi.mock("@/contexts/OrganizationContext", () => ({ useOrganization: () => state.organization }));
 
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import type { SubscriptionStatus } from "@/hooks/useSubscriptionStatus";
@@ -99,6 +101,7 @@ const render = (enabled?: boolean) => renderHook(() => useSubscriptionStatus(ena
 
 beforeEach(() => {
   state.auth = { user: { id: "u1" }, loading: false };
+  state.organization = { activeOrganization: { id: "11111111-1111-4111-8111-111111111111" }, loading: false };
   state.invokes = [];
   state.channels = [];
   state.removed = [];
@@ -140,7 +143,10 @@ describe("useSubscriptionStatus happy path", () => {
 
     expect(state.invokes).toHaveLength(1);
     expect(state.invokes[0].fn).toBe("get-subscription-status");
-    expect(state.invokes[0].opts).toEqual({ method: "GET" });
+    expect(state.invokes[0].opts).toEqual({
+      method: "GET",
+      headers: { "X-Organization-Id": "11111111-1111-4111-8111-111111111111" },
+    });
     expect(result.current.status?.isActive).toBe(true);
     expect(result.current.status?.subscription?.id).toBe("sub1");
     expect(result.current.error).toBeNull();
@@ -220,7 +226,7 @@ describe("useSubscriptionStatus failure path", () => {
 });
 
 describe("useSubscriptionStatus realtime", () => {
-  it("watches only this user's subscription rows and detaches on unmount", async () => {
+  it("watches only the active organization's subscription rows and detaches on unmount", async () => {
     const { result, unmount } = render();
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -234,7 +240,7 @@ describe("useSubscriptionStatus realtime", () => {
       table: "subscriptions",
       // Tenant isolation: without this filter every client would wake up on
       // every other client's billing change.
-      filter: "user_id=eq.u1",
+      filter: "organization_id=eq.11111111-1111-4111-8111-111111111111",
     });
 
     unmount();
@@ -262,10 +268,14 @@ describe("useSubscriptionStatus realtime", () => {
     await waitFor(() => expect(b.result.current.loading).toBe(false));
 
     // Supabase keys channels by topic, so two mounts sharing a name would
-    // leave the second one deaf. Both names must still be scoped to the user.
+    // leave the second one deaf. Both names must still be scoped to the org.
     expect(state.channels).toHaveLength(2);
     expect(state.channels[0].name).not.toBe(state.channels[1].name);
-    expect(state.channels.every((c) => c.name.startsWith("sub-status-u1-"))).toBe(true);
+    expect(
+      state.channels.every((c) =>
+        c.name.startsWith("sub-status-11111111-1111-4111-8111-111111111111-"),
+      ),
+    ).toBe(true);
 
     a.unmount();
     b.unmount();

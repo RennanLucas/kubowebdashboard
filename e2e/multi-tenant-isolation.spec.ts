@@ -49,6 +49,13 @@ const hasCredentials =
   !!USER_B.email &&
   !!USER_B.password;
 
+if (process.env.CI && !hasCredentials) {
+  throw new Error(
+    "E2E multi-tenant obrigatório: configure VITE_SUPABASE_URL, " +
+      "VITE_SUPABASE_PUBLISHABLE_KEY e E2E_USER_A_*/E2E_USER_B_* no CI.",
+  );
+}
+
 const ANALYTICS_TABLES = [
   "analytics_daily_overview",
   "analytics_daily_pages",
@@ -73,12 +80,6 @@ async function signInClient(creds: { email: string; password: string }): Promise
 }
 
 test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
-  test.skip(
-    !hasCredentials,
-    "NÃO TESTADO — requer staging com 2 usuários reais (E2E_USER_A_*/E2E_USER_B_* + anon key). " +
-      "Rode supabase/e2e_phase3_5_setup.sql e exporte as variáveis. Sem isso não classificamos como aprovado por teste."
-  );
-
   let clientA: SupabaseClient;
   let clientB: SupabaseClient;
 
@@ -136,6 +137,21 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
     expect(bReadsA.data ?? [], "B não pode ver subscription de A").toHaveLength(0);
   });
 
+  test("get-subscription-status: A NÃO consulta a assinatura da Org B", async ({ request }) => {
+    const { data: sessionA } = await clientA.auth.getSession();
+    const tokenA = sessionA.session?.access_token;
+    expect(tokenA).toBeTruthy();
+
+    const response = await request.get(`${SUPABASE_URL}/functions/v1/get-subscription-status`, {
+      headers: {
+        Authorization: `Bearer ${tokenA}`,
+        apikey: ANON_KEY,
+        "X-Organization-Id": ORG_B_ID,
+      },
+    });
+    expect(response.status(), "membership cross-org deve negar acesso").toBe(403);
+  });
+
   test("subscriptions: A NÃO consegue escrever/alterar assinatura (nenhuma policy de write)", async () => {
     const update = await clientA
       .from("subscriptions")
@@ -164,22 +180,20 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
   });
 
   // ---- PRIVILEGE ESCALATION ---------------------------------------------
-  test("RBAC: A NÃO consegue elevar o próprio role para owner/admin", async () => {
+  test("RBAC: A NÃO consegue alterar o próprio role", async () => {
     // Descobre a própria membership
     const { data: me } = await clientA.from("organization_members").select("id, role").limit(1);
     const row = (me ?? [])[0];
-    test.skip(!row, "sem membership visível para A — setup incompleto");
+    expect(row, "membership de A deve existir — setup incompleto").toBeTruthy();
 
     const attempt = await clientA
       .from("organization_members")
-      .update({ role: "owner" })
+      .update({ role: "member" })
       .eq("id", row!.id)
       .select();
-    // Trigger check_member_rbac deve barrar auto-elevação (erro) ou RLS retorna 0 linhas.
-    const escalated = (attempt.data ?? []).some(
-      (r: { role: string }) => r.role === "owner" && row!.role !== "owner"
-    );
-    expect(escalated, "A não pode se auto-promover a owner").toBe(false);
+    // Trigger check_member_rbac deve barrar qualquer mudança do próprio role.
+    const changed = (attempt.data ?? []).some((r: { role: string }) => r.role === "member");
+    expect(changed, "A não pode alterar o próprio role").toBe(false);
   });
 
   test("RBAC: A NÃO consegue inserir membro na Org B", async () => {

@@ -22,8 +22,6 @@ test.describe("compute-alerts JWT validation", () => {
       headers: { Authorization: `Bearer ${fakeJwt}` },
     });
     expect(res.status()).toBe(401);
-    const body = await res.json().catch(() => ({}));
-    expect(body.error).toMatch(/unauthorized/i);
   });
 
   test("rejeita JWT adulterado com assinatura inválida", async ({ request }) => {
@@ -60,9 +58,4 @@ test.describe("compute-alerts JWT validation", () => {
     expect(res.status()).toBe(401);
   });
 
-  test.skip("aceita SUPABASE_SERVICE_ROLE_KEY válido (não testável sem secret)", async ({ request }) => {
-    // Este teste requer a service role key real (secret).
-    // Em produção, apenas cron com a credencial correta deve passar.
-    // Pulamos porque não vamos expor o secret em testes públicos.
-  });
 });

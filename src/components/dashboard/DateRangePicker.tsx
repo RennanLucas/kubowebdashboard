@@ -66,7 +66,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 text-xs h-9 rounded-lg shadow-sm hover:shadow transition-all duration-150">
+        <Button data-testid="date-range-picker" variant="outline" size="sm" className="gap-2 text-xs h-9 rounded-lg shadow-sm hover:shadow transition-all duration-150">
           <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="font-medium">{currentLabel}</span>
           <ChevronDown className="h-3 w-3 opacity-60" />
