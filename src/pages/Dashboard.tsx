@@ -315,7 +315,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   return (
     <AppLayout>
       <Helmet>
-        <title>Dashboard â€” KUBOWEB</title>
+        <title>Dashboard — KUBOWEB</title>
         <meta name="description" content="Acompanhe visitantes, leads e métricas do seu site em tempo real." />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/dashboard" />
       </Helmet>

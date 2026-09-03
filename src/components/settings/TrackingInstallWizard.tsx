@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import TrackingSnippet from "@/components/TrackingSnippet";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 type Platform = "wordpress" | "shopify" | "wix" | "gtm" | "html" | "other" | null;
 
@@ -29,6 +30,7 @@ export function TrackingInstallWizard({
   defaultOpen = false,
   onOpenChange
 }: TrackingInstallWizardProps) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(defaultOpen);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [platform, setPlatform] = useState<Platform>(null);
@@ -41,11 +43,13 @@ export function TrackingInstallWizard({
 
   // Aborta o polling quando o usuário fecha o wizard ou o componente desmonta.
   const cancelRef = useRef(false);
+  const previousDefaultOpenRef = useRef(defaultOpen);
 
   // Sync with defaultOpen
   useEffect(() => {
-    if (defaultOpen !== open) {
+    if (defaultOpen !== previousDefaultOpenRef.current) {
       setOpen(defaultOpen);
+      previousDefaultOpenRef.current = defaultOpen;
     }
   }, [defaultOpen]);
 
@@ -465,7 +469,10 @@ export function TrackingInstallWizard({
                 <Button 
                   size="lg" 
                   className="w-full text-base h-12"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    handleOpenChange(false);
+                    navigate("/dashboard");
+                  }}
                 >
                   Ir para Dashboard
                 </Button>

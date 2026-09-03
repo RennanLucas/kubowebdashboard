@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -21,16 +21,18 @@ import MembersList from "@/components/settings/MembersList";
 import InvitesManager from "@/components/settings/InvitesManager";
 
 export default function Settings() {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { activeOrganization, currentRole, loading: orgLoading, setOrganization } = useOrganization();
+  const { activeOrganization, currentRole, loading: orgLoading } = useOrganization();
   const { subscription, loading: subLoading } = useSubscription();
 
   const [saving, setSaving] = useState(false);
   const [orgName, setOrgName] = useState("");
   const [orgDomain, setOrgDomain] = useState("");
   const [leadValue, setLeadValue] = useState("25");
+  const requestedTab = searchParams.get("tab");
+  const activeTab = ["general", "members", "invites", "billing"].includes(requestedTab || "") ? requestedTab! : "general";
 
   useEffect(() => {
     if (activeOrganization) {
@@ -94,7 +96,12 @@ export default function Settings() {
           <p className="text-sm text-muted-foreground">Gerencie a organização e acessos.</p>
         </div>
 
-        <Tabs defaultValue="general" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(tab) => {
+          const next = new URLSearchParams(searchParams);
+          next.set("tab", tab);
+          if (tab !== "general") next.delete("action");
+          setSearchParams(next, { replace: true });
+        }} className="space-y-6">
           <TabsList className="bg-muted/50 border border-border/50 p-1 rounded-lg">
             <TabsTrigger value="general" className="rounded-md">Geral</TabsTrigger>
             <TabsTrigger value="members" className="rounded-md">Membros</TabsTrigger>
@@ -154,7 +161,7 @@ export default function Settings() {
             </div>
 
             {/* Projetos da Organização */}
-            {activeOrganization && <ProjectsManager organizationId={activeOrganization.id} />}
+            {activeOrganization && <ProjectsManager organizationId={activeOrganization.id} openInstallation={searchParams.get("action") === "install"} />}
           </TabsContent>
 
           <TabsContent value="members" className="space-y-6 animate-in fade-in-50">
