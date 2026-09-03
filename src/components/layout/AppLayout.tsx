@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Search } from "lucide-react";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
@@ -14,6 +14,7 @@ import { useAlertsCount } from "@/hooks/useAlertsCount";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { hasCompletedTour, startProductTour } from "@/lib/product-tour";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -123,14 +124,16 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Auto-start tour on first visit to dashboard
   useEffect(() => {
-    if (location.pathname === "/dashboard" && !hasCompletedTour()) {
-      const t = setTimeout(() => startProductTour(), 800);
+    if (location.pathname === "/dashboard" && user?.id && !hasCompletedTour(user.id)) {
+      const t = setTimeout(() => startProductTour({ userId: user.id, navigate }), 800);
       return () => clearTimeout(t);
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigate, user?.id]);
 
   return (
     <SidebarProvider>

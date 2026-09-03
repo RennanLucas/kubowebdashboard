@@ -1,0 +1,320 @@
+.driver-popover.kubo-product-tour {
+  position: relative;
+  isolation: isolate;
+  width: min(410px, calc(100vw - 28px));
+  max-width: 410px;
+  padding: 0;
+  overflow: hidden;
+  color: hsl(var(--popover-foreground));
+  background:
+    radial-gradient(circle at 96% 2%, hsl(var(--primary-glow, var(--primary)) / 0.16), transparent 38%),
+    linear-gradient(145deg, hsl(var(--popover) / 0.99), hsl(var(--popover) / 0.94));
+  border: 1px solid hsl(var(--primary) / 0.2);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 0 hsl(var(--foreground) / 0.08) inset,
+    0 -1px 0 hsl(var(--background) / 0.6) inset,
+    0 10px 0 -7px hsl(var(--primary) / 0.2),
+    0 28px 70px -18px rgb(2 8 23 / 0.72),
+    0 12px 28px -12px hsl(var(--primary) / 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.driver-popover.kubo-product-tour::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary-glow, var(--primary)) / 0.8), transparent);
+  content: "";
+}
+
+.driver-popover.kubo-product-tour::after {
+  position: absolute;
+  z-index: -1;
+  top: -90px;
+  right: -76px;
+  width: 190px;
+  height: 190px;
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 999px;
+  filter: blur(34px);
+  pointer-events: none;
+  content: "";
+}
+
+.kubo-product-tour .kubo-tour-progress {
+  height: 3px;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+
+.kubo-product-tour .kubo-tour-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow, var(--primary))));
+  transition: width 300ms ease;
+}
+
+.kubo-product-tour .driver-popover-title {
+  padding: 22px 24px 0;
+  color: hsl(var(--foreground));
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+.kubo-product-tour .driver-popover-description {
+  position: relative;
+  z-index: 1;
+  padding: 12px 24px 20px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  line-height: 1.62;
+  perspective: 800px;
+}
+
+.kubo-product-tour .driver-popover-description p { margin: 0 0 10px; }
+.kubo-product-tour .driver-popover-description p:last-child { margin-bottom: 0; }
+
+.kubo-product-tour .kubo-tour-eyebrow {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.18);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kubo-product-tour .kubo-tour-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 12px;
+}
+
+.kubo-product-tour .kubo-tour-summary span {
+  display: flex;
+  flex-direction: column;
+  padding: 11px 12px;
+  color: hsl(var(--muted-foreground));
+  background: linear-gradient(145deg, hsl(var(--muted) / 0.68), hsl(var(--background) / 0.36));
+  border: 1px solid hsl(var(--foreground) / 0.08);
+  border-radius: 11px;
+  box-shadow:
+    inset 0 1px 0 hsl(var(--foreground) / 0.06),
+    0 7px 14px -10px rgb(2 8 23 / 0.8),
+    0 2px 0 -1px hsl(var(--primary) / 0.22);
+  font-size: 11px;
+  transform: translateZ(0);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+@media (hover: hover) {
+  .kubo-product-tour .kubo-tour-summary span:hover {
+    border-color: hsl(var(--primary) / 0.26);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.09),
+      0 12px 22px -13px hsl(var(--primary) / 0.42),
+      0 3px 0 -1px hsl(var(--primary) / 0.3);
+    transform: translateY(-2px) rotateX(1.5deg);
+  }
+}
+
+.kubo-product-tour .kubo-tour-summary b {
+  color: hsl(var(--foreground));
+  font-size: 14px;
+}
+
+.kubo-product-tour .kubo-tour-list {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kubo-product-tour .kubo-tour-list li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.kubo-product-tour .kubo-tour-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: hsl(var(--primary));
+  font-weight: 800;
+}
+
+.kubo-product-tour .kubo-tour-tip {
+  margin-top: 12px !important;
+  padding: 10px 12px;
+  color: hsl(var(--foreground) / 0.78);
+  background: linear-gradient(110deg, hsl(var(--primary) / 0.11), hsl(var(--primary) / 0.04));
+  border-left: 2px solid hsl(var(--primary));
+  border-radius: 0 9px 9px 0;
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.04), 0 8px 18px -15px hsl(var(--primary) / 0.5);
+  font-size: 11px;
+}
+
+.kubo-product-tour .kubo-tour-checklist {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 18px;
+}
+
+.kubo-product-tour .kubo-tour-checklist span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: hsl(var(--foreground));
+  padding: 8px 10px;
+  background: linear-gradient(145deg, hsl(var(--muted) / 0.38), hsl(var(--background) / 0.2));
+  border: 1px solid hsl(var(--border) / 0.58);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.04), 0 7px 16px -14px rgb(2 8 23 / 0.9);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kubo-product-tour .kubo-tour-checklist i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 7px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.kubo-product-tour .kubo-tour-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kubo-product-tour .kubo-tour-actions button {
+  min-height: 38px;
+  padding: 8px 10px;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.18), 0 8px 16px -10px hsl(var(--primary) / 0.72);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.kubo-product-tour .kubo-tour-actions button:last-child {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.06), 0 8px 16px -13px rgb(2 8 23 / 0.8);
+}
+
+.kubo-product-tour .kubo-tour-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.2), 0 12px 22px -11px hsl(var(--primary) / 0.55);
+}
+
+.kubo-product-tour .driver-popover-footer {
+  min-height: 62px;
+  margin: 0;
+  padding: 13px 16px 14px 24px;
+  background: hsl(var(--muted) / 0.32);
+  border-top: 1px solid hsl(var(--border) / 0.7);
+}
+
+.kubo-product-tour .driver-popover-progress-text {
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kubo-product-tour .driver-popover-navigation-btns { gap: 7px; }
+
+.kubo-product-tour .driver-popover-prev-btn,
+.kubo-product-tour .driver-popover-next-btn {
+  min-height: 34px;
+  padding: 7px 13px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.06), 0 5px 12px -10px rgb(2 8 23 / 0.9);
+  text-shadow: none;
+}
+
+.kubo-product-tour .driver-popover-next-btn {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.2), 0 8px 18px -10px hsl(var(--primary) / 0.8);
+}
+
+.kubo-product-tour .driver-popover-prev-btn:hover,
+.kubo-product-tour .driver-popover-next-btn:hover { filter: brightness(1.04); }
+
+.kubo-product-tour .driver-popover-close-btn {
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.55);
+  border-radius: 8px;
+  font-size: 20px;
+}
+
+@media (max-width: 520px) {
+  .driver-popover.kubo-product-tour {
+    max-height: min(78vh, 620px);
+    overflow-y: auto;
+    border-radius: 15px;
+  }
+
+  .kubo-product-tour .driver-popover-title {
+    padding: 19px 18px 0;
+    font-size: 16px;
+  }
+
+  .kubo-product-tour .driver-popover-description { padding: 10px 18px 16px; }
+  .kubo-product-tour .kubo-tour-actions { grid-template-columns: 1fr; }
+  .kubo-product-tour .driver-popover-footer { padding-left: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kubo-product-tour *,
+  .kubo-product-tour *::before,
+  .kubo-product-tour *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

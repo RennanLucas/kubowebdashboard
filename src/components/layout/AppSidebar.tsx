@@ -32,20 +32,20 @@ const mainItems: {
 }[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, tour: "sidebar-dashboard" },
   { title: "Live", url: "/live", icon: Activity, tour: "sidebar-live", feature: "live" },
-  { title: "Metas e Funis", url: "/goals", icon: Target, feature: "goals" },
-  { title: "Heatmaps", url: "/heatmaps", icon: Flame, feature: "heatmap" },
+  { title: "Metas e Funis", url: "/goals", icon: Target, tour: "sidebar-goals", feature: "goals" },
+  { title: "Heatmaps", url: "/heatmaps", icon: Flame, tour: "sidebar-heatmaps", feature: "heatmap" },
   { title: "IA / Insights", url: "/insights", icon: Sparkles, tour: "sidebar-insights", feature: "ai_insights" },
   { title: "Alertas", url: "/alerts", icon: Bell, tour: "sidebar-alerts" },
   { title: "Comparar", url: "/compare", icon: GitCompare, tour: "sidebar-compare", feature: "compare" },
-  { title: "Relatórios", url: "/reports", icon: FileText, feature: "pdf_report" },
+  { title: "Relatórios", url: "/reports", icon: FileText, tour: "sidebar-reports", feature: "pdf_report" },
   { title: "Apresentação", url: "/presentation", icon: Maximize2, tour: "sidebar-presentation", feature: "presentation" },
 ];
 
 const accountItems = [
   { title: "Configurações", url: "/settings", icon: Settings, tour: "sidebar-settings" },
   { title: "Assinatura", url: "/subscription", icon: CreditCard, tour: "sidebar-pricing" },
-  { title: "Instalar app", url: "/install", icon: Download },
-  { title: "Ajuda", url: "/help", icon: HelpCircle },
+  { title: "Instalar app", url: "/install", icon: Download, tour: "sidebar-install" },
+  { title: "Ajuda", url: "/help", icon: HelpCircle, tour: "sidebar-help" },
   { title: "Feedback & Melhorias", url: "/feedback", icon: Lightbulb },
 ];
 
