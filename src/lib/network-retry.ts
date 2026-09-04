@@ -1,5 +1,7 @@
 const TRANSIENT_NETWORK_ERROR =
-  /failed to fetch|failed to send a request|network request failed|fetch failed|load failed|networkerror/i;
+  /failed to fetch|failed to send a request|network request failed|fetch failed|load failed|networkerror|timed out|timeout/i;
+
+export const EDGE_REQUEST_TIMEOUT_MS = 8_000;
 
 export const isTransientNetworkError = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error ?? "");
@@ -30,6 +32,26 @@ export async function withTransientNetworkRetry<T>(
   }
 
   throw lastError;
+}
+
+/** Ensure a browser request settles instead of leaving the UI in a permanent skeleton. */
+export async function withRequestTimeout<T>(
+  operation: (signal: AbortSignal) => Promise<T>,
+  timeoutMs = EDGE_REQUEST_TIMEOUT_MS,
+): Promise<T> {
+  const controller = new AbortController();
+  let timeoutId: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      controller.abort();
+      reject(new Error("Request timed out"));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([operation(controller.signal), timeout]);
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
 }
 
 export const toCustomerNetworkMessage = (error: unknown, fallback: string) =>

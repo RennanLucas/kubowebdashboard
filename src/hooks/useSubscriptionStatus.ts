@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { toCustomerNetworkMessage, withTransientNetworkRetry } from "@/lib/network-retry";
+import {
+  EDGE_REQUEST_TIMEOUT_MS,
+  toCustomerNetworkMessage,
+  withTransientNetworkRetry,
+} from "@/lib/network-retry";
 
 export interface SubscriptionStatusPlan {
   id: string;
@@ -63,7 +67,11 @@ export function useSubscriptionStatus(enabled = true) {
       const data = await withTransientNetworkRetry(async () => {
         const { data: responseData, error: fnError } = await supabase.functions.invoke(
           "get-subscription-status",
-          { method: "GET", headers: { "X-Organization-Id": organizationId } },
+          {
+            method: "GET",
+            headers: { "X-Organization-Id": organizationId },
+            timeout: EDGE_REQUEST_TIMEOUT_MS,
+          },
         );
         if (fnError) throw new Error(fnError.message);
         if ((responseData as any)?.error) throw new Error((responseData as any).error);
