@@ -90,7 +90,7 @@ const Presentation = () => {
       <Helmet>
         <title>Apresentação — KUBOWEB</title>
         <meta name="description" content="Modo apresentação do dashboard KUBOWEB para telas e reuniões." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/presentation" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/presentation" />
       </Helmet>
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
@@ -103,10 +103,10 @@ const Presentation = () => {
             <RefreshCw className="h-4 w-4 animate-spin" style={{ animationDuration: "3s" }} />
             <span className="font-mono">Atualiza em {secondsLeft}s</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={enterFullscreen} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={enterFullscreen} className="text-white hover:bg-white/10" aria-label="Entrar em tela cheia" title="Tela cheia">
             <Maximize2 className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="text-white hover:bg-white/10" aria-label="Sair da apresentação" title="Sair">
             <X className="h-5 w-5" />
           </Button>
         </div>

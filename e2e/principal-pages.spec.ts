@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 
 const principalPages = [
-  { path: "/dashboard", title: /Dashboard/i },
-  { path: "/live", title: /Visitantes ao vivo/i },
-  { path: "/goals", title: /Metas e Funis/i },
-  { path: "/heatmaps", title: /Heatmaps e Gravações/i },
-  { path: "/insights", title: /Insights com IA/i },
-  { path: "/alerts", title: /Alertas/i },
-  { path: "/compare", title: /Comparar projetos/i },
-  { path: "/reports", title: /Relatórios White-label/i },
-  { path: "/presentation", title: /Apresentação/i },
+  { path: "/dashboard", title: /Dashboard/i, marker: /Analytics/i },
+  { path: "/live", title: /Visitantes ao vivo/i, marker: /Stream de visitantes/i },
+  { path: "/goals", title: /Metas e Funis/i, marker: /Definir meta/i },
+  { path: "/heatmaps", title: /Heatmaps e Gravações/i, marker: /Conectar Microsoft Clarity|Alterar integração/i },
+  { path: "/insights", title: /Insights com IA/i, marker: /Gerar.*insight|Atualizar.*insight|Análise inteligente/i },
+  { path: "/alerts", title: /Alertas/i, marker: /Alertas e Notificações/i },
+  { path: "/compare", title: /Comparar projetos/i, marker: /Comparar Projetos/i },
+  { path: "/reports", title: /Relatórios profissionais/i, marker: /Relatório executivo/i },
+  { path: "/presentation", title: /Apresentação/i, marker: /Modo Apresentação/i },
 ];
 
 test.describe("Principal pages - real authenticated Pro tenant", () => {
@@ -37,6 +37,7 @@ test.describe("Principal pages - real authenticated Pro tenant", () => {
       await page.goto(item.path);
       await expect(page).toHaveURL(new RegExp(`${item.path}$`));
       await expect(page).toHaveTitle(item.title);
+      await expect(page.getByText(item.marker).first()).toBeVisible();
       await expect(page.locator("body")).not.toContainText(/Something went wrong|Erro inesperado/i);
       expect(runtimeErrors).toEqual([]);
       expect(serverErrors).toEqual([]);

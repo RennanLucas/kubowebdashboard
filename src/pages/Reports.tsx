@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Upload, BarChart3, Users, Printer, AlertCircle, Loader2 } from "lucide-react";
+import { FileText, Upload, BarChart3, Users, Printer, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
@@ -26,6 +26,11 @@ const Reports = () => {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
+        toast.error("Escolha uma imagem de até 2 MB.");
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -62,29 +67,28 @@ const Reports = () => {
   return (
       <AppLayout>
         <Helmet>
-          <title>Relatórios White-label - KUBOWEB</title>
+          <title>Relatórios profissionais — KUBOWEB</title>
+          <meta name="description" content="Crie relatórios executivos com dados reais e a identidade visual do cliente." />
+          <link rel="canonical" href="https://kubowebdashboard.vercel.app/reports" />
         </Helmet>
         <div className="p-4 sm:p-6 max-w-[1200px] mx-auto space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="page-title flex items-center gap-2">
-                <FileText className="h-6 w-6 text-primary" />
-                Relatórios Profissionais
-              </h1>
-              <p className="page-subtitle">Gere relatórios de desempenho personalizados com a sua marca.</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2 print:hidden" disabled={!realStats}>
-                <label className="cursor-pointer flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Sua Logo
-                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={!realStats} />
-                </label>
-              </Button>
-              <Button onClick={handlePrint} className="gap-2 print:hidden shadow-md" disabled={!realStats}>
-                <Printer className="h-4 w-4" />
-                Imprimir / PDF
-              </Button>
+          <div className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-6 text-white shadow-xl sm:p-8">
+            <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(59,130,246,.3),transparent_65%)]" />
+            <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+              <div>
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-blue-200"><ShieldCheck className="h-3.5 w-3.5" />Documento executivo com dados reais</div>
+                <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight"><FileText className="h-8 w-8 text-blue-400" />Relatórios profissionais</h1>
+                <p className="mt-2 text-sm text-white/65">Prepare uma visão clara do desempenho com a identidade do cliente.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white print:hidden" disabled={!realStats}>
+                  <label className="cursor-pointer flex items-center gap-2">
+                    <Upload className="h-4 w-4" />Sua Logo
+                    <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={!realStats} />
+                  </label>
+                </Button>
+                <Button onClick={handlePrint} className="gap-2 bg-blue-500 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-600 print:hidden" disabled={!realStats}><Printer className="h-4 w-4" />Imprimir / PDF</Button>
+              </div>
             </div>
           </div>
 
@@ -122,7 +126,7 @@ const Reports = () => {
               </div>
 
               {/* Real Report Content */}
-              <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                 <div className="p-5 bg-gray-50 rounded-lg border">
                   <div className="flex items-center gap-2 text-gray-500 mb-2">
                     <Users className="h-4 w-4" />

@@ -1,10 +1,11 @@
 import { BOT_UA_ALLOWLIST, BOT_UA_PATTERN } from "../track/_ingest.ts";
 import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/javascript",
-  "Cache-Control": "public, max-age=3600",
+  "Cache-Control": "public, max-age=60",
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,6 +48,16 @@ Deno.serve(async (req) => {
 
   const trackUrl = `https://${supabaseProjectId}.supabase.co/functions/v1/track`;
 
+  let clarityProjectId = "";
+  try {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data } = await admin.from("projects").select("clarity_project_id").eq("id", pid).maybeSingle();
+    const candidate = data?.clarity_project_id || "";
+    if (/^[A-Za-z0-9_-]{5,64}$/.test(candidate)) clarityProjectId = candidate;
+  } catch {
+    // Tracking remains available if the optional integration lookup fails.
+  }
+
   const script = `(function(){
   var pid="${pid}";
   if(!pid)return;
@@ -62,6 +73,17 @@ Deno.serve(async (req) => {
   var u="${trackUrl}";
   var CONSENT_REQUIRED=${consentRequired ? "true" : "false"};
   var CONSENT_KEY="_kwc";
+  var CLARITY_ID=${JSON.stringify(clarityProjectId)};
+  var clarityLoaded=false;
+
+  function loadClarity(){
+    if(!CLARITY_ID||clarityLoaded||!canCollect())return;
+    clarityLoaded=true;
+    window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments);};
+    var s=document.createElement("script");s.async=true;s.src="https://www.clarity.ms/tag/"+encodeURIComponent(CLARITY_ID);
+    var first=document.getElementsByTagName("script")[0];
+    if(first&&first.parentNode)first.parentNode.insertBefore(s,first);else document.head.appendChild(s);
+  }
 
   // ── Consent API (LGPD) ──────────────────────────────────────────────
   // getConsent(): "granted" | "denied" | null (sem decisão registrada)
@@ -184,7 +206,7 @@ Deno.serve(async (req) => {
     send({type:"event",pid:pid,path:location.pathname,sid:sid,event_type:evType,event_label:label||"",metadata:meta||{}});
   }
 
-  if(canCollect())t();
+  if(canCollect()){t();loadClarity();}
   var pushState=history.pushState;
   history.pushState=function(){pushState.apply(history,arguments);t();};
   window.addEventListener("popstate",function(){t();});
@@ -215,9 +237,11 @@ Deno.serve(async (req) => {
       var wasBlocked=!canCollect();
       setConsent("granted");
       if(wasBlocked)t(); // dispara o pageview inicial agora que há consentimento
+      loadClarity();
     }else{
       setConsent("denied");
       purgeLocalData();
+      try{if(window.clarity)window.clarity("consent",false);}catch(e){}
     }
   };
   window.kuboweb.hasConsent=function(){return getConsent();};

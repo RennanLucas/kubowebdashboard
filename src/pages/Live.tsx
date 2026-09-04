@@ -8,19 +8,17 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Navigate } from "react-router-dom";
 import { FeatureLock } from "@/components/FeatureLock";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 
 export default function Live() {
-  // Use the globally selected project ID
-  const projectId = localStorage.getItem("selectedProjectId");
-  const { data, error } = useDashboardAnalytics(1, projectId || undefined);
+  const { selectedProjectId } = useSelectedProject();
+  const { data, error } = useDashboardAnalytics(1, selectedProjectId);
+  const projectId = selectedProjectId || data?.client?.project?.id || null;
   const { visitors, loading } = useLiveFeed(projectId, 100);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
   }
-
-  // Find the selected project name if we need it for display
-  const projectName = data?.client?.company_name || "Projeto";
 
   // Aggregate stats from current feed
   const uniqueCountries = new Set(visitors.map((v) => v.country).filter(Boolean)).size;
@@ -32,19 +30,13 @@ export default function Live() {
       <Helmet>
         <title>Visitantes ao vivo — KUBOWEB</title>
         <meta name="description" content="Acompanhe os visitantes ativos no seu site em tempo real." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/live" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/live" />
       </Helmet>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-success" />
-          </span>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Live Feed</h1>
-            <p className="text-sm text-muted-foreground">Visitantes em tempo real nos últimos 30 minutos</p>
+        <div className="relative mb-6 overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-r from-slate-950 via-cyan-950 to-slate-950 p-6 text-white shadow-xl sm:p-8">
+          <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,#22d3ee_0,transparent_35%),radial-gradient(circle_at_80%_70%,#10b981_0,transparent_30%)]" />
+          <div className="relative flex items-center gap-4"><span className="relative flex h-4 w-4"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-400" /></span><div><div className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300">Sinal ativo · projeto isolado</div><h1 className="mt-1 text-3xl font-bold tracking-tight">Live Feed</h1><p className="mt-1 text-sm text-white/65">Visitantes recebidos nos últimos 30 minutos, atualizados em tempo real</p></div></div>
           </div>
-        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">

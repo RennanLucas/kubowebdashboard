@@ -167,7 +167,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     const out: Array<{ type: "growth" | "drop" | "info" | "warning"; title: string; message: string }> = [];
     if (totalVisitors > 0) {
       if (avgConversion > 3) {
-        out.push({ type: "growth", title: "Conversão Forte", message: `Sua taxa de conversão de ${avgConversion}% está acima da média do mercado de 2,5%.` });
+        out.push({ type: "growth", title: "Conversão em destaque", message: `Sua taxa de conversão chegou a ${avgConversion}% neste período. Compare com o período anterior para confirmar a tendência.` });
       }
       if (trafficSources && trafficSources.length > 0) {
         out.push({ type: "info", title: "Canal Principal", message: `${trafficSources[0].source} é o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do tráfego.` });
@@ -317,7 +317,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       <Helmet>
         <title>Dashboard — KUBOWEB</title>
         <meta name="description" content="Acompanhe visitantes, leads e métricas do seu site em tempo real." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/dashboard" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/dashboard" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <UpgradeBanner />
@@ -352,7 +352,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             <p className="text-sm text-muted-foreground max-w-md mb-4">
               Vá em <strong>Configurações → Projetos → Instalação</strong> para copiar o código.
             </p>
-            <a href="/settings" className="text-sm font-medium text-primary hover:underline mt-2">
+            <a href="/settings?tab=general&action=install" className="text-sm font-medium text-primary hover:underline mt-2">
               Ir para Configurações →
             </a>
           </div>

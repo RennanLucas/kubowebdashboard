@@ -950,6 +950,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          clarity_project_id: string | null
           client_id: string
           created_at: string
           id: string
@@ -958,6 +959,7 @@ export type Database = {
           url: string | null
         }
         Insert: {
+          clarity_project_id?: string | null
           client_id: string
           created_at?: string
           id?: string
@@ -966,6 +968,7 @@ export type Database = {
           url?: string | null
         }
         Update: {
+          clarity_project_id?: string | null
           client_id?: string
           created_at?: string
           id?: string

@@ -23,6 +23,7 @@ import { Navigate, Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
@@ -42,8 +43,9 @@ const severityConfig: Record<AlertSeverity, { color: string; bg: string; badge: 
 };
 
 export default function Alerts() {
-  const { data, isLoading, error } = useDashboardAnalytics(30);
-  const projectId = data?.client?.project?.id;
+  const { selectedProjectId } = useSelectedProject();
+  const { data, isLoading, error } = useDashboardAnalytics(30, selectedProjectId);
+  const projectId = selectedProjectId || data?.client?.project?.id;
   const { goals } = useGoals(projectId);
   const { heatmap } = useHourlyHeatmap(projectId, 30);
   const { alerts: persisted, markAsRead, dismiss, markAllRead, dismissAll } = usePersistedAlerts(projectId);
@@ -92,7 +94,7 @@ export default function Alerts() {
         id: "low-conversion",
         severity: "warning",
         title: "Taxa de conversão baixa",
-        message: `Sua taxa de conversão está em ${conversionRate.toFixed(2)}%. A média do mercado é ~2.5%. Considere otimizar suas CTAs.`,
+        message: `Sua taxa de conversão está em ${conversionRate.toFixed(2)}%. Revise suas páginas e CTAs para identificar pontos de abandono.`,
         icon: <AlertTriangle className="h-5 w-5" />,
       });
     }
@@ -102,7 +104,7 @@ export default function Alerts() {
         id: "high-conversion",
         severity: "success",
         title: "Excelente taxa de conversão",
-        message: `Sua taxa de conversão de ${conversionRate.toFixed(2)}% está acima da média do mercado.`,
+        message: `Sua taxa de conversão chegou a ${conversionRate.toFixed(2)}% neste período. Compare com períodos anteriores para confirmar a tendência.`,
         icon: <CheckCircle2 className="h-5 w-5" />,
       });
     }
@@ -198,13 +200,15 @@ export default function Alerts() {
       <Helmet>
         <title>Alertas — KUBOWEB</title>
         <meta name="description" content="Monitore anomalias, metas e oportunidades automaticamente detectadas." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/alerts" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/alerts" />
       </Helmet>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div className="relative mb-6 overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/15 via-background to-fuchsia-500/10 p-6 sm:p-8">
+          <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-violet-500/20 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-              <Bell className="h-6 w-6 text-primary" />
+              <Bell className="h-7 w-7 text-violet-500" />
               Alertas e Notificações
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="text-[10px]">{unreadCount} novos</Badge>
@@ -247,7 +251,7 @@ export default function Alerts() {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-          </div>
+          </div></div>
         </div>
 
         {/* Persisted alerts (from cron) */}

@@ -169,7 +169,7 @@ const Compare = () => {
       <Helmet>
         <title>Comparar projetos — KUBOWEB</title>
         <meta name="description" content="Compare o desempenho de diferentes projetos lado a lado." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/compare" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/compare" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
