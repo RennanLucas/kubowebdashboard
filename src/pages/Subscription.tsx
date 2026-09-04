@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlans } from "@/hooks/usePlans";
 import { getAppUrl } from "@/lib/utils";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-error";
 
 type SwitchablePlanId = string;
 
@@ -48,6 +50,7 @@ const daysUntil = (iso: string | null) => {
 export default function SubscriptionPage() {
   const { status, loading, error, refresh } = useSubscriptionStatus();
   const { plans, loading: plansLoading } = usePlans();
+  const { activeOrganization, currentRole } = useOrganization();
   const [canceling, setCanceling] = useState(false);
   const [switchingTo, setSwitchingTo] = useState<SwitchablePlanId | null>(null);
   const navigate = useNavigate();
@@ -111,22 +114,41 @@ export default function SubscriptionPage() {
   };
 
   const handleSwitchPlan = async (newPlanId: SwitchablePlanId) => {
+    if (!activeOrganization) {
+      toast.error("Selecione uma organização antes de trocar de plano.");
+      return;
+    }
+    if (!currentRole || !["owner", "admin"].includes(currentRole)) {
+      toast.error("Somente o proprietário ou um administrador pode alterar o plano.");
+      return;
+    }
+
     setSwitchingTo(newPlanId);
     try {
       const { data, error } = await supabase.functions.invoke("create-mp-preference", {
         body: {
           planId: newPlanId,
+          organizationId: activeOrganization.id,
           returnUrl: `${getAppUrl()}/checkout/return?switched=1`,
         },
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw new Error(await getEdgeFunctionErrorMessage(
+          error,
+          data,
+          "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
+        ));
+      }
       const url = (data as any)?.url;
       if (!url) throw new Error((data as any)?.error || "Falha ao gerar checkout");
       // Redireciona ao checkout do Mercado Pago.
-      // O backend já preserva o usuário em external_reference: `${userId}|${planId}`.
+      // O backend vincula o checkout à organização ativa e valida o papel do usuário.
       window.location.href = url;
     } catch (e) {
-      toast.error((e as Error).message || "Não foi possível trocar de plano agora");
+      toast.error(
+        (e as Error).message ||
+          "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
+      );
       setSwitchingTo(null);
     }
   };
@@ -136,7 +158,7 @@ export default function SubscriptionPage() {
       <Helmet>
         <title>Assinatura — KUBOWEB</title>
         <meta name="description" content="Gerencie seu plano, cobranças e assinatura KUBOWEB." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/subscription" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/subscription" />
       </Helmet>
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div>

@@ -162,6 +162,79 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
     expect((update.data ?? []).length, "cliente não pode alterar subscription").toBe(0);
   });
 
+  test("checkout: membership de A NÃO autoriza faturamento da Org B", async ({ request }) => {
+    const { data: sessionA } = await clientA.auth.getSession();
+    const tokenA = sessionA.session?.access_token;
+    expect(tokenA).toBeTruthy();
+
+    const response = await request.post(`${SUPABASE_URL}/functions/v1/create-mp-preference`, {
+      headers: {
+        Authorization: `Bearer ${tokenA}`,
+        apikey: ANON_KEY,
+        "Content-Type": "application/json",
+      },
+      data: {
+        organizationId: ORG_B_ID,
+        planId: "pro",
+        returnUrl: "https://kubowebdashboard.vercel.app/checkout/return",
+      },
+    });
+
+    expect(response.status(), "checkout cross-org deve negar antes de chamar o Mercado Pago").toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringMatching(/acesso negado/i),
+    });
+  });
+
+  // ---- goals ------------------------------------------------------------
+  test("goals: owner salva na própria organização e B não lê nem altera", async () => {
+    const fixtureMonth = "2099-12-01";
+    const ownPayload = {
+      project_id: PROJECT_A_ID,
+      month: fixtureMonth,
+      visitors_target: 1234,
+      leads_target: 56,
+      revenue_target: 7890,
+    };
+
+    const save = await clientA
+      .from("goals")
+      .upsert(ownPayload, { onConflict: "project_id,month" })
+      .select("id, visitors_target")
+      .single();
+    expect(save.error, save.error?.message).toBeNull();
+    expect(save.data?.visitors_target).toBe(1234);
+
+    const bReadsA = await clientB
+      .from("goals")
+      .select("id")
+      .eq("project_id", PROJECT_A_ID)
+      .eq("month", fixtureMonth);
+    expect(bReadsA.error).toBeNull();
+    expect(bReadsA.data ?? [], "B não pode ler meta de A").toHaveLength(0);
+
+    const bWritesA = await clientB
+      .from("goals")
+      .upsert({ ...ownPayload, visitors_target: 9999 }, { onConflict: "project_id,month" })
+      .select("id");
+    expect(bWritesA.error, "B não pode alterar meta de A").not.toBeNull();
+
+    const verifyA = await clientA
+      .from("goals")
+      .select("visitors_target")
+      .eq("project_id", PROJECT_A_ID)
+      .eq("month", fixtureMonth)
+      .single();
+    expect(verifyA.data?.visitors_target).toBe(1234);
+
+    const cleanup = await clientA
+      .from("goals")
+      .delete()
+      .eq("project_id", PROJECT_A_ID)
+      .eq("month", fixtureMonth);
+    expect(cleanup.error, cleanup.error?.message).toBeNull();
+  });
+
   // ---- organization_members / invites -----------------------------------
   test("organization_members: A NÃO lê membros da Org B", async () => {
     const aReadsB = await clientA

@@ -71,7 +71,7 @@ const Reports = () => {
           <meta name="description" content="Crie relatórios executivos com dados reais e a identidade visual do cliente." />
           <link rel="canonical" href="https://kubowebdashboard.vercel.app/reports" />
         </Helmet>
-        <div className="p-4 sm:p-6 max-w-[1200px] mx-auto space-y-6">
+        <div className="reports-page p-4 sm:p-6 max-w-[1200px] mx-auto space-y-6">
           <div className="relative overflow-hidden rounded-3xl border border-blue-500/20 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-6 text-white shadow-xl sm:p-8">
             <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgba(59,130,246,.3),transparent_65%)]" />
             <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
@@ -106,9 +106,9 @@ const Reports = () => {
               </p>
             </div>
           ) : (
-            <div className="bg-white text-black p-8 rounded-xl border shadow-sm min-h-[600px] print:m-0 print:border-none print:shadow-none" id="report-preview">
+            <div className="bg-white text-black p-8 rounded-xl border shadow-sm min-h-[600px]" id="report-preview">
               {/* Report Header */}
-              <div className="flex justify-between items-center border-b pb-6 mb-8">
+              <div className="report-break-avoid flex justify-between items-center border-b pb-6 mb-8">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Relatório de Desempenho</h2>
                   <p className="text-gray-500 mt-1">Período: Últimos {dateRange} dias</p>
@@ -126,7 +126,7 @@ const Reports = () => {
               </div>
 
               {/* Real Report Content */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+              <div className="report-break-avoid grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                 <div className="p-5 bg-gray-50 rounded-lg border">
                   <div className="flex items-center gap-2 text-gray-500 mb-2">
                     <Users className="h-4 w-4" />
@@ -150,7 +150,7 @@ const Reports = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="report-break-avoid space-y-4">
                 <h3 className="text-lg font-bold text-gray-800 border-b pb-2">Origem do Tráfego</h3>
                 {realStats.sources.length === 0 ? (
                   <p className="text-gray-500 py-4">Não disponível</p>
@@ -174,7 +174,7 @@ const Reports = () => {
                 )}
               </div>
               
-              <div className="mt-16 pt-8 border-t text-center text-sm text-gray-400">
+              <div className="report-footer mt-16 pt-8 border-t text-center text-sm text-gray-400">
                 Gerado automaticamente. Dados baseados no tráfego registrado do projeto.
               </div>
             </div>
