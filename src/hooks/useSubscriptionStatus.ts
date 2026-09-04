@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { toCustomerNetworkMessage, withTransientNetworkRetry } from "@/lib/network-retry";
 
 export interface SubscriptionStatusPlan {
   id: string;
@@ -59,15 +60,18 @@ export function useSubscriptionStatus(enabled = true) {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        "get-subscription-status",
-        { method: "GET", headers: { "X-Organization-Id": organizationId } },
-      );
-      if (fnError) throw new Error(fnError.message);
-      if ((data as any)?.error) throw new Error((data as any).error);
+      const data = await withTransientNetworkRetry(async () => {
+        const { data: responseData, error: fnError } = await supabase.functions.invoke(
+          "get-subscription-status",
+          { method: "GET", headers: { "X-Organization-Id": organizationId } },
+        );
+        if (fnError) throw new Error(fnError.message);
+        if ((responseData as any)?.error) throw new Error((responseData as any).error);
+        return responseData;
+      });
       setStatus(data as SubscriptionStatus);
     } catch (e) {
-      setError((e as Error).message || "Falha ao carregar assinatura");
+      setError(toCustomerNetworkMessage(e, "Falha ao carregar assinatura"));
       // Deliberately keep the last known good status. This hook feeds the
       // billing page, which renders a null subscription as "you have no
       // active plan" next to a buy button — so nulling out on a transient

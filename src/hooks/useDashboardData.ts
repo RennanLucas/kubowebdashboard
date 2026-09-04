@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "./usePlan";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { withTransientNetworkRetry } from "@/lib/network-retry";
 
 const decodeJwtPayload = (token: string) => {
   try {
@@ -104,24 +105,28 @@ const fetchEndpoint = async <T = unknown>(
   if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
   if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    },
+  return withTransientNetworkRetry(async () => {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      let message = `Erro ao buscar dados (${response.status})`;
+      try {
+        const err = await response.json();
+        message = err.error || err.message || message;
+      } catch { }
+      // HTTP responses reached the server and must not be retried as if they
+      // were connectivity failures (especially 401/403/429).
+      throw new Error(message);
+    }
+
+    return response.json() as Promise<T>;
   });
-
-  if (!response.ok) {
-    let message = `Erro ao buscar dados (${response.status})`;
-    try {
-      const err = await response.json();
-      message = err.error || err.message || message;
-    } catch { }
-    throw new Error(message);
-  }
-
-  return response.json();
 };
 
 const useValidSession = () => {
