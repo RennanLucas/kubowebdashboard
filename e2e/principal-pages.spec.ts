@@ -8,7 +8,7 @@ const principalPages = [
   { path: "/insights", title: /Insights com IA/i, marker: /Gerar.*insight|Atualizar.*insight|Análise inteligente/i },
   { path: "/alerts", title: /Alertas/i, marker: /Alertas e Notificações/i },
   { path: "/compare", title: /Comparar projetos/i, marker: /Comparar Projetos/i },
-  { path: "/reports", title: /Relatórios profissionais/i, marker: /Relatório executivo/i },
+  { path: "/reports", title: /Relatórios profissionais/i, marker: /Documento executivo com dados reais/i },
   { path: "/presentation", title: /Apresentação/i, marker: /Modo Apresentação/i },
 ];
 
