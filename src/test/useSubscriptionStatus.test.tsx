@@ -26,6 +26,7 @@ const state = vi.hoisted(() => ({
     data: null as unknown,
     error: null as { message: string } | null,
   },
+  queuedResults: [] as Array<{ data: unknown; error: { message: string } | null }>,
   channels: [] as FakeChannel[],
   removed: [] as unknown[],
 }));
@@ -35,6 +36,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     functions: {
       invoke: async (fn: string, opts: unknown) => {
         state.invokes.push({ fn, opts });
+        if (state.queuedResults.length) return state.queuedResults.shift()!;
         return state.result;
       },
     },
@@ -105,6 +107,7 @@ beforeEach(() => {
   state.invokes = [];
   state.channels = [];
   state.removed = [];
+  state.queuedResults = [];
   ok();
 });
 
@@ -166,6 +169,19 @@ describe("useSubscriptionStatus happy path", () => {
 });
 
 describe("useSubscriptionStatus failure path", () => {
+  it("recovers automatically from a temporary browser fetch failure", async () => {
+    state.queuedResults = [
+      { data: null, error: { message: "Failed to fetch" } },
+      { data: statusPayload(), error: null },
+    ];
+    const { result } = render();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(state.invokes).toHaveLength(2);
+    expect(result.current.status?.subscription?.id).toBe("sub1");
+    expect(result.current.error).toBeNull();
+  });
+
   it("surfaces a transport error and leaves status null on a cold first load", async () => {
     state.result = { data: null, error: { message: "Function timed out" } };
     const { result } = render();

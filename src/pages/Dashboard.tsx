@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 import { useDashboardRealtime } from "@/hooks/useDashboardRealtime";
+import { toCustomerNetworkMessage } from "@/lib/network-retry";
 
 interface DashboardContentProps {
   selectedProjectId?: string;
@@ -209,12 +210,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             <h2 className="text-lg font-semibold text-foreground mb-2">
               Não foi possível atualizar seus dados
             </h2>
-            <p className="text-sm text-muted-foreground max-w-md mb-6">
-              Verifique sua conexão e tente novamente.
+            <p className="text-sm text-muted-foreground mb-6 max-w-md">
+              {toCustomerNetworkMessage(error, "Não foi possível carregar as informações do painel.")}
             </p>
-            <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50 mb-6 max-w-md break-all">
-              Detalhes técnicos: {(error as Error).message || String(error)}
-            </div>
             <button
               onClick={() => window.location.reload()}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
