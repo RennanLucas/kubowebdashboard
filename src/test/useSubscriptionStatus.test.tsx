@@ -149,6 +149,7 @@ describe("useSubscriptionStatus happy path", () => {
     expect(state.invokes[0].opts).toEqual({
       method: "GET",
       headers: { "X-Organization-Id": "11111111-1111-4111-8111-111111111111" },
+      timeout: 8000,
     });
     expect(result.current.status?.isActive).toBe(true);
     expect(result.current.status?.subscription?.id).toBe("sub1");
@@ -182,12 +183,15 @@ describe("useSubscriptionStatus failure path", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("surfaces a transport error and leaves status null on a cold first load", async () => {
+  it("retries a timeout, shows a readable message and leaves status null on a cold first load", async () => {
     state.result = { data: null, error: { message: "Function timed out" } };
     const { result } = render();
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.error).toBe("Function timed out");
+    expect(state.invokes).toHaveLength(3);
+    expect(result.current.error).toBe(
+      "A conexão com o servidor foi interrompida. Tente novamente em alguns instantes.",
+    );
     // Nothing was ever loaded, so there is no good value to keep. The page has
     // to branch on `error` here — a null status alone does not mean "no plan".
     expect(result.current.status).toBeNull();

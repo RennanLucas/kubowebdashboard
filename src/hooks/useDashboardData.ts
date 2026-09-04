@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "./usePlan";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
-import { withTransientNetworkRetry } from "@/lib/network-retry";
+import { withRequestTimeout, withTransientNetworkRetry } from "@/lib/network-retry";
 
 const decodeJwtPayload = (token: string) => {
   try {
@@ -105,8 +105,9 @@ const fetchEndpoint = async <T = unknown>(
   if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
   if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;
 
-  return withTransientNetworkRetry(async () => {
+  return withTransientNetworkRetry(() => withRequestTimeout(async (signal) => {
     const response = await fetch(url, {
+      signal,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -126,7 +127,7 @@ const fetchEndpoint = async <T = unknown>(
     }
 
     return response.json() as Promise<T>;
-  });
+  }));
 };
 
 const useValidSession = () => {

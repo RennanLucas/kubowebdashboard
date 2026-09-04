@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   isTransientNetworkError,
   toCustomerNetworkMessage,
+  withRequestTimeout,
   withTransientNetworkRetry,
 } from "@/lib/network-retry";
 
@@ -28,5 +29,23 @@ describe("network retry", () => {
     expect(toCustomerNetworkMessage(error, "fallback")).toBe(
       "A conexão com o servidor foi interrompida. Tente novamente em alguns instantes.",
     );
+  });
+
+  it("aborts a request that never settles", async () => {
+    vi.useFakeTimers();
+    try {
+      let signal: AbortSignal | undefined;
+      const pending = withRequestTimeout((requestSignal) => {
+        signal = requestSignal;
+        return new Promise<string>(() => {});
+      }, 100);
+      const rejection = expect(pending).rejects.toThrow("Request timed out");
+
+      await vi.advanceTimersByTimeAsync(100);
+      await rejection;
+      expect(signal?.aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
