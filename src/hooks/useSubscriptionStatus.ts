@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import {
-  EDGE_REQUEST_TIMEOUT_MS,
   toCustomerNetworkMessage,
+  withRequestTimeout,
   withTransientNetworkRetry,
 } from "@/lib/network-retry";
+import { requestEdgeFunction } from "@/lib/edge-functions";
 
 export interface SubscriptionStatusPlan {
   id: string;
@@ -65,16 +66,21 @@ export function useSubscriptionStatus(enabled = true) {
     setError(null);
     try {
       const data = await withTransientNetworkRetry(async () => {
-        const { data: responseData, error: fnError } = await supabase.functions.invoke(
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session?.access_token) {
+          throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+        }
+        const responseData = await withRequestTimeout((signal) => requestEdgeFunction<SubscriptionStatus>(
           "get-subscription-status",
+          sessionData.session.access_token,
           {
             method: "GET",
             headers: { "X-Organization-Id": organizationId },
-            timeout: EDGE_REQUEST_TIMEOUT_MS,
+            signal,
           },
-        );
-        if (fnError) throw new Error(fnError.message);
-        if ((responseData as any)?.error) throw new Error((responseData as any).error);
+        ));
+        const responseError = (responseData as SubscriptionStatus & { error?: string }).error;
+        if (responseError) throw new Error(responseError);
         return responseData;
       });
       setStatus(data as SubscriptionStatus);

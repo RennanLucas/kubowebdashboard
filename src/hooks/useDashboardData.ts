@@ -5,6 +5,7 @@ import { usePlan } from "./usePlan";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { withRequestTimeout, withTransientNetworkRetry } from "@/lib/network-retry";
+import { requestEdgeFunction } from "@/lib/edge-functions";
 
 const decodeJwtPayload = (token: string) => {
   try {
@@ -99,35 +100,14 @@ const fetchEndpoint = async <T = unknown>(
   accessToken: string,
   opts: FetchOptions = {},
 ): Promise<T> => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  let url = `${supabaseUrl}/functions/v1/${endpoint}?days=${days}`;
-  if (projectId) url += `&project_id=${projectId}`;
-  if (opts.source && opts.source !== "all") url += `&source=${encodeURIComponent(opts.source)}`;
-  if (opts.device && opts.device !== "all") url += `&device=${encodeURIComponent(opts.device)}`;
+  const query = new URLSearchParams({ days: String(days) });
+  if (projectId) query.set("project_id", projectId);
+  if (opts.source && opts.source !== "all") query.set("source", opts.source);
+  if (opts.device && opts.device !== "all") query.set("device", opts.device);
 
-  return withTransientNetworkRetry(() => withRequestTimeout(async (signal) => {
-    const response = await fetch(url, {
-      signal,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-    });
-
-    if (!response.ok) {
-      let message = `Erro ao buscar dados (${response.status})`;
-      try {
-        const err = await response.json();
-        message = err.error || err.message || message;
-      } catch { }
-      // HTTP responses reached the server and must not be retried as if they
-      // were connectivity failures (especially 401/403/429).
-      throw new Error(message);
-    }
-
-    return response.json() as Promise<T>;
-  }));
+  return withTransientNetworkRetry(() => withRequestTimeout((signal) =>
+    requestEdgeFunction<T>(endpoint, accessToken, { query, signal }),
+  ));
 };
 
 const useValidSession = () => {
