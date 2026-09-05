@@ -7,6 +7,7 @@ import {
 } from "@/components/landing/premium/LandingExperience";
 import { useLandingReveal } from "@/components/landing/premium/useLandingReveal";
 import "@/components/landing/premium/landing-premium.css";
+import "@/components/landing/premium/landing-refinement.css";
 
 /* ─────────────────────────────────────────────────────────────
    Main Landing Component

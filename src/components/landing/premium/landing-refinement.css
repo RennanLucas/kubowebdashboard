@@ -1,0 +1,985 @@
+/* Presentation only: preserve component content, ordering and integrations. */
+.lp-root {
+  --lp-muted: #a4b0c2;
+  --lp-line: #a9c6ea20;
+  --lp-section-space: clamp(76px, 8vw, 128px);
+  -webkit-font-smoothing: antialiased;
+}
+.lp-root :is(section[id], footer) {
+  scroll-margin-top: 100px;
+}
+.lp-root :is(a, button):focus-visible {
+  outline: 2px solid #94d7ff;
+  outline-offset: 5px;
+  border-radius: 8px;
+}
+.lp-root :is(a, button) {
+  -webkit-tap-highlight-color: #94d7ff30;
+}
+.lp-shell {
+  width: min(1240px, calc(100% - 64px));
+}
+.lp-nav {
+  padding: 20px 0;
+}
+.lp-nav.is-scrolled {
+  background: #080d17e8;
+  border-color: #b6d4ff20;
+  box-shadow: 0 12px 32px #0003;
+  backdrop-filter: blur(16px);
+}
+.lp-nav__brand img {
+  height: 28px;
+}
+.lp-nav__links {
+  gap: 34px;
+}
+.lp-nav__links a,
+.lp-nav__login {
+  font-size: 14px;
+}
+.lp-nav__menu {
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  border: 1px solid #b6d4ff20;
+  background: #b6d4ff08;
+}
+.lp-nav__mobile {
+  max-height: calc(100dvh - 92px);
+  overflow-y: auto;
+}
+.lp-nav__mobile a {
+  border-radius: 8px;
+}
+.lp-nav__mobile a:hover {
+  background: #b6d4ff0c;
+}
+.lp-root .lp-button {
+  border: 1px solid #dff0ff60;
+  box-shadow:
+    inset 0 1px #fff9,
+    0 8px 25px #64adff15;
+}
+.lp-root :is(.lp-button, .kubo-actions a, .lp-price-card > a):active {
+  transform: translateY(1px);
+}
+.lp-root :is(.lp-button, .kubo-actions a, .lp-price-card > a) svg {
+  transition: transform 0.22s ease;
+}
+.lp-root :is(.lp-button, .kubo-actions a, .lp-price-card > a):hover svg {
+  transform: translateX(3px);
+}
+
+/* Layered hero: static lighting and brief entrance, not an ongoing render loop. */
+.kubo-hero {
+  isolation: isolate;
+  min-height: 820px;
+  gap: clamp(32px, 4vw, 70px);
+  padding-top: 155px;
+  padding-bottom: 120px;
+}
+.kubo-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#b6d4ff08 1px, transparent 1px),
+    linear-gradient(90deg, #b6d4ff08 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(110deg, transparent 25%, #000 80%);
+}
+.kubo-hero h1 {
+  font-size: clamp(40px, 4.3vw, 66px);
+  line-height: 1.08;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+}
+.kubo-description {
+  max-width: 480px;
+  font-size: 17px;
+  line-height: 1.8;
+}
+.kubo-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+.kubo-actions a {
+  min-height: 52px;
+}
+.kubo-footnote {
+  font-size: 12px;
+  color: #adbbce;
+}
+.kubo-board {
+  background: linear-gradient(135deg, #23344a, #101d30 54%, #0c1624);
+  border-color: #badcff45;
+  box-shadow:
+    8px 10px 0 #0a1320,
+    9px 11px 0 #86abd03a,
+    24px 38px 65px #0006,
+    inset 0 1px #ffffff24;
+  transform: rotateY(-10deg) rotateX(6deg) rotateZ(1deg);
+}
+.kubo-stage:hover .kubo-board {
+  transform: rotateY(-5deg) rotateX(3deg);
+}
+.kubo-stage {
+  height: 560px;
+}
+.kubo-toolbar > small,
+.kubo-board-title small {
+  font-size: 10px;
+}
+.kubo-metrics small,
+.kubo-chart-label,
+.kubo-days {
+  font-size: 11px;
+}
+.kubo-float {
+  animation: none;
+  background: linear-gradient(130deg, #21364b, #122133);
+}
+.kubo-float small {
+  font-size: 11px;
+}
+.kubo-float-top {
+  top: 0;
+  left: -8px;
+}
+.kubo-float-bottom {
+  bottom: 0;
+  right: 0;
+}
+.kubo-bottom {
+  color: #a5b6cd;
+}
+.lp-signal__inner {
+  min-height: 92px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 34px;
+  padding-block: 22px;
+}
+.lp-signal span {
+  color: #a5b4c8;
+  font-size: 12px;
+}
+
+/* A shared rhythm, with different compositions for each existing section. */
+.lp-story,
+.lp-realtime,
+.lp-insights,
+.lp-capabilities,
+.lp-setup.kubo-setup-depth,
+.lp-pricing,
+.lp-faq {
+  padding-block: var(--lp-section-space);
+}
+.lp-section-head h2,
+.lp-realtime h2,
+.lp-insights h2,
+.lp-faq h2 {
+  font-size: clamp(34px, 4.4vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+.lp-section-head > span,
+.lp-faq__title > span,
+.lp-kicker {
+  color: #9ac5ff;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+}
+.lp-section-head > p,
+.lp-realtime__copy p,
+.lp-insights__copy > p {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.lp-story__grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 64px;
+  margin-top: 56px;
+}
+.lp-story__visual {
+  top: 100px;
+  min-height: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.lp-story__frame {
+  width: 100%;
+  transform: rotateY(4deg) rotateX(2deg);
+}
+.lp-story__visual[data-step] .lp-story__frame {
+  transform: rotateY(3deg) rotateX(2deg);
+}
+.lp-story__visual[data-step="2"] .lp-story__frame {
+  transform: rotateY(-2deg) rotateX(1deg);
+}
+.lp-story__readout {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  padding: 18px 22px;
+  background: #101d2cf5;
+}
+.lp-story__readout span,
+.lp-story__readout small {
+  color: #b3c2d8;
+  font-size: 11px;
+}
+.lp-story__steps article {
+  min-height: 340px;
+  opacity: 1;
+  padding: 38px 0 38px 26px;
+  border-left: 1px solid #b4d5ff25;
+  transition: border-color 0.35s;
+}
+.lp-story__steps article.is-active {
+  border-color: #88c7ff;
+}
+.lp-story__steps article > span {
+  font-size: 11px;
+}
+.lp-story__steps h3 {
+  font-size: clamp(28px, 2.7vw, 40px);
+  line-height: 1.14;
+}
+.lp-story__steps p {
+  color: #acb9cc;
+  font-size: 16px;
+}
+.lp-product__body {
+  grid-template-columns: 106px minmax(0, 1fr);
+}
+.lp-product__main {
+  padding: 20px 16px;
+}
+.lp-metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.lp-product__analytics {
+  grid-template-columns: 1fr;
+}
+.lp-product__sources {
+  display: flex;
+  height: auto;
+  gap: 14px;
+}
+.lp-product__demo {
+  color: #b4c6df;
+  font-size: 9px;
+}
+.lp-product__chrome {
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+}
+.lp-product__address {
+  justify-self: center;
+  color: #a4b5cd;
+}
+.lp-product__header small,
+.lp-product__chart-title small,
+.lp-product__axis {
+  color: #a3b4ca;
+  font-size: 9px;
+}
+.lp-product__sidebar > span {
+  color: #a9b9cf;
+  font-size: 11px;
+}
+.lp-metric__top small,
+.lp-metric em,
+.lp-source div {
+  font-size: 11px;
+}
+.lp-metric__top,
+.lp-source div {
+  color: #aabbcf;
+}
+.lp-product__chart-title {
+  font-size: 11px;
+}
+.lp-story__progress {
+  right: -18px;
+}
+.lp-realtime__grid,
+.lp-insights__grid {
+  gap: clamp(32px, 6vw, 86px);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+.lp-event-console {
+  border-radius: 22px;
+  box-shadow:
+    0 25px 65px #0005,
+    inset 0 1px #bfdcff15;
+}
+.lp-event-console__top span {
+  font-size: 12px;
+}
+.lp-event-console__top small,
+.lp-event-console__pulse span {
+  color: #b1bfd2;
+  font-size: 11px;
+}
+.lp-event {
+  padding: 16px;
+}
+.lp-event strong {
+  font-size: 13px;
+}
+.lp-event small,
+.lp-event time {
+  color: #a2b2c8;
+  font-size: 11px;
+}
+.lp-event-console__pulse i {
+  animation: none;
+  opacity: 0.5;
+}
+.lp-event {
+  animation: none;
+}
+.lp-insights__copy > small {
+  display: block;
+  color: #a4b4ca;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.lp-insight-stack {
+  display: grid;
+  gap: 18px;
+  min-height: 0;
+  perspective: 1400px;
+  padding: 10px;
+}
+.lp-insight-stack .lp-insight {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  padding: 24px;
+  background: linear-gradient(130deg, #142237, #0c1522);
+  transform: rotateY(-4deg);
+  backdrop-filter: none;
+  box-shadow:
+    5px 7px 0 #080f19,
+    0 20px 35px #0004;
+}
+.lp-insight-stack .lp-insight:nth-child(2) {
+  transform: translateX(-12px) rotateY(-2deg);
+}
+.lp-insight-stack .lp-insight:nth-child(3) {
+  transform: rotateY(-4deg);
+}
+.lp-insight span {
+  font-size: 10px;
+  color: #9ec5ff;
+}
+.lp-insight h3 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.lp-insight p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #a5b5cb;
+}
+.lp-capability-grid {
+  gap: 20px;
+}
+@media (min-width: 981px) {
+  .lp-capability:nth-child(4) {
+    grid-column: span 2;
+  }
+}
+@media (min-width: 981px) and (max-height: 1040px) {
+  .lp-story__visual {
+    position: relative;
+    top: 0;
+  }
+}
+.lp-capability {
+  display: flex;
+  flex-direction: column;
+  min-height: 365px;
+  padding: 30px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #13203380, #0a1019);
+  box-shadow: inset 0 1px #bedbff0b;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+.lp-capability h3 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.lp-capability > p {
+  font-size: 14px;
+  color: #acb9cc;
+  line-height: 1.75;
+  margin-bottom: 28px;
+}
+.lp-capability
+  :is(
+    .lp-mini-chart,
+    .lp-heat-cells,
+    .lp-alert-demo,
+    .lp-funnel,
+    .lp-export-pills,
+    .lp-org-layers
+  ) {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  margin-top: auto;
+}
+.lp-mini-chart {
+  flex-shrink: 0;
+}
+.lp-heat-cells {
+  max-width: 300px;
+  align-self: center;
+}
+.lp-mini-chart span,
+.lp-mini-chart small,
+.lp-alert-demo span,
+.lp-alert-demo b,
+.lp-funnel span,
+.lp-export-pills span,
+.lp-org-layers > span,
+.lp-org-layers i {
+  font-size: 11px;
+}
+.lp-mini-chart span,
+.lp-funnel small {
+  color: #a6b8ce;
+}
+.lp-export-pills {
+  padding-top: 24px;
+}
+.lp-org-layers {
+  min-height: 115px;
+}
+.lp-capability__icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #30558255, #19335220);
+  box-shadow: inset 0 1px #bad7ff20;
+}
+.kubo-setup-depth .lp-setup__line {
+  margin-top: 48px;
+  gap: 20px;
+}
+.kubo-setup-depth .lp-setup__line article {
+  background: linear-gradient(145deg, #16263a, #0a1422);
+  box-shadow:
+    3px 5px 0 #132135,
+    0 18px 32px #0003;
+}
+.kubo-setup-depth .lp-setup__line article h3 {
+  font-size: 19px;
+}
+.kubo-setup-depth .lp-setup__line article p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.lp-pricing__grid {
+  width: min(980px, 100%);
+  gap: 24px;
+  margin-top: 52px;
+}
+.lp-price-card {
+  padding: clamp(24px, 3vw, 40px);
+  border-radius: 24px;
+  background: linear-gradient(160deg, #17202d80, #0a111c);
+}
+.lp-price-card.is-recommended {
+  background:
+    radial-gradient(ellipse at 100% 0, #2a619033, transparent 65%), #0e1a2a;
+  border-color: #8bc8ff66;
+  box-shadow:
+    0 25px 70px #0004,
+    inset 0 1px #c0e5ff30;
+}
+.lp-price-card__top span {
+  color: #b2c1d5;
+  font-size: 10px;
+}
+.lp-price-card__top h3 {
+  font-size: 28px;
+}
+.lp-price-card__top em {
+  font-size: 9px;
+}
+.lp-price-card > p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #aebdd0;
+}
+.lp-price strong {
+  font-size: clamp(38px, 4vw, 52px);
+}
+.lp-price small {
+  font-size: 14px;
+  color: #b0bfd2;
+}
+.lp-price__highlight {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #a0ceff;
+}
+.lp-price-card li {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #c1ccdb;
+}
+.lp-price-card li svg {
+  margin-top: 4px;
+}
+.lp-price-card > a,
+.lp-price-card > span.is-disabled {
+  min-height: 50px;
+  font-size: 14px;
+}
+.lp-faq__grid {
+  gap: 64px;
+}
+.lp-faq__title p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #a9b9ce;
+  margin-top: 24px;
+}
+.lp-faq__accordion {
+  border-top: 0;
+}
+.lp-faq__accordion > div {
+  border: 1px solid #bad7ff22;
+  border-radius: 14px;
+  padding: 0 22px;
+  margin-bottom: 12px;
+  background: #ffffff03;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.lp-faq__accordion > div:has([data-state="open"]) {
+  border-color: #8bbcfb50;
+  background: #15243a55;
+}
+.lp-faq__accordion button[data-radix-collection-item] {
+  min-height: 72px;
+  font-size: 15px;
+  line-height: 1.6;
+  gap: 14px;
+  padding-block: 18px;
+}
+.lp-faq__accordion [role="region"] {
+  color: #b4c2d5;
+  font-size: 14px;
+  line-height: 1.85;
+}
+.lp-final {
+  padding-block: clamp(90px, 10vw, 150px);
+}
+.lp-final h2 {
+  font-size: clamp(46px, 6vw, 84px);
+  line-height: 1.06;
+  letter-spacing: -0.05em;
+}
+.lp-final__inner > span {
+  color: #9dbbdd;
+  font-size: 11px;
+}
+.lp-final p {
+  color: #b0bfd2;
+  font-size: 16px;
+}
+.lp-footer__top {
+  padding-block: 56px;
+}
+.lp-footer__top strong {
+  font-size: 20px;
+}
+.lp-footer__top p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #a1b0c5;
+  margin-top: 16px;
+}
+.lp-footer nav {
+  gap: 20px;
+}
+.lp-footer nav a {
+  font-size: 13px;
+  color: #b8c5d7;
+  padding-block: 10px;
+}
+.lp-footer__bottom {
+  color: #9caec5;
+  font-size: 10px;
+  min-height: 76px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-capability:hover {
+    border-color: #a6ccff55;
+    box-shadow:
+      inset 0 1px #c7e4ff20,
+      0 18px 40px #0003;
+  }
+  .lp-faq__accordion > div:hover {
+    border-color: #a6ccff50;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kubo-copy {
+    animation: kubo-refined-enter 0.65s ease-out both;
+  }
+  .lp-reveal {
+    transition-duration: 0.6s;
+    transform: translateY(18px);
+  }
+  .lp-reveal.is-visible {
+    transform: translateY(0);
+  }
+  .lp-capability:nth-child(2n),
+  .kubo-setup-depth article:nth-child(2n) {
+    transition-delay: 70ms;
+  }
+}
+@keyframes kubo-refined-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1100px) {
+  .lp-story__grid {
+    gap: 34px;
+  }
+  .lp-product__body {
+    grid-template-columns: 1fr;
+  }
+  .lp-product__sidebar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-right: 0;
+    border-bottom: 1px solid var(--lp-line);
+    padding: 12px;
+  }
+  .lp-product__brand {
+    margin: 0 10px 0 0;
+  }
+  .lp-product__sidebar > span {
+    padding: 6px;
+  }
+}
+@media (max-width: 1000px) {
+  .kubo-hero {
+    padding-top: 130px;
+    gap: 38px;
+  }
+  .kubo-copy {
+    max-width: 730px;
+  }
+  .kubo-hero h1 {
+    font-size: clamp(40px, 6vw, 62px);
+  }
+  .kubo-stage {
+    height: 550px;
+  }
+}
+@media (max-width: 980px) {
+  .lp-story__grid {
+    grid-template-columns: 1fr;
+  }
+  .lp-story__visual {
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: visible;
+    background: none;
+  }
+  .lp-story__visual[data-step] .lp-story__frame {
+    width: 100%;
+    max-width: 660px;
+    transform: none !important;
+  }
+  .lp-story__readout {
+    position: relative;
+    inset: auto;
+    width: min(100%, 660px);
+  }
+  .lp-story__progress {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    inset: auto;
+    transform: none;
+  }
+  .lp-story__progress i,
+  .lp-story__progress i.is-active {
+    width: 24px;
+    height: 3px;
+  }
+  .lp-story__steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+  }
+  .lp-story__steps article {
+    min-height: 0;
+    padding: 24px;
+    max-width: none;
+    opacity: 1;
+    background: #ffffff03;
+  }
+  .lp-story__steps h3 {
+    font-size: 28px;
+  }
+  .lp-realtime__grid,
+  .lp-insights__grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .lp-insight-stack {
+    max-width: 680px;
+    width: 100%;
+    justify-self: center;
+  }
+  .lp-faq__grid {
+    gap: 38px;
+  }
+}
+@media (max-width: 640px) {
+  .lp-shell {
+    width: calc(100% - 40px);
+  }
+  .lp-nav__brand img {
+    height: 24px;
+  }
+  .lp-root .lp-nav .lp-button--compact {
+    display: inline-flex;
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 11px;
+  }
+  .lp-nav__actions {
+    gap: 10px;
+  }
+  .kubo-hero {
+    padding: 122px 20px 98px;
+    gap: 28px;
+  }
+  .kubo-hero h1 {
+    font-size: clamp(38px, 9.7vw, 50px);
+    letter-spacing: -0.047em;
+  }
+  .kubo-description {
+    font-size: 16px;
+    margin-block: 24px;
+  }
+  .kubo-actions {
+    gap: 10px;
+  }
+  .kubo-actions a {
+    width: 100%;
+  }
+  .kubo-stage {
+    height: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-top: 10px;
+  }
+  .kubo-stage .kubo-board,
+  .kubo-stage:hover .kubo-board {
+    transform: none;
+    padding: 18px;
+    grid-row: 2;
+    box-shadow:
+      3px 5px 0 #14253b,
+      0 18px 40px #0004;
+  }
+  .kubo-float {
+    position: relative;
+    inset: auto;
+    width: fit-content;
+    padding: 12px 16px;
+  }
+  .kubo-float-top {
+    grid-row: 1;
+  }
+  .kubo-float-bottom {
+    grid-row: 3;
+    justify-self: end;
+  }
+  .kubo-float strong {
+    font-size: 12px;
+  }
+  .kubo-orbit {
+    width: 100%;
+    height: 70%;
+    top: 15%;
+  }
+  .kubo-metrics {
+    gap: 6px;
+  }
+  .kubo-metrics > div {
+    padding: 12px 8px;
+  }
+  .kubo-metrics strong {
+    font-size: 24px;
+  }
+  .kubo-metrics small {
+    font-size: 10px;
+  }
+  .kubo-chart-label {
+    gap: 12px;
+    font-size: 10px;
+  }
+  .kubo-bottom {
+    left: 20px;
+    right: 20px;
+    bottom: 28px;
+    font-size: 9px;
+    line-height: 1.7;
+  }
+  .lp-signal__inner {
+    gap: 18px 20px;
+    justify-content: flex-start;
+  }
+  .lp-signal span {
+    font-size: 11px;
+  }
+  .lp-story__steps {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .lp-story__steps article {
+    opacity: 1;
+    min-height: 0;
+    padding: 24px;
+  }
+  .lp-section-head h2,
+  .lp-realtime h2,
+  .lp-insights h2,
+  .lp-faq h2 {
+    font-size: 36px;
+    letter-spacing: -0.04em;
+  }
+  .lp-product__chrome {
+    height: auto;
+    min-height: 58px;
+    padding: 12px;
+    grid-template-columns: auto 1fr;
+  }
+  .lp-product__address {
+    font-size: 9px;
+  }
+  .lp-product__demo {
+    display: block;
+    grid-column: 1/-1;
+    justify-self: end;
+  }
+  .lp-product__main {
+    padding: 16px 12px;
+  }
+  .lp-insight-stack {
+    gap: 16px;
+    padding: 0;
+  }
+  .lp-insight-stack .lp-insight:nth-child(n) {
+    transform: none;
+    grid-template-columns: 30px minmax(0, 1fr);
+    padding: 20px;
+  }
+  .lp-insight > strong {
+    grid-column: 2;
+  }
+  .lp-event-console__top {
+    padding-inline: 14px;
+    gap: 12px;
+  }
+  .lp-event-console__top span,
+  .lp-event-console__top small {
+    font-size: 10px;
+  }
+  .lp-event {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 12px;
+  }
+  .lp-event small {
+    font-size: 10px;
+  }
+  .lp-capability,
+  .lp-capability--wide {
+    min-height: 340px;
+    padding: 24px;
+  }
+  .lp-capability h3 {
+    font-size: 21px;
+  }
+  .lp-capability-grid {
+    gap: 18px;
+  }
+  .lp-price-card__top {
+    gap: 12px;
+  }
+  .lp-faq__accordion > div {
+    padding-inline: 16px;
+  }
+  .lp-faq__accordion button[data-radix-collection-item] {
+    font-size: 14px;
+  }
+  .lp-footer__top {
+    gap: 26px;
+  }
+  .lp-footer nav {
+    gap: 12px 22px;
+  }
+  .lp-footer__bottom {
+    gap: 10px;
+    align-items: flex-start;
+    padding-block: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-root *,
+  .lp-root *::before,
+  .lp-root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .lp-root .lp-reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .kubo-stage .kubo-board,
+  .kubo-stage:hover .kubo-board {
+    transform: none;
+  }
+  .lp-story__visual[data-step] .lp-story__frame {
+    transform: none !important;
+  }
+}
