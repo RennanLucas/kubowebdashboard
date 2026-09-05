@@ -7,7 +7,7 @@ import { getPlan, type PlanId } from "../_shared/plans.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
-const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
+const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 
@@ -65,13 +65,14 @@ Deno.serve(async (req) => {
         409,
       );
     }
+    if (!MP_TOKEN) return json({ error: "Pagamento indisponível. Entre em contato com o suporte." }, 503);
 
     const ALLOWED_RETURN_ORIGINS = [
-      new URL(req.url).origin,
+      "https://kubowebdashboard.vercel.app",
       Deno.env.get("PUBLIC_SITE_URL"),
     ].filter(Boolean) as string[];
 
-    let baseReturn = `${new URL(req.url).origin}/checkout/return`;
+    let baseReturn = "https://kubowebdashboard.vercel.app/checkout/return";
     if (returnUrl) {
       try {
         const parsed = new URL(returnUrl);

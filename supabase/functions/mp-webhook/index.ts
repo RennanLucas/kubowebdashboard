@@ -12,7 +12,7 @@ import {
   computeTrialEnd,
 } from "./_billing.ts";
 
-const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")!;
+const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
