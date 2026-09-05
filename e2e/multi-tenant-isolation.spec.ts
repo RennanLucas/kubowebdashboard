@@ -94,6 +94,28 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
   });
 
   // ---- projects ----------------------------------------------------------
+  test("Owner cria projeto da organização sem client_id legado", async () => {
+    const created = await clientA.from("projects").insert({
+      name: "E2E project creation regression",
+      organization_id: ORG_A_ID,
+      client_id: null,
+    }).select("id, client_id, organization_id").single();
+    expect(created.error, created.error?.message).toBeNull();
+    expect(created.data).toBeTruthy();
+    const id = created.data!.id;
+    try {
+      expect(created.data!.client_id).toBeNull();
+      expect(created.data!.organization_id).toBe(ORG_A_ID);
+      const other = await clientB.from("projects").select("id").eq("id", id);
+      expect(other.error).toBeNull();
+      expect(other.data).toEqual([]);
+    } finally {
+      const cleanup = await clientA.from("projects").delete().eq("id", id).select("id");
+      expect(cleanup.error).toBeNull();
+      expect(cleanup.data).toHaveLength(1);
+    }
+  });
+
   test("User A NÃO lê o projeto de B (e vice-versa)", async () => {
     const aReadsB = await clientA.from("projects").select("*").eq("id", PROJECT_B_ID);
     expect(aReadsB.error, "select nao deve erro-500, RLS filtra silenciosamente").toBeNull();
