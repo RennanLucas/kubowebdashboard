@@ -49,8 +49,8 @@ export default function Settings() {
       return;
     }
 
-    const value = parseFloat(leadValue);
-    if (isNaN(value) || value < 0) {
+    const value = Number(leadValue.replace(",", "."));
+    if (!leadValue.trim() || !Number.isFinite(value) || value < 0) {
       toast.error("O valor do lead deve ser um número válido e positivo.");
       return;
     }
@@ -141,14 +141,14 @@ export default function Settings() {
                       id="leadValue"
                       type="number"
                       min="0"
-                      step="1"
+                      step="0.01"
                       placeholder="25"
                       value={leadValue}
                       onChange={(e) => setLeadValue(e.target.value)}
                       disabled={currentRole === "viewer" || currentRole === "editor"}
                     />
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      Usado para calcular a estimativa de receita gerada no Dashboard.
+                      Estimativa por contato recebido, não um valor cobrado. Exemplo: 10 leads × R$ 25 = R$ 250 de valor estimado. Isso não confirma vendas ou receita recebida.
                     </p>
                   </div>
                 </div>

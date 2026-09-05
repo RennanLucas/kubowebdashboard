@@ -72,11 +72,9 @@ export default function ProjectsManager({ organizationId, openInstallation = fal
     }
     setSaving(true);
     try {
-      // client_id is required by the schema but is being phased out in favor of organization_id
-      // For now, use organization_id as client_id to satisfy the NOT NULL constraint
       const { data, error } = await supabase.from("projects").insert({
         organization_id: organizationId,
-        client_id: organizationId, // Temporary: satisfies NOT NULL constraint during migration
+        client_id: null,
         name: form.name.trim(),
         url: form.url.trim() || null,
       }).select("id").single();

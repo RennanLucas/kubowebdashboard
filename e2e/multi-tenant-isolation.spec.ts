@@ -237,6 +237,13 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
 
   // ---- organization_members / invites -----------------------------------
   test("organization_members: A NÃO lê membros da Org B", async () => {
+    const ownDirectory = await clientA.rpc("list_organization_members", { p_organization_id: ORG_A_ID });
+    expect(ownDirectory.error).toBeNull();
+    expect(ownDirectory.data?.length).toBeGreaterThan(0);
+    expect(ownDirectory.data?.some((member: { email: string }) => member.email === USER_A.email)).toBe(true);
+    const otherDirectory = await clientA.rpc("list_organization_members", { p_organization_id: ORG_B_ID });
+    expect(otherDirectory.error).not.toBeNull();
+    expect(otherDirectory.data).toBeNull();
     const aReadsB = await clientA
       .from("organization_members")
       .select("*")
