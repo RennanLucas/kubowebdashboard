@@ -33,12 +33,11 @@ const state = vi.hoisted(() => ({
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    functions: {
-      invoke: async (fn: string, opts: unknown) => {
-        state.invokes.push({ fn, opts });
-        if (state.queuedResults.length) return state.queuedResults.shift()!;
-        return state.result;
-      },
+    auth: {
+      getSession: async () => ({
+        data: { session: { access_token: "real-test-access-token" } },
+        error: null,
+      }),
     },
     channel: (name: string) => {
       const ch: FakeChannel = { name, subscribed: false };
@@ -108,6 +107,17 @@ beforeEach(() => {
   state.channels = [];
   state.removed = [];
   state.queuedResults = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, opts: unknown) => {
+    const fn = url.split("/").pop()?.split("?")[0] ?? "";
+    state.invokes.push({ fn, opts });
+    const next = state.queuedResults.length ? state.queuedResults.shift()! : state.result;
+    if (next.error) throw new Error(next.error.message);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => next.data,
+    };
+  }));
   ok();
 });
 
@@ -146,10 +156,12 @@ describe("useSubscriptionStatus happy path", () => {
 
     expect(state.invokes).toHaveLength(1);
     expect(state.invokes[0].fn).toBe("get-subscription-status");
-    expect(state.invokes[0].opts).toEqual({
+    expect(state.invokes[0].opts).toMatchObject({
       method: "GET",
-      headers: { "X-Organization-Id": "11111111-1111-4111-8111-111111111111" },
-      timeout: 8000,
+      headers: {
+        Authorization: "Bearer real-test-access-token",
+        "X-Organization-Id": "11111111-1111-4111-8111-111111111111",
+      },
     });
     expect(result.current.status?.isActive).toBe(true);
     expect(result.current.status?.subscription?.id).toBe("sub1");

@@ -278,7 +278,7 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
   });
 
   // ---- IDOR via Edge Functions ------------------------------------------
-  test("IDOR: A usa Edge Functions com project_id de B => bloqueado/vazio", async ({ request }) => {
+  test("Dashboard: GET da própria organização funciona e GET cross-org é negado", async ({ request }) => {
     const { data: sessionA } = await clientA.auth.getSession();
     const tokenA = sessionA.session?.access_token;
     expect(tokenA, "token de A necessário").toBeTruthy();
@@ -292,28 +292,32 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
     ];
 
     for (const fn of endpoints) {
-      const res = await request.post(`${SUPABASE_URL}/functions/v1/${fn}`, {
+      const res = await request.get(`${SUPABASE_URL}/functions/v1/${fn}?project_id=${PROJECT_B_ID}&days=7`, {
         headers: {
           Authorization: `Bearer ${tokenA}`,
           "Content-Type": "application/json",
           apikey: ANON_KEY,
         },
-        data: { projectId: PROJECT_B_ID, range: "7d" },
       });
-      // Aceitável: 400 (bad request), 403 (forbidden), 404 (not found), ou 200 com payload vazio.
-      // NUNCA 200 com dados reais de B.
-      const status = res.status();
-      if (status === 200) {
-        const body = await res.json().catch(() => ({}));
-        const serialized = JSON.stringify(body);
-        // Heurística: não pode conter os 100 visitantes conhecidos de B como total real.
-        expect(
-          serialized.includes('"visitors":100') && serialized.includes(PROJECT_B_ID),
-          `${fn} vazou dados de B para A`
-        ).toBe(false);
-      } else {
-        expect([400, 401, 403, 404]).toContain(status);
-      }
+      expect(res.status(), `${fn}: token válido deve chegar à verificação de membership`).toBe(403);
+      const own = await request.get(`${SUPABASE_URL}/functions/v1/${fn}?project_id=${PROJECT_A_ID}&days=7`, {
+        headers: { Authorization: `Bearer ${tokenA}`, apikey: ANON_KEY },
+      });
+      expect(own.status(), `${fn}: GET autorizado deve carregar dados`).toBe(200);
+      expect(await own.json()).toBeTruthy();
     }
+  });
+
+  test("Assinatura: GET da própria organização retorna status válido", async ({ request }) => {
+    const { data } = await clientA.auth.getSession();
+    const response = await request.get(`${SUPABASE_URL}/functions/v1/get-subscription-status`, {
+      headers: {
+        Authorization: `Bearer ${data.session!.access_token}`,
+        apikey: ANON_KEY,
+        "X-Organization-Id": ORG_A_ID,
+      },
+    });
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toMatchObject({ hasSubscription: expect.any(Boolean) });
   });
 });
