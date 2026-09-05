@@ -1,0 +1,382 @@
+.kubo-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  align-items: center;
+  gap: 45px;
+  min-height: 850px;
+  padding: 155px max(28px, calc((100vw - 1280px) / 2)) 115px;
+  background:
+    radial-gradient(ellipse at 80% 48%, #15354e, transparent 55%), #080c13;
+  color: #f6f8ff;
+  overflow: hidden;
+}
+.kubo-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a4b9d1;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  margin-bottom: 28px;
+}
+.kubo-eyebrow span {
+  width: 7px;
+  height: 7px;
+  background: #7ee0c5;
+  border-radius: 50%;
+  box-shadow: 0 0 16px #7ee0c580;
+}
+.kubo-hero h1 {
+  font-size: clamp(38px, 4.2vw, 62px);
+  line-height: 1.09;
+  letter-spacing: -0.055em;
+  font-weight: 650;
+}
+.kubo-hero h1 em {
+  display: inline-block;
+  font-style: normal;
+  color: #89caff;
+  margin-top: 12px;
+}
+.kubo-description {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #a6b4c8;
+  max-width: 460px;
+  margin: 28px 0 30px;
+}
+.kubo-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.kubo-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 50px;
+  border-radius: 12px;
+  color: #c5d5e9;
+}
+.kubo-actions a:first-child {
+  padding: 0 23px;
+  background: #b9e2ff;
+  color: #09203a;
+  box-shadow:
+    inset 0 1px #fff9,
+    0 8px 28px #72b6ff18;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.kubo-actions a:first-child:hover {
+  background: #d3edff;
+  transform: translateY(-2px);
+}
+.kubo-hero a:focus-visible {
+  outline: 3px solid #7ee0c5;
+  outline-offset: 5px;
+}
+.kubo-footnote {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #93a3b9;
+  margin-top: 20px;
+}
+.kubo-stage {
+  position: relative;
+  min-width: 0;
+  height: 510px;
+  perspective: 1300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kubo-board {
+  position: relative;
+  width: 100%;
+  max-width: 550px;
+  padding: 24px;
+  border: 1px solid #9acaff42;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #223348, #0d1726 70%);
+  box-shadow:
+    8px 12px 0 #09111c,
+    9px 13px 0 #4d719452,
+    25px 40px 65px #0008,
+    inset 0 1px #ffffff20;
+  transform: rotateY(-14deg) rotateX(9deg) rotateZ(2deg);
+  transition: transform 0.7s;
+  z-index: 1;
+}
+.kubo-stage:hover .kubo-board {
+  transform: rotateY(-7deg) rotateX(4deg);
+}
+.kubo-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ffffff12;
+  padding-bottom: 17px;
+  font-size: 12px;
+  color: #c4d4e7;
+}
+.kubo-toolbar > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kubo-toolbar > small {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  padding: 5px 7px;
+  border: 1px solid #9cbbdd30;
+  border-radius: 5px;
+  color: #b9cce0;
+}
+.kubo-board-title {
+  margin: 24px 0;
+}
+.kubo-board-title small {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  color: #91a9c2;
+}
+.kubo-board-title h2 {
+  font-size: 18px;
+  margin-top: 6px;
+  letter-spacing: -0.03em;
+}
+.kubo-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.kubo-metrics > div {
+  padding: 14px 10px;
+  background: #9ecaff08;
+  border: 1px solid #9ecaff16;
+  border-radius: 9px;
+}
+.kubo-metrics small {
+  display: block;
+  color: #afc1d5;
+  font-size: 10px;
+}
+.kubo-metrics strong {
+  display: block;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  margin-top: 8px;
+}
+.kubo-chart-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #9fb6d0;
+  margin-top: 28px;
+}
+.kubo-bars {
+  height: 125px;
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  border-bottom: 1px solid #9ecaff20;
+  margin-top: 14px;
+  background: repeating-linear-gradient(
+    to top,
+    transparent 0,
+    transparent 30px,
+    #b8d9ff0c 31px
+  );
+}
+.kubo-bars > div {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, #9bdaef, #3574b5);
+  box-shadow: 4px -3px 0 #5b9bb870;
+}
+.kubo-bars > div:last-child {
+  background: linear-gradient(#a1f3d4, #47a49e);
+}
+.kubo-days {
+  display: flex;
+  justify-content: space-around;
+  font-size: 9px;
+  color: #a1b2c8;
+  margin-top: 12px;
+}
+.kubo-float {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 20px;
+  background: linear-gradient(130deg, #263b50f5, #122335f5);
+  border: 1px solid #a1c9ee40;
+  box-shadow:
+    0 18px 40px #0005,
+    inset 0 1px #ffffff16;
+  border-radius: 13px;
+  color: #91e9c9;
+  animation: kubo-float 7s ease-in-out infinite;
+}
+.kubo-float small {
+  display: block;
+  color: #abc2d8;
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.kubo-float strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e1f1ff;
+}
+.kubo-float-top {
+  left: -24px;
+  top: 0;
+}
+.kubo-float-bottom {
+  bottom: 0;
+  right: -12px;
+  animation-delay: -3s;
+}
+.kubo-orbit {
+  position: absolute;
+  width: 600px;
+  height: 370px;
+  border: 1px solid #9cdcff18;
+  border-radius: 50%;
+  transform: rotate(-35deg);
+  pointer-events: none;
+}
+.kubo-bottom {
+  position: absolute;
+  bottom: 32px;
+  left: max(28px, calc((100vw - 1280px) / 2));
+  right: max(28px, calc((100vw - 1280px) / 2));
+  border-top: 1px solid #ffffff12;
+  padding-top: 23px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #93a6bd;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.lp-setup.kubo-setup-depth {
+  scroll-margin-top: 90px;
+}
+.kubo-setup-depth .lp-setup__line::before {
+  display: none;
+}
+.kubo-setup-depth .lp-setup__line article {
+  padding: 82px 24px 28px;
+  border: 1px solid #a1c9ee25;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #172639, #09121e);
+  box-shadow:
+    5px 7px 0 #101d30,
+    0 20px 40px #0004;
+}
+.kubo-setup-depth .lp-setup__line article b {
+  top: 23px;
+  left: 24px;
+}
+.kubo-setup-depth .lp-setup__line article p {
+  color: #a6b4c8;
+}
+@keyframes kubo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+@media (max-width: 1000px) {
+  .kubo-hero {
+    grid-template-columns: 1fr;
+    padding-top: 135px;
+    gap: 60px;
+  }
+  .kubo-copy {
+    max-width: 680px;
+  }
+  .kubo-hero h1 {
+    font-size: clamp(38px, 7vw, 62px);
+  }
+  .kubo-stage {
+    width: min(100%, 580px);
+    margin: auto;
+  }
+  .kubo-float-top {
+    left: 0;
+  }
+  .kubo-float-bottom {
+    right: 0;
+  }
+}
+@media (max-width: 520px) {
+  .kubo-hero {
+    padding: 125px 22px 95px;
+    gap: 30px;
+  }
+  .kubo-description {
+    font-size: 15px;
+  }
+  .kubo-stage {
+    height: 420px;
+  }
+  .kubo-board {
+    padding: 14px;
+    transform: rotateY(-5deg) rotateX(5deg);
+  }
+  .kubo-board-title h2 {
+    font-size: 15px;
+  }
+  .kubo-metrics strong {
+    font-size: 22px;
+  }
+  .kubo-metrics small {
+    font-size: 9px;
+  }
+  .kubo-bars {
+    height: 95px;
+    gap: 12px;
+  }
+  .kubo-float {
+    padding: 10px 12px;
+  }
+  .kubo-float strong {
+    font-size: 10px;
+  }
+  .kubo-bottom {
+    font-size: 8px;
+    left: 22px;
+    right: 22px;
+  }
+  .kubo-actions {
+    gap: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kubo-float {
+    animation: none;
+  }
+  .kubo-board,
+  .kubo-actions a {
+    transition: none;
+  }
+  .kubo-stage:hover .kubo-board {
+    transform: rotateY(-5deg) rotateX(5deg);
+  }
+}

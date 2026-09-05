@@ -190,7 +190,7 @@ export function SetupSection() {
     ["04", "Acompanhe", "Os primeiros acessos aparecem no painel e no feed ao vivo."],
   ];
   return (
-    <section className="lp-setup">
+    <section id="how-it-works" className="lp-setup kubo-setup-depth">
       <div className="lp-shell">
         <div className="lp-section-head lp-reveal"><span>Comece sem complexidade</span><h2>Do zero aos primeiros sinais<br />em quatro passos.</h2></div>
         <div className="lp-setup__line">

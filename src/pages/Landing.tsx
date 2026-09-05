@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
-import { LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
+import { LandingNav } from "@/components/landing/premium/LandingHero";
+import { ProfessionalHero } from "@/components/landing/ProfessionalHero";
 import {
   CapabilitiesSection, FinalCTA, InsightsSection, LandingFAQ, PremiumFooter,
   PremiumPricing, ProductStory, RealtimeSection, SetupSection, SignalRail,
@@ -34,7 +35,7 @@ const Landing = () => {
         <LandingNav />
         
         <main>
-          <LandingHero />
+          <ProfessionalHero />
           <SignalRail />
           <ProductStory />
           <RealtimeSection />
