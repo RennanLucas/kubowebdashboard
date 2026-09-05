@@ -8,12 +8,15 @@ import {
 import { useLandingReveal } from "@/components/landing/premium/useLandingReveal";
 import "@/components/landing/premium/landing-premium.css";
 import "@/components/landing/premium/landing-refinement.css";
+import "@/components/landing/premium/landing-spatial.css";
+import { useSpatialExperience } from '@/components/landing/premium/useSpatialExperience';
 
 /* ─────────────────────────────────────────────────────────────
    Main Landing Component
    ───────────────────────────────────────────────────────────── */
 const Landing = () => {
   useLandingReveal();
+  useSpatialExperience();
   return (
     <>
       <Helmet>

@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight, Activity, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./professional-landing.css";
+import { SpatialBackdrop } from './premium/SpatialBackdrop';
 
 export function ProfessionalHero() {
   return (
@@ -35,6 +36,7 @@ export function ProfessionalHero() {
         role="img"
         aria-label="Painel ilustrativo em três dimensões. Dados fictícios de demonstração."
       >
+        <SpatialBackdrop />
         <div className="kubo-orbit" />
         <div className="kubo-board">
           <div className="kubo-toolbar">

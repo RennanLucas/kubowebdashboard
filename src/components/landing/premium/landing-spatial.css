@@ -1,0 +1,459 @@
+/* Spatial presentation: the existing information remains the source of truth. */
+.lp-root {
+  --spatial-ice: #86dafa;
+}
+.kubo-hero {
+  background:
+    radial-gradient(ellipse at 75% 42%, #183c5866, transparent 52%),
+    radial-gradient(ellipse at 0 100%, #14326444, transparent 50%), #060b13;
+}
+.kubo-stage {
+  isolation: isolate;
+  perspective: 1800px;
+}
+.kubo-stage .kubo-board {
+  max-width: 510px;
+  transform: rotateX(calc(8deg + var(--tilt-x, 0deg)))
+    rotateY(calc(-15deg + var(--tilt-y, 0deg))) translateZ(20px);
+  border-color: #a6d9ff66;
+  background: linear-gradient(135deg, #284059eb, #101e32fa 65%);
+  box-shadow:
+    10px 16px 0 #081323,
+    11px 17px 0 #7eacd766,
+    28px 60px 100px #0008,
+    inset 0 1px #effaff44;
+}
+.kubo-stage:hover .kubo-board {
+  transform: rotateX(calc(8deg + var(--tilt-x, 0deg)))
+    rotateY(calc(-15deg + var(--tilt-y, 0deg))) translateZ(20px);
+}
+.kubo-float {
+  z-index: 4;
+  box-shadow:
+    6px 8px 0 #07111f80,
+    0 20px 55px #0008,
+    inset 0 1px #bdeaff3b;
+}
+.kubo-float-top {
+  left: -20px;
+}
+.spatial-backdrop {
+  position: absolute;
+  inset: -45px -35px;
+  z-index: -1;
+  pointer-events: none;
+  perspective: 1100px;
+}
+.spatial-horizon {
+  position: absolute;
+  inset: 30% -15% -10%;
+  background-image:
+    linear-gradient(#87d3ff20 1px, transparent 1px),
+    linear-gradient(90deg, #87d3ff20 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: rotateX(64deg);
+  mask-image: radial-gradient(ellipse, #000, transparent 70%);
+}
+.spatial-ring {
+  position: absolute;
+  width: 115%;
+  height: 75%;
+  left: -8%;
+  top: 14%;
+  border: 1px solid #9fdfff38;
+  border-radius: 50%;
+  box-shadow:
+    0 0 26px #8acfff0a,
+    inset 0 0 26px #8acfff0a;
+  transform: rotateZ(-30deg) rotateX(54deg);
+}
+.spatial-ring--two {
+  transform: rotateZ(40deg) rotateY(48deg);
+  border-color: #6fafff20;
+  width: 110%;
+  height: 90%;
+  top: 5%;
+}
+.spatial-cube {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  width: 84px;
+  height: 84px;
+  transform-style: preserve-3d;
+  transform: rotateX(-24deg) rotateY(34deg) rotateZ(-8deg);
+}
+.spatial-cube i {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #b9e7ff99;
+  background: linear-gradient(135deg, #99e2ff55, #367db822);
+  box-shadow: inset 0 0 24px #99dfff22;
+}
+.spatial-cube__front {
+  transform: translateZ(42px);
+}
+.spatial-cube__back {
+  transform: rotateY(180deg) translateZ(42px);
+}
+.spatial-cube__left {
+  transform: rotateY(-90deg) translateZ(42px);
+}
+.spatial-cube__right {
+  transform: rotateY(90deg) translateZ(42px);
+}
+.spatial-cube__top {
+  transform: rotateX(90deg) translateZ(42px);
+}
+.spatial-cube__bottom {
+  transform: rotateX(-90deg) translateZ(42px);
+}
+.spatial-towers {
+  position: absolute;
+  width: 160px;
+  height: 145px;
+  left: -12px;
+  bottom: 0;
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  transform: rotateY(-26deg) rotateX(18deg) rotateZ(-5deg);
+}
+.spatial-towers i {
+  flex: 1;
+  background: linear-gradient(90deg, #21476b, #77c8ddaa);
+  border: 1px solid #aeeeff55;
+  box-shadow:
+    7px -5px 0 #28597b,
+    8px -6px 0 #b3f0ff66,
+    0 25px 35px #0005;
+}
+.spatial-specks {
+  position: absolute;
+  inset: 0;
+}
+.spatial-specks i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #b8e8ff;
+  box-shadow: 0 0 10px #5daaff;
+  opacity: 0.55;
+}
+.lp-realtime__grid,
+.lp-insights__grid,
+.lp-pricing__grid {
+  perspective: 1800px;
+}
+.lp-event-console {
+  transform: rotateY(-7deg) rotateX(3deg);
+  border-color: #a4cfff44;
+  box-shadow:
+    8px 12px 0 #0a1524,
+    9px 13px 0 #668eac55,
+    0 45px 100px #0007;
+}
+.lp-insight-stack {
+  gap: 26px;
+}
+.lp-insight-stack .lp-insight:nth-child(1) {
+  transform: rotateY(-9deg) translateX(18px);
+}
+.lp-insight-stack .lp-insight:nth-child(2) {
+  transform: rotateY(-6deg) translateX(-16px);
+}
+.lp-insight-stack .lp-insight:nth-child(3) {
+  transform: rotateY(-9deg) translateX(10px);
+}
+.lp-insight-stack .lp-insight {
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.lp-capability {
+  background:
+    radial-gradient(
+      circle at var(--light-x, 70%) var(--light-y, 10%),
+      #438ad321,
+      transparent 55%
+    ),
+    linear-gradient(135deg, #132337, #080f1b);
+}
+.lp-capability--heat {
+  background:
+    radial-gradient(ellipse at 50% 100%, #155b6e44, transparent 65%), #0b1723;
+}
+.lp-capability--wide {
+  background:
+    radial-gradient(ellipse at 80% 100%, #25418555, transparent 65%), #0c1523;
+}
+.lp-capability-grid {
+  perspective: 1500px;
+  gap: 24px;
+}
+.lp-capability__icon {
+  transform: rotateZ(-5deg);
+  box-shadow:
+    3px 4px 0 #09121f,
+    inset 0 1px #c7e8ff55;
+  transition: transform 0.3s;
+}
+.lp-mini-chart {
+  transform: perspective(900px) rotateX(8deg);
+  box-shadow: 0 14px 25px #0004;
+}
+.lp-heat-cells {
+  transform: perspective(900px) rotateX(22deg) rotateZ(-3deg);
+  padding: 12px 6px;
+}
+.lp-heat-cells i {
+  box-shadow: 2px 3px 0 #1e4477;
+}
+.lp-export-pills {
+  perspective: 700px;
+}
+.lp-export-pills span {
+  transform: rotateY(-12deg) rotateX(8deg);
+  box-shadow: 3px 4px 0 #030a12;
+}
+.lp-org-layers {
+  perspective: 800px;
+}
+.lp-org-layers > span {
+  transform: rotateY(-12deg) rotateX(10deg);
+  box-shadow: 6px 8px 15px #0004;
+}
+.lp-funnel {
+  perspective: 800px;
+}
+.lp-funnel span {
+  transform: rotateX(14deg);
+  box-shadow: 0 4px 0 #11223b;
+  margin-bottom: 4px;
+}
+.kubo-setup-depth .lp-setup__line {
+  perspective: 1200px;
+}
+.kubo-setup-depth .lp-setup__line article {
+  border-top-color: #a6dbff66;
+}
+.lp-price-card.is-recommended {
+  box-shadow:
+    5px 8px 0 #12243b,
+    6px 9px 0 #7ab5ea55,
+    0 25px 70px #0005;
+}
+.lp-final__signal {
+  transform: perspective(700px) rotateX(25deg) scale(1.5);
+}
+.lp-final::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 12% 15%;
+  border: 1px solid #8dccff19;
+  border-radius: 50%;
+  transform: rotateX(58deg) rotateZ(-12deg);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-capability:hover {
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s;
+  }
+  .lp-capability:hover .lp-capability__icon {
+    transform: rotateZ(0) translateY(-3px);
+  }
+  .lp-insight-stack .lp-insight:hover {
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translateZ(12px);
+    box-shadow: 0 25px 50px #0007;
+  }
+  .lp-price-card:hover {
+    background-image: radial-gradient(
+      circle at var(--light-x, 50%) var(--light-y, 20%),
+      #87c9ff15,
+      transparent 65%
+    );
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .spatial-cube {
+    transform: rotateX(calc(-24deg + var(--spatial-progress, 0) * 28deg))
+      rotateY(calc(34deg + var(--spatial-progress, 0) * 100deg)) rotateZ(-8deg);
+  }
+  .spatial-ring--one {
+    transform: rotateZ(calc(-30deg + var(--spatial-progress, 0) * 45deg))
+      rotateX(54deg);
+  }
+  .spatial-towers {
+    transform: translateY(calc(var(--spatial-progress, 0) * -65px))
+      rotateY(-26deg) rotateX(18deg) rotateZ(-5deg);
+  }
+  .lp-reveal {
+    transition:
+      opacity 0.75s ease,
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translate3d(0, 46px, 0) scale(0.97);
+  }
+  .lp-reveal.is-visible {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  .lp-capability:nth-child(3n + 2) {
+    transition-delay: 100ms;
+  }
+  .lp-capability:nth-child(3n) {
+    transition-delay: 180ms;
+  }
+  .lp-realtime.spatial-arrived .lp-event {
+    animation: lp-event-in 0.65s both;
+    animation-delay: calc(180ms + var(--delay));
+  }
+  .lp-story__steps article {
+    transition:
+      opacity 0.5s,
+      border-color 0.5s,
+      transform 0.6s;
+  }
+  .lp-story__steps article.is-active {
+    transform: translateX(-8px);
+  }
+}
+@media (min-width: 1101px) and (min-height: 800px) {
+  .lp-story__grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  }
+  .lp-story__visual {
+    position: sticky;
+    top: 96px;
+    height: calc(100vh - 120px);
+    max-height: 870px;
+    justify-content: start;
+  }
+  .lp-story__frame {
+    transform-origin: top center;
+  }
+  .lp-story__visual[data-step] .lp-story__frame {
+    width: 100%;
+    transform: scale(0.72) rotateY(8deg) rotateX(4deg);
+  }
+  .lp-story__visual[data-step="1"] .lp-story__frame {
+    transform: scale(0.75) rotateY(1deg);
+  }
+  .lp-story__visual[data-step="2"] .lp-story__frame {
+    transform: scale(0.72) rotateY(-7deg) rotateX(3deg);
+  }
+  .lp-story__visual[data-step="3"] .lp-story__frame {
+    transform: scale(0.74) rotateY(0);
+  }
+  .lp-story__readout {
+    position: absolute;
+    bottom: 0;
+    left: 3%;
+    width: 230px;
+  }
+  .lp-story__steps article {
+    min-height: 70vh;
+    padding-block: 70px;
+  }
+}
+@media (max-width: 1100px) {
+  .spatial-backdrop {
+    inset: -25px 0;
+  }
+  .spatial-cube {
+    right: 35px;
+  }
+  .spatial-towers {
+    left: 4px;
+  }
+  .lp-event-console {
+    transform: none;
+  }
+}
+@media (max-width: 640px) {
+  .spatial-backdrop {
+    inset: 0;
+  }
+  .spatial-cube {
+    width: 52px;
+    height: 52px;
+    right: 25px;
+    top: 8px;
+  }
+  .spatial-cube__front {
+    transform: translateZ(26px);
+  }
+  .spatial-cube__back {
+    transform: rotateY(180deg) translateZ(26px);
+  }
+  .spatial-cube__left {
+    transform: rotateY(-90deg) translateZ(26px);
+  }
+  .spatial-cube__right {
+    transform: rotateY(90deg) translateZ(26px);
+  }
+  .spatial-cube__top {
+    transform: rotateX(90deg) translateZ(26px);
+  }
+  .spatial-cube__bottom {
+    transform: rotateX(-90deg) translateZ(26px);
+  }
+  .spatial-ring {
+    left: 0;
+    width: 100%;
+  }
+  .spatial-towers {
+    width: 75px;
+    height: 55px;
+    bottom: 0;
+    left: 10px;
+    gap: 7px;
+  }
+  .kubo-stage .kubo-board,
+  .kubo-stage:hover .kubo-board {
+    transform: none;
+  }
+  .kubo-float-top {
+    left: 0;
+  }
+  .lp-insight-stack .lp-insight:nth-child(n) {
+    transform: none;
+  }
+  .lp-mini-chart,
+  .lp-heat-cells {
+    transform: none;
+  }
+  .lp-capability:hover {
+    transform: none;
+  }
+  .lp-story__steps article.is-active {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kubo-stage .kubo-board,
+  .kubo-stage:hover .kubo-board,
+  .lp-story__visual[data-step] .lp-story__frame {
+    transform: none !important;
+  }
+  .lp-story__visual {
+    position: relative;
+    height: auto;
+    max-height: none;
+  }
+  .lp-story__readout {
+    position: relative;
+    inset: auto;
+    width: 100%;
+  }
+  .lp-root .lp-reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .lp-root .lp-event {
+    animation: none;
+  }
+}
