@@ -59,6 +59,7 @@ export function useSpatialExperience() {
       (entries) => {
         entries.forEach((entry) => {
           const target = entry.target as HTMLElement;
+          target.classList.toggle("spatial-in-view", entry.isIntersecting);
           if (entry.isIntersecting) {
             visible.add(target);
             target.classList.add("spatial-arrived");

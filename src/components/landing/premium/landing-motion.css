@@ -1,0 +1,224 @@
+/* Motion is decorative: demonstration values and controls remain stable. */
+@keyframes kubo-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -18px;
+  }
+}
+@keyframes kubo-orbital-turn {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes kubo-cube-turn {
+  0% {
+    transform: rotateX(-24deg) rotateY(34deg) rotateZ(-8deg);
+  }
+  50% {
+    transform: rotateX(24deg) rotateY(214deg) rotateZ(8deg);
+  }
+  100% {
+    transform: rotateX(-24deg) rotateY(394deg) rotateZ(-8deg);
+  }
+}
+@keyframes kubo-signal-travel {
+  0% {
+    translate: -110% 0;
+    opacity: 0;
+  }
+  20%,
+  70% {
+    opacity: 0.75;
+  }
+  100% {
+    translate: 210% 0;
+    opacity: 0;
+  }
+}
+@keyframes kubo-chart-draw {
+  from {
+    stroke-dashoffset: 450;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes kubo-bar-enter {
+  from {
+    scale: 1 0.05;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes kubo-spark {
+  0%,
+  100% {
+    opacity: 0.2;
+    scale: 0.7;
+  }
+  50% {
+    opacity: 0.9;
+    scale: 1.5;
+  }
+}
+@keyframes kubo-card-enter {
+  from {
+    opacity: 0;
+    translate: 0 60px;
+    rotate: 3deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+@keyframes kubo-layer-breathe {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 10px -8px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-root .spatial-cube {
+    animation:
+      kubo-cube-turn 16s linear infinite,
+      kubo-drift 6s ease-in-out infinite;
+  }
+  .lp-root .spatial-ring {
+    animation: kubo-orbital-turn 36s linear infinite;
+  }
+  .lp-root .spatial-ring--two {
+    animation-direction: reverse;
+    animation-duration: 48s;
+  }
+  .lp-root .spatial-ring::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #b0edff;
+    box-shadow:
+      0 0 20px #70ceff,
+      0 0 45px #70ceff88;
+  }
+  .lp-root .kubo-board {
+    animation: kubo-drift 7s ease-in-out infinite;
+  }
+  .lp-root .kubo-float {
+    animation: kubo-drift 4.8s ease-in-out infinite;
+  }
+  .lp-root .kubo-float-bottom {
+    animation-delay: -2.4s;
+    animation-direction: reverse;
+  }
+  .lp-root .spatial-towers {
+    animation: kubo-drift 5.5s ease-in-out infinite reverse;
+  }
+  .lp-root .spatial-specks i {
+    animation: kubo-spark 3s ease-in-out infinite;
+  }
+  .lp-root .spatial-specks i:nth-child(3n) {
+    animation-delay: -1s;
+  }
+  .lp-root .spatial-specks i:nth-child(3n + 1) {
+    animation-delay: -2s;
+  }
+  .lp-root .kubo-bars > div {
+    transform-origin: bottom;
+    animation: kubo-bar-enter 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lp-root .kubo-bars > div:nth-child(2n) {
+    animation-delay: 0.2s;
+  }
+  .lp-root .kubo-bars > div:nth-child(3n) {
+    animation-delay: 0.4s;
+  }
+  .lp-root .spatial-arrived .lp-mini-chart path:not(.is-fill) {
+    stroke-dasharray: 450;
+    animation: kubo-chart-draw 2.4s ease both;
+  }
+  .lp-root .spatial-arrived .lp-capability.is-visible,
+  .lp-root .spatial-arrived .lp-setup__line article.is-visible {
+    animation: kubo-card-enter 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lp-root .lp-capability:nth-child(2n),
+  .lp-root .lp-setup__line article:nth-child(2n) {
+    animation-delay: 0.15s !important;
+  }
+  .lp-root .lp-capability:nth-child(3n),
+  .lp-root .lp-setup__line article:nth-child(3n) {
+    animation-delay: 0.3s !important;
+  }
+  .lp-root .lp-insight {
+    animation: kubo-drift 6s ease-in-out infinite;
+  }
+  .lp-root .lp-insight:nth-child(2) {
+    animation-delay: -2s;
+  }
+  .lp-root .lp-insight:nth-child(3) {
+    animation-delay: -4s;
+  }
+  .lp-root .lp-org-layers > span,
+  .lp-root .lp-export-pills > span {
+    animation: kubo-layer-breathe 5s ease-in-out infinite;
+  }
+  .lp-root .lp-org-layers > span:nth-child(2),
+  .lp-root .lp-export-pills > span:nth-child(2n) {
+    animation-delay: -2.5s;
+  }
+  .lp-root .lp-heat-cells i {
+    animation: kubo-layer-breathe 4s ease-in-out infinite;
+  }
+  .lp-root .lp-heat-cells i:nth-child(3n) {
+    animation-delay: -1.3s;
+  }
+  .lp-root .lp-heat-cells i:nth-child(3n + 1) {
+    animation-delay: -2.6s;
+  }
+  .lp-root .lp-event-console__pulse {
+    position: relative;
+    overflow: hidden;
+  }
+  .lp-root .lp-event-console__pulse::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    width: 50%;
+    background: linear-gradient(90deg, transparent, #89dfff22, transparent);
+    animation: kubo-signal-travel 4s ease-in-out infinite;
+  }
+  .lp-root .lp-final__signal {
+    animation: kubo-orbital-turn 30s linear infinite;
+  }
+  /* Offscreen scenes keep their position without spending animation work. */
+  .lp-root main > section:not(.spatial-in-view) *,
+  .lp-root main > section:not(.spatial-in-view) *::after {
+    animation-play-state: paused !important;
+  }
+  .lp-root .lp-insight:hover,
+  .lp-root .lp-capability:hover {
+    animation-play-state: paused;
+  }
+}
+@media (max-width: 640px) {
+  .lp-root .kubo-board,
+  .lp-root .lp-insight,
+  .lp-root .lp-heat-cells i {
+    animation: none;
+  }
+}

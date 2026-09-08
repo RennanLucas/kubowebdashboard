@@ -17,6 +17,7 @@ import { useLandingReveal } from "@/components/landing/premium/useLandingReveal"
 import "@/components/landing/premium/landing-premium.css";
 import "@/components/landing/premium/landing-refinement.css";
 import "@/components/landing/premium/landing-spatial.css";
+import "@/components/landing/premium/landing-motion.css";
 import { useSpatialExperience } from "@/components/landing/premium/useSpatialExperience";
 import { SpatialExperienceLayer } from "@/components/landing/premium/SpatialExperienceLayer";
 
