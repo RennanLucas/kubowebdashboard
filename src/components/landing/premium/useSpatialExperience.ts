@@ -11,9 +11,13 @@ export function useSpatialExperience() {
     );
     const panels = Array.from(
       root.querySelectorAll<HTMLElement>(
-        ".kubo-stage, .lp-insight, .lp-capability, .lp-price-card",
+        ".kubo-stage, .lp-event-console, .lp-insight, .lp-capability, .lp-price-card, .lp-setup__line article",
       ),
     );
+    const railLinks = Array.from(
+      root.querySelectorAll<HTMLAnchorElement>("[data-spatial-target]"),
+    );
+    const cursor = root.querySelector<HTMLElement>(".spatial-cursor");
     const visible = new Set<HTMLElement>();
     let frame = 0;
     const update = () => {
@@ -28,6 +32,25 @@ export function useSpatialExperience() {
         );
         section.style.setProperty("--spatial-progress", progress.toFixed(4));
       });
+      const scrollable = document.documentElement.scrollHeight - height;
+      root.style.setProperty(
+        "--page-progress",
+        scrollable > 0 ? String(window.scrollY / scrollable) : "0",
+      );
+      const marker = height * 0.46;
+      let activeId = "product-story";
+      railLinks.forEach((link) => {
+        const id = link.dataset.spatialTarget;
+        const section = id ? document.getElementById(id) : null;
+        if (section && section.getBoundingClientRect().top <= marker)
+          activeId = id!;
+      });
+      railLinks.forEach((link) =>
+        link.classList.toggle(
+          "is-active",
+          link.dataset.spatialTarget === activeId,
+        ),
+      );
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -74,6 +97,13 @@ export function useSpatialExperience() {
     };
     const leave = (event: PointerEvent) =>
       resetPanel(event.currentTarget as HTMLElement);
+    const moveCursor = (event: PointerEvent) => {
+      if (!cursor || motion.matches || !fine.matches) return;
+      cursor.style.setProperty("--cursor-x", `${event.clientX}px`);
+      cursor.style.setProperty("--cursor-y", `${event.clientY}px`);
+      cursor.classList.add("is-visible");
+    };
+    const hideCursor = () => cursor?.classList.remove("is-visible");
     const preference = () => {
       panels.forEach(resetPanel);
       if (motion.matches)
@@ -88,6 +118,8 @@ export function useSpatialExperience() {
     });
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("pointermove", moveCursor, { passive: true });
+    document.documentElement.addEventListener("mouseleave", hideCursor);
     motion.addEventListener("change", preference);
     fine.addEventListener("change", preference);
     schedule();
@@ -96,6 +128,8 @@ export function useSpatialExperience() {
       observer.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("pointermove", moveCursor);
+      document.documentElement.removeEventListener("mouseleave", hideCursor);
       motion.removeEventListener("change", preference);
       fine.removeEventListener("change", preference);
       panels.forEach((panel) => {

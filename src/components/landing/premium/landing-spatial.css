@@ -1,6 +1,280 @@
 /* Spatial presentation: the existing information remains the source of truth. */
 .lp-root {
   --spatial-ice: #86dafa;
+  --page-progress: 0;
+  position: relative;
+}
+
+/* Fixed presentation controls and cursor light */
+.spatial-cursor {
+  --cursor-x: 50vw;
+  --cursor-y: 30vh;
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    320px circle at var(--cursor-x) var(--cursor-y),
+    rgb(94 184 255 / 0.075),
+    transparent 68%
+  );
+}
+.spatial-cursor.is-visible {
+  opacity: 1;
+}
+.spatial-cursor i {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  left: var(--cursor-x);
+  top: var(--cursor-y);
+  border: 1px solid rgb(150 222 255 / 0.42);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 24px rgb(76 170 255 / 0.2);
+}
+.spatial-rail {
+  position: fixed;
+  z-index: 60;
+  top: 50%;
+  right: 20px;
+  display: grid;
+  gap: 7px;
+  transform: translateY(-50%);
+  padding: 15px 10px;
+  border: 1px solid rgb(143 204 255 / 0.14);
+  border-radius: 18px;
+  background: rgb(5 12 21 / 0.68);
+  box-shadow: 0 22px 60px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(18px);
+}
+.spatial-rail__track {
+  position: absolute;
+  left: 20px;
+  top: 23px;
+  bottom: 23px;
+  width: 1px;
+  overflow: hidden;
+  background: rgb(135 197 255 / 0.14);
+}
+.spatial-rail__track i {
+  display: block;
+  width: 100%;
+  height: calc(var(--page-progress) * 100%);
+  background: linear-gradient(#80dcff, #557dff);
+  box-shadow: 0 0 12px #6bbcff;
+}
+.spatial-rail a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 0fr;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: #7890aa;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    color 0.25s ease,
+    grid-template-columns 0.35s ease;
+}
+.spatial-rail a::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: #07101c;
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease;
+}
+.spatial-rail a b {
+  opacity: 0;
+}
+.spatial-rail a span {
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.spatial-rail:hover a,
+.spatial-rail:focus-within a {
+  grid-template-columns: 22px 74px;
+}
+.spatial-rail:hover a span,
+.spatial-rail:focus-within a span {
+  opacity: 1;
+}
+.spatial-rail a.is-active {
+  color: #a9e7ff;
+}
+.spatial-rail a.is-active::before {
+  background: #89dcff;
+  transform: scale(1.45);
+  box-shadow: 0 0 14px #68caff;
+}
+.spatial-edge {
+  position: fixed;
+  z-index: 10;
+  left: 17px;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  color: rgb(142 169 198 / 0.42);
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.spatial-edge i {
+  width: 68px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #7bcfff, transparent);
+}
+
+/* Each chapter receives its own spatial atmosphere. */
+.lp-story,
+.lp-realtime,
+.lp-insights,
+.lp-capabilities,
+.lp-setup,
+.lp-pricing,
+.lp-faq {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.lp-story::before,
+.lp-realtime::before,
+.lp-insights::before,
+.lp-capabilities::before,
+.lp-setup::before,
+.lp-pricing::before,
+.lp-faq::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 480px;
+  height: 480px;
+  border: 1px solid rgb(104 184 255 / 0.12);
+  border-radius: 50%;
+  transform: translate3d(
+      0,
+      calc((var(--spatial-progress, 0.5) - 0.5) * 180px),
+      0
+    )
+    rotate(28deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.8%,
+      rgb(111 194 255 / 0.08) 50%,
+      transparent 50.2%
+    ),
+    linear-gradient(
+      transparent 49.8%,
+      rgb(111 194 255 / 0.08) 50%,
+      transparent 50.2%
+    );
+  box-shadow: inset 0 0 100px rgb(44 127 255 / 0.035);
+  transition: transform 0.12s linear;
+  pointer-events: none;
+}
+.lp-story::before,
+.lp-insights::before,
+.lp-setup::before,
+.lp-faq::before {
+  right: -240px;
+  top: 18%;
+}
+.lp-realtime::before,
+.lp-capabilities::before,
+.lp-pricing::before {
+  left: -250px;
+  top: 25%;
+}
+.lp-realtime::after,
+.lp-capabilities::after,
+.lp-setup::after,
+.lp-pricing::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 220px;
+  height: 220px;
+  right: 5%;
+  bottom: 7%;
+  border: 1px solid rgb(129 206 255 / 0.09);
+  transform: rotate(45deg)
+    translateY(calc((var(--spatial-progress, 0.5) - 0.5) * -100px));
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 27px,
+    rgb(108 190 255 / 0.035) 28px
+  );
+  pointer-events: none;
+}
+
+/* More tactile depth across the product chapters. */
+.lp-event-console,
+.lp-price-card,
+.lp-setup__line article {
+  --light-x: 50%;
+  --light-y: 50%;
+  transform-style: preserve-3d;
+}
+.lp-event-console::after,
+.lp-price-card::after,
+.lp-setup__line article::after,
+.lp-capability::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    240px circle at var(--light-x) var(--light-y),
+    rgb(158 226 255 / 0.14),
+    transparent 66%
+  );
+  transition: opacity 0.3s ease;
+}
+.lp-event-console:hover::after,
+.lp-price-card:hover::after,
+.lp-setup__line article:hover::after,
+.lp-capability:hover::after {
+  opacity: 1;
+}
+.lp-price-card:hover {
+  transform: perspective(1100px) rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg)) translateY(-8px) translateZ(12px);
+  box-shadow:
+    0 35px 90px rgb(0 0 0 / 0.42),
+    0 0 0 1px rgb(138 211 255 / 0.16);
+}
+.lp-setup__line article:hover {
+  transform: perspective(900px) rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg)) translateY(-10px);
+}
+.lp-setup__line article b,
+.lp-capability__icon,
+.lp-insight__mark {
+  transform: translateZ(28px);
+}
+.lp-insight:hover {
+  z-index: 5;
+  transform: perspective(1000px) rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg)) translate3d(-14px, -7px, 40px) !important;
+  box-shadow: 22px 35px 75px rgb(0 0 0 / 0.42);
 }
 .kubo-hero {
   background:
@@ -360,6 +634,10 @@
   }
 }
 @media (max-width: 1100px) {
+  .spatial-rail,
+  .spatial-edge {
+    display: none;
+  }
   .spatial-backdrop {
     inset: -25px 0;
   }
@@ -434,6 +712,22 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .spatial-cursor {
+    display: none;
+  }
+  .lp-story::before,
+  .lp-realtime::before,
+  .lp-insights::before,
+  .lp-capabilities::before,
+  .lp-setup::before,
+  .lp-pricing::before,
+  .lp-faq::before,
+  .lp-realtime::after,
+  .lp-capabilities::after,
+  .lp-setup::after,
+  .lp-pricing::after {
+    transform: none;
+  }
   .kubo-stage .kubo-board,
   .kubo-stage:hover .kubo-board,
   .lp-story__visual[data-step] .lp-story__frame {

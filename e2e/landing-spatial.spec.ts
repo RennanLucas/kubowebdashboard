@@ -31,6 +31,16 @@ test("3D responde ao cursor e scroll, e respeita redução de movimento", async 
     "aria-hidden",
     "true",
   );
+  const rail = page.locator(".spatial-rail");
+  await expect(rail).toBeVisible();
+  await expect(rail.locator("a.is-active")).toHaveAttribute(
+    "data-spatial-target",
+    "product-story",
+  );
+  await page.locator("#capabilities").scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => rail.locator("a.is-active").getAttribute("data-spatial-target"))
+    .toBe("capabilities");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect
     .poll(() =>
@@ -40,4 +50,7 @@ test("3D responde ao cursor e scroll, e respeita redução de movimento", async 
     )
     .toBe("");
   await expect(page.locator(".kubo-board")).toHaveCSS("transform", "none");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(rail).toBeHidden();
 });
