@@ -602,78 +602,67 @@
   transform: translateY(0);
 }
 
-/* 2. Rotating Conic Beam Border on CTA Buttons (.lp-feixe) */
-@property --lp-feixe-giro {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-@keyframes lp-feixe-girar {
-  to {
-    --lp-feixe-giro: 360deg;
-  }
-}
+/* 2. Premium CTA Buttons (.lp-feixe) */
 .lp-feixe-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5px;
-  border-radius: 14px;
-  overflow: hidden;
   text-decoration: none;
   background: transparent;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.22);
-}
-.lp-feixe-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 45px rgba(59, 130, 246, 0.4);
+  border-radius: 14px;
 }
 .lp-feixe-border {
-  position: absolute;
-  inset: -150%;
-  animation: lp-feixe-girar 3.4s linear infinite;
-  background: conic-gradient(from var(--lp-feixe-giro), transparent 0%, rgba(59, 130, 246, 0.9) 25%, #e0f2fe 44%, #38bdf8 52%, transparent 74%);
-  pointer-events: none;
+  display: none; /* remove glitchy rotating sliver */
 }
 .lp-feixe-inner {
   position: relative;
-  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
   min-height: 48px;
-  padding: 0 22px;
-  border-radius: 12.5px;
+  padding: 0 24px;
+  border-radius: 12px;
   color: #06101f;
-  background: #f8fbff;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.32), 0 8px 24px rgba(0, 0, 0, 0.4);
   font-size: 14px;
   font-weight: 700;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, background 0.2s ease, border-color 0.2s ease;
 }
 .lp-feixe-btn:hover .lp-feixe-inner {
+  transform: translateY(-2px);
   background: #ffffff;
+  border-color: rgba(96, 165, 250, 0.5);
+  box-shadow: 0 0 38px rgba(59, 130, 246, 0.52), 0 14px 34px rgba(0, 0, 0, 0.5);
+}
+.lp-feixe-inner svg {
+  transition: transform 0.2s ease;
+}
+.lp-feixe-btn:hover .lp-feixe-inner svg {
+  transform: translateX(3px);
 }
 .lp-feixe-btn--compact {
   border-radius: 12px;
 }
 .lp-feixe-btn--compact .lp-feixe-inner {
-  min-height: 37px;
+  min-height: 38px;
   padding: 0 16px;
   font-size: 12px;
-  border-radius: 10.5px;
-}
-.lp-feixe-btn--pro {
-  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.35);
+  border-radius: 10px;
 }
 .lp-feixe-btn--pro .lp-feixe-inner {
   background: linear-gradient(135deg, #1d4ed8, #2563eb);
   color: #ffffff;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
 }
 .lp-feixe-btn--pro:hover .lp-feixe-inner {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border-color: rgba(147, 197, 253, 0.6);
+  box-shadow: 0 16px 45px rgba(59, 130, 246, 0.6);
 }
 
 /* 3. Hand-Drawn SVG Animated Underline */
@@ -1311,44 +1300,51 @@
   }
 }
 
-/* 6. Sticky Stacking Deck Cards (.lp-deck) */
+/* 6. Setup Step Cards Grid (.lp-deck) */
 .lp-deck-wrap {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
   margin-top: 50px;
 }
 .lp-deck-card {
-  position: sticky;
-  top: calc(90px + var(--i) * 18px);
-  padding: 34px 38px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(14, 21, 33, 0.95) 0%, rgba(8, 12, 18, 0.98) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  transition: transform 0.25s ease, border-color 0.25s ease;
-  z-index: calc(10 + var(--i));
+  position: relative;
+  top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 22px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(14, 21, 33, 0.85) 0%, rgba(8, 12, 18, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  z-index: 1;
+}
+.lp-deck-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(96, 165, 250, 0.4);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
 }
 .lp-deck-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .lp-deck-card__num {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: #60a5fa;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .lp-deck-card__badge {
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1359,16 +1355,32 @@
 .lp-deck-card h3 {
   margin: 0 0 8px;
   color: #f8fafc;
-  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  font-size: 16px;
   font-weight: 650;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 .lp-deck-card p {
   margin: 0;
   color: #8492a6;
-  font-size: 13px;
-  line-height: 1.65;
-  max-width: 680px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+  .lp-deck-wrap {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+@media (max-width: 640px) {
+  .lp-deck-wrap {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .lp-deck-card {
+    padding: 20px 18px;
+    top: 0 !important;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1409,8 +1421,7 @@
     gap: 8px;
   }
   .lp-deck-card {
-    padding: 22px 18px;
-    top: calc(75px + var(--i) * 12px);
+    padding: 20px 18px;
   }
 }
 
@@ -1681,18 +1692,6 @@
   100%{ box-shadow: 0 0 0 0 rgba(68,229,168,0), 0 0 14px rgba(68,229,168,.65); }
 }
 
-/* ─── 15. Nav — Glowing CTA beam more visible ─── */
-.lp-feixe-inner {
-  background: linear-gradient(135deg, #f8fbff 0%, #dbeafe 100%);
-  font-weight: 720;
-  letter-spacing: -.01em;
-}
-.lp-feixe-btn {
-  box-shadow: 0 0 30px rgba(59,130,246,.35), 0 10px 30px rgba(59,130,246,.22);
-}
-.lp-feixe-btn:hover {
-  box-shadow: 0 0 50px rgba(59,130,246,.55), 0 16px 45px rgba(59,130,246,.4);
-}
 
 /* ─── 16. Signal Rail — Scroll-triggered glow flash ─── */
 .lp-signal span {
