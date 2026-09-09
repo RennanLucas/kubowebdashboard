@@ -1413,3 +1413,366 @@
     top: calc(75px + var(--i) * 12px);
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════
+   LEVEL UP: CINEMATIC / WOW-FACTOR LAYER
+   ═════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Global Cursor Glow ─── */
+.lp-cursor-glow {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+}
+.lp-cursor-glow__orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,.095) 0%, rgba(99,102,241,.04) 38%, transparent 65%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: opacity .4s ease;
+  will-change: transform;
+}
+
+/* ─── 2. Animated Gradient Hero Headline ─── */
+@keyframes lp-grad-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.lp-hero h1 .lp-grad-text {
+  background: linear-gradient(270deg, #f0f4ff, #93c5fd, #67e8f9, #a5b4fc, #f0f4ff);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: lp-grad-flow 6s ease infinite;
+}
+
+/* ─── 3. Hero Morphing Blob Background ─── */
+@keyframes lp-blob-morph {
+  0%   { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(0deg) scale(1); }
+  25%  { border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%; transform: rotate(90deg) scale(1.04); }
+  50%  { border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%; transform: rotate(180deg) scale(0.97); }
+  75%  { border-radius: 30% 70% 60% 40% / 70% 30% 40% 60%; transform: rotate(270deg) scale(1.02); }
+  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(360deg) scale(1); }
+}
+.lp-hero__blob {
+  position: absolute;
+  z-index: -1;
+  width: 700px;
+  height: 700px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -45%);
+  background: radial-gradient(ellipse at 40% 40%, rgba(59,130,246,.18), rgba(99,102,241,.09) 45%, transparent 70%);
+  animation: lp-blob-morph 18s ease-in-out infinite;
+  filter: blur(70px);
+  pointer-events: none;
+}
+.lp-hero__blob-2 {
+  position: absolute;
+  z-index: -1;
+  width: 500px;
+  height: 500px;
+  top: 60%;
+  left: 62%;
+  background: radial-gradient(ellipse at 60% 60%, rgba(103,232,249,.12), rgba(167,139,250,.07) 50%, transparent 70%);
+  animation: lp-blob-morph 22s ease-in-out infinite reverse;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ─── 4. Infinite Marquee / Ticker Rail ─── */
+@keyframes lp-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.lp-marquee {
+  position: relative;
+  overflow: hidden;
+  border-block: 1px solid var(--lp-line);
+  background: rgba(6,9,14,.82);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+}
+.lp-marquee__track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: lp-marquee 28s linear infinite;
+  gap: 0;
+}
+.lp-marquee__track:hover { animation-play-state: paused; }
+.lp-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 36px;
+  color: #748196;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.lp-marquee__item svg { width: 14px; height: 14px; color: #6ba7ff; flex: none; }
+.lp-marquee__sep {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  flex: none;
+}
+
+/* ─── 5. Animated Counter Numbers ─── */
+.lp-count-num {
+  display: inline-block;
+  transition: none;
+}
+.lp-count-num.is-counting {
+  animation: lp-count-pop .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes lp-count-pop {
+  0%   { transform: scale(1.14) translateY(-4px); color: #93c5fd; }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* Stat items that trigger counter on scroll */
+.lp-trust-stat[data-counted="true"] strong {
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─── 6. Hero Stage Cinematic Upgrade ─── */
+.lp-stage {
+  filter: drop-shadow(0 60px 120px rgba(14,60,180,.35));
+}
+.lp-stage__halo {
+  background: rgba(40,110,255,.24);
+  filter: blur(90px);
+  animation: lp-halo-pulse 5s ease-in-out infinite;
+}
+@keyframes lp-halo-pulse {
+  0%,100% { opacity: .7; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.08); }
+}
+.lp-stage .lp-product {
+  box-shadow:
+    0 70px 160px rgba(0,0,0,.75),
+    0 0 0 1px rgba(255,255,255,.06) inset,
+    0 0 60px rgba(30,90,220,.18) inset;
+}
+
+/* ─── 7. Typing Cursor in Eyebrow ─── */
+.lp-typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: #44e5a8;
+  margin-left: 3px;
+  vertical-align: middle;
+  border-radius: 1px;
+  animation: lp-blink .85s step-end infinite;
+}
+@keyframes lp-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ─── 8. Iridescent / Aurora Shimmer for Key Text ─── */
+@keyframes lp-aurora {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+.lp-aurora-text {
+  background: linear-gradient(125deg, #67e8f9, #93c5fd, #c4b5fd, #6ee7b7, #67e8f9);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: lp-aurora 8s ease infinite;
+}
+
+/* ─── 9. Section Entrance — Blur In ─── */
+.lp-reveal {
+  transition: opacity .95s cubic-bezier(.16,1,.3,1), transform .95s cubic-bezier(.16,1,.3,1), filter .8s ease;
+  filter: blur(6px);
+}
+.lp-reveal.is-visible {
+  filter: blur(0px);
+}
+
+/* ─── 10. Spotlight Cards — Enhanced Glow ─── */
+.lp-spotlight-card::before {
+  background: radial-gradient(420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(96,165,250,.22), transparent 45%);
+  transition: opacity .25s ease;
+}
+.lp-spotlight-card:hover::before { opacity: 1; }
+/* "Glow border" on hover for capability cards */
+.lp-capability {
+  transition: box-shadow .3s ease, border-color .3s ease, transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.lp-capability:hover {
+  border-color: rgba(96,165,250,.4);
+  box-shadow: 0 0 0 1px rgba(96,165,250,.25), 0 30px 70px -20px rgba(30,90,230,.3);
+  transform: translateY(-3px);
+}
+
+/* ─── 11. Trust Stats — Glow Numbers ─── */
+.lp-trust-stat strong {
+  background: linear-gradient(180deg, #ffffff 20%, #93c5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 18px rgba(147,197,253,.28));
+}
+
+/* ─── 12. Float Cards — Richer Animation ─── */
+@keyframes lp-float-a {
+  0%,100% { transform: translateZ(75px) translateX(calc(var(--mx)*-7px)) translateY(calc(var(--my)*-5px)) translateY(0px); }
+  50%      { transform: translateZ(75px) translateX(calc(var(--mx)*-7px)) translateY(calc(var(--my)*-5px)) translateY(-8px); }
+}
+@keyframes lp-float-b {
+  0%,100% { transform: translateZ(95px) translateX(calc(var(--mx)*8px)) translateY(calc(var(--my)*6px)) translateY(0px); }
+  50%      { transform: translateZ(95px) translateX(calc(var(--mx)*8px)) translateY(calc(var(--my)*6px)) translateY(-10px); }
+}
+.lp-float-card--live { animation: lp-float-a 4s ease-in-out infinite; }
+.lp-float-card--lead { animation: lp-float-b 4.8s ease-in-out infinite; }
+.lp-float-card {
+  box-shadow: 0 18px 55px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06) inset, 0 0 20px rgba(30,90,200,.12);
+}
+
+/* ─── 13. Hero Particles Canvas ─── */
+.lp-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.lp-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(147,197,253,.6);
+  animation: lp-particle-drift var(--dur, 8s) ease-in-out infinite;
+  animation-delay: var(--del, 0s);
+  width: var(--sz, 3px);
+  height: var(--sz, 3px);
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  opacity: 0;
+}
+@keyframes lp-particle-drift {
+  0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+  20%  { opacity: .7; }
+  80%  { opacity: .5; }
+  100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
+}
+
+/* ─── 14. Live Dot Pulse — More Dramatic ─── */
+.lp-live-dot {
+  animation: lp-live-ring 2s ease-out infinite;
+  box-shadow: 0 0 0 0 rgba(68,229,168,.6), 0 0 14px rgba(68,229,168,.65);
+}
+@keyframes lp-live-ring {
+  0%  { box-shadow: 0 0 0 0 rgba(68,229,168,.7), 0 0 14px rgba(68,229,168,.65); }
+  70% { box-shadow: 0 0 0 7px rgba(68,229,168,0), 0 0 14px rgba(68,229,168,.65); }
+  100%{ box-shadow: 0 0 0 0 rgba(68,229,168,0), 0 0 14px rgba(68,229,168,.65); }
+}
+
+/* ─── 15. Nav — Glowing CTA beam more visible ─── */
+.lp-feixe-inner {
+  background: linear-gradient(135deg, #f8fbff 0%, #dbeafe 100%);
+  font-weight: 720;
+  letter-spacing: -.01em;
+}
+.lp-feixe-btn {
+  box-shadow: 0 0 30px rgba(59,130,246,.35), 0 10px 30px rgba(59,130,246,.22);
+}
+.lp-feixe-btn:hover {
+  box-shadow: 0 0 50px rgba(59,130,246,.55), 0 16px 45px rgba(59,130,246,.4);
+}
+
+/* ─── 16. Signal Rail — Scroll-triggered glow flash ─── */
+.lp-signal span {
+  transition: color .3s ease;
+}
+.lp-signal span:hover {
+  color: #c9d9f0;
+}
+.lp-signal span:hover svg {
+  color: #93c5fd;
+  filter: drop-shadow(0 0 6px rgba(147,197,253,.7));
+}
+
+/* ─── 17. Underline SVG — Thicker, more visible ─── */
+.lp-underline-svg {
+  bottom: -10px;
+  height: 18px;
+}
+.lp-underline-wrap::after {
+  display: none; /* remove old pseudo-element if any */
+}
+
+/* ─── 18. Section Head h2 — Subtle shimmer on keywords ─── */
+.lp-shimmer-word {
+  display: inline;
+  background: linear-gradient(90deg, #dbeafe, #bfdbfe, #93c5fd, #dbeafe);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: lp-text-shimmer 4s linear infinite;
+}
+@keyframes lp-text-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* ─── 19. CTA Section — Radial aurora background ─── */
+.lp-final {
+  background: radial-gradient(circle at 30% 60%, rgba(59,130,246,.14), transparent 40%),
+              radial-gradient(circle at 70% 30%, rgba(99,102,241,.1), transparent 40%),
+              radial-gradient(circle at 50% 55%, rgba(47,119,231,.17), transparent 32%),
+              #030508;
+}
+
+/* ─── 20. Scrollbar Brand Styling ─── */
+.lp-root { scrollbar-width: thin; scrollbar-color: rgba(59,130,246,.35) transparent; }
+.lp-root::-webkit-scrollbar { width: 5px; }
+.lp-root::-webkit-scrollbar-track { background: transparent; }
+.lp-root::-webkit-scrollbar-thumb { background: rgba(59,130,246,.35); border-radius: 99px; }
+.lp-root::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,.6); }
+
+/* ─── 21. Noise Texture Overlay ─── */
+.lp-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: .025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px;
+}
+
+/* ─── Reduced Motion overrides ─── */
+@media (prefers-reduced-motion: reduce) {
+  .lp-hero__blob, .lp-hero__blob-2,
+  .lp-float-card--live, .lp-float-card--lead,
+  .lp-stage__halo,
+  .lp-marquee__track,
+  .lp-grad-text,
+  .lp-aurora-text,
+  .lp-live-dot,
+  .lp-shimmer-word,
+  .lp-particle,
+  .lp-typing-cursor {
+    animation: none !important;
+  }
+  .lp-reveal { filter: none; }
+  .lp-grad-text { -webkit-text-fill-color: #93c5fd; }
+  .lp-aurora-text { -webkit-text-fill-color: #93c5fd; }
+}
