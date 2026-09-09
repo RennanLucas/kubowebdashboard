@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
         var txt=(el.textContent||"").trim().substring(0,100);
         var href=(el.href||"").toLowerCase();
         var cls=(el.className&&typeof el.className==="string")?el.className.toLowerCase():"";
-        var isWa=/wa\.me|api\.whatsapp\.com|whatsapp:\/\/send|web\.whatsapp\.com/.test(href)||/whatsapp|whats-app/.test(cls)||/whatsapp|zap\b/.test(txt.toLowerCase());
+        var isWa=/wa[.]me|api[.]whatsapp[.]com|whatsapp:[/][/]send|web[.]whatsapp[.]com/.test(href)||/whatsapp|whats-app/.test(cls)||/whatsapp|zap(?:$|[^a-zA-Z0-9_])/.test(txt.toLowerCase());
         if(isWa){
           ev("whatsapp_click","whatsapp_auto",{href:href.substring(0,200),text:txt});
         }else if(href.indexOf("tel:")===0){
