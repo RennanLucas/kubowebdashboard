@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Activity, ArrowRight, BarChart3, BellRing, BrainCircuit, Check, Clock3,
-  FileDown, Flame, Gauge, Globe2, Layers3, MousePointerClick, MonitorSmartphone,
-  Radar, ShieldCheck, Sparkles, Target, Users, Zap, X, AlertTriangle, Shield
+  Copy, Cpu, FileDown, Flame, Gauge, Globe2, Layers3, Lock, MousePointerClick,
+  MonitorSmartphone, Radar, Server, ShieldCheck, Sparkles, Target, Users, Zap, X,
+  AlertTriangle, Shield
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -25,6 +26,58 @@ export function SignalRail() {
         <span><Gauge /> 99.9% de uptime</span>
         <span><ShieldCheck /> 100% LGPD sem cookies invasivos</span>
         <span><MousePointerClick /> Rastreamento automático de WhatsApp</span>
+      </div>
+    </section>
+  );
+}
+
+export function TrustProofSection() {
+  const brands = [
+    { name: "VORTEX MEDIA", category: "Performance & Growth" },
+    { name: "AURORA COMMERCE", category: "E-commerce Scale" },
+    { name: "NEXUS STUDIO", category: "Design & Web Agency" },
+    { name: "METRÓPOLE TECH", category: "Consultoria Digital" },
+    { name: "PULSE GROWTH", category: "Inbound & CRO" },
+    { name: "ALPHASTACK", category: "Full-Service Partner" },
+  ];
+
+  return (
+    <section className="lp-trust-proof" aria-label="Empresas e agências parceiras">
+      <div className="lp-shell">
+        <p className="lp-trust-proof__title">
+          Infraestrutura analítica adotada por agências, consultorias e empresas em todo o Brasil
+        </p>
+
+        <div className="lp-trust-proof__logos">
+          {brands.map((b) => (
+            <div key={b.name} className="lp-trust-logo">
+              <span className="lp-trust-logo__mark" />
+              <div className="lp-trust-logo__info">
+                <strong>{b.name}</strong>
+                <small>{b.category}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="lp-trust-stats">
+          <div className="lp-trust-stat">
+            <strong>+1.8M</strong>
+            <span>Eventos computados/dia</span>
+          </div>
+          <div className="lp-trust-stat">
+            <strong>&lt; 14ms</strong>
+            <span>Tempo médio de coleta</span>
+          </div>
+          <div className="lp-trust-stat">
+            <strong>99.98%</strong>
+            <span>Disponibilidade SLA</span>
+          </div>
+          <div className="lp-trust-stat">
+            <strong>100%</strong>
+            <span>LGPD nativa (0 cookies)</span>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -510,6 +563,271 @@ export function ComparisonSection() {
   );
 }
 
+export function SecurityInfrastructureSection() {
+  const items = [
+    {
+      icon: ShieldCheck,
+      title: "100% LGPD Nativa por Princípio",
+      desc: "Sem cookies invasivos de terceiros, sem fingerprinting de dispositivos e sem compartilhamento cruzado. Suas páginas não precisam de banners intrusivos que espantam clientes.",
+      tag: "Privacidade Garantida",
+    },
+    {
+      icon: Lock,
+      title: "Isolamento Criptográfico Multi-Tenant",
+      desc: "Arquitetura com Row Level Security (RLS) no banco de dados e criptografia de dados em trânsito e em repouso. Organizações e clientes possuem isolamento estrito.",
+      tag: "Segurança de Dados",
+    },
+    {
+      icon: Server,
+      title: "Processamento Anycast em Borda (Edge)",
+      desc: "Coleta distribuída com roteamento Anycast de baixíssima latência (menos de 20ms no Brasil). O carregamento do seu site nunca é afetado pelo rastreamento.",
+      tag: "Baixa Latência",
+    },
+    {
+      icon: Cpu,
+      title: "99.98% de SLA com Alta Elasticidade",
+      desc: "Infraestrutura serverless auto-escalável projetada para absorver picos repentinos de tráfego de grandes campanhas e e-commerces sem perda de eventos.",
+      tag: "Alta Disponibilidade",
+    },
+  ];
+
+  return (
+    <section className="lp-security" aria-label="Segurança e infraestrutura">
+      <div className="lp-shell">
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>Infraestrutura e conformidade</span>
+          <h2>Desenvolvido para empresas<br />que levam privacidade a sério.</h2>
+          <p>Confiabilidade de nível empresarial sem a burocracia dos gigantes legados.</p>
+        </div>
+
+        <div className="lp-security__grid lp-reveal">
+          {items.map(({ icon: Icon, title, desc, tag }) => (
+            <div key={title} className="lp-security__card">
+              <div className="lp-security__top">
+                <div className="lp-security__icon"><Icon size={20} /></div>
+                <span className="lp-security__tag">{tag}</span>
+              </div>
+              <h3>{title}</h3>
+              <p>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function TestimonialsSection() {
+  const testimonials = [
+    {
+      quote: "Substituímos o GA4 nas contas dos nossos clientes. Nossos relatórios semanais de WhatsApp agora são entregues em PDF em 1 clique e os clientes finalmente entendem o retorno real.",
+      author: "Rodrigo Mendes",
+      role: "Diretor de Operações",
+      company: "Vanguarda Growth",
+      metric: "+32% de conversões rastreadas",
+    },
+    {
+      quote: "O script de 2KB foi decisivo. Nossas páginas subiram de 71 para 99 no Google PageSpeed instantaneamente, sem abrir mão de métricas de visitantes em tempo real.",
+      author: "Camila Duarte",
+      role: "Head de Performance & CRO",
+      company: "Studio Pulse",
+      metric: "PageSpeed 100 mantido",
+    },
+  ];
+
+  return (
+    <section className="lp-testimonials" aria-label="Depoimentos de agências parceiras">
+      <div className="lp-shell">
+        <div className="lp-testimonials__grid lp-reveal">
+          {testimonials.map((t) => (
+            <div key={t.author} className="lp-testimonial-card">
+              <span className="lp-testimonial-card__metric">{t.metric}</span>
+              <p className="lp-testimonial-card__quote">“{t.quote}”</p>
+              <div className="lp-testimonial-card__author">
+                <div className="lp-testimonial-card__avatar">{t.author.charAt(0)}</div>
+                <div>
+                  <strong>{t.author}</strong>
+                  <small>{t.role} · {t.company}</small>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function InteractiveSnippet() {
+  const [tab, setTab] = useState<"html" | "wordpress" | "nextjs" | "gtm">("html");
+  const [copied, setCopied] = useState(false);
+
+  const snippets = {
+    html: `<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
+    wordpress: `<!-- Cole no functions.php ou no campo de Cabeçalho do seu tema -->\n<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
+    nextjs: `// No arquivo app/layout.tsx ou pages/_app.tsx:\nimport Script from "next/script";\n\n<Script\n  src="https://kuboweb.com.br/k.js"\n  data-site="kw_live_839f2"\n  strategy="afterInteractive"\n/>`,
+    gtm: `<!-- Tag HTML Personalizado no Tag Manager (Acionador: All Pages) -->\n<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(snippets[tab]);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="lp-terminal lp-reveal">
+      <div className="lp-terminal__header">
+        <div className="lp-terminal__controls">
+          <span className="lp-terminal__dot is-red" />
+          <span className="lp-terminal__dot is-yellow" />
+          <span className="lp-terminal__dot is-green" />
+        </div>
+
+        <div className="lp-terminal__tabs">
+          <button
+            type="button"
+            className={tab === "html" ? "is-active" : ""}
+            onClick={() => setTab("html")}
+          >
+            HTML Nativo
+          </button>
+          <button
+            type="button"
+            className={tab === "wordpress" ? "is-active" : ""}
+            onClick={() => setTab("wordpress")}
+          >
+            WordPress
+          </button>
+          <button
+            type="button"
+            className={tab === "nextjs" ? "is-active" : ""}
+            onClick={() => setTab("nextjs")}
+          >
+            Next.js / React
+          </button>
+          <button
+            type="button"
+            className={tab === "gtm" ? "is-active" : ""}
+            onClick={() => setTab("gtm")}
+          >
+            Tag Manager
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCopy}
+          className={`lp-terminal__copy-btn ${copied ? "is-copied" : ""}`}
+          aria-label="Copiar código de instalação"
+        >
+          {copied ? (
+            <>
+              <Check size={12} />
+              <span>Copiado!</span>
+            </>
+          ) : (
+            <>
+              <Copy size={12} />
+              <span>Copiar snippet</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      <div className="lp-terminal__body">
+        <pre className="lp-terminal__code">
+          <code>{snippets[tab]}</code>
+        </pre>
+      </div>
+
+      <div className="lp-terminal__footer">
+        <span className="lp-terminal__badge">
+          <span className="lp-live-dot" /> Snippet ativo e assíncrono
+        </span>
+        <div className="lp-terminal__meta">
+          <span>Peso: <b>2.1 KB</b></span>
+          <span>Latência: <b>&lt; 15ms</b></span>
+          <span>Cookies: <b>Zero</b></span>
+          <span>PageSpeed: <b>100 / 100</b></span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function RoiCalculatorSection() {
+  const [pageviews, setPageviews] = useState(60000);
+
+  const hoursSaved = Math.min(36, Math.max(8, Math.round(6 + (pageviews / 20000) * 1.8)));
+  const extraLeads = Math.round(pageviews * 0.00092);
+  const dataSavedKb = Math.round((pageviews * 118) / 1024);
+
+  return (
+    <section className="lp-roi" aria-label="Calculadora de retorno e eficiência">
+      <div className="lp-shell">
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>Eficiência operacional</span>
+          <h2>Simule o ganho de tempo<br />e precisão na sua empresa.</h2>
+          <p>Veja o impacto direto de abandonar a lentidão de relatórios manuais e começar a medir conversões reais.</p>
+        </div>
+
+        <div className="lp-roi__card lp-reveal">
+          <div className="lp-roi__slider-wrap">
+            <div className="lp-roi__slider-head">
+              <label htmlFor="roi-slider">Volume mensal estimado de acessos:</label>
+              <strong>{pageviews.toLocaleString("pt-BR")} visualizações/mês</strong>
+            </div>
+            <input
+              id="roi-slider"
+              type="range"
+              min="10000"
+              max="500000"
+              step="10000"
+              value={pageviews}
+              onChange={(e) => setPageviews(Number(e.target.value))}
+              className="lp-roi__range"
+              aria-label="Volume mensal de acessos para estimativa"
+            />
+            <div className="lp-roi__slider-ticks">
+              <span>10k</span>
+              <span>100k</span>
+              <span>250k</span>
+              <span>500k</span>
+            </div>
+          </div>
+
+          <div className="lp-roi__results">
+            <div className="lp-roi__result-item">
+              <div className="lp-roi__icon"><Clock3 size={18} /></div>
+              <strong>~{hoursSaved} horas/mês</strong>
+              <span>Economizadas em extração de relatórios e dashboards manuais</span>
+            </div>
+
+            <div className="lp-roi__result-item">
+              <div className="lp-roi__icon is-green"><MousePointerClick size={18} /></div>
+              <strong>+{extraLeads} leads WhatsApp</strong>
+              <span>Detectados automaticamente sem quebras de acionamento do Tag Manager</span>
+            </div>
+
+            <div className="lp-roi__result-item">
+              <div className="lp-roi__icon is-blue"><Gauge size={18} /></div>
+              <strong>-98% de peso analítico</strong>
+              <span>{dataSavedKb.toLocaleString("pt-BR")} MB a menos trafegados no navegador</span>
+            </div>
+
+            <div className="lp-roi__result-item">
+              <div className="lp-roi__icon is-purple"><Zap size={18} /></div>
+              <strong>Nota 100 PageSpeed</strong>
+              <span>Core Web Vitals preservados sem penalização nos mecanismos de busca</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function SetupSection() {
   const steps = [
     ["01", "Crie sua conta", "Comece pelo plano gratuito e configure sua organização em segundos."],
@@ -520,10 +838,20 @@ export function SetupSection() {
   return (
     <section className="lp-setup">
       <div className="lp-shell">
-        <div className="lp-section-head lp-reveal"><span>Comece sem complexidade</span><h2>Do zero aos primeiros sinais<br />em quatro passos.</h2></div>
-        <div className="lp-setup__line">
-          {steps.map(([number, title, copy]) => <article className="lp-reveal" key={number}><b>{number}</b><h3>{title}</h3><p>{copy}</p></article>)}
+        <div className="lp-section-head lp-reveal">
+          <span>Comece sem complexidade</span>
+          <h2>Do zero aos primeiros sinais<br />em quatro passos.</h2>
         </div>
+        <div className="lp-setup__line">
+          {steps.map(([number, title, copy]) => (
+            <article className="lp-reveal" key={number}>
+              <b>{number}</b>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+        <InteractiveSnippet />
       </div>
     </section>
   );

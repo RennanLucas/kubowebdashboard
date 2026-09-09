@@ -1,9 +1,10 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import { LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
 import {
   CapabilitiesSection, ComparisonSection, FinalCTA, InsightsSection, LandingFAQ,
   PremiumFooter, PremiumPricing, ProblemSolutionBridge, ProductStory, RealtimeSection,
-  SetupSection, SignalRail,
+  RoiCalculatorSection, SecurityInfrastructureSection, SetupSection, SignalRail,
+  TestimonialsSection, TrustProofSection,
 } from "@/components/landing/premium/LandingExperience";
 import { useLandingReveal } from "@/components/landing/premium/useLandingReveal";
 import "@/components/landing/premium/landing-premium.css";
@@ -53,13 +54,17 @@ const Landing = () => {
         <main>
           <LandingHero />
           <SignalRail />
+          <TrustProofSection />
           <ProblemSolutionBridge />
           <ProductStory />
           <RealtimeSection />
           <CapabilitiesSection />
           <ComparisonSection />
+          <SecurityInfrastructureSection />
           <InsightsSection />
+          <TestimonialsSection />
           <SetupSection />
+          <RoiCalculatorSection />
           <PremiumPricing />
           <LandingFAQ />
           <FinalCTA />
@@ -72,3 +77,4 @@ const Landing = () => {
 };
 
 export default Landing;
+

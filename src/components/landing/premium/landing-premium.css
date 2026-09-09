@@ -300,3 +300,99 @@
   .lp-bridge__grid { grid-template-columns: 1fr; }
   .lp-comparison__table td, .lp-comparison__table thead th { padding: 14px 16px; }
 }
+
+/* ─── Trust Proof (Social Proof & Scale) ─── */
+.lp-trust-proof { padding: 60px 0 70px; background: rgba(5,7,11,0.9); border-bottom: 1px solid var(--lp-line); }
+.lp-trust-proof__title { text-align: center; color: #64748b; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 34px; }
+.lp-trust-proof__logos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; align-items: center; }
+.lp-trust-logo { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); transition: all 0.25s ease; }
+.lp-trust-logo:hover { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.1); transform: translateY(-1px); }
+.lp-trust-logo__mark { width: 8px; height: 8px; border-radius: 2px; background: linear-gradient(135deg, #38bdf8, #818cf8); flex: none; }
+.lp-trust-logo__info strong { display: block; color: #cbd5e1; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+.lp-trust-logo__info small { display: block; color: #526177; font-size: 7.5px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 1px; }
+.lp-trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 50px; padding-top: 36px; border-top: 1px solid rgba(255,255,255,0.05); }
+.lp-trust-stat { text-align: center; }
+.lp-trust-stat strong { display: block; color: #f1f5f9; font-size: clamp(1.8rem, 2.8vw, 2.4rem); font-weight: 650; letter-spacing: -0.04em; background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.lp-trust-stat span { display: block; margin-top: 5px; color: #64748b; font-size: 11px; font-weight: 500; }
+
+/* ─── Developer Interactive Snippet Terminal ─── */
+.lp-terminal { margin-top: 60px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: #080d15; box-shadow: 0 25px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08); overflow: hidden; }
+.lp-terminal__header { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #0c121d; border-bottom: 1px solid rgba(255,255,255,0.07); gap: 12px; }
+.lp-terminal__controls { display: flex; gap: 6px; }
+.lp-terminal__dot { width: 9px; height: 9px; border-radius: 50%; }
+.lp-terminal__dot.is-red { background: #ef4444; opacity: 0.75; }
+.lp-terminal__dot.is-yellow { background: #eab308; opacity: 0.75; }
+.lp-terminal__dot.is-green { background: #22c55e; opacity: 0.75; }
+.lp-terminal__tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.lp-terminal__tabs button { padding: 6px 11px; border-radius: 6px; border: none; background: transparent; color: #64748b; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+.lp-terminal__tabs button:hover { color: #cbd5e1; }
+.lp-terminal__tabs button.is-active { color: #f8fafc; background: rgba(255,255,255,0.07); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
+.lp-terminal__copy-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 7px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color: #60a5fa; font-size: 10px; font-weight: 650; cursor: pointer; transition: all 0.2s ease; }
+.lp-terminal__copy-btn:hover { background: rgba(59,130,246,0.2); border-color: #60a5fa; transform: translateY(-1px); }
+.lp-terminal__copy-btn.is-copied { background: rgba(68,229,168,0.15); border-color: rgba(68,229,168,0.4); color: #44e5a8; }
+.lp-terminal__body { padding: 22px 20px; overflow-x: auto; background: radial-gradient(circle at 10% 20%, rgba(59,130,246,0.04), transparent 40%), #070b12; }
+.lp-terminal__code { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12.5px; line-height: 1.65; color: #93c5fd; white-space: pre-wrap; word-break: break-word; }
+.lp-terminal__footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.06); background: #090e17; font-size: 10px; color: #64748b; gap: 14px; flex-wrap: wrap; }
+.lp-terminal__badge { display: inline-flex; align-items: center; gap: 7px; color: #44e5a8; font-weight: 600; font-size: 10px; }
+.lp-terminal__meta { display: flex; align-items: center; gap: 16px; }
+.lp-terminal__meta span b { color: #cbd5e1; }
+
+/* ─── Interactive ROI / Efficiency Calculator ─── */
+.lp-roi { padding: 150px 0 100px; background: radial-gradient(circle at 50% 15%, rgba(59,130,246,0.1), transparent 35%), #05070b; border-bottom: 1px solid var(--lp-line); }
+.lp-roi__card { margin-top: 60px; padding: 40px; border-radius: 22px; background: linear-gradient(145deg, rgba(14,21,32,0.9), rgba(8,12,18,0.95)); border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 35px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); }
+.lp-roi__slider-wrap { padding-bottom: 35px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.lp-roi__slider-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 14px; flex-wrap: wrap; }
+.lp-roi__slider-head label { color: #94a3b8; font-size: 14px; font-weight: 600; }
+.lp-roi__slider-head strong { color: #60a5fa; font-size: 19px; font-weight: 700; }
+.lp-roi__range { width: 100%; height: 6px; border-radius: 99px; background: #1a2434; outline: none; appearance: none; cursor: pointer; accent-color: #3b82f6; }
+.lp-roi__slider-ticks { display: flex; justify-content: space-between; margin-top: 10px; color: #526177; font-size: 10px; font-weight: 600; }
+.lp-roi__results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 35px; }
+.lp-roi__result-item { padding: 22px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: border-color 0.25s ease; }
+.lp-roi__result-item:hover { border-color: rgba(96,165,250,0.3); }
+.lp-roi__icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,0.1); color: #60a5fa; display: grid; place-items: center; margin-bottom: 14px; }
+.lp-roi__icon.is-green { background: rgba(68,229,168,0.1); color: #44e5a8; }
+.lp-roi__icon.is-blue { background: rgba(56,189,248,0.1); color: #38bdf8; }
+.lp-roi__icon.is-purple { background: rgba(168,85,247,0.1); color: #c084fc; }
+.lp-roi__result-item strong { display: block; color: #f8fafc; font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.02em; }
+.lp-roi__result-item span { display: block; color: #78869a; font-size: 11px; line-height: 1.55; }
+
+/* ─── Security & Enterprise Architecture ─── */
+.lp-security { padding: 150px 0; background: #05070b; border-bottom: 1px solid var(--lp-line); }
+.lp-security__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 60px; }
+.lp-security__card { padding: 34px; border-radius: 18px; background: linear-gradient(145deg, rgba(14,20,30,0.8), rgba(8,11,17,0.9)); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 20px 50px rgba(0,0,0,0.35); transition: all 0.25s ease; }
+.lp-security__card:hover { border-color: rgba(96,165,250,0.35); transform: translateY(-2px); }
+.lp-security__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.lp-security__icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(59,130,246,0.1); color: #60a5fa; display: grid; place-items: center; border: 1px solid rgba(59,130,246,0.2); }
+.lp-security__tag { padding: 4px 9px; border-radius: 99px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; font-size: 9px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; }
+.lp-security__card h3 { margin: 0 0 10px; color: #f1f5f9; font-size: 17px; font-weight: 650; letter-spacing: -0.02em; }
+.lp-security__card p { margin: 0; color: #7f8fa4; font-size: 12.5px; line-height: 1.65; }
+
+/* ─── Customer Testimonials ─── */
+.lp-testimonials { padding: 90px 0 140px; background: #030508; }
+.lp-testimonials__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.lp-testimonial-card { position: relative; padding: 36px; border-radius: 18px; background: linear-gradient(145deg, rgba(14,21,32,0.7), rgba(7,10,16,0.9)); border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; justify-content: space-between; }
+.lp-testimonial-card__metric { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 99px; background: rgba(68,229,168,0.1); border: 1px solid rgba(68,229,168,0.25); color: #44e5a8; font-size: 9.5px; font-weight: 700; width: fit-content; margin-bottom: 20px; }
+.lp-testimonial-card__quote { margin: 0 0 28px; color: #e2e8f0; font-size: 15px; line-height: 1.65; font-style: italic; }
+.lp-testimonial-card__author { display: flex; align-items: center; gap: 12px; }
+.lp-testimonial-card__avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; font-weight: 700; font-size: 14px; display: grid; place-items: center; }
+.lp-testimonial-card__author strong { display: block; color: #f8fafc; font-size: 13px; font-weight: 650; }
+.lp-testimonial-card__author small { display: block; color: #64748b; font-size: 10.5px; margin-top: 2px; }
+
+/* Responsive Adjustments for New Sections */
+@media (max-width: 980px) {
+  .lp-trust-proof__logos { grid-template-columns: repeat(3, 1fr); }
+  .lp-trust-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .lp-roi__results { grid-template-columns: repeat(2, 1fr); }
+  .lp-security__grid { grid-template-columns: 1fr; }
+  .lp-testimonials__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .lp-trust-proof__logos { grid-template-columns: repeat(2, 1fr); }
+  .lp-trust-stats { grid-template-columns: 1fr; gap: 20px; }
+  .lp-roi__results { grid-template-columns: 1fr; }
+  .lp-roi__card { padding: 24px 18px; }
+  .lp-terminal__footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .lp-terminal__meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .lp-testimonial-card { padding: 24px; }
+  .lp-security__card { padding: 24px; }
+}
