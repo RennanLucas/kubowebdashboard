@@ -1,99 +1,154 @@
-import { BarChart3, TrendingUp } from "lucide-react";
+import React, { useEffect } from 'react';
 
-export const DashboardShowcase = () => {
+export default function DashboardShowcase() {
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    const elements = document.querySelectorAll('.reveal-scroll');
+    elements.forEach(el => observer.observe(el));
+    
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-32 bg-black relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
-
-      <div className="mx-auto max-w-7xl px-6 relative z-10">
-        
-        <div className="text-center max-w-3xl mx-auto mb-20 reveal-scroll">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6 linear-text-gradient">
-            Veja o que realmente está acontecendo com seu marketing.
+    <section className="py-24 px-4 md:px-6 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16 reveal-scroll fade-up">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Veja o que realmente está <br/>
+            <span className="primary-text-gradient">acontecendo no seu site.</span>
           </h2>
-          <p className="text-lg text-white/50 font-medium">
-            Todas as métricas importantes, organizadas em uma visão clara e acionável.
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Métricas claras, sem complexidade. Tudo que você precisa em uma única tela.
           </p>
         </div>
 
-        {/* Dashboard Mockup - Massive Full Width */}
-        <div className="w-full glass-panel rounded-3xl border border-white/10 shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden reveal-scroll">
-          {/* Header */}
-          <div className="h-16 border-b border-white/5 bg-white/[0.02] flex items-center justify-between px-6">
-            <div className="flex items-center gap-4">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-                <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
+        <div className="relative mx-auto max-w-6xl reveal-scroll scale-in mt-10 perspective-[1000px]">
+          {/* Decorative glows */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 to-purple-600/50 rounded-2xl blur-xl opacity-50 glow-pulse pointer-events-none"></div>
+          
+          <div className="relative glass-panel rounded-2xl border border-white/10 bg-[#080c13] shadow-2xl overflow-hidden float-gentle transform hover:rotate-x-[2deg] hover:rotate-y-[2deg] transition-transform duration-700">
+            {/* Browser chrome */}
+            <div className="h-12 border-b border-white/10 bg-white/5 flex items-center px-4">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
               </div>
-              <div className="h-6 w-px bg-white/10" />
-              <div className="flex items-center gap-2 text-white/60 text-sm font-semibold">
-                <BarChart3 className="w-4 h-4" />
-                Painel de Performance Geral
-              </div>
-            </div>
-            
-            <div className="hidden md:flex items-center gap-4">
-              <div className="px-3 py-1.5 rounded-md bg-white/5 text-xs text-white/60 font-medium border border-white/5">
-                Últimos 30 dias
+              <div className="mx-auto bg-black/40 border border-white/10 rounded-md px-4 py-1 text-xs text-gray-500 flex items-center gap-2">
+                <span className="text-gray-400 text-[10px]">🔒</span>
+                app.kuboweb.com.br
               </div>
             </div>
-          </div>
 
-          {/* Body */}
-          <div className="p-8">
-            {/* Top KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-              {[
-                { label: "Receita", val: "R$ 84.250", trend: "+14.2%" },
-                { label: "Investimento", val: "R$ 12.480", trend: "+2.1%" },
-                { label: "ROAS", val: "6,75x", trend: "+0.8x", highlight: true },
-                { label: "Conversões", val: "428", trend: "+12%" },
-                { label: "CAC", val: "R$ 29,16", trend: "-5.4%" },
-                { label: "CPL", val: "R$ 12,40", trend: "-8.1%" }
-              ].map((metric, i) => (
-                <div key={i} className={`p-5 rounded-2xl border ${metric.highlight ? 'bg-primary/10 border-primary/30' : 'bg-white/[0.02] border-white/5'}`}>
-                  <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${metric.highlight ? 'text-primary' : 'text-white/40'}`}>
-                    {metric.label}
+            {/* Dashboard content */}
+            <div className="p-6 md:p-8 flex flex-col gap-6">
+              {/* Header */}
+              <div className="flex justify-between items-end">
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-1">Visão Geral</h3>
+                  <p className="text-sm text-gray-400">Últimos 14 dias</p>
+                </div>
+                <div className="px-4 py-2 bg-primary/20 text-primary rounded-lg text-sm font-medium border border-primary/30">
+                  Exportar PDF
+                </div>
+              </div>
+
+              {/* KPIs */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Visitantes Únicos", value: "2.847", trend: "+12%" },
+                  { label: "Conversões (WhatsApp)", value: "186", trend: "+24%" },
+                  { label: "Taxa de Conversão", value: "6,5%", trend: "+1,2%" },
+                  { label: "Tempo Médio", value: "2:34", trend: "-5s", neg: true }
+                ].map((kpi, i) => (
+                  <div key={i} className="bg-white/5 border border-white/5 rounded-xl p-4">
+                    <p className="text-gray-400 text-sm mb-2">{kpi.label}</p>
+                    <div className="flex items-end justify-between">
+                      <p className="text-2xl md:text-3xl font-bold text-white">{kpi.value}</p>
+                      <span className={`text-xs font-medium ${kpi.neg ? 'text-red-400' : 'text-green-400'}`}>
+                        {kpi.trend}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-white">{metric.val}</div>
-                  <div className="text-green-400 text-[10px] font-bold mt-2 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3"/> {metric.trend}
+                ))}
+              </div>
+
+              {/* Main Content Area */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+                {/* Chart Area */}
+                <div className="md:col-span-2 bg-white/5 border border-white/5 rounded-xl p-6 h-64 flex flex-col justify-end gap-2 relative">
+                  <p className="absolute top-4 left-4 text-sm font-medium text-gray-300">Tráfego vs Conversões</p>
+                  <div className="flex items-end gap-2 h-40 w-full px-2 justify-between">
+                    {[40, 65, 45, 80, 55, 90, 70, 60, 85, 50, 75, 45, 95, 60].map((h, i) => (
+                      <div key={i} className="w-full relative group h-full flex items-end">
+                        <div className="w-full bg-primary/80 rounded-t-sm transition-all duration-500 hover:bg-primary absolute bottom-0" style={{ height: `${h}%` }}></div>
+                        <div className="w-1/2 bg-purple-400/50 rounded-t-sm absolute bottom-0 left-1/4" style={{ height: `${h * 0.3}%` }}></div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-2 text-[10px] text-gray-500">
+                    <span>01 Mar</span>
+                    <span>14 Mar</span>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Main Graph Area */}
-            <div className="w-full h-80 bg-white/[0.01] rounded-2xl border border-white/5 p-6 relative flex flex-col">
-              <div className="text-sm font-bold text-white mb-6">Evolução de Receita vs Investimento</div>
-              <div className="flex-1 flex items-end relative overflow-hidden">
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                  {/* Grid lines */}
-                  <path d="M0,20 L1000,20 M0,80 L1000,80 M0,140 L1000,140" stroke="rgba(255,255,255,0.05)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                  
-                  {/* Revenue Line (Primary) */}
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,150 L0,100 C 100,80 200,120 300,70 C 400,20 500,80 600,40 C 700,0 800,50 900,10 L1000,30 L1000,150 Z" fill="url(#revGrad)" vectorEffect="non-scaling-stroke" />
-                  <path d="M0,100 C 100,80 200,120 300,70 C 400,20 500,80 600,40 C 700,0 800,50 900,10 L1000,30" fill="none" stroke="hsl(var(--primary))" strokeWidth="3" vectorEffect="non-scaling-stroke" />
-                  
-                  {/* Ad Spend Line (Muted) */}
-                  <path d="M0,130 C 100,120 200,130 300,125 C 400,110 500,120 600,115 C 700,100 800,110 900,105 L1000,100" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="5,5" vectorEffect="non-scaling-stroke" />
-                </svg>
+                {/* Sidebar Sources */}
+                <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col">
+                  <h4 className="text-sm font-medium text-gray-300 mb-4">Fontes de Tráfego</h4>
+                  <div className="space-y-4 flex-1">
+                    {[
+                      { name: "Google (Orgânico)", val: "45%", color: "bg-blue-500" },
+                      { name: "Direto", val: "28%", color: "bg-purple-500" },
+                      { name: "Instagram", val: "15%", color: "bg-pink-500" },
+                      { name: "Facebook", val: "8%", color: "bg-blue-700" },
+                      { name: "Outros", val: "4%", color: "bg-gray-500" }
+                    ].map((source, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${source.color}`}></div>
+                          <span className="text-xs text-gray-300">{source.name}</span>
+                        </div>
+                        <span className="text-xs font-bold text-white">{source.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
+
+              {/* Pages Table */}
+              <div className="bg-white/5 border border-white/5 rounded-xl p-4 overflow-hidden">
+                <h4 className="text-sm font-medium text-gray-300 mb-3 px-2">Páginas mais visitadas</h4>
+                <div className="w-full">
+                  <div className="grid grid-cols-4 text-xs text-gray-500 border-b border-white/5 pb-2 px-2">
+                    <div className="col-span-2">Página</div>
+                    <div>Visitas</div>
+                    <div>Tempo</div>
+                  </div>
+                  {[
+                    { path: "/", views: "1.240", time: "1:45" },
+                    { path: "/produtos", views: "856", time: "2:10" },
+                    { path: "/contato", views: "432", time: "0:55" }
+                  ].map((page, i) => (
+                    <div key={i} className="grid grid-cols-4 text-xs text-gray-300 py-2 border-b border-white/5 px-2 hover:bg-white/5 transition-colors">
+                      <div className="col-span-2 truncate">{page.path}</div>
+                      <div>{page.views}</div>
+                      <div>{page.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
-            
-            <p className="text-center text-xs text-white/30 mt-6 font-medium">*Dados meramente demonstrativos</p>
           </div>
         </div>
-
       </div>
     </section>
   );
-};
+}

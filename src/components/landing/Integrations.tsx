@@ -1,70 +1,102 @@
-import { Search, Facebook, LineChart, Target, Box, Database, Webhook, Code } from "lucide-react";
+import React, { useEffect, useRef } from 'react';
+import { BarChart3, MessageCircle, FileText, Bot, Webhook, MousePointerClick, Table2, Link as LinkIcon, Code } from 'lucide-react';
 
-export const Integrations = () => {
-  const categories = [
-    {
-      title: "Publicidade",
-      items: [
-        { name: "Google Ads", icon: Search },
-        { name: "Meta Ads", icon: Facebook }
-      ]
-    },
-    {
-      title: "Analytics",
-      items: [
-        { name: "Google Analytics", icon: LineChart },
-        { name: "Tag Manager", icon: Target },
-        { name: "Search Console", icon: Box }
-      ]
-    },
-    {
-      title: "CRM",
-      items: [
-        { name: "HubSpot", icon: Database },
-        { name: "RD Station", icon: Database },
-        { name: "Pipedrive", icon: Database },
-        { name: "Salesforce", icon: Database }
-      ]
-    },
-    {
-      title: "Integrações Livres",
-      items: [
-        { name: "Webhooks", icon: Webhook },
-        { name: "API Nativa", icon: Code }
-      ]
-    }
-  ];
+const categories = [
+  {
+    title: "Analytics",
+    items: [
+      { name: "Google Analytics 4", icon: BarChart3 },
+      { name: "Search Console", icon: BarChart3 },
+      { name: "Tag Manager", icon: Webhook }
+    ]
+  },
+  {
+    title: "Rastreamento",
+    items: [
+      { name: "WhatsApp", icon: MessageCircle },
+      { name: "Formulários", icon: FileText },
+      { name: "Links Externos", icon: LinkIcon }
+    ]
+  },
+  {
+    title: "Exportação",
+    items: [
+      { name: "PDF Profissional", icon: FileText },
+      { name: "Excel (XLSX)", icon: Table2 },
+      { name: "CSV", icon: Table2 }
+    ]
+  },
+  {
+    title: "Automação",
+    items: [
+      { name: "Webhooks", icon: Webhook },
+      { name: "API REST", icon: Code },
+      { name: "Kubo AI", icon: Bot }
+    ]
+  }
+];
+
+const Integrations = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const elements = sectionRef.current?.querySelectorAll('.reveal-scroll');
+    elements?.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="integrations" className="py-32 bg-black relative">
-      <div className="mx-auto max-w-7xl px-6 relative z-10">
-        
-        <div className="mb-20 text-center max-w-3xl mx-auto reveal-scroll">
-          <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6 linear-text-gradient">
-            Conecte as ferramentas que já fazem parte da sua operação.
+    <section ref={sectionRef} className="py-24 bg-[#080c13]">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16 reveal-scroll fade-up">
+          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <span className="linear-text-gradient">Integrações</span> e Exportações
           </h2>
-          <p className="text-lg text-white/50 font-medium">Plataforma open-hub, pronta para consolidar as suas principais fontes de dados.</p>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            O Kubo trabalha com as ferramentas que você já usa e exporta seus dados nos formatos que você precisa.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 reveal-scroll">
-          {categories.map((cat, i) => (
-            <div key={i} className="glass-panel p-8 rounded-3xl border border-white/5">
-              <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-4">
-                {cat.title}
-              </h3>
-              <div className="space-y-4">
-                {cat.items.map(item => (
-                  <div key={item.name} className="flex items-center gap-3">
-                    <item.icon className="w-5 h-5 text-white/60" />
-                    <span className="font-semibold text-white/80">{item.name}</span>
-                  </div>
-                ))}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          {categories.map((category, index) => {
+            const delayClass = `fade-up-delay-${index + 1}`;
+            return (
+              <div key={index} className={`reveal-scroll fade-up ${delayClass} glass-panel p-6 rounded-2xl border border-white/5 premium-hover`}>
+                <h3 className="text-xl font-semibold text-white mb-6 border-b border-white/10 pb-4">
+                  {category.title}
+                </h3>
+                <ul className="space-y-4">
+                  {category.items.map((item, itemIdx) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={itemIdx} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="font-medium text-sm">{item.name}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-
       </div>
     </section>
   );
 };
+
+export default Integrations;

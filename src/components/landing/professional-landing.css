@@ -1,0 +1,573 @@
+/* -------------------------------------------------------------
+ * professional-landing.css
+ * Premium Animations & Hero Styles
+ * ------------------------------------------------------------- */
+
+/* Base & Typography */
+:root {
+  --kubo-bg: #080c13;
+  --kubo-primary: #6C3CE1;
+  --kubo-accent: #7ee0c5;
+  --kubo-blue: #89caff;
+  --kubo-text: #ffffff;
+  --kubo-text-muted: rgba(255, 255, 255, 0.6);
+  --kubo-border: rgba(255, 255, 255, 0.1);
+  --kubo-panel: rgba(15, 20, 30, 0.6);
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes blurIn {
+  from { opacity: 0; filter: blur(10px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 20px rgba(108, 60, 225, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(108, 60, 225, 0.5); }
+  100% { box-shadow: 0 0 20px rgba(108, 60, 225, 0.2); }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes floatGentleDelayed {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Global Animation Classes */
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-up-delay-1 { animation-delay: 100ms; }
+.fade-up-delay-2 { animation-delay: 200ms; }
+.fade-up-delay-3 { animation-delay: 300ms; }
+.fade-up-delay-4 { animation-delay: 400ms; }
+.fade-up-delay-5 { animation-delay: 500ms; }
+
+.slide-in-left {
+  opacity: 0;
+  animation: slideInLeft 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slide-in-right {
+  opacity: 0;
+  animation: slideInRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scale-in {
+  opacity: 0;
+  animation: scaleIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.blur-in {
+  opacity: 0;
+  animation: blurIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glow-pulse {
+  animation: glowPulse 4s infinite ease-in-out;
+}
+
+.float-gentle {
+  animation: floatGentle 6s ease-in-out infinite;
+}
+
+.float-gentle-delayed {
+  animation: floatGentleDelayed 6s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--kubo-text) 0%,
+    var(--kubo-text-muted) 25%,
+    var(--kubo-text) 50%,
+    var(--kubo-text-muted) 75%,
+    var(--kubo-text) 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textShimmer 4s linear infinite;
+}
+
+.gradient-border {
+  position: relative;
+  background-clip: padding-box;
+  border: 1px solid transparent;
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: -1;
+  margin: -1px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, var(--kubo-primary), transparent, var(--kubo-accent));
+}
+
+.section-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -------------------------------------------------------------
+ * Hero Section
+ * ------------------------------------------------------------- */
+.kubo-hero {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--kubo-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background Gradients */
+.kubo-hero::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(108, 60, 225, 0.15) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: 0;
+}
+
+.kubo-hero::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(126, 224, 197, 0.05) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: 0;
+}
+
+/* Layout */
+.kubo-hero-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  max-w: 1280px;
+  margin: 0 auto;
+  padding: 120px 24px 80px;
+}
+
+@media (min-width: 1000px) {
+  .kubo-hero-content {
+    flex-direction: row;
+    align-items: center;
+    padding: 140px 40px 100px;
+  }
+}
+
+/* Copy Side */
+.kubo-copy {
+  flex: 1;
+  max-width: 600px;
+  margin-bottom: 60px;
+}
+
+@media (min-width: 1000px) {
+  .kubo-copy {
+    margin-bottom: 0;
+    padding-right: 40px;
+  }
+}
+
+.kubo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--kubo-border);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--kubo-accent);
+  margin-bottom: 24px;
+}
+
+.kubo-eyebrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kubo-title {
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+  color: white;
+}
+
+.kubo-description {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--kubo-text-muted);
+  margin-bottom: 40px;
+  max-width: 500px;
+}
+
+.kubo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.kubo-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 8px;
+  background: var(--kubo-primary);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.kubo-btn-primary:hover {
+  background: #7d4cf2;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px var(--kubo-primary);
+}
+
+.kubo-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid var(--kubo-border);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.kubo-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.kubo-footnote {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.kubo-footnote-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Stage / 3D Side */
+.kubo-stage {
+  flex: 1.2;
+  position: relative;
+  perspective: 1000px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+@media (min-width: 1000px) {
+  .kubo-stage {
+    min-height: 600px;
+  }
+}
+
+.kubo-board {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  background: var(--kubo-panel);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--kubo-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: rotateY(-10deg) rotateX(5deg) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.kubo-board:hover {
+  transform: rotateY(-5deg) rotateX(2deg) translateZ(20px);
+}
+
+@media (max-width: 768px) {
+  .kubo-board {
+    transform: none !important;
+  }
+}
+
+/* Dashboard UI */
+.kubo-toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--kubo-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kubo-toolbar-dots {
+  display: flex;
+  gap: 6px;
+}
+.kubo-toolbar-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.kubo-board-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+}
+
+.kubo-board-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(126, 224, 197, 0.1);
+  color: var(--kubo-accent);
+}
+
+.kubo-board-content {
+  padding: 24px;
+}
+
+.kubo-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 520px) {
+  .kubo-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kubo-metric-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.kubo-metric-label {
+  font-size: 0.75rem;
+  color: var(--kubo-text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.kubo-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.kubo-metric-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--kubo-accent);
+  margin-top: 4px;
+}
+
+.kubo-chart {
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding-top: 20px;
+  border-bottom: 1px solid var(--kubo-border);
+}
+
+.kubo-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.kubo-bar {
+  width: 100%;
+  background: linear-gradient(to top, rgba(108, 60, 225, 0.2), var(--kubo-primary));
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transform-origin: bottom;
+}
+
+.kubo-days {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.kubo-day {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--kubo-text-muted);
+}
+
+/* Floating Elements */
+.kubo-float {
+  position: absolute;
+  background: rgba(20, 25, 35, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+
+.kubo-float.top {
+  top: 10%;
+  right: -5%;
+}
+
+.kubo-float.bottom {
+  bottom: 15%;
+  left: -5%;
+}
+
+@media (max-width: 768px) {
+  .kubo-float {
+    display: none;
+  }
+}
+
+.kubo-float-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kubo-accent);
+}
+
+.kubo-float-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.kubo-float-label {
+  font-size: 0.75rem;
+  color: var(--kubo-text-muted);
+}
+
+.kubo-float-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* Bottom Bar */
+.kubo-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--kubo-text-muted);
+  letter-spacing: 0.05em;
+  background: linear-gradient(to top, var(--kubo-bg) 0%, transparent 100%);
+  z-index: 10;
+}
+
+@media (max-width: 520px) {
+  .kubo-bottom {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}

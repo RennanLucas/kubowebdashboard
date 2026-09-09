@@ -1,94 +1,89 @@
-import { SplitSquareHorizontal, FileClock, EyeOff, Activity, Link2, Zap, Target, Shield } from "lucide-react";
+import React, { useEffect, useRef } from 'react';
+import { AlertCircle, Clock, Smartphone, Settings, LayoutDashboard, Zap, MessageCircle, Code } from 'lucide-react';
 
-export const ProblemSolution = () => {
+const problems = [
+  { icon: AlertCircle, title: "Interface confusa", desc: "O GA4 mudou tudo e os relatórios estão cada vez mais difíceis de entender." },
+  { icon: Clock, title: "Dados atrasados", desc: "Precisa esperar de 24h a 48h para ver os resultados da sua campanha de hoje." },
+  { icon: Smartphone, title: "Sem WhatsApp", desc: "Não rastreia cliques no botão de WhatsApp sem configurações complexas." },
+  { icon: Settings, title: "Setup técnico pesado", desc: "GTM, dataLayer, eventos customizados. Uma dor de cabeça para configurar." },
+];
+
+const solutions = [
+  { icon: LayoutDashboard, title: "Painel intuitivo", desc: "Tudo que importa em uma única tela, fácil de entender para você e seu cliente." },
+  { icon: Zap, title: "Dados em tempo real", desc: "Veja quem está no seu site agora e acompanhe as conversões no mesmo segundo." },
+  { icon: MessageCircle, title: "WhatsApp nativo", desc: "Rastreie automaticamente cada clique no WhatsApp, sem configurar nada." },
+  { icon: Code, title: "Uma linha de código", desc: "Copie, cole na tag <head> do site e pronto. O Kubo faz o resto por você." },
+];
+
+export default function ProblemSolution() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    const elements = document.querySelectorAll('.reveal-scroll');
+    elements.forEach(el => observer.observe(el));
+    
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="py-32 bg-black relative">
-      <div className="mx-auto max-w-7xl px-6">
-        
-        {/* Problem Section */}
-        <div className="mb-40">
-          <div className="max-w-3xl mb-16 reveal-scroll">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6 text-white">
-              Pare de administrar campanhas em dezenas de lugares.
+    <section className="py-24 px-4 md:px-6 relative overflow-hidden" ref={sectionRef}>
+      <div className="max-w-6xl mx-auto">
+        {/* Problems */}
+        <div className="mb-20">
+          <div className="text-center mb-12 reveal-scroll fade-up">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              O Google Analytics ficou <span className="text-red-500">complicado demais.</span>
             </h2>
-            <p className="text-lg text-white/50 font-medium">
-              Planilhas, PDFs, dashboards desconectados e dados espalhados tornam decisões simples desnecessariamente complicadas.
-            </p>
+            <p className="text-xl text-gray-400">A ferramenta que deveria ajudar, virou um problema.</p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: SplitSquareHorizontal, title: "Dados fragmentados", desc: "Cada plataforma mostra apenas uma parte da operação." },
-              { icon: FileClock, title: "Relatórios manuais", desc: "Horas gastas consolidando informações para apresentar resultados." },
-              { icon: EyeOff, title: "Decisões sem contexto", desc: "Você vê métricas, mas não enxerga o impacto real no negócio." }
-            ].map((item, i) => (
-              <div key={i} className="glass-panel p-8 rounded-[1.5rem] border border-white/5 reveal-scroll premium-hover">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/40 mb-6">
-                  <item.icon className="w-6 h-6" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {problems.map((item, idx) => (
+              <div key={idx} className={`glass-panel p-6 rounded-2xl border border-red-500/20 bg-red-950/10 reveal-scroll fade-up-delay-${(idx % 5) + 1}`}>
+                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500">
+                  <item.icon size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                <p className="text-white/50 text-[15px] leading-relaxed">{item.desc}</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-gray-400 text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Solution Section */}
-        <div className="relative pt-20 border-t border-white/5 reveal-scroll">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-30" />
-          
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-6 linear-text-gradient">
-              O Kubo Web conecta tudo.
-            </h2>
-            <p className="text-lg text-white/50 font-medium">
-              Uma visão centralizada da sua operação de marketing, performance e receita.
-            </p>
-          </div>
-
-          {/* Visual Connection Graphic */}
-          <div className="relative max-w-4xl mx-auto h-64 md:h-96 flex items-center justify-center glass-panel rounded-3xl overflow-hidden border border-white/10">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(108,60,225,0.1)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="relative z-10 w-full px-10 flex flex-col items-center justify-center">
-              
-              <div className="flex justify-between w-full mb-12 relative">
-                {/* Connecting Lines SVG */}
-                <svg className="absolute inset-0 w-full h-full -z-10 opacity-30" preserveAspectRatio="none">
-                  <path d="M 50 10 Q 300 100 450 150" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" />
-                  <path d="M 850 10 Q 600 100 450 150" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" />
-                </svg>
-
-                <div className="flex flex-col gap-4">
-                  <div className="glass-panel px-6 py-3 rounded-full text-sm font-bold text-white border border-white/10 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-blue-400" /> Meta Ads
-                  </div>
-                  <div className="glass-panel px-6 py-3 rounded-full text-sm font-bold text-white border border-white/10 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-red-400" /> Google Ads
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <div className="glass-panel px-6 py-3 rounded-full text-sm font-bold text-white border border-white/10 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-green-400" /> CRM
-                  </div>
-                  <div className="glass-panel px-6 py-3 rounded-full text-sm font-bold text-white border border-white/10 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-orange-400" /> Receita
-                  </div>
-                </div>
-              </div>
-
-              {/* Central Hub */}
-              <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_60px_rgba(108,60,225,0.6)] relative z-20">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
-
-            </div>
-          </div>
-
+        <div className="w-full flex justify-center mb-20 reveal-scroll scale-in">
+          <div className="h-24 w-px bg-gradient-to-b from-red-500/50 via-purple-500/50 to-primary/80 section-divider"></div>
         </div>
 
+        {/* Solutions */}
+        <div>
+          <div className="text-center mb-12 reveal-scroll fade-up">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              O Kubo resolve isso em <span className="primary-text-gradient">2 minutos.</span>
+            </h2>
+            <p className="text-xl text-gray-400">Simples, rápido e feito para conversão.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {solutions.map((item, idx) => (
+              <div key={idx} className={`glass-panel p-6 rounded-2xl border border-primary/20 bg-primary/5 premium-hover reveal-scroll fade-up-delay-${(idx % 5) + 1}`}>
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-4 text-primary glow-pulse">
+                  <item.icon size={24} />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-gray-400 text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
-};
+}

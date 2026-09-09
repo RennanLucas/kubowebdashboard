@@ -1,29 +1,28 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
-import { FEATURES } from "@/lib/feature-flags";
+import { Menu, X } from "lucide-react";
 
 // Component Imports
-import { HeroSection } from "@/components/landing/HeroSection";
-import { TrustBar } from "@/components/landing/TrustBar";
-import { ProblemSolution } from "@/components/landing/ProblemSolution";
-import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { DashboardShowcase } from "@/components/landing/DashboardShowcase";
-import { ComparisonSection } from "@/components/landing/ComparisonSection";
-import { KuboAI } from "@/components/landing/KuboAI";
-import { WhiteLabel } from "@/components/landing/WhiteLabel";
-import { BeforeAfter } from "@/components/landing/BeforeAfter";
-import { HowItWorks } from "@/components/landing/HowItWorks";
-import { Integrations } from "@/components/landing/Integrations";
-import { Pricing } from "@/components/landing/Pricing";
-import { FAQ } from "@/components/landing/FAQ";
-import { CTA } from "@/components/landing/CTA";
+import { ProfessionalHero } from "@/components/landing/ProfessionalHero";
+import TrustBar from "@/components/landing/TrustBar";
+import ProblemSolution from "@/components/landing/ProblemSolution";
+import FeaturesGrid from "@/components/landing/FeaturesGrid";
+import DashboardShowcase from "@/components/landing/DashboardShowcase";
+import ComparisonSection from "@/components/landing/ComparisonSection";
+import KuboAI from "@/components/landing/KuboAI";
+import WhiteLabel from "@/components/landing/WhiteLabel";
+import BeforeAfter from "@/components/landing/BeforeAfter";
+import HowItWorks from "@/components/landing/HowItWorks";
+import Integrations from "@/components/landing/Integrations";
+import Pricing from "@/components/landing/Pricing";
+import FAQ from "@/components/landing/FAQ";
+import CTA from "@/components/landing/CTA";
 import { Footer } from "@/components/landing/Footer";
 
 // Lazy load 3D component for better performance
-const KuboCore3D = lazy(() => import("@/components/landing/KuboCore3D").then(m => ({ default: m.KuboCore3D })));
 
 /* ─────────────────────────────────────────────────────────────
    Premium CSS & Animations (Injected dynamically)
@@ -127,6 +126,7 @@ const useScrollReveal = () => {
    ───────────────────────────────────────────────────────────── */
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -134,36 +134,84 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const navItems = [
+    { label: "Visão Geral", href: "#hero" },
+    { label: "Plataforma", href: "#features" },
+    { label: "Inteligência", href: "#kuboai" },
+    { label: "Integrações", href: "#integrations" },
+    { label: "Preços", href: "#pricing" }
+  ];
+
   return (
-    <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-      scrolled ? "glass-panel py-3" : "bg-transparent py-6"
-    }`}>
-      <div className="mx-auto max-w-7xl px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center z-50">
-          <img src={logoKubowebWhite} alt="Kubo Web" className="h-6 sm:h-7 w-auto hover:opacity-80 transition-opacity" />
-        </Link>
+    <>
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        scrolled ? "glass-panel py-3" : "bg-transparent py-6"
+      }`}>
+        <div className="mx-auto max-w-7xl px-6 flex items-center justify-between">
+          <Link to="/" className="flex items-center z-50" onClick={() => setMobileMenuOpen(false)}>
+            <img src={logoKubowebWhite} alt="Kubo Web" className="h-6 sm:h-7 w-auto hover:opacity-80 transition-opacity" />
+          </Link>
 
-        <div className="hidden lg:flex items-center gap-8">
-          {["Visão Geral", "Plataforma", "Inteligência", "Integrações", "Preços"].map((label, i) => {
-            const anchors = ["hero", "features", "kuboai", "integrations", "pricing"];
-            return (
-              <a key={label} href={`#${anchors[i]}`} className="text-sm font-medium text-white/60 hover:text-white transition-colors">
-                {label}
+          <div className="hidden lg:flex items-center gap-8">
+            {navItems.map((item) => (
+              <a key={item.label} href={item.href} className="text-sm font-medium text-white/60 hover:text-white transition-colors">
+                {item.label}
               </a>
-            )
-          })}
-        </div>
+            ))}
+          </div>
 
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild className="hidden sm:flex text-sm font-medium text-white/60 hover:text-white hover:bg-white/5">
-            <Link to="/login">Entrar</Link>
-          </Button>
-          <Button asChild className="h-10 px-6 rounded-full font-bold bg-white text-black hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-            <Link to="/login">Começar gratuitamente</Link>
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-4">
+              <Button variant="ghost" asChild className="text-sm font-medium text-white/60 hover:text-white hover:bg-white/5">
+                <Link to="/login">Entrar</Link>
+              </Button>
+              <Button asChild className="h-10 px-6 rounded-full font-bold bg-white text-black hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                <Link to="/login">Começar gratuitamente</Link>
+              </Button>
+            </div>
+            
+            <button 
+              className="lg:hidden z-50 text-white/80 hover:text-white p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`fixed inset-0 z-40 glass-panel bg-black/90 backdrop-blur-xl transition-all duration-300 lg:hidden ${
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="flex flex-col h-full pt-24 px-6 pb-6 overflow-y-auto">
+          <div className="flex flex-col gap-6 mb-8">
+            {navItems.map((item) => (
+              <a 
+                key={item.label} 
+                href={item.href} 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-2xl font-medium text-white/80 hover:text-white transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+          
+          <div className="mt-auto flex flex-col gap-4">
+            <Button variant="outline" asChild className="w-full h-12 text-base border-white/20 text-white hover:bg-white/10">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Entrar</Link>
+            </Button>
+            <Button asChild className="w-full h-12 text-base font-bold bg-white text-black hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Começar gratuitamente</Link>
+            </Button>
+          </div>
         </div>
       </div>
-    </nav>
+    </>
   );
 };
 
@@ -197,13 +245,7 @@ const Landing = () => {
         <Navbar />
         
         <main>
-          {FEATURES.ENABLE_3D_LANDING ? (
-            <Suspense fallback={<HeroSection />}>
-              <KuboCore3D />
-            </Suspense>
-          ) : (
-            <HeroSection />
-          )}
+          <ProfessionalHero />
           <TrustBar />
           <ProblemSolution />
           <FeaturesGrid />
