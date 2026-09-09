@@ -1,8 +1,9 @@
 import { Helmet } from "react-helmet-async";
 import { LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
 import {
-  CapabilitiesSection, ComparisonSection, FinalCTA, InsightsSection, LandingFAQ,
-  PremiumFooter, PremiumPricing, ProblemSolutionBridge, ProductStory, RealtimeSection,
+  CapabilitiesSection, CompatibilitySection, ComparisonSection, FinalCTA,
+  FloatingWhatsAppTester, InsightsSection, LandingFAQ, PremiumFooter,
+  PremiumPricing, ProblemSolutionBridge, ProductStory, RealtimeSection,
   RoiCalculatorSection, SecurityInfrastructureSection, SetupSection, SignalRail,
   TestimonialsSection, TrustProofSection,
 } from "@/components/landing/premium/LandingExperience";
@@ -59,6 +60,7 @@ const Landing = () => {
           <ProductStory />
           <RealtimeSection />
           <CapabilitiesSection />
+          <CompatibilitySection />
           <ComparisonSection />
           <SecurityInfrastructureSection />
           <InsightsSection />
@@ -71,6 +73,7 @@ const Landing = () => {
         </main>
 
         <PremiumFooter />
+        <FloatingWhatsAppTester />
       </div>
     </>
   );

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Activity, ArrowRight, BarChart3, BellRing, BrainCircuit, Check, Clock3,
-  Copy, Cpu, FileDown, Flame, Gauge, Globe2, Layers3, Lock, MousePointerClick,
-  MonitorSmartphone, Radar, Server, ShieldCheck, Sparkles, Target, Users, Zap, X,
-  AlertTriangle, Shield
+  Copy, Cpu, FileDown, Flame, Gauge, Globe2, Layers3, Lock, MessageSquare,
+  MousePointerClick, MonitorSmartphone, Radar, Server, ShieldCheck, Sparkles,
+  Target, Users, Zap, X, AlertTriangle, Shield
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -334,16 +334,18 @@ function InsightCard({ type, label, title, copy, stat }: { type: string; label: 
   );
 }
 
-const capabilities = [
-  { icon: MousePointerClick, className: "lp-capability--wide", title: "Motor de Conversão de WhatsApp", copy: "Detecte automaticamente cada clique em links de WhatsApp, telefones e formulários no seu site, sem mexer no código do botão.", visual: <WhatsAppDemo /> },
-  { icon: Flame, className: "lp-capability--heat", title: "Mapas de Calor 24x7", copy: "Visualize padrões de atividade por dia e horário para saber exatamente quando seu público navega e decide.", visual: <HeatCells /> },
-  { icon: BellRing, className: "", title: "Alertas Inteligentes", copy: "Quedas, picos e mudanças anômalas de tráfego aparecem no painel e, no Pro, também diretamente por e-mail.", visual: <div className="lp-alert-demo"><i /><span>Tráfego acima da média</span><b>+31%</b></div> },
-  { icon: Target, className: "", title: "Metas e Funis", copy: "Acompanhe a taxa de conversão do primeiro acesso até o clique decisivo em cada página de destino.", visual: <Funnel /> },
-  { icon: FileDown, className: "lp-capability--wide", title: "Relatórios Executivos em 1 Clique", copy: "Exporte apresentações e relatórios em PDF corporativo e planilhas Excel XLSX nativas para enviar a clientes.", visual: <ExportPills /> },
-  { icon: Layers3, className: "", title: "Multi-tenant & White-label", copy: "Crie organizações separadas para cada cliente da sua agência com relatórios personalizados sob sua marca.", visual: <OrgLayers /> },
-];
-
 export function CapabilitiesSection() {
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  const capabilities = [
+    { icon: MousePointerClick, className: "lp-capability--wide lp-spotlight-card", title: "Motor de Conversão de WhatsApp", copy: "Detecte automaticamente cada clique em links de WhatsApp, telefones e formulários no seu site, sem mexer no código do botão.", visual: <WhatsAppDemo /> },
+    { icon: Flame, className: "lp-capability--heat lp-spotlight-card", title: "Mapas de Calor 24x7", copy: "Visualize padrões de atividade por dia e horário para saber exatamente quando seu público navega e decide.", visual: <HeatCells /> },
+    { icon: BellRing, className: "lp-spotlight-card", title: "Alertas Inteligentes", copy: "Quedas, picos e mudanças anômalas de tráfego aparecem no painel e, no Pro, também diretamente por e-mail.", visual: <div className="lp-alert-demo"><i /><span>Tráfego acima da média</span><b>+31%</b></div> },
+    { icon: Target, className: "lp-spotlight-card", title: "Metas e Funis", copy: "Acompanhe a taxa de conversão do primeiro acesso até o clique decisivo em cada página de destino.", visual: <Funnel /> },
+    { icon: FileDown, className: "lp-capability--wide lp-spotlight-card", title: "Relatórios Executivos em 1 Clique", copy: "Exporte apresentações e relatórios em PDF corporativo e planilhas Excel XLSX nativas para enviar a clientes.", visual: <ExportPills onOpenPreview={() => setReportModalOpen(true)} /> },
+    { icon: Layers3, className: "lp-spotlight-card", title: "Multi-tenant & White-label", copy: "Crie organizações separadas para cada cliente da sua agência com relatórios personalizados sob sua marca.", visual: <OrgLayers /> },
+  ];
+
   return (
     <section id="capabilities" className="lp-capabilities">
       <div className="lp-shell">
@@ -361,6 +363,7 @@ export function CapabilitiesSection() {
           ))}
         </div>
       </div>
+      <ReportPreviewModal open={reportModalOpen} onClose={() => setReportModalOpen(false)} />
     </section>
   );
 }
@@ -504,7 +507,221 @@ function Funnel() {
   );
 }
 
-function ExportPills() { return <div className="lp-export-pills"><span>PDF Executivo</span><span>Excel Nativo (XLSX)</span><span>CSV Completo</span><span>Apresentação</span></div>; }
+function ExportPills({ onOpenPreview }: { onOpenPreview?: () => void }) {
+  return (
+    <div className="lp-export-pills">
+      <span>PDF Executivo</span>
+      <span>Excel Nativo (XLSX)</span>
+      <span>CSV Completo</span>
+      {onOpenPreview && (
+        <button
+          type="button"
+          className="lp-preview-report-trigger"
+          onClick={onOpenPreview}
+          title="Ver prévia interativa do relatório"
+        >
+          <FileDown size={11} />
+          <span>Ver modelo de PDF</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function ReportPreviewModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+
+  return (
+    <div className="lp-modal-backdrop lp-view-fade" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="lp-report-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="lp-report-sheet__header">
+          <div className="lp-report-brand">
+            <span className="lp-report-logo-ph" />
+            <div>
+              <strong>AGÊNCIA VANGUARDA GROWTH</strong>
+              <small>Relatório Executivo de Performance · White-Label</small>
+            </div>
+          </div>
+          <button type="button" className="lp-report-close" onClick={onClose} aria-label="Fechar prévia">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="lp-report-sheet__meta">
+          <div><span>Cliente:</span> <strong>Loja Alpha Commerce</strong></div>
+          <div><span>Período:</span> <strong>01 a 31 de Outubro</strong></div>
+          <div><span>Status:</span> <strong className="is-green">● Consolidado</strong></div>
+        </div>
+
+        <div className="lp-report-ai-summary">
+          <div className="lp-report-ai-title">
+            <Sparkles size={13} />
+            <span>Diagnóstico Executivo Inteligente (Kubo AI)</span>
+          </div>
+          <p>
+            O tráfego total cresceu <strong>+18,4%</strong> em relação ao mês anterior, impulsionado por um salto de 24% nas buscas orgânicas da página de serviços. A taxa de conversão direta em leads de WhatsApp atingiu <strong>3,78%</strong> (pico registrado nas tardes de terça e quinta-feira).
+          </p>
+        </div>
+
+        <div className="lp-report-kpis">
+          <div className="lp-report-kpi">
+            <small>Visitantes Únicos</small>
+            <strong>12.842</strong>
+            <em>+18,4% vs mês ant.</em>
+          </div>
+          <div className="lp-report-kpi">
+            <small>Leads WhatsApp</small>
+            <strong className="is-green">486</strong>
+            <em>+24,1% vs mês ant.</em>
+          </div>
+          <div className="lp-report-kpi">
+            <small>Taxa de Conversão</small>
+            <strong>3,78%</strong>
+            <em>+0,6% vs mês ant.</em>
+          </div>
+          <div className="lp-report-kpi">
+            <small>Páginas / Sessão</small>
+            <strong>2,43</strong>
+            <em>Engajamento saudável</em>
+          </div>
+        </div>
+
+        <div className="lp-report-table-wrap">
+          <span className="lp-report-table-title">Top Canais com Conversão em WhatsApp</span>
+          <table className="lp-report-table">
+            <thead>
+              <tr>
+                <th>Origem</th>
+                <th>Visitantes</th>
+                <th>Conversões WhatsApp</th>
+                <th>Taxa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Google Orgânico</td>
+                <td>5.420</td>
+                <td>218</td>
+                <td><strong>4,02%</strong></td>
+              </tr>
+              <tr>
+                <td>Direto</td>
+                <td>3.610</td>
+                <td>142</td>
+                <td><strong>3,93%</strong></td>
+              </tr>
+              <tr>
+                <td>Instagram / Redes</td>
+                <td>2.840</td>
+                <td>98</td>
+                <td><strong>3,45%</strong></td>
+              </tr>
+              <tr>
+                <td>E-mail / Outros</td>
+                <td>972</td>
+                <td>28</td>
+                <td><strong>2,88%</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="lp-report-sheet__footer">
+          <span>Relatório gerado em 1 clique pelo Kubo Analytics · 100% White-Label</span>
+          <button type="button" className="lp-button lp-button--compact" onClick={onClose}>
+            Fechar modelo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CompatibilitySection() {
+  const platforms = [
+    { name: "WordPress", type: "CMS & Blogs", tag: "Plugin / Código" },
+    { name: "Shopify", type: "E-commerce Global", tag: "Tema / Pixel" },
+    { name: "Nuvemshop", type: "Líder Brasil", tag: "Configurações" },
+    { name: "WooCommerce", type: "E-commerce WP", tag: "Nativo" },
+    { name: "Hotmart", type: "Infoprodutos & Vendas", tag: "Checkout" },
+    { name: "Kiwify", type: "Checkout de Conversão", tag: "Checkout" },
+    { name: "Webflow", type: "Design & Landing Pages", tag: "Header Code" },
+    { name: "Framer", type: "Sites Rápidos", tag: "Custom Code" },
+    { name: "Wix", type: "Construtor Visual", tag: "Header Script" },
+    { name: "Next.js / React", type: "Aplicações Modernas", tag: "Script Tag" },
+    { name: "Yampi", type: "Checkout Transparente", tag: "Scripts" },
+    { name: "HTML / Qualquer Site", type: "Instalação Universal", tag: "1 Linha" },
+  ];
+
+  return (
+    <section className="lp-compat" aria-label="Plataformas e compatibilidade">
+      <div className="lp-shell">
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>Ecossistema universal</span>
+          <h2>Funciona com 100% da sua stack.<br />Sem exceções.</h2>
+          <p>Instale em qualquer construtor de páginas, e-commerce, plataforma de infoprodutos ou código customizado com uma única linha.</p>
+        </div>
+
+        <div className="lp-compat__grid lp-reveal">
+          {platforms.map((p) => (
+            <div key={p.name} className="lp-compat__card lp-spotlight-card">
+              <div className="lp-compat__top">
+                <span className="lp-compat__dot" />
+                <span className="lp-compat__tag">{p.tag}</span>
+              </div>
+              <strong>{p.name}</strong>
+              <small>{p.type}</small>
+            </div>
+          ))}
+        </div>
+
+        <div className="lp-compat__note lp-reveal">
+          <span>⚡ <b>Compatibilidade Instantânea:</b> Basta colar o snippet de 2KB antes de <code>&lt;/head&gt;</code> e os eventos começam a ser coletados.</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function FloatingWhatsAppTester() {
+  const [toast, setToast] = useState(false);
+
+  const triggerTest = () => {
+    setToast(true);
+    setTimeout(() => setToast(false), 4500);
+  };
+
+  return (
+    <>
+      <div className="lp-floating-widget" role="complementary" aria-label="Simulador de Rastreamento">
+        <button
+          type="button"
+          onClick={triggerTest}
+          className="lp-floating-tester"
+          title="Clique para testar a detecção em tempo real do Kubo"
+        >
+          <span className="lp-live-dot" />
+          <MessageSquare size={13} />
+          <span>Testar Rastreamento</span>
+        </button>
+      </div>
+
+      {toast && (
+        <div className="lp-floating-toast lp-view-fade" role="status" aria-live="polite">
+          <div className="lp-floating-toast__head">
+            <span className="lp-live-dot" />
+            <strong>⚡ Conversão detectada em 14ms!</strong>
+            <button type="button" onClick={() => setToast(false)} aria-label="Fechar notificação">
+              <X size={12} />
+            </button>
+          </div>
+          <p>Evento: <b>Clique no WhatsApp</b> · Origem: <b>Landing Page</b> · Zero GTM</p>
+        </div>
+      )}
+    </>
+  );
+}
+
 function OrgLayers() { return <div className="lp-org-layers"><span>Agência Digital Alpha</span><span>Cliente E-commerce Beta</span><i><ShieldCheck /> Isolamento RLS por organização</i></div>; }
 
 export function ComparisonSection() {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
-  Activity, BarChart3, ChevronDown, Eye, Globe2, MousePointerClick,
-  Smartphone, Sparkles, TrendingUp, Users, Zap, Clock
+  Activity, BarChart3, ChevronDown, Clock, Eye, FileDown, Flame, Globe2,
+  MousePointerClick, Search, Smartphone, Sparkles, TrendingUp, Users, Zap
 } from "lucide-react";
 
 interface ProductDashboardProps {
@@ -24,7 +24,7 @@ const timeframeConfig: Record<string, TimeframeData> = {
     views: "7.840",
     leads: "114",
     convRate: "3,65%",
-    chartPath: "M0 65 C 15 50, 25 70, 40 40 S 65 30, 80 45 S 90 20, 100 10",
+    chartPath: "M0 65 Q 15 45, 30 52 T 60 38 T 85 24 T 100 18",
     axis: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
   },
   "30d": {
@@ -32,15 +32,15 @@ const timeframeConfig: Record<string, TimeframeData> = {
     views: "31.296",
     leads: "486",
     convRate: "3,78%",
-    chartPath: "M0 77 C 8 72, 13 54, 22 59 S 36 82, 45 49 S 61 37, 70 43 S 83 24, 100 15",
+    chartPath: "M0 70 Q 20 48, 40 55 T 70 32 T 90 20 T 100 12",
     axis: ["01 set", "08 set", "15 set", "22 set", "30 set"],
   },
   "12m": {
-    visitors: "148.600",
-    views: "382.400",
-    leads: "5.890",
-    convRate: "3,96%",
-    chartPath: "M0 80 C 12 75, 20 60, 35 55 S 55 45, 70 35 S 85 25, 100 8",
+    visitors: "148.920",
+    views: "384.100",
+    leads: "5.620",
+    convRate: "3,77%",
+    chartPath: "M0 80 Q 25 60, 50 45 T 75 25 T 90 15 T 100 8",
     axis: ["Jan", "Mar", "Mai", "Jul", "Set", "Nov"],
   },
 };
@@ -50,11 +50,27 @@ export function ProductDashboard({ step = 0, interactive = true }: ProductDashbo
   const [timeframe, setTimeframe] = useState<"7d" | "30d" | "12m">("30d");
   const [selectedMetric, setSelectedMetric] = useState<number>(0);
   const [chartHover, setChartHover] = useState<{ x: number; label: string; value: number } | null>(null);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   // Synchronize with external step if supplied (e.g. from sticky scroll observer)
   useEffect(() => {
     setActiveTab(step);
   }, [step]);
+
+  // Keyboard shortcut ⌘K / Ctrl+K
+  useEffect(() => {
+    if (!interactive) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandOpen((prev) => !prev);
+      } else if (e.key === "Escape") {
+        setCommandOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [interactive]);
 
   const currentData = timeframeConfig[timeframe];
 
@@ -83,8 +99,83 @@ export function ProductDashboard({ step = 0, interactive = true }: ProductDashbo
         <div className="lp-product__address">
           <span className="lp-live-dot" /> analytics.kuboweb.com.br
         </div>
+        <button
+          type="button"
+          className="lp-command-trigger"
+          onClick={() => interactive && setCommandOpen(!commandOpen)}
+          title="Abrir busca rápida (⌘K)"
+        >
+          <Search size={9} />
+          <span>Ações rápidas</span>
+          <kbd>⌘K</kbd>
+        </button>
         <span className="lp-product__demo">dados demonstrativos interativos</span>
       </div>
+
+      {/* Command Palette Dropdown */}
+      {commandOpen && (
+        <div className="lp-command-palette lp-view-fade" role="dialog" aria-label="Paleta de Comandos">
+          <div className="lp-command-palette__input-wrap">
+            <Search size={13} />
+            <input
+              type="text"
+              placeholder="Digite um comando, métrica ou filtro..."
+              autoFocus
+              readOnly
+              value="Filtrar por conversões de WhatsApp..."
+            />
+            <button type="button" onClick={() => setCommandOpen(false)}>ESC</button>
+          </div>
+          <div className="lp-command-palette__list">
+            <span className="lp-command-group">Comandos Recomendados</span>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab(0);
+                setSelectedMetric(2);
+                setCommandOpen(false);
+              }}
+            >
+              <MousePointerClick size={13} />
+              <span>Ver leads de WhatsApp capturados no período</span>
+              <small>486 leads</small>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab(3);
+                setCommandOpen(false);
+              }}
+            >
+              <Zap size={13} />
+              <span>Abrir monitoramento ao vivo de visitantes</span>
+              <small>Kubo Live</small>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab(2);
+                setCommandOpen(false);
+              }}
+            >
+              <Flame size={13} />
+              <span>Diagnóstico de horários de pico (Heatmap)</span>
+              <small>24x7</small>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab(1);
+                setCommandOpen(false);
+              }}
+            >
+              <Globe2 size={13} />
+              <span>Análise de canais e páginas mais visitadas</span>
+              <small>Origens</small>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="lp-product__body">
         {/* Left Sidebar Nav */}
