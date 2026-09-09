@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-error";
 import { Label } from "@/components/ui/label";
 
 interface AdminUser {
@@ -68,23 +69,24 @@ export default function Admin() {
     setLoading(true);
     setApiError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-list-users", {
-        body: { action: "list", page, perPage },
-      });
-      
-      // Handle non-2xx responses that throw FunctionsHttpError
-      if (error) {
-        let msg = "Não foi possível carregar o painel administrativo.";
-        if (error.message.includes("401")) msg = "Sua sessão expirou. Entre novamente.";
-        if (error.message.includes("403")) msg = "Você não possui permissão para acessar o painel administrativo.";
-        setApiError(msg);
-        return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      let token = sessionData.session?.access_token;
+      if (!token || (sessionData.session?.expires_at && sessionData.session.expires_at < Math.floor(Date.now() / 1000) + 60)) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        token = refreshed.session?.access_token;
       }
 
-      if (data?.error) {
-        let msg = "Não foi possível carregar o painel administrativo.";
-        if (data.error.includes("Unauthorized") || data.error.includes("401")) msg = "Sua sessão expirou. Entre novamente.";
-        if (data.error.includes("Forbidden") || data.error.includes("403")) msg = "Você não possui permissão para acessar o painel administrativo.";
+      const { data, error } = await supabase.functions.invoke("admin-list-users", {
+        body: { action: "list", page, perPage },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      
+      if (error || data?.error) {
+        const msg = await getEdgeFunctionErrorMessage(
+          error,
+          data,
+          "Não foi possível carregar o painel administrativo."
+        );
         setApiError(msg);
         return;
       }
@@ -97,7 +99,7 @@ export default function Admin() {
         setTotalUsers(returned === perPage ? page * perPage + 1 : (page - 1) * perPage + returned);
       }
     } catch (e: any) {
-      setApiError("Não foi possível carregar o painel administrativo.");
+      setApiError(e?.message || "Não foi possível carregar o painel administrativo.");
     } finally {
       setLoading(false);
     }

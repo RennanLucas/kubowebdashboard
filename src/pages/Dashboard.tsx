@@ -54,6 +54,21 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const activeProjectId = selectedProjectId || clientData?.project?.id;
   const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
 
+  // Auto-ajusta o período quando o plano terminar de carregar
+  useEffect(() => {
+    if (!plan.loading && dateRange > plan.maxHistoryDays) {
+      setDateRange(plan.maxHistoryDays);
+    }
+  }, [plan.loading, plan.maxHistoryDays, dateRange]);
+
+  // Recupera automaticamente caso a API retorne HISTORY_LIMIT_EXCEEDED
+  useEffect(() => {
+    if (error && String(error).includes("HISTORY_LIMIT_EXCEEDED")) {
+      const safeDays = plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays;
+      setDateRange(safeDays);
+    }
+  }, [error, plan.maxHistoryDays]);
+
   useEffect(() => {
     if (allProjectsLoading || !allProjects) return;
     
@@ -203,6 +218,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   }
 
   if (error) {
+    const isHistoryLimit = String(error).includes("HISTORY_LIMIT_EXCEEDED");
     return (
       <AppLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -211,14 +227,27 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
               Não foi possível atualizar seus dados
             </h2>
             <p className="text-sm text-muted-foreground mb-6 max-w-md">
-              {toCustomerNetworkMessage(error, "Não foi possível carregar as informações do painel.")}
+              {isHistoryLimit
+                ? `O seu plano atual permite visualizar até ${plan.maxHistoryDays} dias de histórico.`
+                : toCustomerNetworkMessage(error, "Não foi possível carregar as informações do painel.")}
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-            >
-              Tentar novamente
-            </button>
+            {isHistoryLimit ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setDateRange(plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays)}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                >
+                  Ver últimos {plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays} dias
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+              >
+                Tentar novamente
+              </button>
+            )}
           </div>
         </div>
       </AppLayout>

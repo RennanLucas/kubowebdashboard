@@ -1,33 +1,40 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const corsHeaders = getCorsHeaders(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  function json(data: unknown, status = 200) {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
-    const authHeader = req.headers.get("authorization")?.replace("Bearer ", "");
+    const authHeader = req.headers.get("authorization")?.replace("Bearer ", "")?.trim();
     if (!authHeader) {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    // Rate limiting geral para admin endpoints (20 req/window por usuário)
-    const generalRateCheck = checkRateLimit(authHeader, 20, "user");
-    if (!generalRateCheck.allowed) {
-      return rateLimitResponse(generalRateCheck.resetAt, corsHeaders, 20);
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    // Validate caller
-    const authClient = createClient(supabaseUrl, anonKey);
-    const { data: userRes, error: authErr } = await authClient.auth.getUser(authHeader);
-    if (authErr || !userRes.user) return json({ error: "Unauthorized" }, 401);
-
     const admin = createClient(supabaseUrl, serviceKey);
+
+    // Validate caller via service role
+    const { data: userRes, error: authErr } = await admin.auth.getUser(authHeader);
+    if (authErr || !userRes?.user) {
+      return json({ error: "Unauthorized" }, 401);
+    }
+
+    // Rate limiting para admin endpoints (50 req/window por admin)
+    const generalRateCheck = checkRateLimit(userRes.user.id, 50, "user");
+    if (!generalRateCheck.allowed) {
+      return rateLimitResponse(generalRateCheck.resetAt, corsHeaders, 50);
+    }
 
     // Check admin role
     const { data: roleRow } = await admin
@@ -177,11 +184,4 @@ serve(async (req) => {
 // nenhum revoke encontraria depois, então restringimos ao par conhecido.
 function normalizeEnvironment(value: unknown): "live" | "sandbox" {
   return value === "live" ? "live" : "sandbox";
-}
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
 }

@@ -6,6 +6,21 @@ export async function resolveProjectTier(
   organizationId: string,
   userId: string
 ): Promise<{ tier: PlanTier; maxHistoryDays: number }> {
+  // 1. Administradores da plataforma possuem acesso Pro irrestrito
+  if (userId) {
+    const { data: adminRole } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (adminRole) {
+      const limits = limitsForTier("pro");
+      return { tier: "pro", maxHistoryDays: limits.maxHistoryDays };
+    }
+  }
+
   const { data: orgSub } = await supabaseAdmin
     .from("subscriptions")
     .select("status, current_period_end")
