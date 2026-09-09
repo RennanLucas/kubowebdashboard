@@ -5,7 +5,7 @@ export function useSpatialExperience() {
     const root = document.querySelector<HTMLElement>(".lp-root");
     if (!root) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    const fine = matchMedia("(hover: hover) and (pointer: fine)");
+    const fine = matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1101px)");
     const sections = Array.from(
       root.querySelectorAll<HTMLElement>("main > section"),
     );
@@ -22,21 +22,39 @@ export function useSpatialExperience() {
     let frame = 0;
     const update = () => {
       frame = 0;
-      if (motion.matches) return;
       const height = window.innerHeight;
+      const writes: Array<() => void> = [];
       visible.forEach((section) => {
         const rect = section.getBoundingClientRect();
         const progress = Math.max(
           0,
           Math.min(1, (height - rect.top) / (height + rect.height)),
         );
-        section.style.setProperty("--spatial-progress", progress.toFixed(4));
+        const travel = Math.max(
+          0,
+          Math.min(1, -rect.top / Math.max(1, rect.height - height)),
+        );
+        const entrance = Math.max(
+          0,
+          Math.min(1, (height * 0.88 - rect.top) / (height * 0.72)),
+        );
+        writes.push(() => {
+          section.style.setProperty(
+            "--spatial-progress",
+            motion.matches ? "0" : progress.toFixed(4),
+          );
+          section.style.setProperty(
+            "--scene-progress",
+            motion.matches ? "0" : travel.toFixed(4),
+          );
+          section.style.setProperty(
+            "--scene-entrance",
+            motion.matches ? "1" : entrance.toFixed(4),
+          );
+        });
       });
       const scrollable = document.documentElement.scrollHeight - height;
-      root.style.setProperty(
-        "--page-progress",
-        scrollable > 0 ? String(window.scrollY / scrollable) : "0",
-      );
+      const pageProgress = scrollable > 0 ? String(window.scrollY / scrollable) : "0";
       const marker = height * 0.46;
       let activeId = "product-story";
       railLinks.forEach((link) => {
@@ -45,12 +63,19 @@ export function useSpatialExperience() {
         if (section && section.getBoundingClientRect().top <= marker)
           activeId = id!;
       });
+      root.style.setProperty("--page-progress", pageProgress);
       railLinks.forEach((link) =>
         link.classList.toggle(
           "is-active",
           link.dataset.spatialTarget === activeId,
         ),
       );
+      railLinks.forEach((link) => {
+        if (link.dataset.spatialTarget === activeId)
+          link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+      writes.forEach((write) => write());
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -80,7 +105,7 @@ export function useSpatialExperience() {
       );
       panel.style.setProperty(
         "--tilt-y",
-        `${((event.clientX - rect.left) / rect.width - 0.5) * 7}deg`,
+        `${((event.clientX - rect.left) / rect.width - 0.5) * 5}deg`,
       );
       panel.style.setProperty(
         "--light-x",
@@ -107,11 +132,8 @@ export function useSpatialExperience() {
     const hideCursor = () => cursor?.classList.remove("is-visible");
     const preference = () => {
       panels.forEach(resetPanel);
-      if (motion.matches)
-        sections.forEach((section) =>
-          section.style.removeProperty("--spatial-progress"),
-        );
-      else schedule();
+      hideCursor();
+      schedule();
     };
     panels.forEach((panel) => {
       panel.addEventListener("pointermove", move, { passive: true });
@@ -138,9 +160,13 @@ export function useSpatialExperience() {
         panel.removeEventListener("pointerleave", leave);
         resetPanel(panel);
       });
-      sections.forEach((section) =>
-        section.style.removeProperty("--spatial-progress"),
-      );
+      sections.forEach((section) => {
+        ["--spatial-progress", "--scene-progress", "--scene-entrance"].forEach(
+          (key) => section.style.removeProperty(key),
+        );
+        section.classList.remove("spatial-in-view", "spatial-arrived");
+      });
+      root.style.removeProperty("--page-progress");
     };
   }, []);
 }
