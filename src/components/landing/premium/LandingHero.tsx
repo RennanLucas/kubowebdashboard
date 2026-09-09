@@ -30,11 +30,22 @@ export function LandingNav() {
           <img src={logo} alt="Kubo Analytics" />
         </Link>
         <div className="lp-nav__links">
-          {navigation.map(([label, href]) => <a key={href} href={href}>{label}</a>)}
+          {navigation.map(([label, href]) => (
+            <a key={href} href={href} className="lp-pill">
+              <span className="lp-pill__circulo" aria-hidden="true" />
+              <span className="lp-pill__box">
+                <span className="lp-pill__sobe">{label}</span>
+                <span className="lp-pill__entra">{label}</span>
+              </span>
+            </a>
+          ))}
         </div>
         <div className="lp-nav__actions">
           <Link to="/login" className="lp-nav__login">Entrar</Link>
-          <Link to="/login" className="lp-button lp-button--compact">Começar grátis <ArrowRight size={14} /></Link>
+          <Link to="/login" className="lp-feixe-btn lp-feixe-btn--compact" aria-label="Começar grátis">
+            <span className="lp-feixe-border" aria-hidden="true" />
+            <span className="lp-feixe-inner">Começar grátis <ArrowRight size={14} /></span>
+          </Link>
           <button className="lp-nav__menu" type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Fechar menu" : "Abrir menu"}>
             {open ? <X /> : <Menu />}
           </button>
@@ -79,10 +90,28 @@ export function LandingHero() {
       <div className="lp-hero__light" aria-hidden="true" />
       <div className="lp-shell lp-hero__content">
         <div className="lp-eyebrow lp-enter lp-enter--1"><span className="lp-live-dot" /> Analytics claro, do primeiro acesso à conversão</div>
-        <h1 className="lp-enter lp-enter--2">Veja o que acontece.<br /><span>Decida o que muda.</span></h1>
+        <h1 className="lp-enter lp-enter--2">
+          Veja o que acontece.<br />
+          <span className="lp-underline-wrap">
+            Decida o que muda.
+            <svg className="lp-underline-svg" viewBox="0 0 280 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M4 10C60 3 175 3 276 9" stroke="url(#lp-hero-underline-grad)" strokeWidth="3.5" strokeLinecap="round" />
+              <defs>
+                <linearGradient id="lp-hero-underline-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="50%" stopColor="#60a5fa" />
+                  <stop offset="100%" stopColor="#44e5a8" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+        </h1>
         <p className="lp-enter lp-enter--3">Visitantes, páginas, fontes, conversões e insights em uma leitura simples — para você entender seu site sem depender de planilhas.</p>
         <div className="lp-hero__actions lp-enter lp-enter--4">
-          <Link to="/login" className="lp-button">Começar 7 dias grátis <ArrowRight size={17} /></Link>
+          <Link to="/login" className="lp-feixe-btn" aria-label="Começar 7 dias grátis">
+            <span className="lp-feixe-border" aria-hidden="true" />
+            <span className="lp-feixe-inner">Começar 7 dias grátis <ArrowRight size={17} /></span>
+          </Link>
           <a href="#product-story" className="lp-button lp-button--ghost"><Play size={15} fill="currentColor" /> Ver o produto</a>
         </div>
         <div className="lp-hero__trust lp-enter lp-enter--4" aria-label="Benefícios do plano">

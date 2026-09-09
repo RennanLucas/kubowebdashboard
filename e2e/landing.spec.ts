@@ -41,4 +41,43 @@ test.describe('Landing premium', () => {
       expect(overflow, `overflow horizontal em ${width}px`).toBeLessThanOrEqual(1);
     }
   });
+
+  test('interage com o comparador split, playground de recursos e stacking deck', async ({ page }) => {
+    await page.goto('/');
+
+    // 1. Testa o Comparador Split
+    const splitSection = page.locator('.lp-split-section');
+    await expect(splitSection).toBeAttached();
+    await page.getByRole('button', { name: /Ver 100% GA4/i }).click();
+    await page.getByRole('button', { name: /Ver 100% Kubo/i }).click();
+    await page.getByRole('button', { name: /Dividido/i }).click();
+
+    // 2. Testa o Playground de Recursos
+    const toolsNav = page.locator('.lp-tools-nav');
+    await expect(toolsNav).toBeAttached();
+    await page.getByRole('button', { name: /Visitantes ao Vivo/i }).click();
+    await expect(page.getByText(/Visitantes e Páginas no Exato Momento/i)).toBeVisible();
+    await page.getByRole('button', { name: /Mapas de Calor/i }).click();
+    await expect(page.getByText(/Mapa de Calor e Horários de Maior Conversão/i)).toBeVisible();
+    await page.getByRole('button', { name: /Relatórios White-Label/i }).click();
+    await expect(page.getByText(/Relatórios White-Label com a Sua Marca/i)).toBeVisible();
+
+    // 3. Testa Stacking Deck
+    const deckCards = page.locator('.lp-deck-card');
+    await expect(deckCards).toHaveCount(4);
+
+    // Salva screenshots para verificação visual
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/hero-interactive.png', fullPage: false });
+
+    await splitSection.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/split-slider.png', fullPage: false });
+
+    const setupSection = page.locator('.lp-setup');
+    await setupSection.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/stacking-deck.png', fullPage: false });
+  });
 });

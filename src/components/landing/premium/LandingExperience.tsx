@@ -3,7 +3,7 @@ import {
   Activity, ArrowRight, BarChart3, BellRing, BrainCircuit, Check, Clock3,
   Copy, Cpu, FileDown, Flame, Gauge, Globe2, Layers3, Lock, MessageSquare,
   MousePointerClick, MonitorSmartphone, Radar, Server, ShieldCheck, Sparkles,
-  Target, Users, Zap, X, AlertTriangle, Shield
+  Target, Users, Zap, X, AlertTriangle, Shield, SlidersHorizontal, Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -84,6 +84,32 @@ export function TrustProofSection() {
 }
 
 export function ProblemSolutionBridge() {
+  const [sliderPos, setSliderPos] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = (clientX: number) => {
+    if (!viewportRef.current) return;
+    const rect = viewportRef.current.getBoundingClientRect();
+    const x = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
+    setSliderPos(x);
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true);
+    updatePosition(e.clientX);
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    updatePosition(e.clientX);
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+  };
+
   return (
     <section className="lp-bridge">
       <div className="lp-shell">
@@ -93,6 +119,163 @@ export function ProblemSolutionBridge() {
           <p>O GA4 se tornou um labirinto de configurações, dados com atraso de até 48 horas e zero foco em conversão rápida de WhatsApp.</p>
         </div>
 
+        {/* Flape-inspired Interactive Split Comparison Slider */}
+        <div className="lp-split-section lp-reveal">
+          <div className="lp-split-controls">
+            <button
+              type="button"
+              className={`lp-split-mode-btn ${sliderPos === 50 ? "is-active" : ""}`}
+              onClick={() => setSliderPos(50)}
+            >
+              <SlidersHorizontal size={12} />
+              <span>Dividido (50 / 50)</span>
+            </button>
+            <button
+              type="button"
+              className={`lp-split-mode-btn is-ga4 ${sliderPos <= 10 ? "is-active" : ""}`}
+              onClick={() => setSliderPos(0)}
+            >
+              <X size={12} />
+              <span>Ver 100% GA4</span>
+            </button>
+            <button
+              type="button"
+              className={`lp-split-mode-btn is-kubo ${sliderPos >= 90 ? "is-active" : ""}`}
+              onClick={() => setSliderPos(100)}
+            >
+              <Check size={12} />
+              <span>Ver 100% Kubo Analytics</span>
+            </button>
+          </div>
+
+          <div
+            ref={viewportRef}
+            className="lp-split-viewport"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            style={{ cursor: isDragging ? "ew-resize" : "default" }}
+            aria-label="Comparador interativo antes e depois"
+          >
+            {/* Before (GA4) Pane */}
+            <div className="lp-split-pane lp-split-pane--before">
+              <div className="lp-split-pane__content">
+                <div className="lp-split-header">
+                  <span className="lp-split-badge lp-split-badge--ga4">
+                    <AlertTriangle size={12} /> Analytics Tradicional (GA4)
+                  </span>
+                  <span className="lp-split-latency">
+                    Atraso: <b>24h a 48h de espera</b>
+                  </span>
+                </div>
+
+                <div className="lp-split-kpis">
+                  <div className="lp-split-kpi-card is-bad">
+                    <small>Visitantes Registrados</small>
+                    <strong>~1.240</strong>
+                    <span>-38% por cookies rejeitados</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-bad">
+                    <small>Cliques no WhatsApp</small>
+                    <strong>Não rastreado</strong>
+                    <span>Exige GTM manual e quebra fácil</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-bad">
+                    <small>Peso no Navegador</small>
+                    <strong>120 KB</strong>
+                    <span>Penaliza Core Web Vitals</span>
+                  </div>
+                </div>
+
+                <div className="lp-split-points">
+                  <div className="lp-split-point">
+                    <X size={14} className="is-bad" />
+                    <div>
+                      <strong>Relatórios desatualizados</strong>
+                      <p>Campanhas rodando no escuro sem feedback em tempo real.</p>
+                    </div>
+                  </div>
+                  <div className="lp-split-point">
+                    <X size={14} className="is-bad" />
+                    <div>
+                      <strong>Banners invasivos de cookies</strong>
+                      <p>Poluição visual que espanta até 40% dos novos acessos.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* After (Kubo) Pane with clipPath */}
+            <div
+              className="lp-split-pane lp-split-pane--after"
+              style={{ clipPath: `inset(0 0 0 ${sliderPos}%)` }}
+            >
+              <div className="lp-split-pane__content">
+                <div className="lp-split-header">
+                  <span className="lp-split-badge lp-split-badge--kubo">
+                    <Sparkles size={12} /> Kubo Analytics 2.0
+                  </span>
+                  <span className="lp-split-latency">
+                    Latência: <b>&lt; 14ms em tempo real</b>
+                  </span>
+                </div>
+
+                <div className="lp-split-kpis">
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Visitantes Reais</small>
+                    <strong>12.842</strong>
+                    <span>100% dos sinais coletados</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Conversões WhatsApp</small>
+                    <strong>486 leads</strong>
+                    <span>Captura nativa em 1 clique</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Peso do Snippet</small>
+                    <strong>2.1 KB</strong>
+                    <span>Nota 100 no Google PageSpeed</span>
+                  </div>
+                </div>
+
+                <div className="lp-split-points">
+                  <div className="lp-split-point">
+                    <Check size={14} className="is-good" />
+                    <div>
+                      <strong>Sinais ao vivo sem delay</strong>
+                      <p>Saiba na hora exata se o tráfego e os anúncios geraram leads.</p>
+                    </div>
+                  </div>
+                  <div className="lp-split-point">
+                    <Check size={14} className="is-good" />
+                    <div>
+                      <strong>100% LGPD nativa (0 cookies)</strong>
+                      <p>Nenhum banner invasivo, nenhuma coleta de dados sensíveis.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Draggable Divider Handle */}
+            <div
+              className="lp-split-handle"
+              style={{ left: `${sliderPos}%` }}
+              onPointerDown={handlePointerDown}
+            >
+              <div className="lp-split-handle__btn">
+                <span>◀ ▶</span>
+              </div>
+              <div className="lp-split-handle__pill">
+                {sliderPos < 35 ? "GA4" : sliderPos > 65 ? "Kubo" : `${Math.round(sliderPos)}%`}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Comparison Cards Grid */}
         <div className="lp-bridge__grid lp-reveal">
           <div className="lp-bridge__card is-problem">
             <div className="lp-bridge__badge">
@@ -334,6 +517,454 @@ function InsightCard({ type, label, title, copy, stat }: { type: string; label: 
   );
 }
 
+function InteractiveFeaturesShowcase({ onOpenReportPreview }: { onOpenReportPreview: () => void }) {
+  const [activeTab, setActiveTab] = useState<"whatsapp" | "realtime" | "heatmap" | "whitelabel" | "kuboai" | "privacy">("whatsapp");
+
+  // WhatsApp simulation state
+  const [waLeads, setWaLeads] = useState(486);
+  const [waClicked, setWaClicked] = useState(false);
+  const [waToast, setWaToast] = useState(false);
+
+  // Realtime simulation state
+  const [rtVisitors, setRtVisitors] = useState(24);
+  const [rtBurst, setRtBurst] = useState(false);
+  const [rtList, setRtList] = useState([
+    { path: "/", visitors: 14, source: "Busca Orgânica" },
+    { path: "/precos", visitors: 6, source: "Instagram" },
+    { path: "/contato", visitors: 4, source: "Direto" },
+  ]);
+
+  // Heatmap slot state
+  const [selectedHeat, setSelectedHeat] = useState({
+    day: "Terça-feira",
+    time: "14:00 às 18:00",
+    visits: 92,
+    leads: 7,
+    highlight: "Pico Máximo de Conversão da Semana",
+  });
+
+  // White-label state
+  const [agencyName, setAgencyName] = useState("Sua Agência Digital");
+  const [agencyTheme, setAgencyTheme] = useState("#3b82f6");
+
+  // Kubo AI prompt state
+  const [aiFocus, setAiFocus] = useState<"growth" | "warning" | "conv">("growth");
+
+  // Privacy latency test
+  const [benchRunning, setBenchRunning] = useState(false);
+  const [localLatency, setLocalLatency] = useState(14);
+
+  const handleWaClick = () => {
+    setWaClicked(true);
+    setWaLeads((c) => c + 1);
+    setWaToast(true);
+    setTimeout(() => setWaClicked(false), 300);
+    setTimeout(() => setWaToast(false), 3500);
+  };
+
+  const handleSimulateVisitor = () => {
+    setRtBurst(true);
+    setRtVisitors((c) => c + 1);
+    setRtList((prev) => [
+      { path: "/servicos", visitors: 1, source: "Novo Visitante (SP)" },
+      ...prev.slice(0, 2),
+    ]);
+    setTimeout(() => setRtBurst(false), 800);
+  };
+
+  const handleTestLatency = () => {
+    setBenchRunning(true);
+    const start = performance.now();
+    setTimeout(() => {
+      const ms = Math.max(9, Math.round(performance.now() - start + 4));
+      setLocalLatency(ms);
+      setBenchRunning(false);
+    }, 200);
+  };
+
+  const tabs = [
+    { id: "whatsapp", title: "Cliques no WhatsApp", tag: "Auto-detect", icon: MousePointerClick, desc: "Captura links wa.me e botões sem GTM" },
+    { id: "realtime", title: "Visitantes ao Vivo", tag: "Sem Delay", icon: Activity, desc: "Métricas ao vivo com latência < 15ms" },
+    { id: "heatmap", title: "Mapas de Calor 24x7", tag: "Por Horário", icon: Flame, desc: "Descubra os picos exatos de intenção" },
+    { id: "whitelabel", title: "Relatórios White-Label", tag: "1 Clique", icon: FileDown, desc: "PDF corporativo com o logo da sua agência" },
+    { id: "kuboai", title: "Resumos com Kubo AI", tag: "IA Nativa", icon: Sparkles, desc: "Diagnósticos objetivos e prioridades" },
+    { id: "privacy", title: "100% LGPD sem Cookies", tag: "Zero Cookies", icon: ShieldCheck, desc: "Script de 2KB, PageSpeed 100 garantido" },
+  ] as const;
+
+  return (
+    <div className="lp-tools-showcase lp-reveal">
+      {/* Left Navigation */}
+      <div className="lp-tools-nav">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              className={`lp-tool-item ${isActive ? "is-active" : ""}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              <div className="lp-tool-item__icon">
+                <Icon size={16} />
+              </div>
+              <div className="lp-tool-item__body">
+                <div className="lp-tool-item__top">
+                  <h5 className="lp-tool-item__title">{t.title}</h5>
+                  <span className="lp-tool-item__tag">{t.tag}</span>
+                </div>
+                <p className="lp-tool-item__desc">{t.desc}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Right Interactive Playground Screen */}
+      <div className="lp-tools-screen">
+        {activeTab === "whatsapp" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Detecção Automática de Leads em WhatsApp</h4>
+                <p>O script identifica números de WhatsApp e botões wa.me sem quebras de acionador.</p>
+              </div>
+              <span className="lp-product__badge">
+                <span className="lp-live-dot" /> 14ms de tempo de captura
+              </span>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div className="lp-preview-wa-stage">
+                  <div className="lp-preview-wa-card">
+                    <div className="lp-preview-wa-info">
+                      <strong>+55 (11) 98765-4321</strong>
+                      <span>Origem: Busca Orgânica · Página: /servicos</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleWaClick}
+                      className="lp-preview-wa-btn"
+                    >
+                      <MousePointerClick size={14} />
+                      <span>{waClicked ? "Registrado!" : "Simular Clique no WhatsApp"}</span>
+                    </button>
+                  </div>
+
+                  {waToast && (
+                    <div className="lp-wa-demo__toast lp-view-fade">
+                      <Check size={13} />
+                      <span>Evento computado instantaneamente: +1 lead no painel e no webhook</span>
+                    </div>
+                  )}
+
+                  <div className="lp-preview-json">
+                    <div><b>// Payload despachado em tempo real:</b></div>
+                    <div>&#123;</div>
+                    <div>&nbsp;&nbsp;&quot;event&quot;: &quot;whatsapp_click&quot;,</div>
+                    <div>&nbsp;&nbsp;&quot;leads_total&quot;: <b>{waLeads}</b>,</div>
+                    <div>&nbsp;&nbsp;&quot;target&quot;: &quot;wa.me/5511987654321&quot;,</div>
+                    <div>&nbsp;&nbsp;&quot;source&quot;: &quot;busca_organica&quot;,</div>
+                    <div>&nbsp;&nbsp;&quot;latency&quot;: &quot;14ms&quot;</div>
+                    <div>&#125;</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "realtime" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Visitantes e Páginas no Exato Momento</h4>
+                <p>Nenhum atraso de 48h. Acompanhe a repercussão imediata de posts e publicações.</p>
+              </div>
+              <button
+                type="button"
+                className="lp-sim-btn"
+                onClick={handleSimulateVisitor}
+              >
+                <Zap size={12} />
+                <span>+ Simular Novo Visitante</span>
+              </button>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div className="lp-preview-realtime-stage">
+                  <div className="lp-preview-radar-box">
+                    <span className="lp-live-dot" />
+                    <strong className={`lp-preview-radar-num ${rtBurst ? "lp-pulse-pop" : ""}`}>
+                      {rtVisitors}
+                    </strong>
+                    <span className="lp-preview-radar-lbl">Visitantes Agora</span>
+                  </div>
+
+                  <div className="lp-preview-stream-list">
+                    {rtList.map((item, idx) => (
+                      <div key={idx} className="lp-preview-stream-item">
+                        <span>
+                          <span className="lp-live-dot" style={{ width: 5, height: 5 }} />
+                          {item.path} ({item.source})
+                        </span>
+                        <strong>{item.visitors} ativos</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "heatmap" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Mapa de Calor e Horários de Maior Conversão</h4>
+                <p>Clique nas células para conferir a intensidade de visitantes e conversões.</p>
+              </div>
+              <span className="lp-split-latency">
+                Dia analisado: <b>{selectedHeat.day}</b>
+              </span>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div className="lp-preview-heat-grid">
+                  {[
+                    { day: "Seg", time: "Manhã", visits: 45, leads: 2, lvl: "lvl-2" },
+                    { day: "Seg", time: "Tarde", visits: 78, leads: 5, lvl: "lvl-3" },
+                    { day: "Seg", time: "Noite", visits: 32, leads: 1, lvl: "lvl-1" },
+                    { day: "Ter", time: "Manhã", visits: 60, leads: 3, lvl: "lvl-2" },
+                    { day: "Ter", time: "Tarde (Pico)", visits: 92, leads: 7, lvl: "lvl-4", highlight: "Pico Máximo da Semana" },
+                    { day: "Ter", time: "Noite", visits: 55, leads: 4, lvl: "lvl-2" },
+                    { day: "Qua", time: "Tarde", visits: 70, leads: 4, lvl: "lvl-3" },
+                    { day: "Qui", time: "Tarde", visits: 85, leads: 6, lvl: "lvl-4", highlight: "Segundo Maior Pico" },
+                    { day: "Sex", time: "Tarde", visits: 68, leads: 3, lvl: "lvl-3" },
+                    { day: "Sáb", time: "Noite", visits: 40, leads: 2, lvl: "lvl-1" },
+                    { day: "Dom", time: "Noite", visits: 52, leads: 3, lvl: "lvl-2" },
+                    { day: "Seg", time: "Madrug.", visits: 12, leads: 0, lvl: "lvl-1" },
+                    { day: "Ter", time: "Madrug.", visits: 14, leads: 0, lvl: "lvl-1" },
+                    { day: "Qua", time: "Madrug.", visits: 9, leads: 0, lvl: "lvl-1" },
+                  ].map((cell, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`lp-preview-heat-btn ${cell.lvl}`}
+                      onClick={() =>
+                        setSelectedHeat({
+                          day: `${cell.day}-feira`,
+                          time: cell.time,
+                          visits: cell.visits,
+                          leads: cell.leads,
+                          highlight: cell.highlight || "Período monitorado",
+                        })
+                      }
+                      title={`${cell.day} · ${cell.time}: ${cell.visits} visitas, ${cell.leads} leads`}
+                    />
+                  ))}
+                </div>
+
+                <div className="lp-heat-readout">
+                  <div>
+                    <strong>{selectedHeat.day} · {selectedHeat.time}</strong>
+                    <p>{selectedHeat.visits} visitantes únicos · <span style={{ color: "#44e5a8" }}>{selectedHeat.leads} conversões no WhatsApp</span> ({selectedHeat.highlight})</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "whitelabel" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Relatórios White-Label com a Sua Marca</h4>
+                <p>Personalize cores, nome e logotipo da sua agência nos relatórios dos clientes.</p>
+              </div>
+              <button
+                type="button"
+                className="lp-preview-report-trigger"
+                onClick={onOpenReportPreview}
+              >
+                <Eye size={12} />
+                <span>Abrir Modelo de Relatório PDF</span>
+              </button>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div className="lp-preview-agency-customizer">
+                  <div className="lp-preview-custom-inputs">
+                    <div>
+                      <label htmlFor="agency-input">Nome da sua Agência / Empresa:</label>
+                      <input
+                        id="agency-input"
+                        type="text"
+                        value={agencyName}
+                        onChange={(e) => setAgencyName(e.target.value)}
+                        placeholder="Digite o nome da agência"
+                      />
+                    </div>
+
+                    <div>
+                      <label>Cor de Destaque da Marca:</label>
+                      <div className="lp-color-swatches">
+                        {[
+                          { color: "#3b82f6", label: "Azul" },
+                          { color: "#8b5cf6", label: "Roxo" },
+                          { color: "#10b981", label: "Esmeralda" },
+                          { color: "#f59e0b", label: "Âmbar" },
+                        ].map((swatch) => (
+                          <button
+                            key={swatch.color}
+                            type="button"
+                            className={`lp-color-swatch ${agencyTheme === swatch.color ? "is-active" : ""}`}
+                            style={{ background: swatch.color }}
+                            onClick={() => setAgencyTheme(swatch.color)}
+                            title={swatch.label}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lp-preview-doc">
+                    <div className="lp-preview-doc-head">
+                      <div
+                        className="lp-preview-doc-logo"
+                        style={{ background: agencyTheme }}
+                      >
+                        {agencyName.charAt(0) || "A"}
+                      </div>
+                      <div className="lp-preview-doc-title">
+                        <strong>{agencyName || "Sua Agência"}</strong>
+                        <small>Relatório Executivo Mensal de Conversões</small>
+                      </div>
+                    </div>
+
+                    <div style={{ margin: "14px 0 0", fontSize: "10px", color: "#94a3b8" }}>
+                      <div>Cliente: <b>Alpha E-commerce</b></div>
+                      <div>Conversões WhatsApp: <b style={{ color: "#44e5a8" }}>+24,1%</b></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "kuboai" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Diagnósticos Semanais com Kubo AI</h4>
+                <p>A inteligência artificial do Kubo sintetiza os pontos críticos sem inventar métricas.</p>
+              </div>
+              <span className="lp-product__badge">
+                <Sparkles size={11} /> 99.2% de precisão analítica
+              </span>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className={`lp-split-mode-btn ${aiFocus === "growth" ? "is-active" : ""}`}
+                    onClick={() => setAiFocus("growth")}
+                  >
+                    <span>📈 Oportunidade</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`lp-split-mode-btn is-ga4 ${aiFocus === "warning" ? "is-active" : ""}`}
+                    onClick={() => setAiFocus("warning")}
+                  >
+                    <span>⚠️ Ponto de Atenção</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`lp-split-mode-btn is-kubo ${aiFocus === "conv" ? "is-active" : ""}`}
+                    onClick={() => setAiFocus("conv")}
+                  >
+                    <span>💬 WhatsApp Lidera</span>
+                  </button>
+                </div>
+
+                <div className="lp-ai-highlight" style={{ marginTop: 0 }}>
+                  <div className="lp-ai-highlight__head">
+                    <Sparkles size={13} />
+                    <span>
+                      {aiFocus === "growth" && "Oportunidade: Tráfego Orgânico em Alta (+18%)"}
+                      {aiFocus === "warning" && "Atenção: Queda de Conversão na Página de Preços"}
+                      {aiFocus === "conv" && "Destaque: WhatsApp concentra 78% dos Leads Finais"}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "11px", lineHeight: "1.6" }}>
+                    {aiFocus === "growth" &&
+                      "A participação da busca orgânica saltou para 42% no período. Recomendação: replique a estrutura da página /servicos nos artigos de topo de funil para acelerar novas conversões."}
+                    {aiFocus === "warning" &&
+                      "Identificamos que 62% dos visitantes que entram em /precos saem sem clicar em nenhum botão. Sugestão: adicione uma chamada direta para WhatsApp nesta seção."}
+                    {aiFocus === "conv" &&
+                      "O botão flutuante de WhatsApp converteu 486 leads qualificados. O melhor horário registrado foi nas tardes de terça e quinta-feira (14h-18h)."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "privacy" && (
+          <>
+            <div className="lp-tools-screen__header">
+              <div className="lp-tools-screen__title">
+                <h4>Zero Cookies Invasivos e 100% LGPD</h4>
+                <p>Sem banners intrusivos que espantam clientes e sem penalização de SEO.</p>
+              </div>
+              <button
+                type="button"
+                className="lp-sim-btn"
+                onClick={handleTestLatency}
+              >
+                <Clock3 size={12} />
+                <span>{benchRunning ? "Medindo..." : "Testar Tempo Local"}</span>
+              </button>
+            </div>
+
+            <div className="lp-tools-screen__content">
+              <div className="lp-preview-box">
+                <div className="lp-split-kpis" style={{ margin: 0 }}>
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Peso do Script</small>
+                    <strong>2.1 KB</strong>
+                    <span>vs ~120KB do Google Tag Manager</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Tempo de Resposta</small>
+                    <strong>{localLatency} ms</strong>
+                    <span>Processamento Anycast em borda</span>
+                  </div>
+                  <div className="lp-split-kpi-card is-good">
+                    <small>Google PageSpeed</small>
+                    <strong>100 / 100</strong>
+                    <span>Zero impacto em Core Web Vitals</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function CapabilitiesSection() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
@@ -354,6 +985,10 @@ export function CapabilitiesSection() {
           <h2>Profundidade quando precisa.<br />Simplicidade sempre.</h2>
           <p>Tudo o que sua agência ou empresa precisa para acompanhar performance web sem o excesso do GA4.</p>
         </div>
+
+        {/* Flape-inspired Interactive Feature Selector Playground */}
+        <InteractiveFeaturesShowcase onOpenReportPreview={() => setReportModalOpen(true)} />
+
         <div className="lp-capability-grid">
           {capabilities.map(({ icon: Icon, className, title, copy, visual }) => (
             <article className={`lp-capability lp-reveal ${className}`} key={title}>
@@ -1047,10 +1682,10 @@ export function RoiCalculatorSection() {
 
 export function SetupSection() {
   const steps = [
-    ["01", "Crie sua conta", "Comece pelo plano gratuito e configure sua organização em segundos."],
-    ["02", "Adicione o seu site", "Cadastre o domínio do seu projeto e copie o snippet de código."],
-    ["03", "Instale uma única vez", "Cole o script no cabeçalho do site (WordPress, Webflow, etc.)."],
-    ["04", "Acompanhe os dados", "Visitantes e conversões começam a aparecer instantaneamente."],
+    ["01", "Crie sua conta", "Comece pelo plano gratuito e configure sua organização em segundos.", "Ativação Rápida"],
+    ["02", "Adicione o seu site", "Cadastre o domínio do seu projeto e copie o snippet de código.", "1 Domínio"],
+    ["03", "Instale uma única vez", "Cole o script no cabeçalho do site (WordPress, Webflow, etc.).", "Apenas 2 KB"],
+    ["04", "Acompanhe os dados", "Visitantes e conversões começam a aparecer instantaneamente.", "Tempo Real"],
   ];
   return (
     <section className="lp-setup">
@@ -1058,16 +1693,27 @@ export function SetupSection() {
         <div className="lp-section-head lp-reveal">
           <span>Comece sem complexidade</span>
           <h2>Do zero aos primeiros sinais<br />em quatro passos.</h2>
+          <p>Instale em minutos e tenha total clareza do tráfego sem depender de configurações complexas.</p>
         </div>
-        <div className="lp-setup__line">
-          {steps.map(([number, title, copy]) => (
-            <article className="lp-reveal" key={number}>
-              <b>{number}</b>
+
+        {/* Flape-inspired Sticky Stacking Deck */}
+        <div className="lp-deck-wrap">
+          {steps.map(([number, title, copy, badge], index) => (
+            <article
+              className="lp-deck-card lp-reveal"
+              key={number}
+              style={{ "--i": index } as React.CSSProperties}
+            >
+              <div className="lp-deck-card__top">
+                <span className="lp-deck-card__num">Etapa {number}</span>
+                <span className="lp-deck-card__badge">{badge}</span>
+              </div>
               <h3>{title}</h3>
               <p>{copy}</p>
             </article>
           ))}
         </div>
+
         <InteractiveSnippet />
       </div>
     </section>
@@ -1286,10 +1932,23 @@ function PricingCard({
           <span className="lp-price-btn is-disabled" aria-disabled="true">
             Indisponível <ArrowRight size={13} />
           </span>
+        ) : recommended ? (
+          <Link
+            to="/login"
+            className="lp-feixe-btn lp-feixe-btn--pro"
+            style={{ width: "100%" }}
+            aria-label={cta}
+          >
+            <span className="lp-feixe-border" aria-hidden="true" />
+            <span className="lp-feixe-inner" style={{ width: "100%" }}>
+              {cta} <ArrowRight size={13} />
+            </span>
+          </Link>
         ) : (
           <Link
             to="/login"
-            className={`lp-price-btn ${recommended ? "lp-price-btn--primary" : "lp-price-btn--ghost"}`}
+            className="lp-price-btn lp-price-btn--ghost"
+            aria-label={cta}
           >
             {cta} <ArrowRight size={13} />
           </Link>
@@ -1330,7 +1989,10 @@ export function FinalCTA() {
         <span>Seu site já está gerando sinais.</span>
         <h2>Transforme visitas<br />em decisões.</h2>
         <p>Instale o Kubo em 2 minutos, acompanhe os primeiros acessos e descubra o que realmente merece a sua atenção.</p>
-        <Link to="/login" className="lp-button">Começar 7 dias grátis <ArrowRight /></Link>
+        <Link to="/login" className="lp-feixe-btn" aria-label="Começar 7 dias grátis">
+          <span className="lp-feixe-border" aria-hidden="true" />
+          <span className="lp-feixe-inner">Começar 7 dias grátis <ArrowRight size={17} /></span>
+        </Link>
       </div>
     </section>
   );
