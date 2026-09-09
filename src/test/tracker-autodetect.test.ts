@@ -55,6 +55,21 @@ beforeEach(() => {
 });
 
 describe("Auto-deteccao nativa de conversoes", () => {
+  it.each([
+    ["whatsapp://send?phone=5511999998888", "Conversar", true],
+    ["https://waxme.example", "Conversar", false],
+    ["https://example.com", "Fale no zap", true],
+    ["https://example.com", "zapato", false],
+  ])("classifica corretamente %s (%s)", (href, label, expected) => {
+    const a = document.createElement("a");
+    a.href = href;
+    a.textContent = label;
+    a.addEventListener("click", (event) => event.preventDefault());
+    document.body.appendChild(a);
+    a.click();
+    expect(getQueue().some((event) => event.event_type === "whatsapp_click")).toBe(expected);
+  });
+
   it("detecta automaticamente links wa.me como whatsapp_click", () => {
     const a = document.createElement("a");
     a.href = "https://wa.me/5511999998888?text=Ola";
