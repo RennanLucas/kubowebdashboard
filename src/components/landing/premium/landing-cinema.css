@@ -1,0 +1,757 @@
+/* One scroll timeline per chapter. Content and data stay in the existing HTML. */
+.lp-root {
+  --lp-section-space: clamp(88px, 10vw, 160px);
+  --cinema-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-root .lp-shell {
+  width: min(1360px, calc(100% - 160px));
+}
+.lp-root .spatial-cursor i {
+  display: none;
+}
+.lp-root .spatial-cursor {
+  z-index: 5;
+}
+.lp-root .spatial-edge {
+  opacity: 0.5;
+}
+.lp-root .lp-nav:not(.is-scrolled) {
+  background: transparent;
+}
+.lp-root .lp-nav.is-scrolled {
+  background: #080e18cc;
+  box-shadow: 0 8px 32px #0002;
+}
+.lp-root .lp-nav__links a[aria-current] {
+  color: #e0f2ff;
+}
+.lp-root .kubo-hero {
+  display: block;
+  padding: 0;
+  min-height: 100svh;
+  overflow: clip;
+  background:
+    radial-gradient(ellipse at 50% 65%, #15314a66, transparent 65%), #060b13;
+}
+.kubo-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  width: min(1360px, calc(100% - 160px));
+  margin-inline: auto;
+  padding: 132px 0 92px;
+  min-height: 100svh;
+}
+.lp-root .kubo-copy {
+  max-width: 1020px;
+  text-align: center;
+  animation: none;
+  z-index: 2;
+}
+.lp-root .kubo-eyebrow {
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.lp-root .kubo-hero h1 {
+  font-size: clamp(48px, 5.7vw, 82px);
+  line-height: 1.04;
+  letter-spacing: -0.058em;
+}
+.lp-root .kubo-hero h1 em {
+  margin-top: 6px;
+  color: #a4d7f5;
+}
+.lp-root .kubo-description {
+  max-width: 650px;
+  margin: 24px auto;
+  font-size: 17px;
+  line-height: 1.65;
+}
+.lp-root .kubo-actions {
+  justify-content: center;
+  gap: 28px;
+}
+.lp-root .kubo-footnote {
+  margin-top: 16px;
+}
+.lp-root .kubo-stage {
+  width: 100%;
+  height: 450px;
+  perspective: 1800px;
+  flex-shrink: 0;
+}
+.lp-root .kubo-stage .kubo-board {
+  max-width: 760px;
+  width: min(760px, 72%);
+  padding: 18px 26px;
+  transform: rotateX(16deg) rotateY(-6deg) scale(0.94);
+  transform-origin: center top;
+  background: linear-gradient(125deg, #1b2c40, #0b1523 70%);
+  border-color: #adcce447;
+  box-shadow:
+    0 2px 0 #bfdfff55 inset,
+    0 16px 0 -5px #0d1929,
+    0 17px 0 -5px #5b799b77,
+    0 60px 120px #0006;
+  transition: none;
+}
+.lp-root .kubo-board-title {
+  margin-top: 14px;
+}
+.lp-root .kubo-board-title h2 {
+  font-size: 21px;
+}
+.lp-root .kubo-metrics {
+  margin-top: 14px;
+}
+.lp-root .kubo-bars {
+  height: 84px;
+}
+.lp-root .kubo-float {
+  animation: none;
+  padding: 15px 18px;
+  max-width: 210px;
+}
+.lp-root .kubo-float-top {
+  top: 25%;
+  left: 0;
+}
+.lp-root .kubo-float-bottom {
+  bottom: 18%;
+  right: 0;
+}
+.lp-root .kubo-bottom {
+  bottom: 24px;
+  left: 0;
+  right: 0;
+}
+.lp-root .spatial-backdrop {
+  inset: -20px 0;
+}
+.lp-root .spatial-cube {
+  right: 10%;
+  top: -15px;
+  opacity: 0.2;
+  transform: rotateX(-24deg) rotateY(34deg);
+}
+.lp-root .spatial-towers {
+  opacity: 0.25;
+  bottom: 5%;
+  left: 8%;
+}
+.lp-root .spatial-ring {
+  opacity: 0.5;
+  width: 84%;
+  left: 8%;
+}
+.lp-root .spatial-specks {
+  opacity: 0.4;
+}
+.lp-root .kubo-orbit {
+  opacity: 0.4;
+}
+.lp-root .lp-signal {
+  position: relative;
+  z-index: 3;
+  background: #09111b;
+  border-block: 1px solid #a4cbf018;
+}
+.lp-root .lp-signal__inner {
+  min-height: 88px;
+}
+.lp-root .lp-section-head {
+  max-width: 980px;
+}
+.lp-root :is(.lp-section-head h2, .lp-realtime h2, .lp-insights h2) {
+  font-size: clamp(38px, 4.7vw, 68px);
+  line-height: 1.07;
+  letter-spacing: -0.052em;
+}
+.lp-root .lp-story {
+  overflow: clip;
+  background: linear-gradient(#09111b, #060b13);
+}
+.lp-root .lp-story__grid {
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 64px;
+}
+.lp-root .lp-story__visual {
+  position: sticky;
+  top: 110px;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  gap: 26px;
+  padding: 16px 0;
+}
+.lp-root .lp-story__visual[data-step] .lp-story__frame {
+  width: 100%;
+  max-width: none;
+  transform: rotateX(4deg) rotateY(7deg) scale(0.97);
+  transform-origin: center;
+  transition: transform 0.8s var(--cinema-ease);
+}
+.lp-root .lp-product {
+  overflow: visible;
+  box-shadow:
+    10px 20px 0 -10px #112337,
+    0 36px 90px #0005;
+}
+.lp-root .lp-product__chrome {
+  border-radius: 15px 15px 0 0;
+}
+.lp-root .lp-product__body {
+  grid-template-columns: 94px minmax(0, 1fr);
+  min-height: 0;
+}
+.lp-root .lp-product__main {
+  padding: 20px 14px;
+  min-width: 0;
+}
+.lp-root .lp-metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.lp-root .lp-metric {
+  padding: 12px 8px;
+  min-width: 0;
+  transition:
+    transform 0.8s var(--cinema-ease),
+    border-color 0.5s,
+    background 0.5s;
+}
+.lp-root .lp-metric strong {
+  font-size: clamp(19px, 1.7vw, 25px);
+}
+.lp-root .lp-metric__top small {
+  font-size: 9px;
+}
+.lp-root .lp-metric__top span {
+  display: none;
+}
+.lp-root .lp-product__analytics {
+  grid-template-columns: minmax(0, 1.3fr) minmax(125px, 0.8fr);
+}
+.lp-root :is(.lp-product__chart, .lp-product__sources) {
+  height: 240px;
+  padding: 12px;
+  transition:
+    transform 0.8s var(--cinema-ease),
+    border-color 0.5s;
+}
+.lp-root .lp-product__chart svg {
+  height: 155px;
+}
+.lp-root .lp-product__sources {
+  display: flex;
+  gap: 19px;
+}
+.lp-root .lp-story__readout {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 18px;
+  padding: 20px 24px;
+  background: #102035;
+  border: 1px solid #a8d5fd30;
+}
+.lp-root .lp-story__readout strong {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  margin: 0;
+  font-size: 36px;
+}
+.lp-root .lp-story__progress {
+  right: -24px;
+}
+.lp-root .lp-story__steps article {
+  min-height: 65svh;
+  padding: 50px 0 50px 24px;
+  opacity: 1;
+}
+.lp-root .lp-story__steps h3 {
+  font-size: clamp(26px, 2.8vw, 40px);
+}
+.lp-root .lp-story__visual[data-step="1"] .lp-story__frame {
+  transform: rotateX(0) rotateY(-3deg) scale(1);
+}
+.lp-root .lp-story__visual[data-step="2"] .lp-story__frame {
+  transform: rotateX(2deg) rotateY(3deg) scale(1);
+}
+.lp-root .lp-story__visual[data-step="3"] .lp-story__frame {
+  transform: rotateX(0) rotateY(0) scale(1);
+}
+.lp-root .lp-story__visual[data-step="0"] .lp-metric {
+  border-color: #85bff570;
+  background: #12253b;
+  transform: translateY(-5px);
+}
+.lp-root .lp-story__visual[data-step="1"] .lp-product__sources {
+  transform: translate3d(8px, -5px, 25px);
+  border-color: #85bff580;
+}
+.lp-root .lp-story__visual[data-step="2"] .lp-product__chart {
+  transform: translate3d(-5px, -5px, 25px);
+  border-color: #85bff580;
+}
+.lp-root .lp-story__visual[data-step="3"] .lp-story__readout {
+  border-color: #9cdcd677;
+}
+.lp-root .lp-realtime {
+  background: linear-gradient(155deg, #07101b, #0b1928 70%, #07101b);
+}
+.lp-root .lp-realtime__grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 80px;
+}
+.lp-root .lp-event-console {
+  border-radius: 24px;
+  background: #0a1522;
+}
+.lp-root .lp-event {
+  border-left: 1px solid #7ecaff40;
+  border-radius: 0 10px 10px 0;
+}
+.lp-root .lp-insights {
+  background: #07101b;
+}
+.lp-root .lp-insights__grid {
+  gap: 70px;
+}
+.lp-root .lp-insight-stack {
+  gap: 30px;
+}
+.lp-root .lp-insight-stack .lp-insight {
+  padding: 28px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #192e42, #0a1725);
+}
+.lp-root .lp-insight-stack .lp-insight:hover {
+  transform: rotateY(var(--tilt-y, 0deg)) rotateX(var(--tilt-x, 0deg)) !important;
+}
+.lp-root .lp-capabilities {
+  background: linear-gradient(#07101b, #080d16);
+}
+.lp-root .lp-capability-grid {
+  gap: 24px;
+}
+.lp-root .lp-capability {
+  min-height: 380px;
+  padding: 34px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #142334, #0c1420);
+}
+.lp-root .lp-capability:nth-child(2) {
+  background: linear-gradient(155deg, #102a31, #0a1822);
+}
+.lp-root .lp-capability:nth-child(5) {
+  background: linear-gradient(155deg, #182a42, #101929);
+}
+.lp-root .lp-setup {
+  background: #080d16;
+}
+.lp-root .lp-setup__line {
+  position: relative;
+}
+.lp-root .lp-setup__line::before {
+  content: "";
+  position: absolute;
+  top: 36px;
+  left: 5%;
+  width: 90%;
+  height: 1px;
+  background: linear-gradient(90deg, #8cdaef, #507cba, transparent);
+  transform-origin: left;
+}
+.lp-root .lp-setup__line article {
+  position: relative;
+  border-radius: 18px;
+}
+.lp-root .lp-pricing {
+  background:
+    radial-gradient(ellipse at 50% 40%, #18304955, transparent 65%), #080d16;
+}
+.lp-root .lp-price-card:hover {
+  transform: translateY(-3px);
+}
+.lp-root .lp-faq {
+  background: #080d16;
+}
+.lp-root .lp-faq::before {
+  opacity: 0.2;
+}
+.lp-root .lp-final {
+  background:
+    radial-gradient(ellipse at 50% 100%, #24466088, transparent 70%), #080d16;
+  overflow: clip;
+}
+.lp-root .lp-final__signal {
+  transform: perspective(900px) rotateX(35deg) scale(1.5);
+}
+.lp-root .lp-footer {
+  background: #070c14;
+}
+
+@keyframes cinema-mask {
+  from {
+    clip-path: inset(100% 0 0);
+    translate: 0 22px;
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0);
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+@keyframes cinema-enter {
+  from {
+    opacity: 0;
+    translate: 0 20px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes cinema-board {
+  from {
+    opacity: 0;
+    translate: 0 55px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes cinema-line {
+  from {
+    stroke-dashoffset: 500;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cinema-drift {
+  from { translate: 0 -3px; }
+  to { translate: 0 3px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-root .kubo-orbit {
+    animation: cinema-drift 10s ease-in-out infinite alternate;
+  }
+  .lp-root main > section:not(.spatial-in-view) *,
+  .lp-root main > section:not(.spatial-in-view) *::before,
+  .lp-root main > section:not(.spatial-in-view) *::after {
+    animation-play-state: paused !important;
+  }
+  .lp-root .kubo-eyebrow {
+    animation: cinema-enter 0.7s 0.2s both;
+  }
+  .lp-root .kubo-copy h1 {
+    animation: cinema-mask 1s 0.35s var(--cinema-ease) both;
+  }
+  .lp-root .kubo-description {
+    animation: cinema-enter 0.8s 0.5s both;
+  }
+  .lp-root .kubo-actions {
+    animation: cinema-enter 0.8s 0.65s both;
+  }
+  .lp-root .kubo-stage {
+    animation: cinema-board 1.2s 0.8s var(--cinema-ease) both;
+  }
+  .lp-root .kubo-footnote {
+    animation: cinema-enter 0.8s 0.8s both;
+  }
+  .lp-root .kubo-float {
+    animation: cinema-enter 1s 1s both;
+  }
+  .lp-root .lp-section-head.is-visible h2 {
+    animation: cinema-mask 0.85s var(--cinema-ease) both;
+  }
+  .lp-root .lp-section-head.is-visible > p {
+    animation: cinema-enter 0.8s 0.12s both;
+  }
+  .lp-root .lp-realtime__copy {
+    transform: translateX(-32px);
+  }
+  .lp-root .lp-realtime__copy.is-visible {
+    transform: none;
+  }
+  .lp-root .lp-event-console.is-visible {
+    transform: perspective(1400px)
+      rotateY(calc((1 - var(--scene-entrance, 0)) * -12deg))
+      translateX(calc((1 - var(--scene-entrance, 0)) * 55px));
+  }
+  .lp-root .lp-insight-stack .lp-insight:nth-child(1) {
+    transform: perspective(1400px)
+      rotateY(calc((1 - var(--scene-entrance, 0)) * -15deg))
+      translateX(calc((1 - var(--scene-entrance, 0)) * 65px));
+  }
+  .lp-root .lp-insight-stack .lp-insight:nth-child(2) {
+    transform: perspective(1400px)
+      rotateY(calc((1 - var(--scene-entrance, 0)) * -10deg))
+      translateX(calc((1 - var(--scene-entrance, 0)) * 95px));
+  }
+  .lp-root .lp-insight-stack .lp-insight:nth-child(3) {
+    transform: perspective(1400px)
+      rotateY(calc((1 - var(--scene-entrance, 0)) * -8deg))
+      translateX(calc((1 - var(--scene-entrance, 0)) * 120px));
+  }
+  .lp-root .lp-capability.lp-reveal {
+    transform: perspective(1200px) translate3d(0, 45px, -25px) rotateX(7deg);
+    transition:
+      opacity 0.7s,
+      transform 0.9s var(--cinema-ease);
+  }
+  .lp-root .lp-capability.is-visible {
+    transform: none;
+  }
+  .lp-root .lp-capability:nth-child(3n + 2) {
+    transition-delay: 0.12s;
+  }
+  .lp-root .lp-capability:nth-child(3n) {
+    transition-delay: 0.24s;
+  }
+  .lp-root .lp-capability.is-visible .lp-mini-chart path:not(.is-fill) {
+    stroke-dasharray: 500;
+    animation: cinema-line 1.8s 0.2s both;
+  }
+  .lp-root .lp-setup__line::before {
+    scale: var(--scene-entrance, 0) 1;
+  }
+  .lp-root .lp-setup__line article:nth-child(2) {
+    transition-delay: 0.12s;
+  }
+  .lp-root .lp-setup__line article:nth-child(3) {
+    transition-delay: 0.24s;
+  }
+  .lp-root .lp-setup__line article:nth-child(4) {
+    transition-delay: 0.36s;
+  }
+  .lp-root .lp-pricing__grid {
+    transform: translateY(16px);
+  }
+  .lp-root .lp-pricing__grid.is-visible {
+    transform: none;
+  }
+  .lp-root .lp-final__signal {
+    transform: perspective(900px)
+      rotateX(calc(45deg - var(--scene-entrance, 0) * 30deg))
+      scale(calc(0.9 + var(--scene-entrance, 0) * 0.6));
+  }
+}
+@media (min-width: 1101px) and (min-height: 950px) and (prefers-reduced-motion: no-preference) {
+  .lp-root .kubo-hero {
+    height: 185svh;
+  }
+  .kubo-scene {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 850px;
+    padding-top: 112px;
+    gap: 26px;
+  }
+  .lp-root .kubo-hero h1 {
+    font-size: clamp(48px, 5.1vw, 74px);
+  }
+  .lp-root .kubo-copy {
+    transform: translateY(calc(var(--scene-progress, 0) * -260px));
+    opacity: calc(1 - var(--scene-progress, 0));
+  }
+  .lp-root .kubo-stage {
+    transform: translateY(calc(var(--scene-progress, 0) * -185px));
+  }
+  .lp-root .kubo-stage .kubo-board {
+    transform: rotateX(
+        calc(16deg - var(--scene-progress, 0) * 16deg + var(--tilt-x, 0deg))
+      )
+      rotateY(
+        calc(-6deg + var(--scene-progress, 0) * 6deg + var(--tilt-y, 0deg))
+      )
+      scale(calc(0.94 + var(--scene-progress, 0) * 0.2));
+  }
+  .lp-root .kubo-float-top {
+    transform: translate3d(
+      calc(var(--scene-progress, 0) * -25px),
+      calc(var(--scene-progress, 0) * -30px),
+      0
+    );
+  }
+  .lp-root .kubo-float-bottom {
+    transform: translate3d(
+      calc(var(--scene-progress, 0) * 25px),
+      calc(var(--scene-progress, 0) * 30px),
+      0
+    );
+  }
+}
+@media (max-width: 1100px) {
+  .lp-root .lp-shell,
+  .kubo-scene {
+    width: calc(100% - 64px);
+  }
+  .lp-root .kubo-stage {
+    height: 460px;
+  }
+  .lp-root .kubo-float-top {
+    left: 0;
+    top: 4%;
+  }
+  .lp-root .kubo-float-bottom {
+    bottom: 0;
+  }
+  .lp-root .lp-story__grid {
+    grid-template-columns: 1fr;
+  }
+  .lp-root .lp-story__visual {
+    position: relative;
+    top: 0;
+    max-width: 820px;
+    margin-inline: auto;
+    width: 100%;
+  }
+  .lp-root .lp-story__visual[data-step] .lp-story__frame {
+    transform: none;
+  }
+  .lp-root .lp-story__steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .lp-root .lp-story__steps article {
+    min-height: 0;
+    padding: 24px;
+  }
+  .lp-root .lp-realtime__grid,
+  .lp-root .lp-insights__grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+@media (max-width: 640px) {
+  .lp-root .lp-shell,
+  .kubo-scene {
+    width: calc(100% - 40px);
+  }
+  .kubo-scene {
+    padding-top: 120px;
+    gap: 24px;
+  }
+  .lp-root .kubo-copy {
+    text-align: left;
+  }
+  .lp-root .kubo-eyebrow {
+    justify-content: flex-start;
+  }
+  .lp-root .kubo-hero h1 {
+    font-size: clamp(38px, 10.2vw, 48px);
+    line-height: 1.08;
+  }
+  .lp-root .kubo-description {
+    font-size: 16px;
+  }
+  .lp-root .kubo-actions {
+    gap: 10px;
+  }
+  .lp-root .kubo-stage {
+    height: auto;
+  }
+  .lp-root .kubo-stage .kubo-board {
+    width: 100%;
+    padding: 18px;
+    transform: none;
+  }
+  .lp-root .kubo-float {
+    max-width: 230px;
+    padding: 12px 16px;
+  }
+  .lp-root .kubo-float-top,
+  .lp-root .kubo-float-bottom {
+    inset: auto;
+  }
+  .lp-root .kubo-bottom {
+    font-size: 8px;
+  }
+  .lp-root .spatial-cube,
+  .lp-root .spatial-towers {
+    opacity: 0.12;
+  }
+  .lp-root .spatial-specks i:nth-child(2n) {
+    display: none;
+  }
+  .lp-root .lp-story__steps {
+    grid-template-columns: 1fr;
+  }
+  .lp-root .lp-story__visual[data-step] .lp-story__frame {
+    transform: none !important;
+  }
+  .lp-root .lp-product__body {
+    grid-template-columns: 1fr;
+  }
+  .lp-root .lp-metric-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lp-root .lp-metric strong {
+    font-size: 23px;
+  }
+  .lp-root .lp-product__analytics {
+    grid-template-columns: 1fr;
+  }
+  .lp-root .lp-product__sources {
+    height: auto;
+  }
+  .lp-root .lp-story__readout {
+    padding: 18px;
+  }
+  .lp-root .lp-story__readout strong {
+    font-size: 30px;
+  }
+  .lp-root .lp-story__readout span {
+    font-size: 9px;
+  }
+  .lp-root .lp-insight-stack .lp-insight {
+    padding: 20px;
+  }
+  .lp-root .lp-capability {
+    padding: 24px;
+    min-height: 350px;
+  }
+  .lp-root .lp-event-console.is-visible,
+  .lp-root .lp-insight-stack .lp-insight:nth-child(n) {
+    transform: none;
+  }
+  .lp-root .lp-setup__line::before {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-root .kubo-hero {
+    height: auto;
+  }
+  .kubo-scene {
+    position: relative;
+    height: auto;
+  }
+  .lp-root .kubo-stage .kubo-board {
+    transform: none;
+  }
+  .lp-root .lp-story__visual {
+    position: relative;
+    top: 0;
+  }
+  .lp-root .lp-story__steps article {
+    min-height: 0;
+  }
+  .lp-root .lp-story__visual[data-step] .lp-story__frame,
+  .lp-root .lp-story__visual .lp-metric,
+  .lp-root .lp-product__chart,
+  .lp-root .lp-product__sources {
+    transform: none !important;
+  }
+}
