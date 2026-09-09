@@ -213,18 +213,41 @@ Deno.serve(async (req) => {
   window.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flush(true);});
   window.addEventListener("pagehide",function(){flush(true);});
 
-  // Auto-detect clicks — skip elements with data-kw-no-track
+  // Auto-detect conversions (WhatsApp, telefone, email, botões) — skip elements with data-kw-no-track
   document.addEventListener("click",function(e){
     var el=e.target;
     while(el&&el!==document){
       if(el.dataset&&el.dataset.kwNoTrack!==undefined)break;
-      if(el.tagName==="A"||el.tagName==="BUTTON"){
+      var tag=el.tagName;
+      if(tag==="A"||tag==="BUTTON"){
         var txt=(el.textContent||"").trim().substring(0,100);
-        ev("interaction","click",{text:txt,tag:el.tagName});
+        var href=(el.href||"").toLowerCase();
+        var cls=(el.className&&typeof el.className==="string")?el.className.toLowerCase():"";
+        var isWa=/wa\.me|api\.whatsapp\.com|whatsapp:\/\/send|web\.whatsapp\.com/.test(href)||/whatsapp|whats-app/.test(cls)||/whatsapp|zap\b/.test(txt.toLowerCase());
+        if(isWa){
+          ev("whatsapp_click","whatsapp_auto",{href:href.substring(0,200),text:txt});
+        }else if(href.indexOf("tel:")===0){
+          ev("phone_click","phone_auto",{href:href.substring(0,100),text:txt});
+        }else if(href.indexOf("mailto:")===0){
+          ev("email_click","email_auto",{href:href.substring(0,100),text:txt});
+        }else if(tag==="BUTTON"||/btn|button|cta/.test(cls)){
+          ev("button_click",txt||"botao",{tag:tag});
+        }else{
+          ev("interaction","click",{text:txt,tag:tag});
+        }
         break;
       }
       el=el.parentElement;
     }
+  },true);
+
+  // Auto-detect form submissions — skip forms with data-kw-no-track
+  document.addEventListener("submit",function(e){
+    var form=e.target;
+    if(!form||(form.dataset&&form.dataset.kwNoTrack!==undefined))return;
+    var action=(form.action||"").substring(0,200);
+    var id=(form.id||form.name||"formulario").substring(0,100);
+    ev("form_submit",id,{action:action});
   },true);
 
   // ── API pública ──────────────────────────────────────────────────────
