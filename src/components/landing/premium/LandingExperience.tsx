@@ -178,6 +178,33 @@ const events = [
 ];
 
 export function RealtimeSection() {
+  const initialEvents = [
+    { icon: Users, place: "São Paulo · Brasil", action: "Novo visitante único", detail: "Página inicial", tone: "blue" },
+    { icon: Globe2, place: "Google Orgânico", action: "Origem identificada", detail: "Busca por serviço", tone: "cyan" },
+    { icon: MousePointerClick, place: "/precos", action: "Visualização de tabela", detail: "Plano Pro", tone: "violet" },
+    { icon: Zap, place: "Conversão Direta", action: "Clique em WhatsApp", detail: "Botão flutuante", tone: "green" },
+  ];
+
+  const [liveEvents, setLiveEvents] = useState(initialEvents);
+  const [activeCount, setActiveCount] = useState(24);
+  const [isPinging, setIsPinging] = useState(false);
+
+  const handleSimulateEvent = () => {
+    setIsPinging(true);
+    setActiveCount((c) => c + 1);
+    const simulatedCities = ["Curitiba · Brasil", "Rio de Janeiro · Brasil", "Belo Horizonte · Brasil", "Porto Alegre · Brasil"];
+    const randomCity = simulatedCities[Math.floor(Math.random() * simulatedCities.length)];
+    const newEvent = {
+      icon: Zap,
+      place: randomCity,
+      action: "Clique em WhatsApp",
+      detail: "Botão Flutuante · Orçamento",
+      tone: "green",
+    };
+    setLiveEvents((prev) => [newEvent, ...prev.slice(0, 3)]);
+    setTimeout(() => setIsPinging(false), 800);
+  };
+
   return (
     <section id="realtime" className="lp-realtime">
       <div className="lp-shell lp-realtime__grid">
@@ -185,14 +212,32 @@ export function RealtimeSection() {
           <span className="lp-kicker"><span className="lp-live-dot" /> Ao vivo</span>
           <h2>O site não para.<br />Seu painel também não.</h2>
           <p>Veja visitantes ativos, páginas em visualização, origem e eventos recentes sem recarregar a página.</p>
-          <Link to="/login" className="lp-text-link">Explorar o Kubo Live <ArrowRight /></Link>
+          <div className="lp-realtime__actions">
+            <Link to="/login" className="lp-text-link">Explorar o Kubo Live <ArrowRight /></Link>
+            <button
+              type="button"
+              onClick={handleSimulateEvent}
+              className={`lp-sim-btn ${isPinging ? "is-active" : ""}`}
+              aria-label="Disparar acesso de teste no console"
+            >
+              <Zap size={13} />
+              <span>Simular Acesso ao Vivo</span>
+            </button>
+          </div>
         </div>
         <div className="lp-event-console lp-reveal">
-          <div className="lp-event-console__top"><span><i /> Eventos em tempo real</span><small>Demonstração</small></div>
-          <div className="lp-event-console__pulse"><strong>24</strong><span>visitantes agora</span><i /></div>
+          <div className="lp-event-console__top">
+            <span><i /> Eventos em tempo real</span>
+            <small>Demonstração interativa</small>
+          </div>
+          <div className="lp-event-console__pulse">
+            <strong className={isPinging ? "lp-pulse-pop" : ""}>{activeCount}</strong>
+            <span>visitantes agora</span>
+            <i className={isPinging ? "is-fast" : ""} />
+          </div>
           <div className="lp-event-list">
-            {events.map(({ icon: Icon, place, action, detail, tone }, index) => (
-              <div className="lp-event" style={{ "--delay": `${index * 180}ms` } as React.CSSProperties} key={place}>
+            {liveEvents.map(({ icon: Icon, place, action, detail, tone }, index) => (
+              <div className="lp-event" style={{ "--delay": `${index * 120}ms` } as React.CSSProperties} key={`${place}-${index}`}>
                 <span className={`lp-event__icon is-${tone}`}><Icon /></span>
                 <div><strong>{action}</strong><small>{place} · {detail}</small></div>
                 <time>agora</time>
@@ -268,27 +313,144 @@ export function CapabilitiesSection() {
 }
 
 function WhatsAppDemo() {
+  const [leadsCount, setLeadsCount] = useState(486);
+  const [clicked, setClicked] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleClickSimulation = () => {
+    setClicked(true);
+    setLeadsCount((prev) => prev + 1);
+    setShowToast(true);
+    setTimeout(() => setClicked(false), 400);
+    setTimeout(() => setShowToast(false), 3500);
+  };
+
   return (
     <div className="lp-wa-demo">
-      <div className="lp-wa-demo__pill">
-        <span className="lp-live-dot" />
-        <small>Captura instantânea</small>
+      <div className="lp-wa-demo__top">
+        <div className="lp-wa-demo__pill">
+          <span className="lp-live-dot" />
+          <small>Captura nativa em 14ms</small>
+        </div>
+        <div className="lp-wa-demo__count">
+          <span>Total de Leads:</span>
+          <strong>{leadsCount}</strong>
+        </div>
       </div>
+
       <div className="lp-wa-demo__card">
         <div className="lp-wa-demo__left">
           <strong>+55 (11) 98765-4321</strong>
           <span>Origem: Google Orgânico · /servicos</span>
         </div>
-        <div className="lp-wa-demo__badge">
-          Lead qualificado
+        <button
+          type="button"
+          onClick={handleClickSimulation}
+          className={`lp-wa-demo__btn ${clicked ? "is-clicked" : ""}`}
+        >
+          <MousePointerClick size={12} />
+          <span>{clicked ? "Capturado!" : "Testar clique agora"}</span>
+        </button>
+      </div>
+
+      {showToast && (
+        <div className="lp-wa-demo__toast lp-view-fade">
+          <Check size={13} />
+          <span>Evento registrado automaticamente sem Google Tag Manager</span>
         </div>
+      )}
+    </div>
+  );
+}
+
+function HeatCells() {
+  const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const slots = ["Manhã", "Tarde", "Noite", "Madrug."];
+  const [activeSlot, setActiveSlot] = useState<{ day: string; slot: string; stat: string } | null>({
+    day: "Terça-feira",
+    slot: "Tarde (14h-18h)",
+    stat: "Pico semanal de conversão (92 visitas · 7 leads)",
+  });
+
+  return (
+    <div className="lp-heat-interactive">
+      <div className="lp-heat-grid">
+        {days.map((day, dIdx) => (
+          <div key={day} className="lp-heat-col">
+            <span className="lp-heat-day">{day}</span>
+            {slots.map((slot, sIdx) => {
+              const isPrime = (dIdx === 1 || dIdx === 3) && sIdx === 1;
+              const opacity = isPrime ? 1 : 0.2 + ((dIdx * 3 + sIdx * 5) % 8) * 0.09;
+              return (
+                <button
+                  key={slot}
+                  type="button"
+                  className={`lp-heat-cell-btn ${isPrime ? "is-prime" : ""}`}
+                  style={{ opacity }}
+                  onMouseEnter={() =>
+                    setActiveSlot({
+                      day: `${day}-feira`,
+                      slot,
+                      stat: isPrime
+                        ? "Pico semanal de conversão (92 visitas · 7 leads)"
+                        : "Atividade regular (24 a 45 visitas · 1 lead)",
+                    })
+                  }
+                  onClick={() =>
+                    setActiveSlot({
+                      day: `${day}-feira`,
+                      slot,
+                      stat: isPrime
+                        ? "Pico semanal de conversão (92 visitas · 7 leads)"
+                        : "Atividade regular (24 a 45 visitas · 1 lead)",
+                    })
+                  }
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="lp-heat-readout">
+        {activeSlot ? (
+          <div>
+            <strong>{activeSlot.day} · {activeSlot.slot}</strong>
+            <p>{activeSlot.stat}</p>
+          </div>
+        ) : (
+          <p>Toque ou passe o mouse nos horários</p>
+        )}
       </div>
     </div>
   );
 }
 
-function HeatCells() { return <div className="lp-heat-cells">{Array.from({ length: 35 }, (_, index) => <i key={index} style={{ opacity: .12 + ((index * 7) % 10) / 12 }} />)}</div>; }
-function Funnel() { return <div className="lp-funnel"><span style={{ width: "100%" }}>12.842 <small>visitantes</small></span><span style={{ width: "72%" }}>4.120 <small>engajados</small></span><span style={{ width: "46%" }}>486 <small>leads WhatsApp</small></span></div>; }
+function Funnel() {
+  const [activeStage, setActiveStage] = useState<number>(0);
+  const stages = [
+    { label: "Visitantes", value: "12.842", rate: "100%", width: "100%" },
+    { label: "Engajados", value: "4.120", rate: "32,1%", width: "72%" },
+    { label: "Leads WhatsApp", value: "486", rate: "3,78%", width: "46%" },
+  ];
+
+  return (
+    <div className="lp-funnel">
+      {stages.map((st, i) => (
+        <button
+          key={st.label}
+          type="button"
+          className={`lp-funnel__stage ${activeStage === i ? "is-active" : ""}`}
+          style={{ width: st.width }}
+          onClick={() => setActiveStage(i)}
+        >
+          <span>{st.value} <small>{st.label}</small></span>
+          <strong>{st.rate}</strong>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ExportPills() { return <div className="lp-export-pills"><span>PDF Executivo</span><span>Excel Nativo (XLSX)</span><span>CSV Completo</span><span>Apresentação</span></div>; }
 function OrgLayers() { return <div className="lp-org-layers"><span>Agência Digital Alpha</span><span>Cliente E-commerce Beta</span><i><ShieldCheck /> Isolamento RLS por organização</i></div>; }
 

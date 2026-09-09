@@ -235,11 +235,66 @@
 
 /* ─── WhatsApp Demo Bento Element ─── */
 .lp-wa-demo { position: absolute; inset: auto 24px 24px; padding: 16px; border-radius: 14px; background: #080d15; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
-.lp-wa-demo__pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 99px; background: rgba(68, 229, 168, 0.1); color: #44e5a8; font-size: 8px; font-weight: 600; margin-bottom: 10px; }
+.lp-wa-demo__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.lp-wa-demo__pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 99px; background: rgba(68, 229, 168, 0.1); color: #44e5a8; font-size: 8px; font-weight: 600; }
+.lp-wa-demo__count { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #64748b; }
+.lp-wa-demo__count strong { color: #44e5a8; font-size: 12px; font-weight: 700; }
 .lp-wa-demo__card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .lp-wa-demo__left strong { display: block; color: #f8fafc; font-size: 13px; font-weight: 650; }
 .lp-wa-demo__left span { display: block; color: #64748b; font-size: 9px; margin-top: 2px; }
 .lp-wa-demo__badge { padding: 6px 10px; border-radius: 8px; background: rgba(68, 229, 168, 0.12); border: 1px solid rgba(68, 229, 168, 0.25); color: #44e5a8; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.lp-wa-demo__btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: rgba(68, 229, 168, 0.12); border: 1px solid rgba(68, 229, 168, 0.3); color: #44e5a8; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); white-space: nowrap; }
+.lp-wa-demo__btn:hover { background: rgba(68, 229, 168, 0.22); border-color: #44e5a8; transform: translateY(-1px); }
+.lp-wa-demo__btn.is-clicked { transform: scale(0.94); background: #44e5a8; color: #05070b; }
+.lp-wa-demo__toast { margin-top: 10px; display: flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 6px; background: rgba(68, 229, 168, 0.12); border: 1px solid rgba(68, 229, 168, 0.3); color: #44e5a8; font-size: 8.5px; font-weight: 600; animation: lp-view-in 0.25s ease-out forwards; }
+
+/* ─── Interactive Timeframe Pills & Metrics ─── */
+.lp-timeframe-pills { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 7px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--lp-line); }
+.lp-timeframe-pills button { padding: 4px 8px; border: none; border-radius: 5px; background: transparent; color: #64748b; font-size: 8px; font-weight: 650; cursor: pointer; transition: all 0.2s ease; }
+.lp-timeframe-pills button:hover { color: #cdd7e5; }
+.lp-timeframe-pills button.is-active { background: rgba(59, 130, 246, 0.18); color: #60a5fa; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+
+.lp-metric-card-wrap { cursor: pointer; border-radius: 12px; transition: transform 0.2s ease, border-color 0.2s ease; }
+.lp-metric-card-wrap:hover .lp-metric { border-color: rgba(96, 165, 250, 0.35); background: rgba(255, 255, 255, 0.035); }
+.lp-metric-card-wrap.is-selected .lp-metric { border-color: rgba(96, 165, 250, 0.6); background: rgba(59, 130, 246, 0.08); box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4), 0 8px 20px -6px rgba(59, 130, 246, 0.25); }
+
+/* ─── Interactive SVG Chart Hover Crosshair & Tooltip ─── */
+.lp-chart-container { position: relative; width: 100%; cursor: crosshair; }
+.lp-chart-hover-pill { position: absolute; top: 10px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(96, 165, 250, 0.4); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); pointer-events: none; white-space: nowrap; backdrop-filter: blur(8px); z-index: 5; animation: lp-pop 0.15s ease-out; }
+.lp-chart-hover-pill b { color: #e2e8f0; font-size: 8px; font-weight: 600; }
+.lp-chart-hover-pill span { color: #60a5fa; font-size: 8px; font-weight: 700; }
+@keyframes lp-pop { from { opacity: 0; transform: translateX(-50%) translateY(4px) scale(0.95); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+
+/* ─── Realtime Event Generator ─── */
+.lp-realtime__actions { display: flex; align-items: center; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+.lp-sim-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(68, 229, 168, 0.25); background: rgba(68, 229, 168, 0.08); color: #44e5a8; font-size: 11px; font-weight: 650; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.lp-sim-btn:hover { background: rgba(68, 229, 168, 0.16); border-color: rgba(68, 229, 168, 0.5); transform: translateY(-1px); box-shadow: 0 6px 20px -4px rgba(68, 229, 168, 0.25); }
+.lp-sim-btn.is-active { transform: scale(0.96); background: rgba(68, 229, 168, 0.25); }
+.lp-pulse-pop { animation: lp-num-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1); color: #44e5a8 !important; }
+@keyframes lp-num-pop { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.lp-event-console__pulse i.is-fast { animation-duration: 0.9s; border-color: rgba(68, 229, 168, 0.6); }
+
+/* ─── Interactive Heatmap Explorer ─── */
+.lp-heat-interactive { position: absolute; left: 28px; right: 28px; bottom: 20px; }
+.lp-heat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.lp-heat-col { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.lp-heat-day { font-size: 7.5px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+.lp-heat-cell-btn { width: 100%; aspect-ratio: 1; border-radius: 4px; background: #3b82f6; border: none; cursor: pointer; padding: 0; transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; }
+.lp-heat-cell-btn:hover { transform: scale(1.15); box-shadow: 0 0 10px rgba(59, 130, 246, 0.7); z-index: 2; }
+.lp-heat-cell-btn.is-prime { background: #44e5a8; box-shadow: 0 0 8px rgba(68, 229, 168, 0.4); }
+.lp-heat-cell-btn.is-prime:hover { box-shadow: 0 0 14px rgba(68, 229, 168, 0.8); }
+.lp-heat-readout { margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: rgba(10, 16, 25, 0.9); border: 1px solid rgba(255, 255, 255, 0.07); min-height: 40px; display: flex; align-items: center; }
+.lp-heat-readout strong { display: block; color: #f1f5f9; font-size: 8.5px; font-weight: 650; }
+.lp-heat-readout p { margin: 1px 0 0; color: #94a3b8; font-size: 7.5px; line-height: 1.4; }
+
+/* ─── Interactive Funnel ─── */
+.lp-funnel { position: absolute; left: 28px; right: 28px; bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lp-funnel__stage { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid rgba(84, 151, 249, 0.18); border-radius: 6px; color: #c8d5e8; background: rgba(59, 130, 246, 0.08); font-size: 8.5px; cursor: pointer; transition: all 0.2s ease; width: 100%; }
+.lp-funnel__stage:hover { background: rgba(59, 130, 246, 0.16); border-color: rgba(96, 165, 250, 0.4); }
+.lp-funnel__stage.is-active { background: rgba(59, 130, 246, 0.24); border-color: #60a5fa; box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); color: #fff; }
+.lp-funnel__stage span { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.lp-funnel__stage small { color: #8da2c0; font-weight: 400; }
+.lp-funnel__stage strong { color: #44e5a8; font-size: 9px; }
 
 @media (max-width: 900px) {
   .lp-bridge__grid { grid-template-columns: 1fr; }
