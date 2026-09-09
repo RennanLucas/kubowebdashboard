@@ -35,6 +35,7 @@ export const OrganizationSwitcher = () => {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          data-tour="organization-switcher"
           variant="outline"
           size="sm"
           role="combobox"

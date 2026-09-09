@@ -204,17 +204,26 @@ const MonthlyGoalsCard = ({ projectId }: Props) => {
       revenue_target: revenue,
     };
 
-    const { error } = existingId
-      ? await supabase.from("goals").update(payload).eq("id", existingId)
-      : await supabase.from("goals").insert(payload);
+    // One atomic operation prevents a duplicate-month race between loading and saving.
+    const { data: savedGoal, error } = await supabase
+      .from("goals")
+      .upsert(payload, { onConflict: "project_id,month" })
+      .select("id")
+      .single();
 
     setSaving(false);
 
     if (error) {
       console.error("Erro ao salvar metas:", error);
-      toast.error("Não foi possível salvar as metas");
+      const denied = error.code === "42501" || /row-level security|permission denied/i.test(error.message);
+      toast.error(
+        denied
+          ? "Seu acesso não permite editar as metas deste projeto."
+          : "Não foi possível salvar as metas. Atualize a página e tente novamente.",
+      );
       return;
     }
+    setExistingId(savedGoal.id);
     toast.success("Metas salvas com sucesso!");
     setBaseline({
       visitors: String(visitors),

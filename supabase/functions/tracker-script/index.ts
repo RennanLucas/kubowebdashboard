@@ -1,10 +1,11 @@
 import { BOT_UA_ALLOWLIST, BOT_UA_PATTERN } from "../track/_ingest.ts";
 import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/javascript",
-  "Cache-Control": "public, max-age=3600",
+  "Cache-Control": "public, max-age=60",
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,6 +14,8 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const pidRaw = url.searchParams.get("pid") || "";
   const pid = UUID_RE.test(pidRaw) ? pidRaw : "";
+  // consent=required ativa modo estrito: nada é coletado até window.kuboweb.consent(true)
+  const consentRequired = url.searchParams.get("consent") === "required";
 
   if (!pid) {
     return new Response("// invalid or missing pid", {
@@ -45,6 +48,16 @@ Deno.serve(async (req) => {
 
   const trackUrl = `https://${supabaseProjectId}.supabase.co/functions/v1/track`;
 
+  let clarityProjectId = "";
+  try {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data } = await admin.from("projects").select("clarity_project_id").eq("id", pid).maybeSingle();
+    const candidate = data?.clarity_project_id || "";
+    if (/^[A-Za-z0-9_-]{5,64}$/.test(candidate)) clarityProjectId = candidate;
+  } catch {
+    // Tracking remains available if the optional integration lookup fails.
+  }
+
   const script = `(function(){
   var pid="${pid}";
   if(!pid)return;
@@ -58,15 +71,63 @@ Deno.serve(async (req) => {
   if(!botOk.test(ua)&&botRe.test(ua))return;
 
   var u="${trackUrl}";
+  var CONSENT_REQUIRED=${consentRequired ? "true" : "false"};
+  var CONSENT_KEY="_kwc";
+  var CLARITY_ID=${JSON.stringify(clarityProjectId)};
+  var clarityLoaded=false;
 
-  // Session ID (per browser tab)
-  var sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
-  sessionStorage.setItem("_kws",sid);
+  function loadClarity(){
+    if(!CLARITY_ID||clarityLoaded||!canCollect())return;
+    clarityLoaded=true;
+    window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments);};
+    var s=document.createElement("script");s.async=true;s.src="https://www.clarity.ms/tag/"+encodeURIComponent(CLARITY_ID);
+    var first=document.getElementsByTagName("script")[0];
+    if(first&&first.parentNode)first.parentNode.insertBefore(s,first);else document.head.appendChild(s);
+  }
 
-  // Offline queue
+  // ── Consent API (LGPD) ──────────────────────────────────────────────
+  // getConsent(): "granted" | "denied" | null (sem decisão registrada)
+  function getConsent(){
+    try{return localStorage.getItem(CONSENT_KEY);}catch(e){return null;}
+  }
+  function setConsent(v){
+    try{
+      if(v===null)localStorage.removeItem(CONSENT_KEY);
+      else localStorage.setItem(CONSENT_KEY,v);
+    }catch(e){}
+  }
+  // Coleta é permitida se: modo estrito exige consentimento explícito "granted",
+  // OU modo padrão (não estrito) permite a menos que o usuário tenha negado.
+  function canCollect(){
+    var c=getConsent();
+    if(CONSENT_REQUIRED)return c==="granted";
+    return c!=="denied";
+  }
+  function purgeLocalData(){
+    try{
+      localStorage.removeItem("_kwq");
+      sessionStorage.removeItem("_kws");
+    }catch(e){}
+    q=[];
+  }
+
+  // Session ID and offline queue are initialized lazily. In strict mode this
+  // prevents identifiers or queue data being read/written before opt-in.
+  var sid=null;
   var q=[];
-  try{var stored=localStorage.getItem("_kwq");if(stored)q=JSON.parse(stored);}catch(e){}
-  if(!Array.isArray(q))q=[];
+  var storageReady=false;
+
+  function ensureStorage(){
+    if(storageReady)return;
+    storageReady=true;
+    try{
+      sid=sessionStorage.getItem("_kws")||Math.random().toString(36).substr(2,9);
+      sessionStorage.setItem("_kws",sid);
+      var stored=localStorage.getItem("_kwq");
+      if(stored)q=JSON.parse(stored);
+    }catch(e){}
+    if(!Array.isArray(q))q=[];
+  }
 
   var MAX_Q=50,BATCH_SIZE=10,tid=null;
 
@@ -88,6 +149,8 @@ Deno.serve(async (req) => {
   }
 
   function flush(isUnload){
+    if(!canCollect())return;
+    ensureStorage();
     if(!q.length)return;
     var batch=q.slice(0,BATCH_SIZE);
     q=q.slice(BATCH_SIZE);
@@ -118,6 +181,8 @@ Deno.serve(async (req) => {
   }
 
   function send(d){
+    if(!canCollect())return;
+    ensureStorage();
     d.event_id=d.event_id||newId();
     q.push(d);
     if(q.length>MAX_Q)q=q.slice(q.length-MAX_Q);
@@ -127,6 +192,8 @@ Deno.serve(async (req) => {
   }
 
   function t(p){
+    if(!canCollect())return;
+    ensureStorage();
     var utms=getUTMs();
     var ev={type:"pageview",pid:pid,path:p||location.pathname,ref:document.referrer,sid:sid};
     if(Object.keys(utms).length)ev.metadata=utms;
@@ -134,10 +201,12 @@ Deno.serve(async (req) => {
   }
 
   function ev(evType,label,meta){
+    if(!canCollect())return;
+    ensureStorage();
     send({type:"event",pid:pid,path:location.pathname,sid:sid,event_type:evType,event_label:label||"",metadata:meta||{}});
   }
 
-  t();
+  if(canCollect()){t();loadClarity();}
   var pushState=history.pushState;
   history.pushState=function(){pushState.apply(history,arguments);t();};
   window.addEventListener("popstate",function(){t();});
@@ -158,6 +227,24 @@ Deno.serve(async (req) => {
     }
   },true);
 
+  // ── API pública ──────────────────────────────────────────────────────
+  // window.kuboweb.consent(true)  → concede consentimento, inicia coleta
+  // window.kuboweb.consent(false) → revoga consentimento, apaga dados locais
+  // window.kuboweb.hasConsent()   → "granted" | "denied" | null
+  window.kuboweb=window.kuboweb||{};
+  window.kuboweb.consent=function(granted){
+    if(granted){
+      var wasBlocked=!canCollect();
+      setConsent("granted");
+      if(wasBlocked)t(); // dispara o pageview inicial agora que há consentimento
+      loadClarity();
+    }else{
+      setConsent("denied");
+      purgeLocalData();
+      try{if(window.clarity)window.clarity("consent",false);}catch(e){}
+    }
+  };
+  window.kuboweb.hasConsent=function(){return getConsent();};
   window._kw=function(evType,label,meta){ev(evType,label,meta);};
 })();`;
 

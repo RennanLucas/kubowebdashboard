@@ -27,7 +27,8 @@ export default defineConfig({
     timeout: 15000,
   },
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    // localhost is intentionally present in the Edge Functions CORS allowlist.
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
   },
   projects: [
@@ -38,8 +39,8 @@ export default defineConfig({
   ],
   webServer: {
     // --mode staging força o Vite a carregar .env.staging em vez de .env de produção
-    command: 'npm run dev -- --mode staging --host 127.0.0.1 --port 5173',
-    url: 'http://127.0.0.1:5173',
+    command: 'npm run dev -- --mode staging --host localhost --port 5173',
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

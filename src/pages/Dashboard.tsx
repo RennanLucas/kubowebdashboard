@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToExcel } from "@/lib/export-utils";
 import { useDashboardRealtime } from "@/hooks/useDashboardRealtime";
+import { toCustomerNetworkMessage } from "@/lib/network-retry";
 
 interface DashboardContentProps {
   selectedProjectId?: string;
@@ -167,7 +168,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     const out: Array<{ type: "growth" | "drop" | "info" | "warning"; title: string; message: string }> = [];
     if (totalVisitors > 0) {
       if (avgConversion > 3) {
-        out.push({ type: "growth", title: "Conversão Forte", message: `Sua taxa de conversão de ${avgConversion}% está acima da média do mercado de 2,5%.` });
+        out.push({ type: "growth", title: "Conversão em destaque", message: `Sua taxa de conversão chegou a ${avgConversion}% neste período. Compare com o período anterior para confirmar a tendência.` });
       }
       if (trafficSources && trafficSources.length > 0) {
         out.push({ type: "info", title: "Canal Principal", message: `${trafficSources[0].source} é o canal com melhor desempenho, representando ${trafficSources[0].percentage}% do tráfego.` });
@@ -209,12 +210,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             <h2 className="text-lg font-semibold text-foreground mb-2">
               Não foi possível atualizar seus dados
             </h2>
-            <p className="text-sm text-muted-foreground max-w-md mb-6">
-              Verifique sua conexão e tente novamente.
+            <p className="text-sm text-muted-foreground mb-6 max-w-md">
+              {toCustomerNetworkMessage(error, "Não foi possível carregar as informações do painel.")}
             </p>
-            <div className="bg-background/50 rounded-md p-3 text-xs font-mono text-muted-foreground border border-border/50 mb-6 max-w-md break-all">
-              Detalhes técnicos: {(error as Error).message || String(error)}
-            </div>
             <button
               onClick={() => window.location.reload()}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
@@ -315,9 +313,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   return (
     <AppLayout>
       <Helmet>
-        <title>Dashboard â€” KUBOWEB</title>
+        <title>Dashboard — KUBOWEB</title>
         <meta name="description" content="Acompanhe visitantes, leads e métricas do seu site em tempo real." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/dashboard" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/dashboard" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <UpgradeBanner />
@@ -352,7 +350,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             <p className="text-sm text-muted-foreground max-w-md mb-4">
               Vá em <strong>Configurações → Projetos → Instalação</strong> para copiar o código.
             </p>
-            <a href="/settings" className="text-sm font-medium text-primary hover:underline mt-2">
+            <a href="/settings?tab=general&action=install" className="text-sm font-medium text-primary hover:underline mt-2">
               Ir para Configurações →
             </a>
           </div>

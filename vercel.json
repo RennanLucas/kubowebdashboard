@@ -1,6 +1,13 @@
 {
   "headers": [
     {
+      "source": "/api/edge/:path*",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-store" },
+        { "key": "CDN-Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -31,6 +38,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/edge/:path*",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/functions/v1/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

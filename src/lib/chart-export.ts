@@ -1,4 +1,6 @@
-import html2canvas from "html2canvas";
+// html2canvas é importado dinamicamente para não ser incluído no bundle inicial.
+// Isso reduz ~48 KB gzip do carregamento da página — só é carregado quando o usuário
+// efetivamente exporta um chart.
 
 const slugify = (value: string) =>
   value
@@ -29,6 +31,7 @@ export const downloadCsv = (rows: Array<Array<string | number>>, filename: strin
 };
 
 export const exportElementAsPng = async (element: HTMLElement, filename: string) => {
+  const { default: html2canvas } = await import("html2canvas");
   const canvas = await html2canvas(element, {
     backgroundColor: null,
     scale: Math.min(window.devicePixelRatio || 2, 3),

@@ -17,7 +17,8 @@ test.describe('Help Center', () => {
     await page.goto('/help');
     await expect(page.getByRole('heading', { name: 'Central de Ajuda' })).toBeVisible();
     await expect(page.getByText('Primeiros passos')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '📊 Analytics' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible();
+    await expect(page.getByText('Guia rápido — comece em 5 minutos')).toBeVisible();
   });
 
   test('search should filter articles', async ({ page }) => {
@@ -30,10 +31,24 @@ test.describe('Help Center', () => {
     
     await expect(page.getByText('Não encontramos nenhum artigo')).toBeVisible();
     
-    await searchInput.fill('tracking');
+    await searchInput.fill('configuracao');
     
-    await expect(page.getByText('O tracking não está funcionando')).toBeVisible();
+    await expect(page.getByText('Como criar e gerenciar projetos')).toBeVisible();
     await expect(page.getByText('Não encontramos nenhum artigo')).not.toBeVisible();
+  });
+
+  test('every published article has complete content', async ({ page }) => {
+    const articleIds = ['tracking-install', 'no-data', 'tracking-issues', 'metrics-explained', 'dashboard-guide', 'goals', 'events', 'ai-insights', 'projects', 'members', 'billing-plans', 'faq'];
+    for (const articleId of articleIds) {
+      await page.goto(`/help/${articleId}`);
+      await expect(page.getByText('Este artigo ainda está sendo elaborado')).toHaveCount(0);
+      await expect(page.locator('main, [role="main"], article, .prose').last()).toBeVisible();
+    }
+  });
+
+  test('support uses the verified address', async ({ page }) => {
+    await page.goto('/help');
+    await expect(page.getByRole('link', { name: 'Falar com suporte' })).toHaveAttribute('href', /contato\.kuboweb@gmail\.com/);
   });
 
   test('should navigate to article and back', async ({ page }) => {

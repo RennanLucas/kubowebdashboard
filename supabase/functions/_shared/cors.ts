@@ -8,21 +8,26 @@ const allowedOrigins = [
 
 export const getCorsHeaders = (req?: Request) => {
   const origin = req?.headers.get("origin") || "";
-  const allowed = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  const configuredOrigins = (Deno.env.get("ALLOWED_ORIGIN") || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const acceptedOrigins = [...new Set([...configuredOrigins, ...allowedOrigins])];
+  const allowed = acceptedOrigins.includes(origin) ? origin : acceptedOrigins[0];
   
   return {
-    "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || allowed,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE"
   };
 };
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://kubowebdashboard.vercel.app",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
 };
 
 export const publicCorsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-organization-id",
 };

@@ -11,12 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn, getAppUrl } from "@/lib/utils";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-error";
 
 export default function Pricing() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isActive, subscription, loading: subLoading } = useSubscription();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const { plans, loading: plansLoading, error: plansError } = usePlans();
+  const { activeOrganization, currentRole, loading: orgLoading } = useOrganization();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -27,7 +30,7 @@ export default function Pricing() {
     navigate("/login", { replace: true });
   };
 
-  if (authLoading || subLoading || adminLoading) {
+  if (authLoading || subLoading || adminLoading || orgLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -39,20 +42,40 @@ export default function Pricing() {
   if (isActive && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   const handleCheckout = async (planId: string) => {
+    if (!activeOrganization) {
+      toast.error("Selecione uma organização antes de contratar um plano.");
+      return;
+    }
+    if (!currentRole || !["owner", "admin"].includes(currentRole)) {
+      toast.error("Somente o proprietário ou um administrador pode contratar um plano.");
+      return;
+    }
+
     setLoadingPlan(planId);
     try {
       const { data, error } = await supabase.functions.invoke("create-mp-preference", {
         body: {
           planId,
+          organizationId: activeOrganization.id,
           returnUrl: `${getAppUrl()}/checkout/return`,
         },
       });
-      if (error || !data?.url) {
-        throw new Error(error?.message || "Falha ao iniciar checkout");
+      if (error) {
+        throw new Error(await getEdgeFunctionErrorMessage(
+          error,
+          data,
+          "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
+        ));
+      }
+      if (!data?.url) {
+        throw new Error(data?.error || "Não foi possível iniciar o pagamento agora.");
       }
       window.location.href = data.url;
     } catch (e) {
-      toast.error((e as Error).message || "Erro ao iniciar checkout");
+      toast.error(
+        (e as Error).message ||
+          "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
+      );
       setLoadingPlan(null);
     }
   };
@@ -90,12 +113,12 @@ export default function Pricing() {
         <meta name="description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
         <meta property="og:title" content="Planos — KUBOWEB Pro" />
         <meta property="og:description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
-        <meta property="og:url" content="https://kubowebdashboard.lovable.app/pricing" />
-        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/pricing" />
+        <meta property="og:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
         <meta name="twitter:title" content="Planos — KUBOWEB Pro" />
         <meta name="twitter:description" content="Escolha o plano ideal para acompanhar seu site com analytics e geração de leads." />
-        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/pricing" />
+        <meta name="twitter:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/pricing" />
       </Helmet>
       {plans.length > 0 && (
         <script type="application/ld+json">

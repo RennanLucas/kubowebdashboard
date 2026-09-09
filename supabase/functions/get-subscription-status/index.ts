@@ -8,7 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 // arquivo importava `corsHeaders` de esm.sh/@supabase/supabase-js/cors, que
 // devolve Access-Control-Allow-Origin: * — furava a allowlist e adicionava uma
 // dependência de terceiros para algo que é configuração nossa.
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
@@ -33,14 +33,18 @@ interface SubscriptionRow {
   created_at: string | null;
 }
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
+// PostgreSQL's uuid type accepts any hexadecimal UUID-shaped value. Keep the
+// boundary validation aligned with the database instead of rejecting valid
+// fixture/import IDs whose version nibble is not RFC 4122-specific.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
 
-Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -72,16 +76,52 @@ Deno.serve(async (req) => {
       return json({ error: "Unauthorized" }, 401);
     }
     const userId = claimsData.claims.sub;
+    const organizationId = req.headers.get("X-Organization-Id")?.trim() ?? "";
+    if (!UUID_RE.test(organizationId)) {
+      return json({ error: "Organização inválida ou ausente" }, 400);
+    }
 
-    const { data, error } = await supabase
+    // BL3 fix: verificar membership antes de expor dados de assinatura da organização.
+    // O usuário só pode consultar assinaturas de organizações das quais é membro.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Autoriza exatamente a organização ativa informada pelo cliente. Nunca
+    // escolhe uma assinatura entre todas as organizações do usuário.
+    const { data: membership, error: membershipError } = await supabaseAdmin
+      .from("organization_members")
+      .select("organization_id")
+      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+
+    // Fail closed: erro de banco e ausência de membership nunca liberam acesso.
+    if (membershipError) {
+      console.error("[get-subscription-status] membership error", membershipError);
+      return json({ error: "Falha ao validar acesso à organização" }, 500);
+    }
+    if (!membership) {
+      return json({ error: "Forbidden" }, 403);
+    }
+
+    // Buscar somente a assinatura da organização ativa autorizada.
+    let data: SubscriptionRow | null = null;
+    let error: { message: string } | null = null;
+
+    const { data: orgSub, error: orgErr } = await supabaseAdmin
       .from("subscriptions")
       .select(
         "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
       )
-      .eq("user_id", userId)
+      .eq("organization_id", organizationId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    data = orgSub as SubscriptionRow | null;
+    error = orgErr;
 
     if (error) {
       console.error("[get-subscription-status] db error", error);

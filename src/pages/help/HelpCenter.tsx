@@ -1,35 +1,27 @@
 import { useState, useMemo } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Rocket, BarChart3, Target, Sparkles, Settings, CreditCard, HelpCircle, ArrowLeft, Headphones } from "lucide-react";
+import { Search, Rocket, BarChart3, Target, Sparkles, Settings, CreditCard, HelpCircle, ArrowLeft, Headphones, PlayCircle, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { HELP_CATEGORIES } from "@/lib/help-content";
+import { filterHelpCategories } from "@/lib/help-search";
+import { QuickStartGuide } from "@/components/help/QuickStartGuide";
+import { startProductTour } from "@/lib/product-tour";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Map string icons to Lucide components
-const ICONS: Record<string, any> = {
+const ICONS: Record<string, LucideIcon> = {
   Rocket, BarChart3, Target, Sparkles, Settings, CreditCard, HelpCircle
 };
 
 export function HelpCenter() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const filteredCategories = useMemo(() => {
-    if (!query.trim()) return HELP_CATEGORIES;
-    
-    const searchLower = query.toLowerCase();
-    
-    return HELP_CATEGORIES.map(category => {
-      const matchedArticles = category.articles.filter(
-        a => a.title.toLowerCase().includes(searchLower) || a.description.toLowerCase().includes(searchLower)
-      );
-      
-      if (category.title.toLowerCase().includes(searchLower)) {
-        return category; // return full category if its title matches
-      }
-      
-      return { ...category, articles: matchedArticles };
-    }).filter(c => c.articles.length > 0);
+    return filterHelpCategories(HELP_CATEGORIES, query);
   }, [query]);
 
   const hasResults = filteredCategories.length > 0;
@@ -55,10 +47,11 @@ export function HelpCenter() {
             </p>
           </div>
           
-          <div className="flex items-center">
-             <Button variant="outline" className="hidden md:flex" onClick={() => navigate("/dashboard")}>
-                Voltar ao Dashboard
-             </Button>
+          <div className="flex items-center gap-2">
+             <Button variant="outline" onClick={() => {
+               navigate("/dashboard");
+               setTimeout(() => startProductTour({ userId: user?.id, navigate }), 400);
+             }}><PlayCircle className="mr-2 h-4 w-4" />Refazer tour</Button>
           </div>
         </div>
 
@@ -77,15 +70,19 @@ export function HelpCenter() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            {query && <button type="button" onClick={() => setQuery("")} aria-label="Limpar busca" className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>}
           </div>
         </div>
+
+        <QuickStartGuide query={query} />
 
         {/* CONTENT */}
         {!hasResults ? (
           <div className="text-center py-24 bg-muted/30 rounded-2xl border border-border">
             <Search className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">Não encontramos nenhum artigo</h3>
-            <p className="text-muted-foreground">Tente buscar usando termos diferentes.</p>
+            <p className="text-muted-foreground mb-5">Tente buscar usando termos diferentes.</p>
+            <Button variant="outline" onClick={() => setQuery("")}>Limpar busca</Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,7 +106,7 @@ export function HelpCenter() {
                           <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                             {article.title}
                           </span>
-                          {/* <span className="text-xs text-muted-foreground line-clamp-1">{article.description}</span> */}
+                          <span className="text-xs text-muted-foreground leading-relaxed">{article.description}</span>
                         </Link>
                       </li>
                     ))}
@@ -129,9 +126,8 @@ export function HelpCenter() {
           <p className="text-muted-foreground mb-6 max-w-md">
             Nossa equipe pode ajudar com dúvidas sobre instalação, métricas e configuração.
           </p>
-          <Button onClick={() => window.open("mailto:suporte@kuboanalytics.com", "_blank")} className="px-8 shadow-sm h-11 text-base">
-            Falar com suporte
-          </Button>
+          <Button asChild className="px-8 shadow-sm h-11 text-base"><a href="mailto:contato.kuboweb@gmail.com?subject=Ajuda%20com%20o%20KUBOWEB">Falar com suporte</a></Button>
+          <p className="mt-3 text-xs text-muted-foreground">contato.kuboweb@gmail.com</p>
         </div>
       </div>
     </AppLayout>

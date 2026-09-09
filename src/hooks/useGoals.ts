@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Goals {
   visitors: number;
@@ -8,35 +9,44 @@ export interface Goals {
 
 const DEFAULT_GOALS: Goals = { visitors: 0, leads: 0, estimatedValue: 0 };
 
-const storageKey = (projectId?: string) => `kuboweb:goals:${projectId ?? "default"}`;
+const currentMonth = () => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-01`;
+};
 
 export const useGoals = (projectId?: string) => {
   const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(projectId));
-      if (raw) setGoals({ ...DEFAULT_GOALS, ...JSON.parse(raw) });
-      else setGoals(DEFAULT_GOALS);
-    } catch {
+    let cancelled = false;
+    if (!projectId) {
       setGoals(DEFAULT_GOALS);
+      setLoading(false);
+      return;
     }
+
+    setLoading(true);
+    supabase
+      .from("goals")
+      .select("visitors_target, leads_target, revenue_target")
+      .eq("project_id", projectId)
+      .eq("month", currentMonth())
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data) setGoals(DEFAULT_GOALS);
+        else setGoals({
+          visitors: data.visitors_target ?? 0,
+          leads: data.leads_target ?? 0,
+          estimatedValue: Number(data.revenue_target ?? 0),
+        });
+        setLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [projectId]);
 
-  const updateGoals = useCallback(
-    (next: Partial<Goals>) => {
-      setGoals((prev) => {
-        const merged = { ...prev, ...next };
-        try {
-          localStorage.setItem(storageKey(projectId), JSON.stringify(merged));
-        } catch {
-          // ignore quota errors
-        }
-        return merged;
-      });
-    },
-    [projectId],
-  );
-
-  return { goals, updateGoals };
+  return { goals, loading };
 };

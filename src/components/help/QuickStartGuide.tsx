@@ -22,13 +22,9 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const scriptExample = `<script src="${supabaseUrl}/functions/v1/tracker-script?pid=SEU_PROJECT_ID" defer></script>`;
 
-  const whatsappExample = `<a href="https://wa.me/5511999999999" data-track="whatsapp">
-  Falar no WhatsApp
-</a>`;
-
-  const buttonExample = `<button data-track="cta-orcamento">
-  Pedir orçamento
-</button>`;
+  const conversionExample = `window._kw("whatsapp_click", "botao_whatsapp");
+window._kw("form_submit", "formulario_contato");
+window._kw("button_click", "cta_orcamento");`;
 
   const allSteps: StepItem[] = [
     {
@@ -46,7 +42,7 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
           size="sm"
           variant="outline"
           className="h-8 text-xs gap-1.5"
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate("/settings?tab=general&action=install")}
         >
           <span>Ir para Configurações</span>
           <ArrowRight className="h-3.5 w-3.5" />
@@ -63,30 +59,22 @@ export function QuickStartGuide({ query = "", filter = null }: QuickStartGuidePr
           Copie o snippet abaixo, substitua{" "}
           <code className="bg-muted px-1 rounded">SEU_PROJECT_ID</code> pelo
           ID do seu projeto e cole logo antes do{" "}
-          <code className="bg-muted px-1 rounded">&lt;/body&gt;</code> em
+          <code className="bg-muted px-1 rounded">&lt;/head&gt;</code> em
           todas as páginas do site.
         </>
       ),
       content: <CodeBlock code={scriptExample} ariaLabel="Snippet de tracking" />,
       keywords: ["tracking", "script", "instalacao", "setup"],
       searchText:
-        "instalar script tracking snippet body project_id rastreamento código",
+        "instalar script tracking snippet head project_id rastreamento código",
     },
     {
-      title: "Marque seus links de WhatsApp",
+      title: "Configure eventos de conversão",
       description:
-        'Adicione o atributo data-track="whatsapp" nos links do WhatsApp. A plataforma detecta cliques automaticamente e conta como lead.',
-      content: <CodeBlock code={whatsappExample} ariaLabel="Exemplo de link WhatsApp" />,
-      keywords: ["whatsapp", "tracking", "lead", "conversao"],
-      searchText: "whatsapp link data-track lead clique conversão wa.me",
-    },
-    {
-      title: "Marque botões de conversão (CTAs)",
-      description:
-        'Use data-track="nome-do-botao" em qualquer botão importante. Cada clique vira um evento de conversão no dashboard.',
-      content: <CodeBlock code={buttonExample} ariaLabel="Exemplo de botão CTA" />,
-      keywords: ["cta", "botao", "conversao", "tracking"],
-      searchText: "cta botão data-track conversão clique evento",
+        "Chame a API do Kubo quando o visitante clicar no WhatsApp ou em um CTA, ou quando enviar um formulário com sucesso.",
+      content: <CodeBlock code={conversionExample} ariaLabel="Exemplos de eventos de conversão" />,
+      keywords: ["whatsapp", "formulario", "cta", "conversao", "tracking"],
+      searchText: "whatsapp formulário botão cta window kw lead clique conversão evento",
     },
     {
       title: "Defina o valor por lead",

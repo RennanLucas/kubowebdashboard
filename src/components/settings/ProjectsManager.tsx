@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,9 +15,10 @@ import { TrackingInstallWizard } from "@/components/settings/TrackingInstallWiza
 
 interface Props {
   organizationId: string;
+  openInstallation?: boolean;
 }
 
-export default function ProjectsManager({ organizationId }: Props) {
+export default function ProjectsManager({ organizationId, openInstallation = false }: Props) {
   const qc = useQueryClient();
   const { session } = useAuth();
   const userId = session?.user?.id;
@@ -29,6 +30,7 @@ export default function ProjectsManager({ organizationId }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<{ id: string; name: string; url: string } | null>(null);
   const [editSaving, setEditSaving] = useState(false);
+  const didAutoOpen = useRef(false);
 
   const { data: projects, refetch } = useQuery({
     queryKey: ["org-projects", organizationId],
@@ -48,6 +50,13 @@ export default function ProjectsManager({ organizationId }: Props) {
   const limitReached = currentCount >= plan.maxProjects;
   const limitLabel = Number.isFinite(plan.maxProjects) ? String(plan.maxProjects) : "∞";
 
+  useEffect(() => {
+    if (openInstallation && !didAutoOpen.current && projects?.[0]?.id) {
+      didAutoOpen.current = true;
+      setAutoOpenWizard(projects[0].id);
+    }
+  }, [openInstallation, projects]);
+
   const handleAdd = async () => {
     if (!form.name.trim()) {
       toast.error("Informe um nome para o projeto");
@@ -63,11 +72,9 @@ export default function ProjectsManager({ organizationId }: Props) {
     }
     setSaving(true);
     try {
-      // client_id is required by the schema but is being phased out in favor of organization_id
-      // For now, use organization_id as client_id to satisfy the NOT NULL constraint
       const { data, error } = await supabase.from("projects").insert({
         organization_id: organizationId,
-        client_id: organizationId, // Temporary: satisfies NOT NULL constraint during migration
+        client_id: null,
         name: form.name.trim(),
         url: form.url.trim() || null,
       }).select("id").single();
@@ -129,7 +136,7 @@ export default function ProjectsManager({ organizationId }: Props) {
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 space-y-4">
+    <div id="projects" className="glass-card rounded-xl p-6 space-y-4 scroll-mt-24">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
           <Layers className="h-4 w-4 text-primary" /> Projetos

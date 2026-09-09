@@ -950,7 +950,8 @@ export type Database = {
       }
       projects: {
         Row: {
-          client_id: string
+          clarity_project_id: string | null
+          client_id: string | null
           created_at: string
           id: string
           name: string
@@ -958,7 +959,8 @@ export type Database = {
           url: string | null
         }
         Insert: {
-          client_id: string
+          clarity_project_id?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
           name: string
@@ -966,7 +968,8 @@ export type Database = {
           url?: string | null
         }
         Update: {
-          client_id?: string
+          clarity_project_id?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -1244,6 +1247,10 @@ export type Database = {
       aggregate_analytics_jit: {
         Args: { p_project_id: string }
         Returns: undefined
+      }
+      list_organization_members: {
+        Args: { p_organization_id: string }
+        Returns: { user_id: string; role: string; created_at: string; email: string | null; full_name: string | null }[]
       }
       classify_source: { Args: { referrer: string }; Returns: string }
       create_organization: {

@@ -20,22 +20,24 @@ interface FakeChannel {
 
 const state = vi.hoisted(() => ({
   auth: { user: { id: "u1" } as { id: string } | null, loading: false },
+  organization: { activeOrganization: { id: "11111111-1111-4111-8111-111111111111" }, loading: false },
   invokes: [] as { fn: string; opts: unknown }[],
   result: {
     data: null as unknown,
     error: null as { message: string } | null,
   },
+  queuedResults: [] as Array<{ data: unknown; error: { message: string } | null }>,
   channels: [] as FakeChannel[],
   removed: [] as unknown[],
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    functions: {
-      invoke: async (fn: string, opts: unknown) => {
-        state.invokes.push({ fn, opts });
-        return state.result;
-      },
+    auth: {
+      getSession: async () => ({
+        data: { session: { access_token: "real-test-access-token" } },
+        error: null,
+      }),
     },
     channel: (name: string) => {
       const ch: FakeChannel = { name, subscribed: false };
@@ -61,6 +63,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => state.auth }));
+vi.mock("@/contexts/OrganizationContext", () => ({ useOrganization: () => state.organization }));
 
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import type { SubscriptionStatus } from "@/hooks/useSubscriptionStatus";
@@ -99,9 +102,22 @@ const render = (enabled?: boolean) => renderHook(() => useSubscriptionStatus(ena
 
 beforeEach(() => {
   state.auth = { user: { id: "u1" }, loading: false };
+  state.organization = { activeOrganization: { id: "11111111-1111-4111-8111-111111111111" }, loading: false };
   state.invokes = [];
   state.channels = [];
   state.removed = [];
+  state.queuedResults = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, opts: unknown) => {
+    const fn = url.split("/").pop()?.split("?")[0] ?? "";
+    state.invokes.push({ fn, opts });
+    const next = state.queuedResults.length ? state.queuedResults.shift()! : state.result;
+    if (next.error) throw new Error(next.error.message);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => next.data,
+    };
+  }));
   ok();
 });
 
@@ -140,7 +156,13 @@ describe("useSubscriptionStatus happy path", () => {
 
     expect(state.invokes).toHaveLength(1);
     expect(state.invokes[0].fn).toBe("get-subscription-status");
-    expect(state.invokes[0].opts).toEqual({ method: "GET" });
+    expect(state.invokes[0].opts).toMatchObject({
+      method: "GET",
+      headers: {
+        Authorization: "Bearer real-test-access-token",
+        "X-Organization-Id": "11111111-1111-4111-8111-111111111111",
+      },
+    });
     expect(result.current.status?.isActive).toBe(true);
     expect(result.current.status?.subscription?.id).toBe("sub1");
     expect(result.current.error).toBeNull();
@@ -160,12 +182,28 @@ describe("useSubscriptionStatus happy path", () => {
 });
 
 describe("useSubscriptionStatus failure path", () => {
-  it("surfaces a transport error and leaves status null on a cold first load", async () => {
+  it("recovers automatically from a temporary browser fetch failure", async () => {
+    state.queuedResults = [
+      { data: null, error: { message: "Failed to fetch" } },
+      { data: statusPayload(), error: null },
+    ];
+    const { result } = render();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(state.invokes).toHaveLength(2);
+    expect(result.current.status?.subscription?.id).toBe("sub1");
+    expect(result.current.error).toBeNull();
+  });
+
+  it("retries a timeout, shows a readable message and leaves status null on a cold first load", async () => {
     state.result = { data: null, error: { message: "Function timed out" } };
     const { result } = render();
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.error).toBe("Function timed out");
+    expect(state.invokes).toHaveLength(3);
+    expect(result.current.error).toBe(
+      "A conexão com o servidor foi interrompida. Tente novamente em alguns instantes.",
+    );
     // Nothing was ever loaded, so there is no good value to keep. The page has
     // to branch on `error` here — a null status alone does not mean "no plan".
     expect(result.current.status).toBeNull();
@@ -220,7 +258,7 @@ describe("useSubscriptionStatus failure path", () => {
 });
 
 describe("useSubscriptionStatus realtime", () => {
-  it("watches only this user's subscription rows and detaches on unmount", async () => {
+  it("watches only the active organization's subscription rows and detaches on unmount", async () => {
     const { result, unmount } = render();
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -234,7 +272,7 @@ describe("useSubscriptionStatus realtime", () => {
       table: "subscriptions",
       // Tenant isolation: without this filter every client would wake up on
       // every other client's billing change.
-      filter: "user_id=eq.u1",
+      filter: "organization_id=eq.11111111-1111-4111-8111-111111111111",
     });
 
     unmount();
@@ -262,10 +300,14 @@ describe("useSubscriptionStatus realtime", () => {
     await waitFor(() => expect(b.result.current.loading).toBe(false));
 
     // Supabase keys channels by topic, so two mounts sharing a name would
-    // leave the second one deaf. Both names must still be scoped to the user.
+    // leave the second one deaf. Both names must still be scoped to the org.
     expect(state.channels).toHaveLength(2);
     expect(state.channels[0].name).not.toBe(state.channels[1].name);
-    expect(state.channels.every((c) => c.name.startsWith("sub-status-u1-"))).toBe(true);
+    expect(
+      state.channels.every((c) =>
+        c.name.startsWith("sub-status-11111111-1111-4111-8111-111111111111-"),
+      ),
+    ).toBe(true);
 
     a.unmount();
     b.unmount();
