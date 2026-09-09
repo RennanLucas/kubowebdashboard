@@ -7,6 +7,7 @@ import { ProductDashboard } from "./ProductDashboard";
 const navigation = [
   ["Produto", "#product-story"],
   ["Recursos", "#capabilities"],
+  ["Comparativo", "#comparative"],
   ["Planos", "#pricing"],
   ["Dúvidas", "#faq"],
 ];

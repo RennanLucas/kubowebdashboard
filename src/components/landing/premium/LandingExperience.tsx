@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Activity, ArrowRight, BarChart3, BellRing, BrainCircuit, Check, Clock3,
   FileDown, Flame, Gauge, Globe2, Layers3, MousePointerClick, MonitorSmartphone,
-  Radar, ShieldCheck, Sparkles, Target, Users, Zap,
+  Radar, ShieldCheck, Sparkles, Target, Users, Zap, X, AlertTriangle, Shield
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -18,13 +18,101 @@ const storySteps = [
 
 export function SignalRail() {
   return (
-    <section className="lp-signal" aria-label="Recursos centrais do Kubo">
+    <section className="lp-signal" aria-label="Métricas e conformidade do Kubo">
       <div className="lp-shell lp-signal__inner">
-        <span><Activity /> Visitantes em tempo real</span>
-        <span><MousePointerClick /> Conversões</span>
-        <span><Radar /> Fontes de tráfego</span>
-        <span><BrainCircuit /> Insights com IA</span>
-        <span><ShieldCheck /> Consentimento LGPD</span>
+        <span><Zap /> Script ultraleve de 2KB</span>
+        <span><Clock3 /> Latência &lt; 50ms</span>
+        <span><Gauge /> 99.9% de uptime</span>
+        <span><ShieldCheck /> 100% LGPD sem cookies invasivos</span>
+        <span><MousePointerClick /> Rastreamento automático de WhatsApp</span>
+      </div>
+    </section>
+  );
+}
+
+export function ProblemSolutionBridge() {
+  return (
+    <section className="lp-bridge">
+      <div className="lp-shell">
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>O contraste que muda o jogo</span>
+          <h2>Por que o Google Analytics<br />ficou para trás.</h2>
+          <p>O GA4 se tornou um labirinto de configurações, dados com atraso de até 48 horas e zero foco em conversão rápida de WhatsApp.</p>
+        </div>
+
+        <div className="lp-bridge__grid lp-reveal">
+          <div className="lp-bridge__card is-problem">
+            <div className="lp-bridge__badge">
+              <AlertTriangle size={14} /> Analytics Tradicional (GA4)
+            </div>
+            <ul className="lp-bridge__list">
+              <li>
+                <X className="is-bad" />
+                <div>
+                  <strong>Relatórios com 24h a 48h de atraso</strong>
+                  <p>Você precisa esperar até 2 dias para saber se uma campanha ou post funcionou.</p>
+                </div>
+              </li>
+              <li>
+                <X className="is-bad" />
+                <div>
+                  <strong>Sem rastreamento nativo de WhatsApp</strong>
+                  <p>Exige configurar Google Tag Manager, dataLayer e triggers complexos que frequentemente quebram.</p>
+                </div>
+              </li>
+              <li>
+                <X className="is-bad" />
+                <div>
+                  <strong>Script pesado (45KB a 120KB)</strong>
+                  <p>Penaliza o Google PageSpeed e derruba as notas de Core Web Vitals do site.</p>
+                </div>
+              </li>
+              <li>
+                <X className="is-bad" />
+                <div>
+                  <strong>Banners de consentimento invasivos</strong>
+                  <p>Cookies de terceiros que incomodam visitantes e reduzem a taxa de permanência.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div className="lp-bridge__card is-solution">
+            <div className="lp-bridge__badge is-green">
+              <Sparkles size={14} /> Kubo Analytics
+            </div>
+            <ul className="lp-bridge__list">
+              <li>
+                <Check className="is-good" />
+                <div>
+                  <strong>Dados em tempo real sem delay</strong>
+                  <p>Visitantes ativos, eventos e conversões são computados no instante exato em que ocorrem.</p>
+                </div>
+              </li>
+              <li>
+                <Check className="is-good" />
+                <div>
+                  <strong>Cliques no WhatsApp rastreados sozinhos</strong>
+                  <p>O script detecta links de WhatsApp e envios de formulário automaticamente. Zero setup.</p>
+                </div>
+              </li>
+              <li>
+                <Check className="is-good" />
+                <div>
+                  <strong>Snippet de apenas 2KB</strong>
+                  <p>Assíncrono, imperceptível no navegador e com nota 100 garantida no PageSpeed.</p>
+                </div>
+              </li>
+              <li>
+                <Check className="is-good" />
+                <div>
+                  <strong>Privacidade por princípio (100% LGPD)</strong>
+                  <p>Sem cookies invasivos de remarketing cruzado. Métricas fiéis sem banners chatos.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -54,7 +142,9 @@ export function ProductStory() {
 
         <div className="lp-story__grid">
           <div className="lp-story__visual" data-step={active}>
-            <div className="lp-story__frame"><ProductDashboard /></div>
+            <div className="lp-story__frame">
+              <ProductDashboard step={active} interactive={false} />
+            </div>
             <div className="lp-story__readout" aria-live="polite">
               <span>{storySteps[active].kicker}</span>
               <strong>{storySteps[active].stat}</strong>
@@ -81,10 +171,10 @@ export function ProductStory() {
 }
 
 const events = [
-  { icon: Users, place: "São Paulo", action: "Nova visita", detail: "Landing page", tone: "blue" },
-  { icon: Globe2, place: "Pesquisa orgânica", action: "Origem detectada", detail: "Google", tone: "cyan" },
-  { icon: MousePointerClick, place: "/recursos", action: "Clique em CTA", detail: "Começar grátis", tone: "violet" },
-  { icon: Zap, place: "Conversão", action: "Novo lead", detail: "WhatsApp", tone: "green" },
+  { icon: Users, place: "São Paulo · Brasil", action: "Novo visitante único", detail: "Página inicial", tone: "blue" },
+  { icon: Globe2, place: "Google Orgânico", action: "Origem identificada", detail: "Busca por serviço", tone: "cyan" },
+  { icon: MousePointerClick, place: "/precos", action: "Visualização de tabela", detail: "Plano Pro", tone: "violet" },
+  { icon: Zap, place: "Conversão Direta", action: "Clique em WhatsApp", detail: "Botão flutuante", tone: "green" },
 ];
 
 export function RealtimeSection() {
@@ -147,12 +237,12 @@ function InsightCard({ type, label, title, copy, stat }: { type: string; label: 
 }
 
 const capabilities = [
-  { icon: Gauge, className: "lp-capability--wide", title: "Analytics que explica o período", copy: "KPIs, comparação, fontes, páginas, dispositivos, localização e comportamento em uma leitura consistente.", visual: <MiniChart /> },
-  { icon: Flame, className: "lp-capability--heat", title: "Mapas de calor", copy: "Visualize padrões por dia e horário para reconhecer quando a atenção acontece.", visual: <HeatCells /> },
-  { icon: BellRing, className: "", title: "Alertas inteligentes", copy: "Quedas, picos e mudanças relevantes aparecem no painel e, no Pro, também por e-mail.", visual: <div className="lp-alert-demo"><i /><span>Tráfego acima da média</span><b>+31%</b></div> },
-  { icon: Target, className: "", title: "Metas e funis", copy: "Acompanhe o caminho de visitantes até os eventos de conversão.", visual: <Funnel /> },
-  { icon: FileDown, className: "lp-capability--wide", title: "Relatórios que saem do painel", copy: "Exporte PDF, CSV e Excel, compare projetos e use o modo apresentação em reuniões.", visual: <ExportPills /> },
-  { icon: Layers3, className: "", title: "Organizações isoladas", copy: "Projetos e assinaturas são separados por organização, com permissões verificadas no acesso.", visual: <OrgLayers /> },
+  { icon: MousePointerClick, className: "lp-capability--wide", title: "Motor de Conversão de WhatsApp", copy: "Detecte automaticamente cada clique em links de WhatsApp, telefones e formulários no seu site, sem mexer no código do botão.", visual: <WhatsAppDemo /> },
+  { icon: Flame, className: "lp-capability--heat", title: "Mapas de Calor 24x7", copy: "Visualize padrões de atividade por dia e horário para saber exatamente quando seu público navega e decide.", visual: <HeatCells /> },
+  { icon: BellRing, className: "", title: "Alertas Inteligentes", copy: "Quedas, picos e mudanças anômalas de tráfego aparecem no painel e, no Pro, também diretamente por e-mail.", visual: <div className="lp-alert-demo"><i /><span>Tráfego acima da média</span><b>+31%</b></div> },
+  { icon: Target, className: "", title: "Metas e Funis", copy: "Acompanhe a taxa de conversão do primeiro acesso até o clique decisivo em cada página de destino.", visual: <Funnel /> },
+  { icon: FileDown, className: "lp-capability--wide", title: "Relatórios Executivos em 1 Clique", copy: "Exporte apresentações e relatórios em PDF corporativo e planilhas Excel XLSX nativas para enviar a clientes.", visual: <ExportPills /> },
+  { icon: Layers3, className: "", title: "Multi-tenant & White-label", copy: "Crie organizações separadas para cada cliente da sua agência com relatórios personalizados sob sua marca.", visual: <OrgLayers /> },
 ];
 
 export function CapabilitiesSection() {
@@ -160,8 +250,9 @@ export function CapabilitiesSection() {
     <section id="capabilities" className="lp-capabilities">
       <div className="lp-shell">
         <div className="lp-section-head lp-reveal">
-          <span>Uma plataforma, várias leituras</span>
+          <span>Recursos desenhados para resultados</span>
           <h2>Profundidade quando precisa.<br />Simplicidade sempre.</h2>
+          <p>Tudo o que sua agência ou empresa precisa para acompanhar performance web sem o excesso do GA4.</p>
         </div>
         <div className="lp-capability-grid">
           {capabilities.map(({ icon: Icon, className, title, copy, visual }) => (
@@ -176,18 +267,93 @@ export function CapabilitiesSection() {
   );
 }
 
-function MiniChart() { return <div className="lp-mini-chart"><svg viewBox="0 0 300 80" preserveAspectRatio="none"><path d="M0 70 C45 60 55 35 92 43 S150 68 183 30 S238 20 300 4" /><path className="is-fill" d="M0 70 C45 60 55 35 92 43 S150 68 183 30 S238 20 300 4 L300 80 L0 80Z" /></svg><span>Visitantes</span><strong>12.842</strong><small>+18,4%</small></div>; }
+function WhatsAppDemo() {
+  return (
+    <div className="lp-wa-demo">
+      <div className="lp-wa-demo__pill">
+        <span className="lp-live-dot" />
+        <small>Captura instantânea</small>
+      </div>
+      <div className="lp-wa-demo__card">
+        <div className="lp-wa-demo__left">
+          <strong>+55 (11) 98765-4321</strong>
+          <span>Origem: Google Orgânico · /servicos</span>
+        </div>
+        <div className="lp-wa-demo__badge">
+          Lead qualificado
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HeatCells() { return <div className="lp-heat-cells">{Array.from({ length: 35 }, (_, index) => <i key={index} style={{ opacity: .12 + ((index * 7) % 10) / 12 }} />)}</div>; }
-function Funnel() { return <div className="lp-funnel"><span style={{ width: "100%" }}>12.842 <small>visitantes</small></span><span style={{ width: "72%" }}>4.120 <small>engajados</small></span><span style={{ width: "46%" }}>486 <small>leads</small></span></div>; }
-function ExportPills() { return <div className="lp-export-pills"><span>PDF</span><span>CSV</span><span>Excel</span><span>Apresentação</span></div>; }
-function OrgLayers() { return <div className="lp-org-layers"><span>Organização A</span><span>Organização B</span><i><ShieldCheck /> Acesso isolado</i></div>; }
+function Funnel() { return <div className="lp-funnel"><span style={{ width: "100%" }}>12.842 <small>visitantes</small></span><span style={{ width: "72%" }}>4.120 <small>engajados</small></span><span style={{ width: "46%" }}>486 <small>leads WhatsApp</small></span></div>; }
+function ExportPills() { return <div className="lp-export-pills"><span>PDF Executivo</span><span>Excel Nativo (XLSX)</span><span>CSV Completo</span><span>Apresentação</span></div>; }
+function OrgLayers() { return <div className="lp-org-layers"><span>Agência Digital Alpha</span><span>Cliente E-commerce Beta</span><i><ShieldCheck /> Isolamento RLS por organização</i></div>; }
+
+export function ComparisonSection() {
+  const rows = [
+    { feature: "Tempo de Instalação", ga4: "Horas ou dias com GTM e dataLayer", kubo: "2 minutos (1 linha de código)", highlight: true },
+    { feature: "Latência dos Dados", ga4: "24h a 48h de espera", kubo: "Tempo real instantâneo", highlight: true },
+    { feature: "Cliques no WhatsApp", ga4: "Exige triggers e tags manuais", kubo: "Detectado automaticamente", highlight: true },
+    { feature: "Relatórios Executivos", ga4: "Requer montar no Looker Studio", kubo: "1 clique em PDF e Excel", highlight: true },
+    { feature: "Peso do Script", ga4: "~45KB a 120KB (gtag.js)", kubo: "~2KB ultraleve", highlight: false },
+    { feature: "Impacto no PageSpeed", ga4: "Penaliza Core Web Vitals", kubo: "Nota 100 garantida", highlight: false },
+    { feature: "Resumos com IA", ga4: "Inexistentes no painel", kubo: "Diagnóstico semanal automático", highlight: true },
+    { feature: "Conformidade LGPD", ga4: "Exige banner de cookies invasivo", kubo: "Sem cookies de terceiros", highlight: false },
+  ];
+
+  return (
+    <section id="comparative" className="lp-comparison">
+      <div className="lp-shell">
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>Comparativo direto</span>
+          <h2>Por que agências e empresas<br />estão migrando para o Kubo.</h2>
+          <p>Uma comparação clara entre a complexidade do passado e a velocidade do presente.</p>
+        </div>
+
+        <div className="lp-comparison__table-wrap lp-reveal">
+          <table className="lp-comparison__table" aria-label="Tabela comparativa entre Google Analytics e Kubo">
+            <thead>
+              <tr>
+                <th>Recurso / Diferencial</th>
+                <th>Google Analytics (GA4)</th>
+                <th className="is-kubo">
+                  <span>Kubo Analytics</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr key={idx} className={row.highlight ? "is-highlighted" : ""}>
+                  <td className="lp-comparison__feature">
+                    <strong>{row.feature}</strong>
+                  </td>
+                  <td className="lp-comparison__ga4">
+                    <span className="lp-cross"><X size={13} /></span>
+                    {row.ga4}
+                  </td>
+                  <td className="lp-comparison__kubo">
+                    <span className="lp-check"><Check size={13} /></span>
+                    <strong>{row.kubo}</strong>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function SetupSection() {
   const steps = [
-    ["01", "Crie sua conta", "Comece pelo plano gratuito e configure sua organização."],
-    ["02", "Adicione o seu site", "Crie um projeto e copie o código de acompanhamento."],
-    ["03", "Instale uma vez", "Inclua o snippet nas páginas que deseja analisar."],
-    ["04", "Acompanhe", "Os primeiros acessos aparecem no painel e no feed ao vivo."],
+    ["01", "Crie sua conta", "Comece pelo plano gratuito e configure sua organização em segundos."],
+    ["02", "Adicione o seu site", "Cadastre o domínio do seu projeto e copie o snippet de código."],
+    ["03", "Instale uma única vez", "Cole o script no cabeçalho do site (WordPress, Webflow, etc.)."],
+    ["04", "Acompanhe os dados", "Visitantes e conversões começam a aparecer instantaneamente."],
   ];
   return (
     <section className="lp-setup">
@@ -201,7 +367,7 @@ export function SetupSection() {
   );
 }
 
-const freeFeatures = ["1 projeto / site", "Histórico de 7 dias", "Alertas no painel", "Métricas essenciais"];
+const freeFeatures = ["1 projeto / site", "Histórico de 7 dias", "Alertas no painel", "Métricas essenciais", "Rastreamento automático de cliques"];
 const fallbackPro = {
   name: "Pro",
   tagline: "KUBOWEB Pro — tudo incluso",
@@ -212,10 +378,11 @@ const fallbackPro = {
   features: [
     "Projetos / sites ilimitados",
     "Conversões e visitantes em tempo real",
-    "Mapas de calor",
-    "Resumos com IA e alertas",
+    "Mapas de calor por horário e dia",
+    "Resumos com IA e alertas por e-mail",
     "Histórico estendido de 12 meses",
-    "Relatórios em PDF, CSV e Excel",
+    "Relatórios em PDF executivo e Excel XLSX",
+    "Ambientes para múltiplos clientes (Multi-tenant)",
   ],
 };
 
@@ -224,7 +391,7 @@ export function PremiumPricing() {
   return (
     <section id="pricing" className="lp-pricing">
       <div className="lp-shell">
-        <div className="lp-section-head lp-section-head--center lp-reveal"><span>Planos transparentes</span><h2>Comece grátis.<br />Evolua quando fizer sentido.</h2><p>Sem uma tabela artificial de planos: o Kubo mantém uma opção gratuita e um Pro completo.</p></div>
+        <div className="lp-section-head lp-section-head--center lp-reveal"><span>Planos transparentes</span><h2>Comece grátis.<br />Evolua quando fizer sentido.</h2><p>Sem uma tabela artificial de planos: o Kubo mantém uma opção gratuita e um Pro completo com 7 dias grátis.</p></div>
         <div className="lp-pricing__grid lp-reveal">
           <PricingCard name="Gratuito" tagline="Para validar o Kubo no seu site" price="R$ 0,00" cadence="/mês" features={freeFeatures} cta="Criar conta grátis" />
           {loading && <div className="lp-price-card lp-price-card--loading" aria-label="Carregando plano Pro"><i /><i /><i /><i /></div>}
@@ -279,7 +446,7 @@ export function FinalCTA() {
         <div className="lp-final__signal"><span /><span /><span /><i /></div>
         <span>Seu site já está gerando sinais.</span>
         <h2>Transforme visitas<br />em decisões.</h2>
-        <p>Instale o Kubo, acompanhe os primeiros acessos e descubra o que merece a sua atenção.</p>
+        <p>Instale o Kubo em 2 minutos, acompanhe os primeiros acessos e descubra o que realmente merece a sua atenção.</p>
         <Link to="/login" className="lp-button">Começar 7 dias grátis <ArrowRight /></Link>
       </div>
     </section>
@@ -291,9 +458,10 @@ export function PremiumFooter() {
     <footer className="lp-footer">
       <div className="lp-shell lp-footer__top">
         <div><strong>Kubo Analytics</strong><p>Analytics próprio para transformar sinais do seu site em decisões mais claras.</p></div>
-        <nav aria-label="Links do rodapé"><a href="#product-story">Produto</a><a href="#capabilities">Recursos</a><a href="#pricing">Planos</a><a href="#faq">Dúvidas</a><Link to="/login">Entrar</Link></nav>
+        <nav aria-label="Links do rodapé"><a href="#product-story">Produto</a><a href="#capabilities">Recursos</a><a href="#comparative">Comparativo</a><a href="#pricing">Planos</a><a href="#faq">Dúvidas</a><Link to="/login">Entrar</Link></nav>
       </div>
-      <div className="lp-shell lp-footer__bottom"><span>© {new Date().getFullYear()} Kubo Web</span><span><ShieldCheck /> Privacidade por princípio</span></div>
+      <div className="lp-shell lp-footer__bottom"><span>© {new Date().getFullYear()} Kubo Web</span><span><ShieldCheck /> Privacidade por princípio · 100% LGPD</span></div>
     </footer>
   );
 }
+
