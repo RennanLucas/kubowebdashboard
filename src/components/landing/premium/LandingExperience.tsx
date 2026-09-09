@@ -857,51 +857,227 @@ export function SetupSection() {
   );
 }
 
-const freeFeatures = ["1 projeto / site", "Histórico de 7 dias", "Alertas no painel", "Métricas essenciais", "Rastreamento automático de cliques"];
+const freeFeatures = [
+  "1 projeto com domínio próprio",
+  "Histórico de 7 dias de navegação",
+  "Métricas essenciais de páginas e fontes",
+  "Rastreamento automático de cliques",
+  "Alertas básicos de atividade",
+  "Script ultraleve de 2KB (PageSpeed 100)",
+  "Totalmente compatível com a LGPD",
+];
+
 const fallbackPro = {
   name: "Pro",
-  tagline: "KUBOWEB Pro — tudo incluso",
+  tagline: "Para empresas e agências que precisam de precisão e conversão em tempo real.",
   price: "R$ 49,90",
   cadence: "/mês",
   highlight: "7 dias grátis — cancele a qualquer momento",
   cta: "Começar 7 dias grátis",
   features: [
-    "Projetos / sites ilimitados",
-    "Conversões e visitantes em tempo real",
-    "Mapas de calor por horário e dia",
-    "Resumos com IA e alertas por e-mail",
-    "Histórico estendido de 12 meses",
-    "Relatórios em PDF executivo e Excel XLSX",
-    "Ambientes para múltiplos clientes (Multi-tenant)",
+    "Projetos e sites ilimitados",
+    "Visitantes e eventos em tempo real (Kubo Live)",
+    "Rastreamento nativo de cliques de WhatsApp",
+    "Mapas de calor 24x7 por dia e horário",
+    "Relatórios executivos em PDF e Excel XLSX",
+    "Diagnóstico inteligente semanal com IA",
+    "Histórico estendido de 12 meses (365 dias)",
+    "Ambientes multi-tenant para agências e clientes",
+    "Suporte prioritário direto da equipe técnica",
   ],
 };
 
 export function PremiumPricing() {
   const { plans, loading, error } = usePlans();
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+
+  const isAnnual = billingPeriod === "annual";
+
   return (
     <section id="pricing" className="lp-pricing">
       <div className="lp-shell">
-        <div className="lp-section-head lp-section-head--center lp-reveal"><span>Planos transparentes</span><h2>Comece grátis.<br />Evolua quando fizer sentido.</h2><p>Sem uma tabela artificial de planos: o Kubo mantém uma opção gratuita e um Pro completo com 7 dias grátis.</p></div>
+        <div className="lp-section-head lp-section-head--center lp-reveal">
+          <span>Planos transparentes</span>
+          <h2>Comece grátis.<br />Evolua quando fizer sentido.</h2>
+          <p>Sem surpresas ou contratos de fidelidade. Teste o plano Pro completo por 7 dias grátis.</p>
+
+          <div className="lp-pricing__toggle-wrap">
+            <div className="lp-pricing__toggle" role="group" aria-label="Ciclo de faturamento">
+              <button
+                type="button"
+                className={billingPeriod === "monthly" ? "is-active" : ""}
+                onClick={() => setBillingPeriod("monthly")}
+              >
+                Mensal
+              </button>
+              <button
+                type="button"
+                className={billingPeriod === "annual" ? "is-active" : ""}
+                onClick={() => setBillingPeriod("annual")}
+              >
+                Anual <span className="lp-pricing__discount-pill">-20% OFF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="lp-pricing__grid lp-reveal">
-          <PricingCard name="Gratuito" tagline="Para validar o Kubo no seu site" price="R$ 0,00" cadence="/mês" features={freeFeatures} cta="Criar conta grátis" />
-          {loading && <div className="lp-price-card lp-price-card--loading" aria-label="Carregando plano Pro"><i /><i /><i /><i /></div>}
-          {!loading && plans.map((plan) => <PricingCard key={plan.id} name={plan.name} tagline={plan.tagline} price={plan.price} cadence={plan.cadence} highlight={plan.highlight} features={plan.features} cta={plan.cta} recommended={plan.recommended} disabled={!plan.enabled} />)}
-          {!loading && error && <PricingCard {...fallbackPro} recommended />}
+          <PricingCard
+            name="Gratuito"
+            tierLabel="Iniciante"
+            tagline="Para validar o Kubo no seu site sem custos."
+            price="R$ 0,00"
+            cadence="/mês"
+            billingSubtext="Sem cartão de crédito necessário"
+            featuresLabel="O que está incluso:"
+            features={freeFeatures}
+            cta="Criar conta grátis"
+          />
+
+          {loading && (
+            <div className="lp-price-card lp-price-card--loading is-recommended" aria-label="Carregando plano Pro">
+              <i /><i /><i /><i />
+            </div>
+          )}
+
+          {!loading && plans.map((plan) => {
+            const isPro = plan.name.toLowerCase().includes("pro") || plan.name === "Pro";
+            const displayPrice = isPro && isAnnual ? "R$ 39,90" : plan.price;
+            const subtext = isPro && isAnnual
+              ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano"
+              : "7 dias grátis — cancele a qualquer momento";
+
+            return (
+              <PricingCard
+                key={plan.id}
+                name={plan.name}
+                tierLabel="Completo"
+                badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
+                tagline={plan.tagline || fallbackPro.tagline}
+                price={displayPrice}
+                cadence={plan.cadence}
+                billingSubtext={subtext}
+                featuresLabel="Tudo do Gratuito, mais:"
+                highlight={plan.highlight || fallbackPro.highlight}
+                features={plan.features && plan.features.length >= 7 ? plan.features : fallbackPro.features}
+                cta={plan.cta || "Começar 7 dias grátis"}
+                recommended={true}
+                disabled={!plan.enabled}
+              />
+            );
+          })}
+
+          {!loading && (error || plans.length === 0) && (
+            <PricingCard
+              {...fallbackPro}
+              price={isAnnual ? "R$ 39,90" : fallbackPro.price}
+              billingSubtext={isAnnual ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano" : "7 dias grátis — cancele a qualquer momento"}
+              tierLabel="Completo"
+              badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
+              featuresLabel="Tudo do Gratuito, mais:"
+              recommended
+            />
+          )}
+        </div>
+
+        <div className="lp-pricing__guarantees lp-reveal">
+          <div className="lp-guarantee-item">
+            <Check size={14} />
+            <span>Ativação imediata em menos de 2 minutos</span>
+          </div>
+          <div className="lp-guarantee-item">
+            <Check size={14} />
+            <span>Sem cobrança durante o período de 7 dias</span>
+          </div>
+          <div className="lp-guarantee-item">
+            <Check size={14} />
+            <span>Cancelamento direto no painel com 1 clique</span>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function PricingCard({ name, tagline, price, cadence, features, cta, highlight, recommended, disabled }: { name: string; tagline: string; price: string; cadence: string; features: string[]; cta: string; highlight?: string; recommended?: boolean; disabled?: boolean }) {
+function PricingCard({
+  name,
+  tierLabel,
+  badgeText,
+  tagline,
+  price,
+  cadence,
+  billingSubtext,
+  featuresLabel,
+  features,
+  cta,
+  recommended,
+  disabled,
+}: {
+  name: string;
+  tierLabel?: string;
+  badgeText?: string;
+  tagline: string;
+  price: string;
+  cadence: string;
+  billingSubtext?: string;
+  featuresLabel?: string;
+  features: string[];
+  cta: string;
+  highlight?: string;
+  recommended?: boolean;
+  disabled?: boolean;
+}) {
   return (
     <article className={`lp-price-card ${recommended ? "is-recommended" : ""}`}>
-      <div className="lp-price-card__top"><div><span>{recommended ? "Tudo incluso" : "Essencial"}</span><h3>{name}</h3></div>{recommended && <em>Recomendado</em>}</div>
-      <p>{tagline}</p><div className="lp-price"><strong>{price}</strong><small>{cadence}</small></div>{highlight && <div className="lp-price__highlight">{highlight}</div>}
-      <ul>{features.map((feature) => <li key={feature}><Check />{feature}</li>)}</ul>
-      {disabled
-        ? <span className="is-disabled" aria-disabled="true">Indisponível<ArrowRight /></span>
-        : <Link to="/login">{cta}<ArrowRight /></Link>}
+      {recommended && badgeText && (
+        <div className="lp-price-badge">
+          <Sparkles size={11} />
+          <span>{badgeText}</span>
+        </div>
+      )}
+
+      <div className="lp-price-card__header">
+        <span className={`lp-price-tier ${recommended ? "is-pro" : ""}`}>{tierLabel || (recommended ? "Completo" : "Iniciante")}</span>
+        <h3 className="lp-price-card__title">{name}</h3>
+        <p className="lp-price-card__tagline">{tagline}</p>
+      </div>
+
+      <div className="lp-price">
+        <div className="lp-price__main">
+          <strong className="lp-price__amount">{price}</strong>
+          <small className="lp-price__cadence">{cadence}</small>
+        </div>
+        {billingSubtext && <div className="lp-price__sub">{billingSubtext}</div>}
+      </div>
+
+      <div className="lp-price-card__features-wrap">
+        {featuresLabel && <span className="lp-price-card__features-title">{featuresLabel}</span>}
+        <ul className="lp-price-card__list">
+          {features.map((feature) => (
+            <li key={feature}>
+              <span className={`lp-check-badge ${recommended ? "is-pro" : ""}`}>
+                <Check size={11} />
+              </span>
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="lp-price-card__action">
+        {disabled ? (
+          <span className="lp-price-btn is-disabled" aria-disabled="true">
+            Indisponível <ArrowRight size={13} />
+          </span>
+        ) : (
+          <Link
+            to="/login"
+            className={`lp-price-btn ${recommended ? "lp-price-btn--primary" : "lp-price-btn--ghost"}`}
+          >
+            {cta} <ArrowRight size={13} />
+          </Link>
+        )}
+      </div>
     </article>
   );
 }
