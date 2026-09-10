@@ -5,13 +5,9 @@ import "./index.css";
 import { registerPWA } from "./lib/pwa";
 import { clearChunkReloadGuard, isChunkLoadError, tryReloadOnce } from "./lib/chunk-reload";
 
-// Apply persisted theme before render to avoid flash (defaults to dark)
-try {
-  const stored = localStorage.getItem("kuboweb:theme");
-  if (stored !== "light") document.documentElement.classList.add("dark");
-} catch {
-  document.documentElement.classList.add("dark");
-}
+import { readThemePreference } from "./lib/theme-preference";
+// White on first visit; dark only after an explicit choice.
+document.documentElement.classList.toggle("dark", readThemePreference() === "dark");
 
 // Auto-recover from stale lazy-loaded chunks after a redeploy.
 // When an old hashed chunk no longer exists, dynamic import() throws
