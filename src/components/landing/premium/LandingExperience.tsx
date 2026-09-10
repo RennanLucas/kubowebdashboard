@@ -17,17 +17,86 @@ const storySteps = [
   { kicker: "04 · Decisão", title: "Transforme sinal em próxima ação.", copy: "Metas, alertas, comparações, relatórios e resumos com IA ajudam a priorizar o que merece atenção agora.", stat: "+24%", label: "em leads demonstrativos" },
 ];
 
+const MARQUEE_ITEMS = [
+  { icon: <Zap />, text: "Script ultraleve de 2KB" },
+  { icon: <Clock3 />, text: "Latência < 50ms" },
+  { icon: <Gauge />, text: "99.9% de uptime" },
+  { icon: <ShieldCheck />, text: "100% LGPD · sem cookies invasivos" },
+  { icon: <MousePointerClick />, text: "Rastreamento automático de WhatsApp" },
+  { icon: <Activity />, text: "Tempo real · sem atraso de 48h" },
+  { icon: <Users />, text: "+1.800 sites monitorados" },
+  { icon: <BrainCircuit />, text: "Insights semanais com IA" },
+  { icon: <Globe2 />, text: "Dashboard white-label para agências" },
+  { icon: <Sparkles />, text: "Heatmap de cliques incluso" },
+];
+
 export function SignalRail() {
+  // Duplicate for seamless loop
+  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
   return (
-    <section className="lp-signal" aria-label="Métricas e conformidade do Kubo">
-      <div className="lp-shell lp-signal__inner">
-        <span><Zap /> Script ultraleve de 2KB</span>
-        <span><Clock3 /> Latência &lt; 50ms</span>
-        <span><Gauge /> 99.9% de uptime</span>
-        <span><ShieldCheck /> 100% LGPD sem cookies invasivos</span>
-        <span><MousePointerClick /> Rastreamento automático de WhatsApp</span>
+    <section className="lp-marquee" aria-label="Recursos do Kubo Analytics">
+      <div className="lp-marquee__track" aria-hidden="true">
+        {items.map((item, i) => (
+          <span key={i} className="lp-marquee__item">
+            {item.icon}
+            {item.text}
+            {i < items.length - 1 && <span className="lp-marquee__sep" />}
+          </span>
+        ))}
       </div>
     </section>
+  );
+}
+
+/* ─── Animated Counter Hook ─── */
+function useCounter(target: string, duration = 1800) {
+  const [val, setVal] = useState("0");
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || started.current) return;
+        started.current = true;
+        // Extract numeric value, prefix and suffix
+        const match = target.match(/^([+<\s]*)(\d[\d.,]*)(.*)$/);
+        if (!match) { setVal(target); return; }
+        const [, prefix, numStr, suffix] = match;
+        const end = parseFloat(numStr.replace(/[.,]/g, ""));
+        const decimals = (numStr.includes(".") && !numStr.includes(",")) ? numStr.split(".")[1].length : 0;
+        const start = performance.now();
+        const step = (now: number) => {
+          const t = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - t, 4);
+          const cur = Math.round(end * ease);
+          const formatted = decimals > 0
+            ? (cur / Math.pow(10, decimals)).toFixed(decimals)
+            : cur.toLocaleString("pt-BR");
+          setVal(`${prefix}${formatted}${suffix}`);
+          if (t < 1) requestAnimationFrame(step);
+          else setVal(target);
+        };
+        requestAnimationFrame(step);
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { ref, val };
+}
+
+function StatCounter({ value, label }: { value: string; label: string }) {
+  const { ref, val } = useCounter(value);
+  return (
+    <div className="lp-trust-stat" ref={ref}>
+      <strong>{val}</strong>
+      <span>{label}</span>
+    </div>
   );
 }
 
@@ -50,7 +119,7 @@ export function TrustProofSection() {
 
         <div className="lp-trust-proof__logos">
           {brands.map((b) => (
-            <div key={b.name} className="lp-trust-logo">
+            <div key={b.name} className="lp-trust-logo lp-spotlight-card">
               <span className="lp-trust-logo__mark" />
               <div className="lp-trust-logo__info">
                 <strong>{b.name}</strong>
@@ -61,27 +130,16 @@ export function TrustProofSection() {
         </div>
 
         <div className="lp-trust-stats">
-          <div className="lp-trust-stat">
-            <strong>+1.8M</strong>
-            <span>Eventos computados/dia</span>
-          </div>
-          <div className="lp-trust-stat">
-            <strong>&lt; 14ms</strong>
-            <span>Tempo médio de coleta</span>
-          </div>
-          <div className="lp-trust-stat">
-            <strong>99.98%</strong>
-            <span>Disponibilidade SLA</span>
-          </div>
-          <div className="lp-trust-stat">
-            <strong>100%</strong>
-            <span>LGPD nativa (0 cookies)</span>
-          </div>
+          <StatCounter value="+1.8M" label="Eventos computados/dia" />
+          <StatCounter value="< 14ms" label="Tempo médio de coleta" />
+          <StatCounter value="99.98%" label="Disponibilidade SLA" />
+          <StatCounter value="100%" label="LGPD nativa (0 cookies)" />
         </div>
       </div>
     </section>
   );
 }
+
 
 export function ProblemSolutionBridge() {
   const [sliderPos, setSliderPos] = useState(50);
@@ -372,7 +430,7 @@ export function ProductStory() {
       <div className="lp-shell">
         <div className="lp-section-head lp-reveal">
           <span>Do acesso à decisão</span>
-          <h2>Entenda o que acontece<br />no seu site.</h2>
+          <h2>Entenda <span className="lp-shimmer-word">o que acontece</span><br />no seu site.</h2>
           <p>Uma apresentação contínua dos sinais que o Kubo já acompanha — sem inventar métricas, integrações ou promessas.</p>
         </div>
 
@@ -446,7 +504,7 @@ export function RealtimeSection() {
       <div className="lp-shell lp-realtime__grid">
         <div className="lp-realtime__copy lp-reveal">
           <span className="lp-kicker"><span className="lp-live-dot" /> Ao vivo</span>
-          <h2>O site não para.<br />Seu painel também não.</h2>
+          <h2>O site não para.<br /><span className="lp-shimmer-word">Seu painel também não.</span></h2>
           <p>Veja visitantes ativos, páginas em visualização, origem e eventos recentes sem recarregar a página.</p>
           <div className="lp-realtime__actions">
             <Link to="/login" className="lp-text-link">Explorar o Kubo Live <ArrowRight /></Link>
@@ -968,6 +1026,12 @@ function InteractiveFeaturesShowcase({ onOpenReportPreview }: { onOpenReportPrev
 export function CapabilitiesSection() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  };
+
   const capabilities = [
     { icon: MousePointerClick, className: "lp-capability--wide lp-spotlight-card", title: "Motor de Conversão de WhatsApp", copy: "Detecte automaticamente cada clique em links de WhatsApp, telefones e formulários no seu site, sem mexer no código do botão.", visual: <WhatsAppDemo /> },
     { icon: Flame, className: "lp-capability--heat lp-spotlight-card", title: "Mapas de Calor 24x7", copy: "Visualize padrões de atividade por dia e horário para saber exatamente quando seu público navega e decide.", visual: <HeatCells /> },
@@ -991,7 +1055,11 @@ export function CapabilitiesSection() {
 
         <div className="lp-capability-grid">
           {capabilities.map(({ icon: Icon, className, title, copy, visual }) => (
-            <article className={`lp-capability lp-reveal ${className}`} key={title}>
+            <article
+              className={`lp-capability lp-reveal ${className}`}
+              key={title}
+              onMouseMove={handleCardMouseMove}
+            >
               <div className="lp-capability__icon"><Icon /></div>
               <h3>{title}</h3><p>{copy}</p>{visual}
             </article>
@@ -1002,6 +1070,7 @@ export function CapabilitiesSection() {
     </section>
   );
 }
+
 
 function WhatsAppDemo() {
   const [leadsCount, setLeadsCount] = useState(486);
@@ -1987,7 +2056,10 @@ export function FinalCTA() {
       <div className="lp-shell lp-final__inner lp-reveal">
         <div className="lp-final__signal"><span /><span /><span /><i /></div>
         <span>Seu site já está gerando sinais.</span>
-        <h2>Transforme visitas<br />em decisões.</h2>
+        <h2>
+          Transforme visitas<br />
+          <span className="lp-aurora-text">em decisões.</span>
+        </h2>
         <p>Instale o Kubo em 2 minutos, acompanhe os primeiros acessos e descubra o que realmente merece a sua atenção.</p>
         <Link to="/login" className="lp-feixe-btn" aria-label="Começar 7 dias grátis">
           <span className="lp-feixe-border" aria-hidden="true" />
@@ -1997,6 +2069,7 @@ export function FinalCTA() {
     </section>
   );
 }
+
 
 export function PremiumFooter() {
   return (

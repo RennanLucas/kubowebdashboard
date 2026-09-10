@@ -12,6 +12,46 @@ const navigation = [
   ["Dúvidas", "#faq"],
 ];
 
+/* ─── Cursor Glow — follows pointer across entire page ─── */
+export function CursorGlow() {
+  const orbRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (matchMedia("(pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    let tx = -1000, ty = -1000;
+    const onMove = (e: PointerEvent) => {
+      tx = e.clientX; ty = e.clientY;
+    };
+    const tick = () => {
+      if (orbRef.current) {
+        orbRef.current.style.left = tx + "px";
+        orbRef.current.style.top = ty + "px";
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    raf = requestAnimationFrame(tick);
+    return () => { window.removeEventListener("pointermove", onMove); cancelAnimationFrame(raf); };
+  }, []);
+
+  return (
+    <div className="lp-cursor-glow" aria-hidden="true">
+      <div ref={orbRef} className="lp-cursor-glow__orb" />
+    </div>
+  );
+}
+
+/* ─── Floating Particles ─── */
+const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
+  x: Math.round(Math.random() * 100),
+  y: Math.round(55 + Math.random() * 35),
+  sz: `${1.5 + Math.random() * 2.5}px`,
+  dur: `${7 + Math.random() * 9}s`,
+  del: `${Math.random() * 8}s`,
+  opacity: 0.3 + Math.random() * 0.4,
+}));
+
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -61,8 +101,36 @@ export function LandingNav() {
   );
 }
 
+/* ─── Typing Effect Hook ─── */
+function useTyping(phrases: string[], speed = 65, pause = 2200) {
+  const [displayed, setDisplayed] = useState("");
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = phrases[phraseIdx];
+    let timeout: ReturnType<typeof setTimeout>;
+    if (!deleting && charIdx < current.length) {
+      timeout = setTimeout(() => setCharIdx(i => i + 1), speed);
+    } else if (!deleting && charIdx === current.length) {
+      timeout = setTimeout(() => setDeleting(true), pause);
+    } else if (deleting && charIdx > 0) {
+      timeout = setTimeout(() => setCharIdx(i => i - 1), speed / 2.5);
+    } else {
+      setDeleting(false);
+      setPhraseIdx(i => (i + 1) % phrases.length);
+    }
+    setDisplayed(current.slice(0, charIdx));
+    return () => clearTimeout(timeout);
+  }, [charIdx, deleting, phraseIdx, phrases, speed, pause]);
+
+  return displayed;
+}
+
 export function LandingHero() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const typedText = useTyping(["do primeiro clique", "de cada visitante", "de cada conversão", "em tempo real"]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -86,12 +154,45 @@ export function LandingHero() {
 
   return (
     <section id="hero" className="lp-hero">
+      {/* Background elements */}
       <div className="lp-hero__grid" aria-hidden="true" />
       <div className="lp-hero__light" aria-hidden="true" />
+      <div className="lp-hero__blob" aria-hidden="true" />
+      <div className="lp-hero__blob-2" aria-hidden="true" />
+
+      {/* Floating particles */}
+      <div className="lp-particles" aria-hidden="true">
+        {PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="lp-particle"
+            style={{
+              "--x": `${p.x}%`,
+              "--y": `${p.y}%`,
+              "--sz": p.sz,
+              "--dur": p.dur,
+              "--del": p.del,
+              opacity: p.opacity,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
       <div className="lp-shell lp-hero__content">
-        <div className="lp-eyebrow lp-enter lp-enter--1"><span className="lp-live-dot" /> Analytics claro, do primeiro acesso à conversão</div>
+        {/* Eyebrow with typing effect */}
+        <div className="lp-eyebrow lp-enter lp-enter--1">
+          <span className="lp-live-dot" />
+          Analytics claro,{" "}
+          <span style={{ color: "#93c5fd", minWidth: "140px", display: "inline-block" }}>
+            {typedText}
+            <span className="lp-typing-cursor" aria-hidden="true" />
+          </span>
+        </div>
+
+        {/* Headline with animated gradient */}
         <h1 className="lp-enter lp-enter--2">
-          Veja o que acontece.<br />
+          <span className="lp-grad-text">Veja o que acontece.</span>
+          <br />
           <span className="lp-underline-wrap">
             Decida o que muda.
             <svg className="lp-underline-svg" viewBox="0 0 280 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -106,7 +207,9 @@ export function LandingHero() {
             </svg>
           </span>
         </h1>
+
         <p className="lp-enter lp-enter--3">Visitantes, páginas, fontes, conversões e insights em uma leitura simples — para você entender seu site sem depender de planilhas.</p>
+
         <div className="lp-hero__actions lp-enter lp-enter--4">
           <Link to="/login" className="lp-feixe-btn" aria-label="Começar 7 dias grátis">
             <span className="lp-feixe-border" aria-hidden="true" />
@@ -114,6 +217,7 @@ export function LandingHero() {
           </Link>
           <a href="#product-story" className="lp-button lp-button--ghost"><Play size={15} fill="currentColor" /> Ver o produto</a>
         </div>
+
         <div className="lp-hero__trust lp-enter lp-enter--4" aria-label="Benefícios do plano">
           <span>Sem cartão para começar</span><i />
           <span>Instalação em minutos</span><i />

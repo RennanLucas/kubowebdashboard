@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
+import { CursorGlow, LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
 import {
   CapabilitiesSection, CompatibilitySection, ComparisonSection, FinalCTA,
   FloatingWhatsAppTester, InsightsSection, LandingFAQ, PremiumFooter,
@@ -50,6 +50,7 @@ const Landing = () => {
       </Helmet>
       
       <div className="lp-root selection:bg-blue-500/30 selection:text-white">
+        <CursorGlow />
         <LandingNav />
         
         <main>
