@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /^\/_kubo\//, /\/functions\//],
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /^\/kubo-bridge\//, /\/functions\//],
         globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

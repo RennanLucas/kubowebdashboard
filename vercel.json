@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/_kubo/gateway/:path*",
+      "source": "/kubo-bridge/:path*",
       "headers": [
         { "key": "Cache-Control", "value": "private, no-store" },
         { "key": "CDN-Cache-Control", "value": "no-store" }
@@ -46,7 +46,7 @@
   ],
   "rewrites": [
     {
-      "source": "/_kubo/gateway/:path*",
+      "source": "/kubo-bridge/:path*",
       "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/:path*"
     },
     {

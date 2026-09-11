@@ -11,7 +11,7 @@ describe("auth transport", () => {
     const transport = vi.fn().mockResolvedValue(new Response("{}"));
     const options = { method: "POST", body: "test-body", headers: { apikey: "test-key" } };
     await createAuthFetch(origin, "kubowebdashboard.vercel.app", transport)(`${origin}/auth/v1/token?grant_type=password`, options);
-    expect(transport).toHaveBeenCalledWith(`${window.location.origin}/_kubo/gateway/token?grant_type=password`, options);
+    expect(transport).toHaveBeenCalledWith(`${window.location.origin}/kubo-bridge/token?grant_type=password`, options);
   });
   it.each(["localhost", "127.0.0.1", "[::1]"])("keeps local requests direct (%s)", async host => {
     const transport = vi.fn(); const url = `${origin}/auth/v1/token`;

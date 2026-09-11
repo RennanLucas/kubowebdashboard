@@ -9,7 +9,7 @@ export function createAuthFetch(supabaseUrl: string, hostname: string, transport
     if (!local && url.origin === "https://gitzmynfamubetgujtmm.supabase.co" && url.origin === new URL(supabaseUrl).origin && url.pathname.startsWith("/auth/v1/")) {
       // Avoid `/api` and authentication-related path names: privacy extensions
       // can block those patterns before a request reaches our own deployment.
-      const target = `${window.location.origin}/_kubo/gateway/${url.pathname.slice("/auth/v1/".length)}${url.search}`;
+      const target = `${window.location.origin}/kubo-bridge/${url.pathname.slice("/auth/v1/".length)}${url.search}`;
       return transport(input instanceof Request ? new Request(target, input) : target, init);
     }
     return transport(input, init);
