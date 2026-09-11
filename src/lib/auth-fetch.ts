@@ -7,7 +7,9 @@ export function createAuthFetch(supabaseUrl: string, hostname: string, transport
     const url = new URL(source);
     // This rewrite targets production. Never send staging/preview-project credentials to it.
     if (!local && url.origin === "https://gitzmynfamubetgujtmm.supabase.co" && url.origin === new URL(supabaseUrl).origin && url.pathname.startsWith("/auth/v1/")) {
-      const target = `${window.location.origin}/api/auth/${url.pathname.slice("/auth/v1/".length)}${url.search}`;
+      // Avoid the generic `/api/auth` path: privacy extensions commonly block
+      // that pattern before a request reaches our own Vercel deployment.
+      const target = `${window.location.origin}/api/kubo-session/${url.pathname.slice("/auth/v1/".length)}${url.search}`;
       return transport(input instanceof Request ? new Request(target, input) : target, init);
     }
     return transport(input, init);
