@@ -46,8 +46,56 @@
   ],
   "rewrites": [
     {
-      "source": "/kubo-bridge/:path*",
-      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/:path*"
+      "source": "/kubo-bridge/access",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/token?grant_type=password"
+    },
+    {
+      "source": "/kubo-bridge/renew",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/token?grant_type=refresh_token"
+    },
+    {
+      "source": "/kubo-bridge/complete",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/token?grant_type=pkce"
+    },
+    {
+      "source": "/kubo-bridge/federate",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/token?grant_type=id_token"
+    },
+    {
+      "source": "/kubo-bridge/exchange",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/token"
+    },
+    {
+      "source": "/kubo-bridge/create",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/signup"
+    },
+    {
+      "source": "/kubo-bridge/message",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/otp"
+    },
+    {
+      "source": "/kubo-bridge/confirm",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/verify"
+    },
+    {
+      "source": "/kubo-bridge/assist",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/recover"
+    },
+    {
+      "source": "/kubo-bridge/profile",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/user"
+    },
+    {
+      "source": "/kubo-bridge/exit",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/logout"
+    },
+    {
+      "source": "/kubo-bridge/repeat",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/resend"
+    },
+    {
+      "source": "/kubo-bridge/config",
+      "destination": "https://gitzmynfamubetgujtmm.supabase.co/auth/v1/settings"
     },
     {
       "source": "/api/edge/:path*",

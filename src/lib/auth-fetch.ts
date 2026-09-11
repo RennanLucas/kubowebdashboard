@@ -7,9 +7,39 @@ export function createAuthFetch(supabaseUrl: string, hostname: string, transport
     const url = new URL(source);
     // This rewrite targets production. Never send staging/preview-project credentials to it.
     if (!local && url.origin === "https://gitzmynfamubetgujtmm.supabase.co" && url.origin === new URL(supabaseUrl).origin && url.pathname.startsWith("/auth/v1/")) {
-      // Avoid `/api` and authentication-related path names: privacy extensions
-      // can block those patterns before a request reaches our own deployment.
-      const target = `${window.location.origin}/kubo-bridge/${url.pathname.slice("/auth/v1/".length)}${url.search}`;
+      // Keep authentication terms out of the browser-visible URL. Some privacy
+      // extensions block paths such as `/token?grant_type=password` before the
+      // request reaches our deployment. Vercel maps these neutral aliases back
+      // to the corresponding Supabase Auth endpoints.
+      const endpoint = url.pathname.slice("/auth/v1/".length);
+      const grantType = url.searchParams.get("grant_type");
+      const aliases: Record<string, string> = {
+        signup: "create",
+        otp: "message",
+        verify: "confirm",
+        recover: "assist",
+        user: "profile",
+        logout: "exit",
+        resend: "repeat",
+        settings: "config",
+      };
+      const tokenAliases: Record<string, string> = {
+        password: "access",
+        refresh_token: "renew",
+        pkce: "complete",
+        id_token: "federate",
+      };
+      const alias = endpoint === "token"
+        ? (tokenAliases[grantType ?? ""] ?? "exchange")
+        : aliases[endpoint];
+
+      if (!alias) return transport(input, init);
+
+      const safeQuery = new URLSearchParams(url.searchParams);
+      safeQuery.delete("grant_type");
+      const serializedQuery = safeQuery.toString();
+      const query = serializedQuery ? `?${serializedQuery}` : "";
+      const target = `${window.location.origin}/kubo-bridge/${alias}${query}`;
       return transport(input instanceof Request ? new Request(target, input) : target, init);
     }
     return transport(input, init);

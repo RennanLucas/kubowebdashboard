@@ -11,7 +11,22 @@ describe("auth transport", () => {
     const transport = vi.fn().mockResolvedValue(new Response("{}"));
     const options = { method: "POST", body: "test-body", headers: { apikey: "test-key" } };
     await createAuthFetch(origin, "kubowebdashboard.vercel.app", transport)(`${origin}/auth/v1/token?grant_type=password`, options);
-    expect(transport).toHaveBeenCalledWith(`${window.location.origin}/kubo-bridge/token?grant_type=password`, options);
+    expect(transport).toHaveBeenCalledWith(`${window.location.origin}/kubo-bridge/access`, options);
+  });
+  it.each([
+    ["token?grant_type=refresh_token", "renew"],
+    ["token?grant_type=pkce", "complete"],
+    ["signup", "create"],
+    ["otp", "message"],
+    ["verify", "confirm"],
+    ["recover", "assist"],
+    ["user", "profile"],
+    ["logout", "exit"],
+    ["resend", "repeat"],
+  ])("uses a neutral hosted alias for %s", async (endpoint, alias) => {
+    const transport = vi.fn().mockResolvedValue(new Response());
+    await createAuthFetch(origin, "kubowebdashboard.vercel.app", transport)(`${origin}/auth/v1/${endpoint}`);
+    expect(transport).toHaveBeenCalledWith(`${window.location.origin}/kubo-bridge/${alias}`, undefined);
   });
   it.each(["localhost", "127.0.0.1", "[::1]"])("keeps local requests direct (%s)", async host => {
     const transport = vi.fn(); const url = `${origin}/auth/v1/token`;
