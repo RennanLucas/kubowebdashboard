@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { usePlans } from "@/hooks/usePlans";
 import { ProductDashboard } from "./ProductDashboard";
+import { installationExamples } from "@/lib/installation-examples";
 
 const storySteps = [
   { kicker: "01 · Visão geral", title: "O pulso do seu site em uma tela.", copy: "Visitantes, visualizações, sessões, leads e conversão entram em contexto, com comparação de período e leitura por projeto.", stat: "12.842", label: "visitantes no período" },
@@ -1582,18 +1583,34 @@ export function TestimonialsSection() {
 export function InteractiveSnippet() {
   const [tab, setTab] = useState<"html" | "wordpress" | "nextjs" | "gtm">("html");
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const copyVersion = useRef(0);
+  const snippets = installationExamples(import.meta.env.VITE_SUPABASE_URL);
 
-  const snippets = {
-    html: `<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
-    wordpress: `<!-- Cole no functions.php ou no campo de Cabeçalho do seu tema -->\n<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
-    nextjs: `// No arquivo app/layout.tsx ou pages/_app.tsx:\nimport Script from "next/script";\n\n<Script\n  src="https://kuboweb.com.br/k.js"\n  data-site="kw_live_839f2"\n  strategy="afterInteractive"\n/>`,
-    gtm: `<!-- Tag HTML Personalizado no Tag Manager (Acionador: All Pages) -->\n<script defer src="https://kuboweb.com.br/k.js" data-site="kw_live_839f2"></script>`,
-  };
+  useEffect(() => {
+    copyVersion.current += 1;
+    setCopied(false);
+    setCopyError(false);
+    return () => { copyVersion.current += 1; };
+  }, [tab]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(snippets[tab]);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 2500);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  const handleCopy = async () => {
+    if (!snippets) return;
+    const version = ++copyVersion.current;
+    setCopied(false);
+    setCopyError(false);
+    try {
+      await navigator.clipboard.writeText(snippets[tab]);
+      if (version === copyVersion.current) setCopied(true);
+    } catch {
+      if (version === copyVersion.current) setCopyError(true);
+    }
   };
 
   return (
@@ -1641,6 +1658,7 @@ export function InteractiveSnippet() {
           onClick={handleCopy}
           className={`lp-terminal__copy-btn ${copied ? "is-copied" : ""}`}
           aria-label="Copiar código de instalação"
+          disabled={!snippets}
         >
           {copied ? (
             <>
@@ -1658,19 +1676,20 @@ export function InteractiveSnippet() {
 
       <div className="lp-terminal__body">
         <pre className="lp-terminal__code">
-          <code>{snippets[tab]}</code>
+          <code>{snippets?.[tab] ?? "Abra Configurações no painel para obter o código de instalação do seu projeto."}</code>
         </pre>
+        <p>Exemplo de instalação: substitua SEU_PROJECT_ID pelo ID do seu projeto em <Link to="/settings">Configurações</Link>.</p>
+        <p>Este exemplo aguarda consentimento. Depois que o script carregar, conecte os botões do seu banner: <code>window.kuboweb.consent(true)</code> ao aceitar Analytics e <code>window.kuboweb.consent(false)</code> ao recusar ou revogar. O banner não é criado automaticamente.</p>
+        <p role="status" aria-live="polite">{copyError ? "Não foi possível copiar. Selecione o código e copie manualmente." : copied ? "Código copiado. Substitua o ID antes de instalar." : ""}</p>
       </div>
 
       <div className="lp-terminal__footer">
         <span className="lp-terminal__badge">
-          <span className="lp-live-dot" /> Snippet ativo e assíncrono
+          <span className="lp-live-dot" /> Exemplo — requer configuração
         </span>
         <div className="lp-terminal__meta">
-          <span>Peso: <b>2.1 KB</b></span>
-          <span>Latência: <b>&lt; 15ms</b></span>
-          <span>Cookies: <b>Zero</b></span>
-          <span>PageSpeed: <b>100 / 100</b></span>
+          <span>Carregamento: <b>assíncrono</b></span>
+          <span>Consentimento: <b>obrigatório neste exemplo</b></span>
         </div>
       </div>
     </div>
@@ -1821,9 +1840,6 @@ const fallbackPro = {
 
 export function PremiumPricing() {
   const { plans, loading, error } = usePlans();
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
-
-  const isAnnual = billingPeriod === "annual";
 
   return (
     <section id="pricing" className="lp-pricing">
@@ -1833,24 +1849,6 @@ export function PremiumPricing() {
           <h2>Comece grátis.<br />Evolua quando fizer sentido.</h2>
           <p>Sem surpresas ou contratos de fidelidade. Teste o plano Pro completo por 7 dias grátis.</p>
 
-          <div className="lp-pricing__toggle-wrap">
-            <div className="lp-pricing__toggle" role="group" aria-label="Ciclo de faturamento">
-              <button
-                type="button"
-                className={billingPeriod === "monthly" ? "is-active" : ""}
-                onClick={() => setBillingPeriod("monthly")}
-              >
-                Mensal
-              </button>
-              <button
-                type="button"
-                className={billingPeriod === "annual" ? "is-active" : ""}
-                onClick={() => setBillingPeriod("annual")}
-              >
-                Anual <span className="lp-pricing__discount-pill">-20% OFF</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         <div className="lp-pricing__grid lp-reveal">
@@ -1873,11 +1871,6 @@ export function PremiumPricing() {
           )}
 
           {!loading && plans.map((plan) => {
-            const isPro = plan.name.toLowerCase().includes("pro") || plan.name === "Pro";
-            const displayPrice = isPro && isAnnual ? "R$ 39,90" : plan.price;
-            const subtext = isPro && isAnnual
-              ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano"
-              : "7 dias grátis — cancele a qualquer momento";
 
             return (
               <PricingCard
@@ -1886,12 +1879,12 @@ export function PremiumPricing() {
                 tierLabel="Completo"
                 badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
                 tagline={plan.tagline || fallbackPro.tagline}
-                price={displayPrice}
+                price={plan.price}
                 cadence={plan.cadence}
-                billingSubtext={subtext}
+                billingSubtext={plan.highlight}
                 featuresLabel="Tudo do Gratuito, mais:"
                 highlight={plan.highlight || fallbackPro.highlight}
-                features={plan.features && plan.features.length >= 7 ? plan.features : fallbackPro.features}
+                features={plan.features}
                 cta={plan.cta || "Começar 7 dias grátis"}
                 recommended={true}
                 disabled={!plan.enabled}
@@ -1902,8 +1895,10 @@ export function PremiumPricing() {
           {!loading && (error || plans.length === 0) && (
             <PricingCard
               {...fallbackPro}
-              price={isAnnual ? "R$ 39,90" : fallbackPro.price}
-              billingSubtext={isAnnual ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano" : "7 dias grátis — cancele a qualquer momento"}
+              price="Indisponível no momento"
+              cadence=""
+              billingSubtext="Não foi possível consultar o preço atual. Confira novamente em instantes."
+              disabled
               tierLabel="Completo"
               badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
               featuresLabel="Tudo do Gratuito, mais:"

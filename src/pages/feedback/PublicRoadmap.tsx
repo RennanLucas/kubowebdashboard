@@ -3,8 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, Map } from "lucide-react";
+import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string, color: string, icon: string }> = {
+  backlog: { label: "Ideias", color: "bg-muted text-foreground", icon: "" },
   planned: { label: "Próximos passos", color: "bg-purple-100 text-purple-800", icon: "🟣" },
   in_development: { label: "Em desenvolvimento", color: "bg-orange-100 text-orange-800", icon: "🟠" },
   testing: { label: "Em teste", color: "bg-blue-100 text-blue-800", icon: "🔵" },
@@ -16,7 +18,7 @@ export function PublicRoadmap() {
   const orgId = activeOrganization?.id;
   const queryClient = useQueryClient();
 
-  const { data: roadmapItems, isLoading } = useQuery({
+  const { data: roadmapItems, isLoading, isError, refetch } = useQuery({
     queryKey: ["roadmap-public"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,17 +54,20 @@ export function PublicRoadmap() {
       if (!orgId) throw new Error("Org not found");
       
       if (isVoted) {
-        await supabase.from("roadmap_votes" as any).delete()
+        const { error } = await supabase.from("roadmap_votes" as any).delete()
           .eq("roadmap_item_id", itemId)
           .eq("organization_id", orgId);
+        if (error) throw error;
       } else {
-        await supabase.from("roadmap_votes" as any).insert({
+        const { error } = await supabase.from("roadmap_votes" as any).insert({
           roadmap_item_id: itemId,
           organization_id: orgId,
           user_id: (await supabase.auth.getUser()).data.user?.id
         });
+        if (error) throw error;
       }
     },
+    onError: () => toast.error("Não foi possível registrar seu voto. Tente novamente."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roadmap-public"] });
       queryClient.invalidateQueries({ queryKey: ["my-roadmap-votes", orgId] });
@@ -79,6 +84,8 @@ export function PublicRoadmap() {
     );
   }
 
+  if (isError) return <div role="alert"><p>Não foi possível carregar o roadmap.</p><Button onClick={() => refetch()}>Tentar novamente</Button></div>;
+
   if (!roadmapItems || roadmapItems.length === 0) {
     return (
       <div className="text-center py-24 bg-muted/30 rounded-2xl border border-border">
@@ -91,6 +98,7 @@ export function PublicRoadmap() {
 
   // Group by status
   const groups: Record<string, any[]> = {
+    backlog: [],
     published: [],
     testing: [],
     in_development: [],

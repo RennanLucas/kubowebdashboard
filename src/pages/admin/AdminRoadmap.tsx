@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RoadmapBoard } from "@/components/admin/RoadmapBoard";
 
 export function AdminRoadmap() {
   return (
@@ -25,10 +26,7 @@ export function AdminRoadmap() {
           <Link to="/admin/roadmap" className="pb-2 border-b-2 border-primary text-foreground font-medium">Roadmap</Link>
         </div>
 
-        <div className="p-12 text-center text-muted-foreground bg-card border rounded-xl">
-          <h2 className="text-xl font-bold mb-2">Roadmap Kanban</h2>
-          <p>Esta área está em construção e permitirá agrupar feedbacks em itens de Roadmap.</p>
-        </div>
+        <RoadmapBoard />
       </div>
     </div>
   );

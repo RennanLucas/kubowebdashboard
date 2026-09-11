@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDashboardAnalytics } from "@/hooks/useDashboardData";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
@@ -49,7 +50,8 @@ export default function Insights() {
   const { user } = useAuth();
   const { activeOrganization } = useOrganization();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
-  const { data, isLoading, error } = useDashboardAnalytics(periodDays);
+  const { selectedProjectId } = useSelectedProject();
+  const { data, isLoading, error, refetch } = useDashboardAnalytics(periodDays, selectedProjectId);
   
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
@@ -407,7 +409,7 @@ export default function Insights() {
   };
 
   const fetchHourly = async (): Promise<HourlyPoint[]> => {
-    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id;
+    const projectId = selectedProjectId;
     if (!projectId) return [];
     const since = new Date();
     since.setDate(since.getDate() - periodDays);
@@ -435,7 +437,8 @@ export default function Insights() {
 
     if (append) setHistoryLoadingMore(true);
     else setHistoryLoading(true);
-    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
+    const projectId = selectedProjectId;
+    if (!projectId) { setHistory([]); setHistoryLoading(false); return; }
 
     let query = supabase
       .from("ai_insights")
@@ -467,6 +470,10 @@ export default function Insights() {
   };
 
   const generate = async () => {
+    if (!selectedProjectId || !data || error || isLoading) {
+      toast.error("Selecione um projeto e aguarde o carregamento dos dados antes de gerar a análise.");
+      return;
+    }
     setGenerating(true);
     setDetailsLoading(true);
     setDetailsError(null);
@@ -524,7 +531,7 @@ export default function Insights() {
       setDetailsLoading(false);
 
       if (user) {
-        const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
+        const projectId = selectedProjectId;
         const { data: insertedInsight, error: insertError } = await supabase
           .from("ai_insights")
           .insert({
@@ -574,12 +581,12 @@ export default function Insights() {
     setOpenSources({});
     setVisibleSourceCounts({});
     setHistory([]);
-  }, [activeOrganization?.id, data?.client?.project?.id]);
+  }, [activeOrganization?.id, selectedProjectId]);
 
   useEffect(() => {
-    if (!user || !data) return;
+    if (!user || !selectedProjectId) return;
     loadHistory();
-  }, [user?.id, data?.client?.project?.id]);
+  }, [user?.id, selectedProjectId]);
 
   useEffect(() => {
     if (!compareInsightId || !analysis) {
@@ -744,12 +751,19 @@ export default function Insights() {
           </div>
         )}
 
-        {!data?.metrics?.length && !isLoading && (
+        {error && (
+          <Card className="p-6 mt-4" role="alert">
+            <p>Não foi possível carregar os dados deste projeto.</p>
+            <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
+          </Card>
+        )}
+        {!selectedProjectId && <p role="status">Selecione um projeto no menu superior para consultar seus insights.</p>}
+        {selectedProjectId && data && !error && !data.metrics?.length && !isLoading && (
           <Card className="p-6 mt-4 bg-warning/5 border-warning/30">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
               <div className="text-sm text-foreground">
-                Ainda não há dados suficientes para análise. Instale o tracking primeiro em Configurações.
+                Não há dados no período selecionado. Experimente outro período ou verifique a instalação em Configurações.
               </div>
             </div>
           </Card>

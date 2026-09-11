@@ -23,6 +23,9 @@ type AuthStep = "form" | "otp_signup" | "otp_magiclink" | "otp_recovery" | "rese
 const describeEmailError = (error: any, fallback: string): string => {
   const raw = String(error?.message ?? "");
   const low = raw.toLowerCase();
+  if (/failed to fetch|networkerror|load failed|failed to send/i.test(raw)) {
+    return "Não foi possível conectar ao serviço de login. Verifique sua conexão e se alguma extensão está bloqueando o Kubo. Sua senha não foi validada; tente novamente.";
+  }
 
   if (low.includes("error sending") || low.includes("smtp")) {
     return "Não conseguimos enviar o email agora (falha no nosso serviço de envio). Entre com email e senha ou tente novamente em alguns minutos.";

@@ -42,7 +42,7 @@ test.describe('Landing premium', () => {
     }
   });
 
-  test('interage com o comparador split, playground de recursos e stacking deck', async ({ page }) => {
+  test('interage com o comparador split, playground de recursos e stacking deck', async ({ page }, testInfo) => {
     await page.goto('/');
 
     // 1. Testa o Comparador Split
@@ -69,15 +69,15 @@ test.describe('Landing premium', () => {
     // Salva screenshots para verificação visual
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(400);
-    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/hero-interactive.png', fullPage: false });
+    await page.screenshot({ path: testInfo.outputPath('hero-interactive.png'), fullPage: false });
 
     await splitSection.scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
-    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/split-slider.png', fullPage: false });
+    await page.screenshot({ path: testInfo.outputPath('split-slider.png'), fullPage: false });
 
     const setupSection = page.locator('.lp-setup');
     await setupSection.scrollIntoViewIfNeeded();
     await page.waitForTimeout(400);
-    await page.screenshot({ path: 'C:/Users/renna/.gemini/antigravity/brain/d94a23df-4b55-4b63-94ac-5372b696e05f/stacking-deck.png', fullPage: false });
+    await page.screenshot({ path: testInfo.outputPath('stacking-deck.png'), fullPage: false });
   });
 });
