@@ -1,7 +1,7 @@
 // Shared design tokens for all KUBOWEB auth emails
 // Brand: navy/dark professional theme
 
-export const LOGO_URL = 'https://mgiwqgmgipyysbgmhyrh.supabase.co/storage/v1/object/public/email-assets/logo-kuboweb.png'
+export const LOGO_URL = 'https://gitzmynfamubetgujtmm.supabase.co/storage/v1/object/public/email-assets/logo-kuboweb.png'
 export const BRAND_NAME = 'KUBOWEB'
 export const BRAND_TAGLINE = 'Performance e leads pro seu site'
 

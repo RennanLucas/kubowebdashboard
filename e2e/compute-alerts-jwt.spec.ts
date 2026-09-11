@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://mgiwqgmgipyysbgmhyrh.supabase.co";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://gitzmynfamubetgujtmm.supabase.co";
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/compute-alerts`;
 
 test.describe("compute-alerts JWT validation", () => {

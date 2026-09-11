@@ -117,7 +117,6 @@ function EventBadge({ name, color, angle, index }: EventBadgeProps) {
         color={color}
         anchorX="center"
         anchorY="middle"
-        fontWeight="bold"
       >
         {name}
       </Text>

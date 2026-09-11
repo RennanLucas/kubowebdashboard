@@ -5,9 +5,9 @@ import { test, expect } from '@playwright/test';
 // em que a Edge Function do Supabase de fato está em execução (Local ou Staging).
 test.describe('Contract Test - Tracker Script Edge Function', () => {
   test('Serves the tracker script via Edge Function', async ({ request }) => {
-    // Utiliza variável injetada, caso contrário assume que é o Staging
-    const baseUrl = process.env.VITE_SUPABASE_URL || 'https://azboavoyuawfqutsfpse.supabase.co';
-    const trackerUrl = `${baseUrl}/functions/v1/tracker-script?pid=contract-test-pid`;
+    // Utiliza variável injetada, caso contrário assume que é a Produção
+    const baseUrl = process.env.VITE_SUPABASE_URL || 'https://gitzmynfamubetgujtmm.supabase.co';
+    const trackerUrl = `${baseUrl}/functions/v1/tracker-script?pid=12345678-1234-1234-1234-123456789abc`;
     
     const response = await request.get(trackerUrl);
     

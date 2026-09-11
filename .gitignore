@@ -45,3 +45,4 @@ test-xss-tracker.html
 .env.e2e
 
 .vercel
+.worktrees/
