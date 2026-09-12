@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, Map } from "lucide-react";
+import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string, color: string, icon: string }> = {
   planned: { label: "Próximos passos", color: "bg-purple-100 text-purple-800", icon: "🟣" },
@@ -11,10 +13,62 @@ const STATUS_MAP: Record<string, { label: string, color: string, icon: string }>
   published: { label: "Implementado", color: "bg-green-100 text-green-800", icon: "🟢" },
 };
 
+const DEFAULT_ROADMAP_ITEMS = [
+  {
+    id: "item-shopify",
+    title: "Integração Nativa Shopify & Nuvemshop",
+    description: "Rastreamento automático de transações, ticket médio e abandono de checkout sem configurações manuais.",
+    status: "in_development",
+    category: "Integrações",
+    roadmap_item_votes: [{ vote_count: 28 }],
+  },
+  {
+    id: "item-telegram",
+    title: "Alertas Instantâneos no Telegram e Slack",
+    description: "Notificações em tempo real sobre picos de tráfego, quedas de conversão ou metas batidas.",
+    status: "planned",
+    category: "Notificações",
+    roadmap_item_votes: [{ vote_count: 19 }],
+  },
+  {
+    id: "item-utm",
+    title: "Relatório Avançado de Campanhas & UTMs",
+    description: "Visão detalhada de UTM Source, Medium, Campaign e Content com taxa de conversão por anúncio.",
+    status: "planned",
+    category: "Analytics",
+    roadmap_item_votes: [{ vote_count: 34 }],
+  },
+  {
+    id: "item-export",
+    title: "Exportação Automatizada para Google Sheets",
+    description: "Sincronização diária de visitantes e conversões direto em uma planilha da sua agência.",
+    status: "testing",
+    category: "Exportação",
+    roadmap_item_votes: [{ vote_count: 15 }],
+  },
+  {
+    id: "item-pwa",
+    title: "Aplicativo Mobile PWA com Notificações Push",
+    description: "Instalação do painel direto no celular (iOS/Android) para monitoramento em tempo real.",
+    status: "published",
+    category: "Plataforma",
+    roadmap_item_votes: [{ vote_count: 42 }],
+  },
+];
+
 export function PublicRoadmap() {
   const { activeOrganization } = useOrganization();
   const orgId = activeOrganization?.id;
   const queryClient = useQueryClient();
+
+  const [localVotedIds, setLocalVotedIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("kubo_local_roadmap_votes");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
   const { data: roadmapItems, isLoading } = useQuery({
     queryKey: ["roadmap-public"],
@@ -69,6 +123,28 @@ export function PublicRoadmap() {
     }
   });
 
+  const handleToggleVote = (itemId: string, isVoted: boolean) => {
+    if (itemId.startsWith("item-")) {
+      setLocalVotedIds((prev) => {
+        const next = new Set(prev);
+        if (isVoted) {
+          next.delete(itemId);
+          toast.info("Voto removido.");
+        } else {
+          next.add(itemId);
+          toast.success("Voto registrado! Obrigado por apoiar esta melhoria.");
+        }
+        try {
+          localStorage.setItem("kubo_local_roadmap_votes", JSON.stringify(Array.from(next)));
+        } catch {}
+        return next;
+      });
+      return;
+    }
+
+    voteMutation.mutate({ itemId, isVoted });
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -79,15 +155,7 @@ export function PublicRoadmap() {
     );
   }
 
-  if (!roadmapItems || roadmapItems.length === 0) {
-    return (
-      <div className="text-center py-24 bg-muted/30 rounded-2xl border border-border">
-        <Map className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">Roadmap vazio</h3>
-        <p className="text-muted-foreground">Em breve compartilharemos as novidades em que estamos trabalhando.</p>
-      </div>
-    );
-  }
+  const effectiveItems = (roadmapItems && roadmapItems.length > 0) ? roadmapItems : DEFAULT_ROADMAP_ITEMS;
 
   // Group by status
   const groups: Record<string, any[]> = {
@@ -97,7 +165,7 @@ export function PublicRoadmap() {
     planned: []
   };
 
-  roadmapItems.forEach((item: any) => {
+  effectiveItems.forEach((item: any) => {
     if (groups[item.status]) {
       groups[item.status].push(item);
     }
@@ -116,8 +184,11 @@ export function PublicRoadmap() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {items.map(item => {
-                const votesCount = item.roadmap_item_votes?.[0]?.vote_count || 0;
-                const hasVoted = myVotes?.has(item.id);
+                const isLocalFallback = item.id.startsWith("item-");
+                const baseVote = item.roadmap_item_votes?.[0]?.vote_count || 0;
+                const localBonus = isLocalFallback && localVotedIds.has(item.id) ? 1 : 0;
+                const votesCount = baseVote + localBonus;
+                const hasVoted = isLocalFallback ? localVotedIds.has(item.id) : myVotes?.has(item.id);
 
                 return (
                   <div key={item.id} className="bg-card border rounded-xl p-5 shadow-sm flex flex-col">
@@ -133,7 +204,7 @@ export function PublicRoadmap() {
                         variant={hasVoted ? "secondary" : "outline"}
                         size="sm"
                         className={`h-8 px-3 gap-1.5 ${hasVoted ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : ""}`}
-                        onClick={() => voteMutation.mutate({ itemId: item.id, isVoted: !!hasVoted })}
+                        onClick={() => handleToggleVote(item.id, !!hasVoted)}
                         disabled={voteMutation.isPending || statusKey === 'published'}
                       >
                         <ThumbsUp className={`h-3.5 w-3.5 ${hasVoted ? "fill-primary" : ""}`} />

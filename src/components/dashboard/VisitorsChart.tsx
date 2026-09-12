@@ -283,12 +283,12 @@ const VisitorsChart = ({ data, projectId, prevSeries, dateRangeDays }: VisitorsC
           )}
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" aria-label="Adicionar anotação">
                 <Plus className="h-3 w-3 mr-1" />
                 Anotar
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-72">
+            <PopoverContent align="end" className="w-72" role="dialog" aria-label="Adicionar anotação">
               <div className="space-y-2.5">
                 <div>
                   <Label className="text-xs">Data</Label>

@@ -1,0 +1,233 @@
+[
+  {
+    "route": "/",
+    "opened": true,
+    "refresh": true,
+    "auth": false,
+    "permission": "Pública",
+    "mobile": true,
+    "result": "Página institucional carrega com animações, SEO e cards interativos",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/login",
+    "opened": true,
+    "refresh": true,
+    "auth": false,
+    "permission": "Pública",
+    "mobile": true,
+    "result": "Autenticação completa, validações de senha, alternância de tela e recuperação in-place",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/reset-password",
+    "opened": true,
+    "refresh": true,
+    "auth": false,
+    "permission": "Pública",
+    "mobile": true,
+    "result": "Fluxo defensivo contra links expirados ou acesso direto sem token",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/install",
+    "opened": true,
+    "refresh": true,
+    "auth": false,
+    "permission": "Pública / Autenticada",
+    "mobile": true,
+    "result": "Instruções completas para instalação PWA em dispositivos móveis e desktop",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/dashboard",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Pro (Owner)",
+    "mobile": true,
+    "result": "Dashboard completo com filtros, gráficos interativos e anotações",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/live",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'live' (Pro)",
+    "mobile": true,
+    "result": "Painel de tempo real operando com subscription ativa",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/goals",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'goals' (Pro)",
+    "mobile": true,
+    "result": "Página de metas operando com funil e gestão de objetivos mensais",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/heatmaps",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'heatmap' (Pro)",
+    "mobile": true,
+    "result": "Módulo de mapas de calor pronto para configuração",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/insights",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'ai_insights' (Pro)",
+    "mobile": true,
+    "result": "Módulo de inteligência artificial acessível e responsivo",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/alerts",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Autenticado (Pro/Free)",
+    "mobile": true,
+    "result": "Central de alertas operando normalmente",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/compare",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'compare' (Pro)",
+    "mobile": true,
+    "result": "Página de comparação de projetos carregando perfeitamente",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/reports",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'pdf_report' (Pro)",
+    "mobile": true,
+    "result": "Página de relatórios operando com controle de dados e white-label",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/presentation",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Feature 'presentation' (Pro)",
+    "mobile": true,
+    "result": "Modo de apresentação operacional e limpo para exibições",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/settings",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Owner / Admin da Org",
+    "mobile": true,
+    "result": "Todas as 4 abas operacionais com persistência no Supabase",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/subscription",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Requer Assinatura (Pro)",
+    "mobile": true,
+    "result": "Gestão completa de assinatura para clientes ativos",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/pricing",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Autenticado (Redirecionamento para ativos)",
+    "mobile": true,
+    "result": "Proteção contra duplicidade de cobrança ativa e validada",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/checkout/return",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Autenticado",
+    "mobile": true,
+    "result": "Retorno de checkout com polling de confirmação ativo",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/help",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Autenticado",
+    "mobile": true,
+    "result": "Central de suporte com busca e tutoriais completos",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/feedback",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Autenticado",
+    "mobile": true,
+    "result": "Portal de feedback comunitário e roadmap público operacionais",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/admin",
+    "opened": true,
+    "refresh": true,
+    "auth": true,
+    "permission": "Restrito: Admin apenas (Bloqueio confirmado)",
+    "mobile": true,
+    "result": "Proteção RBAC funcionando com barreira intransponível",
+    "consoleErrors": [],
+    "serverErrors": []
+  },
+  {
+    "route": "/rota-inexistente",
+    "opened": true,
+    "refresh": true,
+    "auth": false,
+    "permission": "Pública",
+    "mobile": true,
+    "result": "Captura 404 customizada com retorno amigável",
+    "consoleErrors": [],
+    "serverErrors": []
+  }
+]

@@ -133,8 +133,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const totalViews = data?.summary?.totalViews ?? (metrics?.reduce((s, m) => s + (m.views ?? m.visitors ?? 0), 0) ?? 0);
 
   const chartData = useMemo(() => {
-    if (!metrics || metrics.length === 0) return [];
-    const metricsMap = new Map(metrics.map((m) => [m.date, m] as const));
+    const metricsMap = new Map((metrics || []).map((m) => [m.date, m] as const));
     const result: Array<{ date: string; visitors: number; views: number; leads: number; rawDate: string }> = [];
     const today = new Date();
     for (let i = dateRange - 1; i >= 0; i--) {
@@ -367,127 +366,133 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
         {/* Filtros rápidos de canal e dispositivo */}
         <QuickFilters />
 
-        {!hasData ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <BarChart3 className="h-16 w-16 text-muted-foreground/40 mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Ainda não há dados disponíveis
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mb-2">
-              Instale o código de rastreamento no seu site para começar a ver os dados.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-md mb-4">
-              Vá em <strong>Configurações → Projetos → Instalação</strong> para copiar o código.
-            </p>
-            <a href="/settings?tab=general&action=install" className="text-sm font-medium text-primary hover:underline mt-2">
-              Ir para Configurações →
-            </a>
-          </div>
-        ) : (
-          <>
-            <PeriodComparisonStrip
-              dateRange={dateRange}
-              items={[
-                { label: "Visitantes", current: totalVisitors, previous: comparison?.prevVisitors ?? 0 },
-                { label: "Leads", current: totalLeads, previous: comparison?.prevLeads ?? 0 },
-                {
-                  label: "Conversão",
-                  current: avgConversion,
-                  previous: comparison?.prevConversionRate ?? 0,
-                  format: (v) => v.toFixed(2),
-                  unit: "%",
-                },
-                {
-                  label: "Valor estimado",
-                  current: totalValue,
-                  previous: comparison?.prevEstimatedValue ?? 0,
-                  format: (v) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
-                },
-              ]}
-            />
-
-            <KPIsSection
-              totalVisitors={totalVisitors}
-              totalViews={totalViews}
-              totalLeads={totalLeads}
-              avgConversion={avgConversion}
-              totalValue={totalValue}
-              activeVisitors={data?.activeVisitors ?? 0}
-              comparison={comparison}
-              visitorsSeries={visitorsSeries}
-              viewsSeries={viewsSeries}
-              leadsSeries={leadsSeries}
-              valueSeries={valueSeries}
-              conversionSeries={conversionSeries}
-            />
-
-            <OverviewSection
-              totalVisitors={totalVisitors}
-              totalLeads={totalLeads}
-              totalValue={totalValue}
-              avgConversion={avgConversion}
-              bounceRate={data?.engagement?.bounceRate ?? 0}
-              trafficChangePct={comparison?.visitors ?? 0}
-              topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
-              topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
-              activeProjectId={activeProjectId}
-              dateRange={dateRange}
-              monthlyAdSpend={monthlyAdSpend}
-            />
-
-            <TrafficSection
-              chartData={chartData}
-              prevSeries={prevSeries}
-              trafficSources={trafficSources ?? []}
-              heatmap={heatmap}
-              referrers={referrers}
-              totalVisitors={totalVisitors}
-              activeProjectId={activeProjectId}
-              dateRange={dateRange}
-              heatmapLoading={heatmapLoading}
-              heatmapError={heatmapError}
-              refetchHeatmap={refetchHeatmap}
-            />
-
-            <ConversionsSection
-              totalVisitors={totalVisitors}
-              engagedVisitors={engagedVisitors}
-              totalButtons={totalButtons}
-              totalWhatsapp={totalWhatsapp}
-              totalForms={totalForms}
-              totalLeads={totalLeads}
-              totalConversionsAll={totalConversionsAll}
-              conversions={conversions}
-            />
-
-            <TopPagesSection
-              topPages={topPages ?? []}
-              referrers={referrers}
-              activeProjectId={activeProjectId}
-              heatmapLoading={heatmapLoading}
-              heatmapError={heatmapError}
-              refetchHeatmap={refetchHeatmap}
-            />
-
-            <div className="grid grid-cols-1 gap-4 mb-6">
-              <AnnotationsHistoryCard
-                projectId={activeProjectId}
-                projectName={currentProject?.name || clientData?.project?.name}
-                dateRangeDays={dateRange}
-              />
+        {!hasData && (
+          <div className="mb-6 rounded-2xl border border-violet-500/20 bg-gradient-to-r from-violet-500/10 via-background to-blue-500/10 p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-500 shrink-0">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">Aguardando primeiras visitas</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Seu projeto está pronto para receber tráfego. Instale o script no seu site para coletar acessos em tempo real.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="/settings?tab=general&action=install"
+                className="inline-flex items-center justify-center rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 shrink-0"
+              >
+                Copiar código de rastreamento →
+              </a>
             </div>
-
-            <InsightsSection
-              engagement={data?.engagement}
-              devices={data?.devices ?? []}
-              browsers={data?.browsers ?? []}
-              operatingSystems={data?.operatingSystems ?? []}
-              countries={data?.countries ?? []}
-              cities={data?.cities ?? []}
-              insights={insights}
-            />
-          </>
+          </div>
         )}
+
+        {hasData && (
+          <PeriodComparisonStrip
+            dateRange={dateRange}
+            items={[
+              { label: "Visitantes", current: totalVisitors, previous: comparison?.prevVisitors ?? 0 },
+              { label: "Leads", current: totalLeads, previous: comparison?.prevLeads ?? 0 },
+              {
+                label: "Conversão",
+                current: avgConversion,
+                previous: comparison?.prevConversionRate ?? 0,
+                format: (v) => v.toFixed(2),
+                unit: "%",
+              },
+              {
+                label: "Valor estimado",
+                current: totalValue,
+                previous: comparison?.prevEstimatedValue ?? 0,
+                format: (v) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+              },
+            ]}
+          />
+        )}
+
+        <KPIsSection
+          totalVisitors={totalVisitors}
+          totalViews={totalViews}
+          totalLeads={totalLeads}
+          avgConversion={avgConversion}
+          totalValue={totalValue}
+          activeVisitors={data?.activeVisitors ?? 0}
+          comparison={comparison}
+          visitorsSeries={visitorsSeries}
+          viewsSeries={viewsSeries}
+          leadsSeries={leadsSeries}
+          valueSeries={valueSeries}
+          conversionSeries={conversionSeries}
+        />
+
+        <OverviewSection
+          totalVisitors={totalVisitors}
+          totalLeads={totalLeads}
+          totalValue={totalValue}
+          avgConversion={avgConversion}
+          bounceRate={data?.engagement?.bounceRate ?? 0}
+          trafficChangePct={comparison?.visitors ?? 0}
+          topSource={trafficSources?.[0] ? { source: trafficSources[0].source, percentage: trafficSources[0].percentage } : undefined}
+          topPage={topPages?.[0] ? { name: topPages[0].name, views: topPages[0].views } : undefined}
+          activeProjectId={activeProjectId}
+          dateRange={dateRange}
+          monthlyAdSpend={monthlyAdSpend}
+        />
+
+        <TrafficSection
+          chartData={chartData}
+          prevSeries={prevSeries}
+          trafficSources={trafficSources ?? []}
+          heatmap={heatmap}
+          referrers={referrers}
+          totalVisitors={totalVisitors}
+          activeProjectId={activeProjectId}
+          dateRange={dateRange}
+          heatmapLoading={heatmapLoading}
+          heatmapError={heatmapError}
+          refetchHeatmap={refetchHeatmap}
+        />
+
+        <ConversionsSection
+          totalVisitors={totalVisitors}
+          engagedVisitors={engagedVisitors}
+          totalButtons={totalButtons}
+          totalWhatsapp={totalWhatsapp}
+          totalForms={totalForms}
+          totalLeads={totalLeads}
+          totalConversionsAll={totalConversionsAll}
+          conversions={conversions}
+        />
+
+        <TopPagesSection
+          topPages={topPages ?? []}
+          referrers={referrers}
+          activeProjectId={activeProjectId}
+          heatmapLoading={heatmapLoading}
+          heatmapError={heatmapError}
+          refetchHeatmap={refetchHeatmap}
+        />
+
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <AnnotationsHistoryCard
+            projectId={activeProjectId}
+            projectName={currentProject?.name || clientData?.project?.name}
+            dateRangeDays={dateRange}
+          />
+        </div>
+
+        <InsightsSection
+          engagement={data?.engagement}
+          devices={data?.devices ?? []}
+          browsers={data?.browsers ?? []}
+          operatingSystems={data?.operatingSystems ?? []}
+          countries={data?.countries ?? []}
+          cities={data?.cities ?? []}
+          insights={insights}
+        />
       </div>
     </AppLayout>
   );
