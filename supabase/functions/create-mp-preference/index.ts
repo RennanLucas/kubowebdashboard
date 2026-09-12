@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
 
     // Assinatura recorrente (cartão) com 7 dias grátis
     const payload: Record<string, unknown> = {
-      reason: plan.reason,
+      reason: String(plan.reason || "KUBOWEB Pro").slice(0, 60),
       external_reference: `v2|org:${organizationId}|plan:${planId}|user:${userId}`,
       back_url: baseReturn,
       auto_recurring: {

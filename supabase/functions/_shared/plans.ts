@@ -37,7 +37,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     frequency: 1,
     frequency_type: "months",
     free_trial: { frequency: 7, frequency_type: "days" },
-    reason: "KUBOWEB Pro — Tudo Incluso (Sites Ilimitados, Tempo Real, Heatmaps e IA)",
+    reason: "KUBOWEB Pro — Sites Ilimitados, Heatmaps e IA",
     highlight: "7 dias grátis — cancele a qualquer momento",
     cta: "Começar 7 dias grátis",
     features: [
