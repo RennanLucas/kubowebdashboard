@@ -10,10 +10,12 @@ const isAllowedOrigin = (origin: string): boolean => {
   if (!origin) return false;
   if (allowedOrigins.includes(origin)) return true;
   // Permite deploys de prévia da Vercel vinculados ao kubowebdashboard
-  if (/^https:\/\/kubowebdashboard(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/([a-z0-9-]+-)?kubowebdashboard([a-z0-9-]+)?\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/.*kubowebdashboard.*\.vercel\.app$/.test(origin)) return true;
   if (/^https:\/\/kubowebdashboard.*\.lovable\.app$/.test(origin)) return true;
   return false;
 };
+
 
 export const getCorsHeaders = (req?: Request) => {
   const origin = req?.headers.get("origin") || "";
