@@ -30,11 +30,13 @@ export function FeedbackPortal() {
         </div>
 
         <Tabs defaultValue="new" className="space-y-8">
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger value="new">Novo Feedback</TabsTrigger>
-            <TabsTrigger value="mine">Meus Feedbacks</TabsTrigger>
-            <TabsTrigger value="roadmap">Roadmap Público</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-1">
+            <TabsList className="bg-muted/50 p-1 inline-flex w-auto min-w-full sm:min-w-0 justify-start sm:justify-center">
+              <TabsTrigger value="new" className="shrink-0 text-xs sm:text-sm">Novo Feedback</TabsTrigger>
+              <TabsTrigger value="mine" className="shrink-0 text-xs sm:text-sm">Meus Feedbacks</TabsTrigger>
+              <TabsTrigger value="roadmap" className="shrink-0 text-xs sm:text-sm">Roadmap Público</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="new" className="mt-0 outline-none">
             <h2 className="text-2xl font-bold mb-6">O que você acha do Kubo?</h2>

@@ -19,6 +19,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 const MP_WEBHOOK_SECRET =
+  Deno.env.get("MP_WEBHOOK_SECRET") ||
   Deno.env.get("PAYMENTS_LIVE_WEBHOOK_SECRET") ||
   Deno.env.get("PAYMENTS_SANDBOX_WEBHOOK_SECRET") ||
   "";

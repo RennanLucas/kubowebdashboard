@@ -231,23 +231,37 @@ Deno.serve(async (req) => {
     let inserted = 0;
 
     if (eventsToInsert.length > 0) {
-      // ignoreDuplicates: true → ON CONFLICT DO NOTHING (deduplication via event_id unique constraint)
-      const { error } = await supabaseAdmin.from("events").insert(eventsToInsert, { ignoreDuplicates: true });
+      // onConflict: "event_id", ignoreDuplicates: true para deduplicação idempotente
+      const { error } = await supabaseAdmin
+        .from("events")
+        .upsert(eventsToInsert, { onConflict: "event_id", ignoreDuplicates: true });
       if (error) {
-        console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
-        return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store events" } }, 500);
+        if (error.code === "23505" || error.message?.includes("idx_events_event_id") || error.message?.includes("duplicate key")) {
+          console.warn(JSON.stringify({ event: "db_duplicate_ignored", target: "events", details: error.message }));
+        } else {
+          console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
+          return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store events" } }, 500);
+        }
+      } else {
+        inserted += eventsToInsert.length;
       }
-      inserted += eventsToInsert.length;
     }
     
     if (pageviewsToInsert.length > 0) {
-      // ignoreDuplicates: true → ON CONFLICT DO NOTHING (deduplication via event_id unique constraint)
-      const { error } = await supabaseAdmin.from("pageviews").insert(pageviewsToInsert, { ignoreDuplicates: true });
+      // onConflict: "event_id", ignoreDuplicates: true para deduplicação idempotente
+      const { error } = await supabaseAdmin
+        .from("pageviews")
+        .upsert(pageviewsToInsert, { onConflict: "event_id", ignoreDuplicates: true });
       if (error) {
-        console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
-        return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store pageviews" } }, 500);
+        if (error.code === "23505" || error.message?.includes("idx_pageviews_event_id") || error.message?.includes("duplicate key")) {
+          console.warn(JSON.stringify({ event: "db_duplicate_ignored", target: "pageviews", details: error.message }));
+        } else {
+          console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
+          return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store pageviews" } }, 500);
+        }
+      } else {
+        inserted += pageviewsToInsert.length;
       }
-      inserted += pageviewsToInsert.length;
     }
 
     return jsonResponse({ ok: true, processed: inserted });

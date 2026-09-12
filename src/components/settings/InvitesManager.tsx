@@ -79,7 +79,16 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Erro ao criar convite");
 
-      toast.success(`Convite enviado para ${email}`);
+      if (result.inviteLink) {
+        try {
+          await navigator.clipboard.writeText(result.inviteLink);
+          toast.success(`Convite criado! Link de acesso copiado para a área de transferência.`);
+        } catch {
+          toast.success(`Convite criado com sucesso para ${email}`);
+        }
+      } else {
+        toast.success(`Convite criado para ${email}`);
+      }
       setEmail("");
       setRole("viewer");
       setOpen(false);

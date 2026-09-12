@@ -175,7 +175,7 @@ const DashboardHeader = ({
                 {onExportPDF && (
                   <DropdownMenuItem onClick={onExportPDF} className="gap-2 cursor-pointer">
                     <FileType className="h-4 w-4 text-muted-foreground" />
-                    PDF
+                    Relatório para Impressão (PDF)
                   </DropdownMenuItem>
                 )}
                 {onExportExcel && (

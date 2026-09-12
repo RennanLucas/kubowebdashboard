@@ -106,39 +106,69 @@ Deno.serve(async (req) => {
       .lte('date', prevEndStr);
 
     // Apply filters directly to DB query
+    let canonicalSources: string[] = [];
     if (sourceFilter !== "all") {
-      const canonicalSource = sourceFilter === 'direct' ? 'Direto' :
-                              sourceFilter === 'organic' ? 'Google' : // Simplify for now
-                              sourceFilter === 'social' ? 'Instagram' : sourceFilter;
-      query = query.eq('source', canonicalSource);
-      prevQuery = prevQuery.eq('source', canonicalSource);
+      if (sourceFilter === 'direct') {
+        canonicalSources = ['Direto'];
+      } else if (sourceFilter === 'organic') {
+        canonicalSources = ['Google', 'Bing', 'Yahoo', 'DuckDuckGo', 'Orgânico'];
+      } else if (sourceFilter === 'social') {
+        canonicalSources = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'X', 'Social', 'YouTube', 'WhatsApp'];
+      } else {
+        canonicalSources = [sourceFilter];
+      }
+
+      if (canonicalSources.length === 1) {
+        query = query.eq('source', canonicalSources[0]);
+        prevQuery = prevQuery.eq('source', canonicalSources[0]);
+      } else {
+        query = query.in('source', canonicalSources);
+        prevQuery = prevQuery.in('source', canonicalSources);
+      }
     }
     if (deviceFilter !== "all") {
       query = query.ilike('device', deviceFilter);
       prevQuery = prevQuery.ilike('device', deviceFilter);
     }
 
-    const [{ data: currentData }, { data: prevData }] = await Promise.all([
-      query,
-      prevQuery
-    ]);
-
-    // Query Events Rollups for Leads
-    const eventQuery = supabaseAdmin
+    // Query Events Rollups for Leads with identical filters
+    let eventQuery = supabaseAdmin
       .from('analytics_daily_events')
       .select('date, event_type, count')
       .eq('project_id', projectId)
       .gte('date', startStr)
       .lte('date', endStr);
 
-    const prevEventQuery = supabaseAdmin
+    let prevEventQuery = supabaseAdmin
       .from('analytics_daily_events')
       .select('date, event_type, count')
       .eq('project_id', projectId)
       .gte('date', prevStartStr)
       .lte('date', prevEndStr);
 
-    const [{ data: currentEvents }, { data: prevEvents }] = await Promise.all([
+    if (sourceFilter !== "all" && canonicalSources.length > 0) {
+      if (canonicalSources.length === 1) {
+        eventQuery = eventQuery.eq('source', canonicalSources[0]);
+        prevEventQuery = prevEventQuery.eq('source', canonicalSources[0]);
+      } else {
+        eventQuery = eventQuery.in('source', canonicalSources);
+        prevEventQuery = prevEventQuery.in('source', canonicalSources);
+      }
+    }
+
+    if (deviceFilter !== "all") {
+      eventQuery = eventQuery.ilike('device', deviceFilter);
+      prevEventQuery = prevEventQuery.ilike('device', deviceFilter);
+    }
+
+    const [
+      { data: currentData },
+      { data: prevData },
+      { data: currentEvents },
+      { data: prevEvents }
+    ] = await Promise.all([
+      query,
+      prevQuery,
       eventQuery,
       prevEventQuery
     ]);

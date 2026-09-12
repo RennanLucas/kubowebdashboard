@@ -27,10 +27,11 @@ const allPresets = [
 export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const plan = usePlan();
   const isMobile = useIsMobile();
 
-  const tryApply = (days: number) => {
+  const tryApply = (days: number, label?: string) => {
     if (days > plan.maxHistoryDays) {
       toast.error(
         plan.isFree
@@ -39,29 +40,35 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
       );
       return;
     }
+    setSelectedLabel(label || null);
     onDateRangeChange(days);
     setOpen(false);
   };
 
-  const applyMonthPreset = (offset: number) => {
+  const applyMonthPreset = (offset: number, label: string) => {
     const now = new Date();
     const target = subMonths(now, offset);
     const start = startOfMonth(target);
     const end = offset === 0 ? now : endOfMonth(target);
     const days = differenceInDays(end, start) + 1;
-    tryApply(days);
+    tryApply(days, label);
   };
 
   const applyCustom = (range: DateRange | undefined) => {
     setCustomRange(range);
     if (range?.from && range?.to) {
       const days = differenceInDays(range.to, range.from) + 1;
-      if (days > 0) tryApply(days);
+      if (days > 0) {
+        const customLabel = `${format(range.from, "dd/MM")} - ${format(range.to, "dd/MM")}`;
+        tryApply(days, customLabel);
+      }
     }
   };
 
   const currentLabel =
-    allPresets.find((p) => p.days === dateRange)?.label || `Últimos ${dateRange} dias`;
+    selectedLabel ||
+    allPresets.find((p) => p.days === dateRange)?.label ||
+    `Últimos ${dateRange} dias`;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,13 +106,13 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
             })}
             <div className="h-px bg-border my-1" />
             <button
-              onClick={() => applyMonthPreset(0)}
+              onClick={() => applyMonthPreset(0, "Este mês")}
               className="text-left text-xs px-3 py-2 rounded-md hover:bg-muted text-foreground"
             >
               Este mês
             </button>
             <button
-              onClick={() => applyMonthPreset(1)}
+              onClick={() => applyMonthPreset(1, "Mês passado")}
               className="text-left text-xs px-3 py-2 rounded-md hover:bg-muted text-foreground"
             >
               Mês passado

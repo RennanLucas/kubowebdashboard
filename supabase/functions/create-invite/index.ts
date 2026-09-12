@@ -111,12 +111,15 @@ Deno.serve(async (req) => {
       return json({ error: "Falha ao criar convite" }, 500);
     }
 
-    // TODO: Send email with token_plain via process-email-queue or direct email service
-    // For now, return success without email (will be implemented in future iteration)
+    // Link de convite direto para o membro aceitar
+    const appUrl = Deno.env.get("APP_URL") || "https://kubowebdashboard.vercel.app";
+    const inviteLink = `${appUrl}/auth/invite?token=${token_plain}`;
 
     return json({
       success: true,
       inviteId: inviteData.id,
+      inviteLink,
+      token: token_plain,
     });
 
   } catch (e) {

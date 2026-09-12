@@ -627,7 +627,7 @@ describe("next steps", () => {
     const out = generateLocalInsights(input());
     expect(out).toContain("além de seu canal principal");
     expect(out).not.toContain("(prioridade:");
-    expect(out).toContain("**0.00%** (crescimento de 20%");
+    expect(out).toContain("**1.50%** (meta inicial recomendada");
   });
 });
 

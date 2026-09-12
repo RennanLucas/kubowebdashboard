@@ -318,13 +318,15 @@ export function generateLocalInsights(input: InsightsInput): string {
     recomendacoes.push("Mantenha cadência de produção de conteúdo, monitore KPIs semanalmente e revise campanhas a cada 14 dias.");
 
   // === PRÓXIMOS PASSOS ===
-  const meta = (conversionRate * 1.2).toFixed(2);
+  const metaTexto = conversionRate > 0
+    ? `**${(conversionRate * 1.2).toFixed(2)}%** (crescimento de 20% sobre a taxa atual).`
+    : `**1.50%** (meta inicial recomendada para primeiras conversões).`;
   const proximos = [
-    `1. **Auditar a página \`${topPagePath}\`** e implementar melhorias de CTA, prova social e clareza de oferta.`,
+    `1. ${totalVisitors > 0 ? `**Auditar a página \`${topPagePath}\`** e implementar melhorias de CTA, prova social e clareza de oferta.` : `**Instalar o script de rastreamento** no site para iniciar a coleta contínua de visitantes e conversões.`}`,
     `2. **Configurar alertas automáticos** para quedas superiores a 20% em tráfego ou leads (em Configurações).`,
     `3. **Diversificar canais de aquisição** além de ${topSource?.source || "seu canal principal"}, mirando 2 fontes complementares.`,
     `4. **Revisar UX por dispositivo** ${topDeviceName ? `(prioridade: ${topDeviceName})` : ""} e ajustar pontos de fricção.`,
-    `5. **Definir meta de conversão** para o próximo ciclo: **${meta}%** (crescimento de 20% sobre a taxa atual).`,
+    `5. **Definir meta de conversão** para o próximo ciclo: ${metaTexto}`,
     `6. **Consolidar relatório executivo** semanal para stakeholders, comparando contra esta linha de base.`,
   ];
 

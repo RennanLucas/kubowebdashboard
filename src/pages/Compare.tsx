@@ -114,7 +114,12 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
   if (a === 0 && b === 0) return null;
   const diff = a - b;
   const winner = diff > 0 ? "A" : diff < 0 ? "B" : null;
-  const pct = b > 0 ? Math.abs(((a - b) / b) * 100).toFixed(1) : "—";
+  let pct = "—";
+  if (winner === "A") {
+    pct = b > 0 ? (((a - b) / b) * 100).toFixed(1) : "100.0";
+  } else if (winner === "B") {
+    pct = a > 0 ? (((b - a) / a) * 100).toFixed(1) : "100.0";
+  }
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground font-medium">{label}</span>

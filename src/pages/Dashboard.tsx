@@ -335,9 +335,9 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     : clientData?.projects;
 
   const totalConversionsAll = totalWhatsapp + totalForms + totalButtons;
-  const engagedVisitors = data?.engagement && data?.summary?.totalSessions
-    ? Math.min(totalVisitors, Math.round(data.summary.totalSessions * (1 - data.engagement.bounceRate / 100)))
-    : (totalVisitors > 0 ? Math.round(totalVisitors * 0.4) : 0); // fallback
+  const engagedVisitors = data?.engagement && data?.summary?.totalSessions && data.summary.totalSessions > 0
+    ? Math.min(totalVisitors, Math.max(0, Math.round(data.summary.totalSessions * (1 - (data.engagement.bounceRate ?? 0) / 100))))
+    : 0;
 
   return (
     <AppLayout>

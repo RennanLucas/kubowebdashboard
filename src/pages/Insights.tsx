@@ -25,6 +25,7 @@ import { generateInsightDetails, generateLocalInsights, type HourlyPoint, type I
 import { compareInsightVersions, type InsightComparisonResult, type InsightHistoryRecord } from "@/lib/insight-history";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { Navigate } from "react-router-dom";
 
 import { InsightsHeader } from "@/components/insights/InsightsHeader";
@@ -48,8 +49,9 @@ export default function Insights() {
   
   const { user } = useAuth();
   const { activeOrganization } = useOrganization();
+  const { selectedProjectId } = useSelectedProject();
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
-  const { data, isLoading, error } = useDashboardAnalytics(periodDays);
+  const { data, isLoading, error } = useDashboardAnalytics(periodDays, selectedProjectId);
   
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
@@ -524,7 +526,7 @@ export default function Insights() {
       setDetailsLoading(false);
 
       if (user) {
-        const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
+        const projectId = selectedProjectId || data?.client?.project?.id || data?.client?.projects?.[0]?.id || null;
         const { data: insertedInsight, error: insertError } = await supabase
           .from("ai_insights")
           .insert({

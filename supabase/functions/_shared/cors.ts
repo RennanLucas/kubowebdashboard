@@ -6,6 +6,15 @@ const allowedOrigins = [
   "http://localhost:3000"
 ];
 
+const isAllowedOrigin = (origin: string): boolean => {
+  if (!origin) return false;
+  if (allowedOrigins.includes(origin)) return true;
+  // Permite deploys de prévia da Vercel vinculados ao kubowebdashboard
+  if (/^https:\/\/kubowebdashboard(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/kubowebdashboard.*\.lovable\.app$/.test(origin)) return true;
+  return false;
+};
+
 export const getCorsHeaders = (req?: Request) => {
   const origin = req?.headers.get("origin") || "";
   const configuredOrigins = (Deno.env.get("ALLOWED_ORIGIN") || "")
@@ -13,7 +22,9 @@ export const getCorsHeaders = (req?: Request) => {
     .map((value) => value.trim())
     .filter(Boolean);
   const acceptedOrigins = [...new Set([...configuredOrigins, ...allowedOrigins])];
-  const allowed = acceptedOrigins.includes(origin) ? origin : acceptedOrigins[0];
+  const allowed = (origin && (acceptedOrigins.includes(origin) || isAllowedOrigin(origin)))
+    ? origin
+    : acceptedOrigins[0];
   
   return {
     "Access-Control-Allow-Origin": allowed,
