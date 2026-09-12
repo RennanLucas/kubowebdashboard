@@ -1,4 +1,4 @@
-﻿-- ==============================================================================
+-- ==============================================================================
 -- Migração: Correções P1/P2 da Auditoria 360° (K01, K02, K07, K18, K20)
 -- 1. Idempotência em aggregate_analytics_jit (elimina soma entre lotes)
 -- 2. Alimentação de analytics_daily_tech, sessions e bounces reais
@@ -291,18 +291,20 @@ CREATE POLICY "Users delete own ai insights"
 ON public.ai_insights FOR DELETE
 USING (auth.uid() = user_id);
 
--- 4. Trava de autoria em feedback_posts (K18)
-DROP POLICY IF EXISTS "Members can insert feedback" ON public.feedback_posts;
-CREATE POLICY "Members can insert feedback"
-ON public.feedback_posts FOR INSERT
+-- 4. Trava de autoria em feedback (K18)
+DROP POLICY IF EXISTS "Users can insert feedback" ON public.feedback;
+CREATE POLICY "Users can insert feedback"
+ON public.feedback FOR INSERT
 WITH CHECK (
-  auth.uid() = user_id
+  auth.uid() IS NOT NULL
+  AND auth.uid() = user_id
   AND (
     organization_id IS NULL
     OR EXISTS (
       SELECT 1 FROM public.organization_members om
-      WHERE om.organization_id = feedback_posts.organization_id
+      WHERE om.organization_id = feedback.organization_id
         AND om.user_id = auth.uid()
     )
   )
 );
+
