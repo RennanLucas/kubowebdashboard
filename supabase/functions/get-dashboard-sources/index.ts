@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
@@ -55,15 +56,13 @@ Deno.serve(async (req) => {
 
     // Enforce plan-based history limit
     const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
-    const enforcedDays = enforceHistoryLimit(days, maxHistoryDays);
+    const period = analyticsPeriod(url.searchParams, days, maxHistoryDays);
 
-    await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    const { error: aggregateError } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    if (aggregateError) throw aggregateError;
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (enforcedDays - 1));
-    const startStr = startDate.toISOString().split("T")[0];
-    const endStr = endDate.toISOString().split("T")[0];
+    const startStr = period.start;
+    const endStr = period.end;
 
     let query = supabaseAdmin
       .from('analytics_daily_overview')
@@ -76,7 +75,8 @@ Deno.serve(async (req) => {
       query = query.ilike('device', deviceFilter);
     }
 
-    const { data } = await query;
+    const { data, error: queryError } = await query;
+    if (queryError) throw queryError;
 
     const sourceMap: Record<string, number> = {};
     let trafficTotal = 0;

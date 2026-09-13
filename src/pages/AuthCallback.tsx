@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { pendingInvitePath } from "@/lib/pending-invite";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -35,9 +36,9 @@ export default function AuthCallback() {
 
         // Redireciona de acordo com o resultado
         if (client || orgMember) {
-          navigate("/dashboard", { replace: true });
+          navigate(pendingInvitePath() || "/dashboard", { replace: true });
         } else {
-          navigate("/onboarding", { replace: true });
+          navigate(pendingInvitePath() || "/onboarding", { replace: true });
         }
       } catch (err: any) {
         if (!cancelled) {

@@ -12,7 +12,7 @@ interface LiveFeedCardProps {
 }
 
 const LiveFeedCard = ({ projectId, compact = true }: LiveFeedCardProps) => {
-  const { visitors, loading } = useLiveFeed(projectId, compact ? 8 : 50);
+  const { visitors, loading, error, retry } = useLiveFeed(projectId, compact ? 8 : 50);
 
   return (
     <SectionCard
@@ -23,7 +23,7 @@ const LiveFeedCard = ({ projectId, compact = true }: LiveFeedCardProps) => {
         </span>
       }
       title="Ao vivo"
-      tooltip="Visitantes em tempo real navegando pelo site agora."
+      tooltip="Visitas recebidas nos últimos 30 minutos."
       actions={
         compact && (
           <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
@@ -35,7 +35,8 @@ const LiveFeedCard = ({ projectId, compact = true }: LiveFeedCardProps) => {
     >
       <div className="space-y-2">
         {loading && <p className="text-xs text-muted-foreground">Conectando…</p>}
-        {!loading && visitors.length === 0 && (
+        {error && <div role="status" className="text-xs text-muted-foreground"><p>{error}</p><Button variant="outline" size="sm" onClick={retry}>Tentar novamente</Button></div>}
+        {!loading && !error && visitors.length === 0 && (
           <p className="text-xs text-muted-foreground py-4 text-center">
             Aguardando visitantes…
           </p>

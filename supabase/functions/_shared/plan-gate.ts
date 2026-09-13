@@ -90,6 +90,7 @@ export function errorResponse(
   context: string,
 ): Response {
   const message = error instanceof Error ? error.message : String(error);
+  const invalidPeriod = message.startsWith("INVALID_PERIOD:");
   const isPlanRequired = message.includes("PLAN_REQUIRED");
   const isLimitExceeded = message.includes("LIMIT_EXCEEDED");
 
@@ -97,8 +98,8 @@ export function errorResponse(
     console.error(`[${context}] unexpected error`, error);
   }
 
-  const status = isPlanRequired ? 402 : isLimitExceeded ? 403 : 500;
-  const body = isPlanRequired || isLimitExceeded ? message : "Erro interno";
+  const status = invalidPeriod ? 400 : isPlanRequired ? 402 : isLimitExceeded ? 403 : 500;
+  const body = invalidPeriod || isPlanRequired || isLimitExceeded ? message : "Erro interno";
 
   return new Response(JSON.stringify({ error: body }), {
     status,

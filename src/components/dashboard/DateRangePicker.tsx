@@ -14,7 +14,8 @@ import { toast } from "sonner";
 
 interface DateRangePickerProps {
   dateRange: number;
-  onDateRangeChange: (days: number) => void;
+  onDateRangeChange: (days: number, period?: { start: string; end: string }) => void;
+  period?: { start: string; end: string };
 }
 
 const allPresets = [
@@ -24,15 +25,15 @@ const allPresets = [
   { label: "Últimos 12 meses", days: 365 },
 ];
 
-export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePickerProps) {
+export function DateRangePicker({ dateRange, onDateRangeChange, period }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
   const [customRange, setCustomRange] = useState<DateRange | undefined>();
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const plan = usePlan();
   const isMobile = useIsMobile();
 
-  const tryApply = (days: number, label?: string) => {
-    if (days > plan.maxHistoryDays) {
+  const tryApply = (days: number, range?: { start: string; end: string }) => {
+    const age = range ? Math.floor((Date.parse(new Date().toISOString().slice(0, 10)) - Date.parse(range.start)) / 86400000) + 1 : days;
+    if (days > plan.maxHistoryDays || age > plan.maxHistoryDays) {
       toast.error(
         plan.isFree
           ? `O plano Gratuito mostra até ${plan.maxHistoryDays} dias. Assine o Pro para ver até 12 meses.`
@@ -40,8 +41,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
       );
       return;
     }
-    setSelectedLabel(label || null);
-    onDateRangeChange(days);
+    onDateRangeChange(days, range);
     setOpen(false);
   };
 
@@ -51,7 +51,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
     const start = startOfMonth(target);
     const end = offset === 0 ? now : endOfMonth(target);
     const days = differenceInDays(end, start) + 1;
-    tryApply(days, label);
+    tryApply(days, { start: format(start, "yyyy-MM-dd"), end: format(end, "yyyy-MM-dd") });
   };
 
   const applyCustom = (range: DateRange | undefined) => {
@@ -59,14 +59,13 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
     if (range?.from && range?.to) {
       const days = differenceInDays(range.to, range.from) + 1;
       if (days > 0) {
-        const customLabel = `${format(range.from, "dd/MM")} - ${format(range.to, "dd/MM")}`;
-        tryApply(days, customLabel);
+        tryApply(days, { start: format(range.from, "yyyy-MM-dd"), end: format(range.to, "yyyy-MM-dd") });
       }
     }
   };
 
   const currentLabel =
-    selectedLabel ||
+    (period ? `${period.start.split("-").reverse().join("/")} — ${period.end.split("-").reverse().join("/")}` : null) ||
     allPresets.find((p) => p.days === dateRange)?.label ||
     `Últimos ${dateRange} dias`;
 
@@ -133,6 +132,7 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
             </div>
             <Calendar
               mode="range"
+              disabled={{ after: new Date() }}
               selected={customRange}
               onSelect={applyCustom}
               numberOfMonths={isMobile ? 1 : 2}

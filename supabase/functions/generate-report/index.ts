@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
-import { corsHeaders } from "../_shared/cors.ts";
+import { analyticsPeriod } from "../_shared/analytics-period.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
@@ -8,6 +9,7 @@ function escapeHtml(str: string): string {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -76,8 +78,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
     }
 
+    let historyDays = 7;
     try {
       const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
+      historyDays = maxHistoryDays;
       enforcePremiumFeature(tier, "pdf_report");
       enforceHistoryLimit(days, maxHistoryDays);
     } catch (planError) {
@@ -90,18 +94,20 @@ Deno.serve(async (req) => {
     const currentProject = { name: projData.name };
 
     // Fetch pageviews
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (days - 1));
-    const startDateStr = startDate.toISOString().split("T")[0];
-    const endDateStr = endDate.toISOString().split("T")[0];
+    const period = analyticsPeriod(url.searchParams, days, historyDays);
+    const startDate = new Date(period.start + "T00:00:00Z");
+    const endDate = new Date(period.end + "T00:00:00Z");
+    const startDateStr = period.start;
+    const endDateStr = period.end;
 
-    const { data: pvData } = await supabaseAdmin
+    const { data: pvData, error: pvError } = await supabaseAdmin
       .from("pageviews")
       .select("*")
       .eq("project_id", projectId)
       .gte("created_at", `${startDateStr}T00:00:00Z`)
       .lte("created_at", `${endDateStr}T23:59:59Z`);
+
+    if (pvError) throw pvError;
 
     // Aggregate
     const uniqueVisitors = new Set<string>();
@@ -190,7 +196,7 @@ Deno.serve(async (req) => {
   <h1>Relatório de Desempenho</h1>
   <div class="subtitle">
     ${escapeHtml(clientData.company_name)} — ${escapeHtml(currentProject?.name || "")}
-    <br>Período: ${periodStart} a ${periodEnd} (${days} dias) • Gerado em ${reportDate}
+    <br>Período: ${periodStart} a ${periodEnd} (${period.days} dias) • Gerado em ${reportDate}
   </div>
 
   <div class="kpi-grid">

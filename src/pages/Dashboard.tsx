@@ -37,9 +37,14 @@ interface DashboardContentProps {
 const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: DashboardContentProps) => {
   const plan = usePlan();
   const [dateRange, setDateRange] = useState(plan.maxHistoryDays >= 30 ? 30 : plan.maxHistoryDays);
+  const [period, setPeriod] = useState<{ start: string; end: string }>();
+  const changePeriod = (days: number, interval?: { start: string; end: string }) => {
+    setDateRange(days);
+    setPeriod(interval);
+  };
   const queryClient = useQueryClient();
   const { source, device } = useDashboardFilters();
-  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device });
+  const { data, isLoading, error } = useDashboardAnalytics(dateRange, selectedProjectId, { source, device, ...period });
   const { data: allProjects, isLoading: allProjectsLoading } = useAllUserProjects();
   const { lastUpdate, isUpdating, triggerManualRefresh } = useDashboardRealtime(selectedProjectId);
 
@@ -48,16 +53,17 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
   const metrics = data?.metrics;
   const trafficSources = data?.trafficSources;
   const topPages = data?.topPages;
-  const comparison = data?.comparison;
+  const comparison = data?.period?.comparisonAvailable === false ? undefined : data?.comparison;
   const conversions = data?.conversions;
 
   const activeProjectId = selectedProjectId || clientData?.project?.id;
-  const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange);
+  const { heatmap, referrers, isLoading: heatmapLoading, error: heatmapError, refetch: refetchHeatmap } = useHourlyHeatmap(activeProjectId, dateRange, period);
 
   // Auto-ajusta o período quando o plano terminar de carregar
   useEffect(() => {
     if (!plan.loading && dateRange > plan.maxHistoryDays) {
       setDateRange(plan.maxHistoryDays);
+      setPeriod(undefined);
     }
   }, [plan.loading, plan.maxHistoryDays, dateRange]);
 
@@ -66,6 +72,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     if (error && String(error).includes("HISTORY_LIMIT_EXCEEDED")) {
       const safeDays = plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays;
       setDateRange(safeDays);
+      setPeriod(undefined);
     }
   }, [error, plan.maxHistoryDays]);
 
@@ -136,7 +143,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
     if (!metrics || metrics.length === 0) return [];
     const metricsMap = new Map(metrics.map((m) => [m.date, m] as const));
     const result: Array<{ date: string; visitors: number; views: number; leads: number; rawDate: string }> = [];
-    const today = new Date();
+    const today = period ? new Date(period.end + "T00:00:00Z") : new Date();
     for (let i = dateRange - 1; i >= 0; i--) {
       const d = new Date(today.getTime() - i * 86400000);
       const key = d.toISOString().split("T")[0];
@@ -152,7 +159,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       });
     }
     return result;
-  }, [metrics, dateRange]);
+  }, [metrics, dateRange, period]);
 
   const visitorsSeries = chartData.map((d) => d.visitors);
   const viewsSeries = chartData.map((d) => d.views);
@@ -234,7 +241,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             {isHistoryLimit ? (
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setDateRange(plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays)}
+                  onClick={() => changePeriod(plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays)}
                   className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
                 >
                   Ver últimos {plan.maxHistoryDays >= 7 ? 7 : plan.maxHistoryDays} dias
@@ -266,6 +273,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       let url = `${supabaseUrl}/functions/v1/generate-report?days=${dateRange}`;
+      if (period) url += `&start=${period.start}&end=${period.end}`;
       if (selectedProjectId) url += `&project_id=${selectedProjectId}`;
 
       const response = await fetch(url, {
@@ -350,7 +358,8 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
         <UpgradeBanner />
         <DashboardHeader
           dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+          onDateRangeChange={changePeriod}
+          period={period}
           clientName={clientData?.company_name}
           projectName={currentProject?.name || clientData?.project?.name}
           projects={headerProjects}
@@ -386,6 +395,8 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
         ) : (
           <>
             <PeriodComparisonStrip
+              period={period}
+              available={data?.period?.comparisonAvailable}
               dateRange={dateRange}
               items={[
                 { label: "Visitantes", current: totalVisitors, previous: comparison?.prevVisitors ?? 0 },
@@ -422,6 +433,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
             />
 
             <OverviewSection
+              period={period}
               totalVisitors={totalVisitors}
               totalLeads={totalLeads}
               totalValue={totalValue}
@@ -471,6 +483,7 @@ const DashboardContent = ({ selectedProjectId, setSelectedProjectId }: Dashboard
 
             <div className="grid grid-cols-1 gap-4 mb-6">
               <AnnotationsHistoryCard
+                period={period}
                 projectId={activeProjectId}
                 projectName={currentProject?.name || clientData?.project?.name}
                 dateRangeDays={dateRange}

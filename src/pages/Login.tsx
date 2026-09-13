@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { pendingInvitePath } from "@/lib/pending-invite";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,7 @@ const Login = () => {
         supabase.from("clients").select("id").eq("user_id", session.user.id).limit(1).maybeSingle(),
         supabase.from("organization_members").select("id").eq("user_id", session.user.id).limit(1).maybeSingle()
       ]);
-      if (!cancelled) navigate((client || orgMember) ? "/dashboard" : "/onboarding", { replace: true });
+      if (!cancelled) navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"), { replace: true });
     })();
     return () => { cancelled = true; };
   }, [session, authLoading, navigate, step]);
@@ -120,7 +121,7 @@ const Login = () => {
 
         if (data.session) {
           toast.success("Conta criada com sucesso!");
-          navigate("/onboarding");
+          navigate(pendingInvitePath() || "/onboarding");
           return;
         }
 
@@ -140,10 +141,10 @@ const Login = () => {
           supabase.from("clients").select("id").eq("user_id", userId).limit(1).maybeSingle(),
           supabase.from("organization_members").select("id").eq("user_id", userId).limit(1).maybeSingle()
         ]);
-        navigate((client || orgMember) ? "/dashboard" : "/onboarding");
+        navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"));
         return;
       }
-      navigate("/dashboard");
+      navigate(pendingInvitePath() || "/dashboard");
     } catch (error: any) {
       if (error.message?.includes("already registered") || error.message?.includes("User already registered")) {
         toast.error("Este email já está cadastrado. Tente entrar.");
@@ -211,10 +212,10 @@ const Login = () => {
             supabase.from("clients").select("id").eq("user_id", userId).limit(1).maybeSingle(),
             supabase.from("organization_members").select("id").eq("user_id", userId).limit(1).maybeSingle()
           ]);
-          navigate((client || orgMember) ? "/dashboard" : "/onboarding");
+          navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"));
           return;
         }
-        navigate("/onboarding");
+        navigate(pendingInvitePath() || "/onboarding");
       }
     } catch (error: any) {
       let msg = error.message;
@@ -289,7 +290,7 @@ const Login = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("Senha atualizada com sucesso!");
-      navigate("/dashboard");
+      navigate(pendingInvitePath() || "/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Erro ao atualizar a senha.");
     } finally {

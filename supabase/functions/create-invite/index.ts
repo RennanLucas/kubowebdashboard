@@ -1,6 +1,6 @@
 // Creates organization invite with secure token generation
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -11,6 +11,10 @@ const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+    status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -113,13 +117,13 @@ Deno.serve(async (req) => {
 
     // Link de convite direto para o membro aceitar
     const appUrl = Deno.env.get("APP_URL") || "https://kubowebdashboard.vercel.app";
-    const inviteLink = `${appUrl}/auth/invite?token=${token_plain}`;
+    const inviteLink = `${appUrl}/auth/invite#token=${token_plain}`;
 
     return json({
       success: true,
       inviteId: inviteData.id,
       inviteLink,
-      token: token_plain,
+      delivery: "link",
     });
 
   } catch (e) {
@@ -127,10 +131,3 @@ Deno.serve(async (req) => {
     return json({ error: "Internal server error" }, 500);
   }
 });
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}

@@ -14,7 +14,7 @@ export default function Live() {
   const { selectedProjectId } = useSelectedProject();
   const { data, error } = useDashboardAnalytics(1, selectedProjectId);
   const projectId = selectedProjectId || data?.client?.project?.id || null;
-  const { visitors, loading } = useLiveFeed(projectId, 100);
+  const { visitors, loading, error: feedError, retry } = useLiveFeed(projectId, 100);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -73,7 +73,8 @@ export default function Live() {
           </CardHeader>
           <CardContent>
             {loading && <p className="text-sm text-muted-foreground">Conectando ao feed em tempo real…</p>}
-            {!loading && visitors.length === 0 && (
+            {feedError && <div role="status" className="mb-4 text-sm text-muted-foreground"><p>{feedError}</p><button type="button" className="mt-2 text-primary underline focus-visible:outline" onClick={retry}>Tentar novamente</button></div>}
+            {!loading && !feedError && visitors.length === 0 && (
               <div className="py-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">Aguardando visitantes…</p>

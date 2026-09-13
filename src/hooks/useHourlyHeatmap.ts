@@ -17,7 +17,7 @@ interface HookResult {
   refetch: () => void;
 }
 
-export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
+export const useHourlyHeatmap = (projectId?: string, days = 30, period?: { start: string; end: string }): HookResult => {
   const [heatmap, setHeatmap] = useState<HeatmapCell[]>([]);
   const [referrers, setReferrers] = useState<ReferrerStat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,8 +32,10 @@ export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
 
     (async () => {
       try {
-        const since = new Date();
-        since.setDate(since.getDate() - days);
+        const until = period ? new Date(period.end + "T00:00:00Z") : new Date();
+        until.setUTCHours(0, 0, 0, 0);
+        until.setUTCDate(until.getUTCDate() + 1);
+        const since = period ? new Date(period.start + "T00:00:00Z") : new Date(until.getTime() - days * 86400000);
         const sinceIso = since.toISOString();
 
         const { data: pvs, error: pvErr } = await supabase
@@ -41,6 +43,7 @@ export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
           .select("created_at, referrer, session_id")
           .eq("project_id", projectId)
           .gte("created_at", sinceIso)
+          .lt("created_at", until.toISOString())
           .limit(10000);
         if (pvErr) throw pvErr;
 
@@ -49,6 +52,7 @@ export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
           .select("created_at, session_id")
           .eq("project_id", projectId)
           .gte("created_at", sinceIso)
+          .lt("created_at", until.toISOString())
           .in("event_type", ["whatsapp_click", "form_submit", "button_click"])
           .limit(5000);
         if (evErr) throw evErr;
@@ -68,7 +72,7 @@ export const useHourlyHeatmap = (projectId?: string, days = 30): HookResult => {
     return () => {
       cancelled = true;
     };
-  }, [projectId, days, reloadKey]);
+  }, [projectId, days, period, reloadKey]);
 
   return { heatmap, referrers, isLoading, error, refetch: () => setReloadKey((k) => k + 1) };
 };

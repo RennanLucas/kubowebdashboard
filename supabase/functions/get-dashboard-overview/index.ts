@@ -1,7 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+import { filterSource } from "../_shared/analytics-source.ts";
+import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
@@ -68,27 +70,21 @@ Deno.serve(async (req) => {
     }
 
     const { maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
-    enforceHistoryLimit(days, maxHistoryDays);
+    const period = analyticsPeriod(url.searchParams, days, maxHistoryDays);
 
     const leadValue = Number(projData.organizations.lead_value) > 0 ? Number(projData.organizations.lead_value) : 25;
 
     // 1. JIT Aggregation (aggregates anything missing up to NOW)
-    await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    const { error: aggregateError } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    if (aggregateError) throw aggregateError;
 
     // 2. Calculate date ranges
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (days - 1));
-    const startStr = startDate.toISOString().split("T")[0];
-    const endStr = endDate.toISOString().split("T")[0];
+    const startStr = period.start;
+    const endStr = period.end;
 
     // Previous period for comparison
-    const prevEndDate = new Date(startDate);
-    prevEndDate.setDate(prevEndDate.getDate() - 1);
-    const prevStartDate = new Date(prevEndDate);
-    prevStartDate.setDate(prevStartDate.getDate() - (days - 1));
-    const prevStartStr = prevStartDate.toISOString().split("T")[0];
-    const prevEndStr = prevEndDate.toISOString().split("T")[0];
+    const prevStartStr = period.previousStart;
+    const prevEndStr = period.previousEnd;
 
     // 3. Query Rollups
     let query = supabaseAdmin
@@ -106,26 +102,8 @@ Deno.serve(async (req) => {
       .lte('date', prevEndStr);
 
     // Apply filters directly to DB query
-    let canonicalSources: string[] = [];
-    if (sourceFilter !== "all") {
-      if (sourceFilter === 'direct') {
-        canonicalSources = ['Direto'];
-      } else if (sourceFilter === 'organic') {
-        canonicalSources = ['Google', 'Bing', 'Yahoo', 'DuckDuckGo', 'Orgânico'];
-      } else if (sourceFilter === 'social') {
-        canonicalSources = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'X', 'Social', 'YouTube', 'WhatsApp'];
-      } else {
-        canonicalSources = [sourceFilter];
-      }
-
-      if (canonicalSources.length === 1) {
-        query = query.eq('source', canonicalSources[0]);
-        prevQuery = prevQuery.eq('source', canonicalSources[0]);
-      } else {
-        query = query.in('source', canonicalSources);
-        prevQuery = prevQuery.in('source', canonicalSources);
-      }
-    }
+    query = filterSource(query, sourceFilter);
+    prevQuery = filterSource(prevQuery, sourceFilter);
     if (deviceFilter !== "all") {
       query = query.ilike('device', deviceFilter);
       prevQuery = prevQuery.ilike('device', deviceFilter);
@@ -146,32 +124,28 @@ Deno.serve(async (req) => {
       .gte('date', prevStartStr)
       .lte('date', prevEndStr);
 
-    if (sourceFilter !== "all" && canonicalSources.length > 0) {
-      if (canonicalSources.length === 1) {
-        eventQuery = eventQuery.eq('source', canonicalSources[0]);
-        prevEventQuery = prevEventQuery.eq('source', canonicalSources[0]);
-      } else {
-        eventQuery = eventQuery.in('source', canonicalSources);
-        prevEventQuery = prevEventQuery.in('source', canonicalSources);
-      }
-    }
-
+    eventQuery = filterSource(eventQuery, sourceFilter);
+    prevEventQuery = filterSource(prevEventQuery, sourceFilter);
     if (deviceFilter !== "all") {
       eventQuery = eventQuery.ilike('device', deviceFilter);
       prevEventQuery = prevEventQuery.ilike('device', deviceFilter);
     }
 
     const [
-      { data: currentData },
-      { data: prevData },
-      { data: currentEvents },
-      { data: prevEvents }
+      { data: currentData, error: currentError },
+      { data: prevData, error: previousError },
+      { data: currentEvents, error: eventsError },
+      { data: prevEvents, error: previousEventsError }
     ] = await Promise.all([
       query,
       prevQuery,
       eventQuery,
       prevEventQuery
     ]);
+
+    if (currentError || previousError || eventsError || previousEventsError) {
+      throw currentError || previousError || eventsError || previousEventsError;
+    }
 
     // Aggregate daily metrics
     const dailyMap: Record<string, { date: string, visitors: number, views: number, leads: number, whatsapp_clicks: number, form_submissions: number, button_clicks: number }> = {};
@@ -263,6 +237,7 @@ Deno.serve(async (req) => {
       },
       summary: { totalVisitors, totalViews, totalLeads, totalSessions },
       metrics,
+      period,
       comparison,
       engagement,
       activeVisitors: activeNow || 0,

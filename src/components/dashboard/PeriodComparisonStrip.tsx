@@ -11,6 +11,8 @@ interface ComparisonItem {
 
 interface Props {
   dateRange: number;
+  period?: { start: string; end: string };
+  available?: boolean;
   items: ComparisonItem[];
 }
 
@@ -23,8 +25,10 @@ const periodLabel = (days: number) => {
   return { current: `Últimos ${days} dias`, previous: `${days} dias anteriores` };
 };
 
-export const PeriodComparisonStrip = ({ dateRange, items }: Props) => {
+export const PeriodComparisonStrip = ({ dateRange, items, period, available = true }: Props) => {
   const labels = periodLabel(dateRange);
+  if (period) labels.current = `${period.start} — ${period.end}`;
+  if (!available) return <p className="text-sm text-muted-foreground mb-6">Comparação indisponível: o período anterior está fora do histórico do seu plano.</p>;
 
   return (
     <div className="glass-card p-4 sm:p-5 mb-6">

@@ -54,7 +54,8 @@ interface Project {
 
 interface DashboardHeaderProps {
   dateRange: number;
-  onDateRangeChange: (days: number) => void;
+  onDateRangeChange: (days: number, period?: { start: string; end: string }) => void;
+  period?: { start: string; end: string };
   clientName?: string;
   projectName?: string;
   projects?: Project[];
@@ -80,6 +81,7 @@ const formatHost = (url?: string | null) => {
 const DashboardHeader = ({
   dateRange,
   onDateRangeChange,
+  period,
   clientName,
   projectName,
   projects,
@@ -160,7 +162,7 @@ const DashboardHeader = ({
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <SyncIndicator lastUpdate={lastUpdate} isUpdating={isUpdating} onRefresh={onRefresh} />
-          <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
+          <DateRangePicker period={period} dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
           
           {(onExportPDF || onExportCSV || onExportExcel) && (
             <DropdownMenu>
