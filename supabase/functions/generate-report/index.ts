@@ -3,7 +3,8 @@ import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { oneRelation } from "../_shared/relations.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -31,12 +32,6 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Rate limiting estrito (5 req/janela): gerar relatório varre várias tabelas
-    // de analytics e monta HTML, então é o endpoint mais caro por requisição.
-    const rateCheck = checkRateLimit(token, 5, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 5);
-    }
 
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
@@ -45,6 +40,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "generate-report", user.id, 5);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 5);
 
     const url = new URL(req.url);
     const days = parseDaysParam(url.searchParams.get("days"), 30);

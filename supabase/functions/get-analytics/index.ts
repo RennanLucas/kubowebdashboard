@@ -2,7 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { resolveTier, limitsForTier } from "../_shared/plans.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 import {
   parseDevice,
   classifySource,
@@ -241,13 +242,6 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "").trim();
 
-    // Rate limiting: 20 req/janela por usuário. Este endpoint pode chamar as
-    // APIs do GA4/Search Console, então o custo por requisição é externo.
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
-
     // Prefer getClaims() (local JWKS validation — resilient to transient
     // Auth server hiccups). Fall back to getUser() if claims verification
     // fails for a reason other than an actually invalid token.
@@ -273,6 +267,9 @@ Deno.serve(async (req) => {
       });
     }
 
+
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "get-analytics", userId, 20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
 
     const url = new URL(req.url);
     const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);

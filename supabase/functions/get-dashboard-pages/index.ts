@@ -4,7 +4,8 @@ import { filterSource } from "../_shared/analytics-source.ts";
 import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -14,16 +15,14 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return new Response("Não autorizado", { status: 401, headers: corsHeaders });
 
-    // Rate limiting: 20 req/min por usuário
     const token = authHeader.replace("Bearer ", "").trim();
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
-    }
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
     if (!user) return new Response("Token inválido", { status: 401, headers: corsHeaders });
+
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "get-dashboard-pages", user.id, 20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");

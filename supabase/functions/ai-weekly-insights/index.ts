@@ -1,344 +1,152 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { resolveTier, limitsForTier, type PlanTier } from "../_shared/plans.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
-
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
+import { GEMINI_MODEL, generateGeminiInsight } from "./_gemini.ts";
+import { type AIStatus, runAIGeneration } from "./_service.ts";
+const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
+  const cors = getCorsHeaders(req);
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        ...cors,
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
     });
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Rate limiting por token (20 req/janela). A cota mensal de IA já limita o
-    // custo do provedor, mas não impede um loop de chamadas em `action=status`.
-    const rateCheck = checkRateLimit(authHeader.replace("Bearer ", "").trim(), 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
-
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const userId = userData.user.id;
-
+  if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+  try {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") ?? "status";
-    const organizationId = url.searchParams.get("organization_id");
-
-    if (!organizationId) {
-      return new Response(JSON.stringify({ error: "Missing organization_id" }), { status: 400, headers: corsHeaders });
+    if (action !== "status" && action !== "generate") {
+      return json({ error: "INVALID_AI_REQUEST" }, 400);
     }
-
-    const { data: memberData, error: memberErr } = await admin
-      .from("organization_members")
-      .select("role")
-      .eq("organization_id", organizationId)
-      .eq("user_id", userId)
-      .single();
-
-    if (memberErr || !memberData) {
-      return new Response(JSON.stringify({ error: "Acesso negado à organização" }), { status: 403, headers: corsHeaders });
+    if (req.method !== (action === "generate" ? "POST" : "GET")) {
+      return json({ error: "METHOD_NOT_ALLOWED" }, 405);
     }
-
-    // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
-    let MONTHLY_LIMIT = 0;
-    let tier: PlanTier = "free";
-
-    const { data: orgSub } = await admin
-      .from("subscriptions")
-      .select("plan_id, status, current_period_end")
-      .eq("organization_id", organizationId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (orgSub) {
-      tier = resolveTier(orgSub);
-      MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
-    } else {
-      const { data: subRow } = await admin
-        .from("subscriptions")
-        .select("plan_id, status, current_period_end")
-        .eq("user_id", userId)
-        .is("organization_id", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      tier = resolveTier(subRow);
-      MONTHLY_LIMIT = limitsForTier(tier).aiMonthlyLimit;
+    const auth = req.headers.get("Authorization");
+    if (!auth?.startsWith("Bearer ")) {
+      return json({ error: "Não autorizado" }, 401);
     }
-
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const { count: usedThisMonth, error: usageError } = await admin
-      .from("ai_insights")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", monthStart);
-    if (usageError) throw usageError;
-
-    const used = usedThisMonth ?? 0;
-    const remaining = Math.max(0, MONTHLY_LIMIT - used);
-
-    const { data: scopedProjects, error: scopeError } = await admin.from("projects")
-      .select("id").eq("organization_id", organizationId);
-    if (scopeError) throw scopeError;
-    const scopedProjectIds = (scopedProjects ?? []).map(project => project.id);
-    const { data: latest, error: latestError } = scopedProjectIds.length ? await admin
-      .from("ai_insights")
-      .select("id, content, created_at, period_days, model")
-      .eq("user_id", userId)
-      .in("project_id", scopedProjectIds)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle() : { data: null, error: null };
-    if (latestError) throw latestError;
-
-    if (action === "status") {
-      return new Response(JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier, configured: Boolean(LOVABLE_API_KEY) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (action !== "generate") {
-      return new Response(JSON.stringify({ error: "ação inválida" }), { status: 400, headers: corsHeaders });
-    }
-
-    if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "METHOD_NOT_ALLOWED" }), { status: 405, headers: { ...corsHeaders, Allow: "POST", "Content-Type": "application/json" } });
-    }
-
-    if (MONTHLY_LIMIT <= 0) {
-      return new Response(JSON.stringify({ error: "PLAN_REQUIRED", message: "Requer plano Pro.", used, limit: 0, plan: tier }), { status: 402, headers: corsHeaders });
-    }
-
-    if (remaining <= 0) {
-      return new Response(JSON.stringify({ error: "LIMIT_REACHED", message: "Limite atingido.", used, limit: MONTHLY_LIMIT }), { status: 429, headers: corsHeaders });
-    }
-
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI_NOT_CONFIGURED", message: "A integração de IA ainda não está disponível. Nenhuma geração foi realizada." }), {
-        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: orgData, error: orgErr } = await admin
-      .from("organizations")
-      .select("id, name, lead_value")
-      .eq("id", organizationId)
-      .single();
-
-    if (orgErr || !orgData) {
-      return new Response(JSON.stringify({ error: "Organização não encontrada" }), { status: 404, headers: corsHeaders });
-    }
-
-    const { data: projects } = await admin
-      .from("projects")
-      .select("id, name, url")
-      .eq("organization_id", orgData.id);
-
-    const projectIds = (projects ?? []).map((p) => p.id);
-    if (projectIds.length === 0) {
-      return new Response(JSON.stringify({ error: "Nenhum projeto cadastrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const since7 = new Date(Date.now() - 7 * 86400_000).toISOString();
-    const since14 = new Date(Date.now() - 14 * 86400_000).toISOString();
-
-    const [{ data: metrics7 }, { data: metrics14 }, { data: pv }, { data: ev }] = await Promise.all([
-      admin
-        .from("website_metrics")
-        .select("date, visitors, leads, conversion_rate, estimated_value, whatsapp_clicks, form_submissions, button_clicks")
-        .in("project_id", projectIds)
-        .gte("date", since7.slice(0, 10))
-        .order("date"),
-      admin
-        .from("website_metrics")
-        .select("visitors, leads, estimated_value")
-        .in("project_id", projectIds)
-        .gte("date", since14.slice(0, 10))
-        .lt("date", since7.slice(0, 10)),
-      admin
-        .from("pageviews")
-        .select("page_path, country, created_at")
-        .in("project_id", projectIds)
-        .gte("created_at", since7)
-        .limit(5000),
-      admin
-        .from("events")
-        .select("event_type, page_path")
-        .in("project_id", projectIds)
-        .gte("created_at", since7)
-        .limit(5000),
-    ]);
-
-    // Agregação simples
-    const sum = (arr: any[] | null, key: string) =>
-      (arr ?? []).reduce((s, r) => s + (Number(r[key]) || 0), 0);
-
-    const visitors7 = sum(metrics7, "visitors");
-    const leads7 = sum(metrics7, "leads");
-    const value7 = sum(metrics7, "estimated_value");
-    const visitors14 = sum(metrics14, "visitors");
-    const leads14 = sum(metrics14, "leads");
-    const value14 = sum(metrics14, "estimated_value");
-
-    const pct = (cur: number, prev: number) =>
-      prev === 0 ? (cur > 0 ? 100 : 0) : Math.round(((cur - prev) / prev) * 100);
-
-    const topPages = Object.entries(
-      (pv ?? []).reduce<Record<string, number>>((acc, r: any) => {
-        acc[r.page_path] = (acc[r.page_path] ?? 0) + 1;
-        return acc;
-      }, {}),
-    )
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-
-    const topCountries = Object.entries(
-      (pv ?? []).reduce<Record<string, number>>((acc, r: any) => {
-        if (r.country) acc[r.country] = (acc[r.country] ?? 0) + 1;
-        return acc;
-      }, {}),
-    )
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-
-    const eventCounts = (ev ?? []).reduce<Record<string, number>>((acc, r: any) => {
-      acc[r.event_type] = (acc[r.event_type] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    const dataSummary = {
-      empresa: orgData.name,
-      periodo: "últimos 7 dias",
-      comparativo: "vs 7 dias anteriores",
-      totais_7d: { visitantes: visitors7, leads: leads7, valor_estimado: value7 },
-      totais_periodo_anterior: { visitantes: visitors14, leads: leads14, valor_estimado: value14 },
-      variacao_pct: {
-        visitantes: pct(visitors7, visitors14),
-        leads: pct(leads7, leads14),
-        valor: pct(value7, value14),
-      },
-      por_dia: metrics7,
-      top_paginas: topPages,
-      top_paises: topCountries,
-      conversoes: eventCounts,
-    };
-
-    const systemPrompt = `Você é um analista de dados sênior especializado em marketing digital e performance de sites. Gere um RESUMO SEMANAL CONCISO E ACIONÁVEL em português brasileiro a partir dos dados fornecidos.
-
-ESTRUTURA OBRIGATÓRIA (use markdown):
-## 📊 Resumo da semana
-2-3 frases destacando o número mais importante (visitantes, leads ou variação).
-
-## 🚀 Destaques positivos
-2-3 bullets do que melhorou (com %, números reais).
-
-## ⚠️ Pontos de atenção
-2-3 bullets do que caiu ou está abaixo do esperado.
-
-## 💡 Recomendações
-3 ações concretas e práticas para a próxima semana.
-
-REGRAS:
-- Seja direto, sem enrolação. Máximo 250 palavras.
-- Use SEMPRE números reais dos dados.
-- Não invente métricas que não estão no JSON.
-- Tom profissional mas acessível.`;
-
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Dados:\n${JSON.stringify(dataSummary, null, 2)}` },
-        ],
-      }),
-    });
-
-    if (aiResp.status === 429) {
-      return new Response(
-        JSON.stringify({ error: "AI_RATE_LIMIT", message: "Muitas requisições à IA. Tente em alguns minutos." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-    if (aiResp.status === 402) {
-      return new Response(
-        JSON.stringify({ error: "AI_PAYMENT_REQUIRED", message: "Créditos da IA esgotados. Adicione créditos em Settings > Workspace > Usage." }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("AI gateway error", aiResp.status, t);
-      return new Response(JSON.stringify({ error: "Falha ao gerar insights" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const aiJson = await aiResp.json();
-    const content: string = aiJson.choices?.[0]?.message?.content ?? "Sem conteúdo gerado.";
-    const model = "google/gemini-2.5-flash";
-
-    const { data: inserted, error: insErr } = await admin
-      .from("ai_insights")
-      .insert({ user_id: userId, project_id: projectIds[0], content, period_days: 7, model })
-      .select("id, content, created_at, period_days, model")
-      .single();
-
-    if (insErr) {
-      console.error("Insert error", insErr);
-      return new Response(JSON.stringify({ error: "Falha ao salvar insight" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(
-      JSON.stringify({
-        latest: inserted,
-        used: used + 1,
-        remaining: remaining - 1,
-        limit: MONTHLY_LIMIT,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-  } catch (e) {
-    // Mensagem interna só no log — o cliente recebe texto genérico.
-    console.error("ai-weekly-insights error", e);
-    return new Response(JSON.stringify({ error: "Erro inesperado" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const { data: { user }, error: authError } = await admin.auth.getUser(
+      auth.slice(7).trim(),
+    );
+    if (authError || !user) return json({ error: "Sessão inválida" }, 401);
+    const rate = await checkSharedRateLimit(
+      admin,
+      "ai-weekly-insights",
+      user.id,
+      20,
+    );
+    if (!rate.allowed) return rateLimitResponse(rate.resetAt, cors, 20);
+    const project = url.searchParams.get("project_id") ?? "";
+    const org = url.searchParams.get("organization_id") ?? "";
+    const body = action === "generate"
+      ? await req.json().catch(() => null)
+      : null;
+    const days = Number(body?.period_days ?? url.searchParams.get("days") ?? 7);
+    const requestId = body?.request_id ?? url.searchParams.get("request_id") ??
+      null;
+    if (
+      !UUID.test(project) || !UUID.test(org) || ![7, 30].includes(days) ||
+      (requestId !== null &&
+        (typeof requestId !== "string" || !UUID.test(requestId))) ||
+      (action === "generate" && !requestId)
+    ) return json({ error: "INVALID_AI_REQUEST" }, 400);
+    const { data: projectData, error: projectError } = await admin.from(
+      "projects",
+    ).select("organization_id").eq("id", project).maybeSingle();
+    if (projectError) throw projectError;
+    if (projectData?.organization_id !== org) {
+      return json({ error: "Acesso negado ao projeto" }, 403);
+    }
+    const key = Deno.env.get("GEMINI_API_KEY") ?? "";
+    const command = async (
+      operation: string,
+      content?: string,
+      usage?: unknown,
+    ) => {
+      const { data, error } = await admin.rpc("manage_ai_generation", {
+        p_actor: user.id,
+        p_project: project,
+        p_action: operation,
+        p_request: requestId,
+        p_days: days,
+        p_model: GEMINI_MODEL,
+        p_content: content ?? null,
+        p_usage: usage ?? null,
+      });
+      if (error) throw new Error(error.message);
+      if (
+        !data || typeof data.limit !== "number" ||
+        typeof data.remaining !== "number"
+      ) throw new Error("AI_LEDGER_UNAVAILABLE");
+      return data as AIStatus;
+    };
+    const result = await runAIGeneration(action, {
+      configured: Boolean(key),
+      command,
+      summary: async () => {
+        const { error: aggregateError } = await admin.rpc(
+          "aggregate_analytics_jit",
+          { p_project_id: project },
+        );
+        if (aggregateError) throw aggregateError;
+        const { data, error } = await admin.rpc("ai_project_summary", {
+          p_actor: user.id,
+          p_project: project,
+          p_days: days,
+        });
+        if (error || !data?.current || !Array.isArray(data.events)) {
+          throw new Error("AI_DATA_UNAVAILABLE");
+        }
+        return data;
+      },
+      generate: (summary) => generateGeminiInsight(key, summary),
     });
+    return json(
+      { ...(result.body as object), model: GEMINI_MODEL },
+      result.httpStatus,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const errors: Record<string, [number, string]> = {
+      PLAN_REQUIRED: [402, "Insights com IA são exclusivos do plano Pro."],
+      AI_LIMIT_REACHED: [
+        429,
+        "Você atingiu o limite mensal de análises com IA da organização.",
+      ],
+      AI_ACCESS_DENIED: [403, "Acesso negado à organização."],
+      AI_WRITE_DENIED: [403, "Você não pode gerar análises pagas."],
+      AI_PROJECT_NOT_FOUND: [403, "Acesso negado ao projeto."],
+      INVALID_AI_REQUEST: [400, "Solicitação inválida."],
+      AI_REQUEST_ID_CONFLICT: [
+        400,
+        "Solicitação incompatível com uma geração anterior.",
+      ],
+    };
+    if (errors[message]) {
+      return json(
+        { error: message, message: errors[message][1] },
+        errors[message][0],
+      );
+    }
+    if (message.startsWith("AI_")) {
+      console.error("AI generation failed", { code: message });
+      return json({
+        error: "AI_UNAVAILABLE",
+        message:
+          "Não foi possível concluir a análise. Consulte a solicitação antes de gerar novamente; uma chamada iniciada pode estar contabilizada na quota.",
+      }, 503);
+    }
+    return errorResponse(error, cors, "ai-weekly-insights");
   }
 });

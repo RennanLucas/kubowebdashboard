@@ -1,7 +1,9 @@
 // Creates organization invite with secure token generation
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -25,17 +27,15 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Rate limiting: 10 req/min por usuário (evita spam de convites)
-    const rateCheck = checkRateLimit(token, 10, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
-    }
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !user) return json({ error: "Unauthorized" }, 401);
+
+    const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const rateCheck = await checkSharedRateLimit(admin, "create-invite", user.id, 10);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
 
     const body = await req.json().catch(() => ({}));
     const { organizationId, email, role } = body;
@@ -128,6 +128,6 @@ Deno.serve(async (req) => {
 
   } catch (e) {
     console.error("create-invite error:", e);
-    return json({ error: "Internal server error" }, 500);
+    return errorResponse(e, corsHeaders, "create-invite");
   }
 });

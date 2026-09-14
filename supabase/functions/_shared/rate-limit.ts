@@ -2,10 +2,10 @@
  * Rate limiting para Edge Functions
  *
  * LIMITAÇÃO: Este rate limiter é por-isolate (in-memory), não global.
- * Cada região/worker tem seu próprio contador. Para rate limiting global,
- * seria necessário Upstash Redis ou similar.
- *
- * Para SaaS em produção com múltiplas regiões, considere migrar para Upstash.
+ * Cada região/worker tem seu próprio contador. APIs autenticadas devem usar
+ * checkSharedRateLimit, cujo contador atômico é mantido no PostgreSQL.
+ * Este contador local permanece apenas como defesa secundária dos endpoints
+ * públicos que ainda não migraram para armazenamento compartilhado.
  */
 
 interface RateLimitRecord {
@@ -20,6 +20,7 @@ interface RateLimitState {
 }
 
 const WINDOW_MS = 60_000; // 1 minuto
+let lastCleanup = 0;
 
 // Estado global do isolate
 const state: RateLimitState = {
@@ -46,6 +47,10 @@ export function checkRateLimit(
   }
 
   const now = Date.now();
+  if (now - lastCleanup >= 5 * 60_000) {
+    cleanup();
+    lastCleanup = now;
+  }
   const map = type === "user" ? state.users : type === "ip" ? state.ips : state.projects;
 
   const record = map.get(identifier);
@@ -90,7 +95,7 @@ export function rateLimitResponse(
   headers: Record<string, string> = {},
   limit?: number,
 ): Response {
-  const retryAfter = Math.ceil((resetAt - Date.now()) / 1000);
+  const retryAfter = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
 
   return new Response(
     JSON.stringify({
@@ -128,5 +133,4 @@ function cleanup() {
   }
 }
 
-// Cleanup automático a cada 5 minutos
-setInterval(cleanup, 5 * 60_000);
+// Cleanup por demanda: importar somente rateLimitResponse não inicia timers.

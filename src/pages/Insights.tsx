@@ -33,6 +33,7 @@ import { useRequestScope } from "@/hooks/useRequestScope";
 import { FeatureLock } from "@/components/FeatureLock";
 
 import { InsightsHeader } from "@/components/insights/InsightsHeader";
+import { AIInsightsPanel } from "@/components/insights/AIInsightsPanel";
 import { 
   InsightsStatusCard, 
   InsightsExplanationCard, 
@@ -704,8 +705,9 @@ export default function Insights() {
           onExportMarkdown={exportMarkdown}
         />
 
+        {projectId && <AIInsightsPanel key={`${scopeKey}:${periodDays}`} projectId={projectId} periodDays={periodDays} onGenerated={applyHistoryItem} />}
         <div role="status" className="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-          Esta tela usa análise automática local das métricas, sem consultar um modelo de IA externo. A integração de IA paga ainda precisa ser configurada e validada.
+          “Gerar análise local” usa regras automáticas das métricas, sem IA externa e sem consumir quota. “Gerar com IA” usa a integração paga do plano Pro, somente após seu clique.
         </div>
         {error && <div role="alert" className="mb-4 text-sm text-destructive">Não foi possível carregar as métricas deste projeto. A geração foi desabilitada para não criar uma análise com dados incompletos.</div>}
 

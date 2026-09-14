@@ -10,7 +10,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 // dependência de terceiros para algo que é configuração nossa.
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
 import {
   computeIsActive,
   computeIsTrialing,
@@ -63,13 +65,6 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Rate limiting por token (20 req/janela) — o frontend consulta este endpoint
-    // em toda montagem de tela de billing.
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
-
     const { data: claimsData, error: claimsError } = await supabase.auth
       .getClaims(token);
     if (claimsError || !claimsData?.claims) {
@@ -87,6 +82,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin,"get-subscription-status",userId,20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt,corsHeaders,20);
 
     // Autoriza exatamente a organização ativa informada pelo cliente. Nunca
     // escolhe uma assinatura entre todas as organizações do usuário.
@@ -214,7 +211,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     // Log detalhado no servidor, mensagem genérica para o cliente.
     console.error("[get-subscription-status] unexpected", e);
-    return json({ error: "Erro inesperado" }, 500);
+    return errorResponse(e,corsHeaders,"get-subscription-status");
   }
 });
 

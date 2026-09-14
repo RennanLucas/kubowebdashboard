@@ -82,7 +82,7 @@ export function InsightsHeader({
         )}
         <Button onClick={onGenerate} disabled={generating || isLoading} className="w-full justify-center gap-2 sm:w-auto">
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {generating ? "Atualizando..." : analysis ? "Atualizar análise" : "Gerar análise"}
+          {generating ? "Atualizando..." : analysis ? "Atualizar análise local" : "Gerar análise local"}
         </Button>
       </div>
     </div>

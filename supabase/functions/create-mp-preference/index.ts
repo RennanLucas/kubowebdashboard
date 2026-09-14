@@ -1,11 +1,13 @@
 // Cria checkout do Mercado Pago: preapproval recorrente para os planos KUBOWEB.
 // Usa a definição compartilhada em _shared/plans.ts — desabilitar um plano lá
 // automaticamente bloqueia novos checkouts dele.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { getPlan, type PlanId } from "../_shared/plans.ts";
 import { checkoutReturnUrl } from "../_shared/origins.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -30,12 +32,6 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "").trim();
-
-    // Rate limiting: 10 req/min por usuário
-    const rateCheck = checkRateLimit(token, 10, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
-    }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
@@ -66,6 +62,10 @@ Deno.serve(async (req) => {
       return json({ error: "Sua sessão expirou. Entre novamente para continuar." }, 401);
     }
 
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+    const rateCheck = await checkSharedRateLimit(admin, "create-mp-preference", userId, 10);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
+
     const body = await req.json().catch(() => ({}));
     const planId = body.planId as PlanId | undefined;
     const returnUrl = (body.returnUrl as string | undefined) ?? "";
@@ -76,7 +76,6 @@ Deno.serve(async (req) => {
     }
 
     // Consulta de papel da organização via admin para isolamento consistente
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE || SUPABASE_ANON);
     const { data: memberData, error: memberErr } = await admin
       .from("organization_members")
       .select("role")
@@ -140,7 +139,7 @@ Deno.serve(async (req) => {
     return json({ url: data.init_point, id: data.id });
   } catch (e) {
     console.error("create-mp-preference error:", e);
-    return json({ error: "Não foi possível iniciar o checkout. Consulte sua assinatura antes de tentar novamente." }, 500);
+    return errorResponse(e, corsHeaders, "create-mp-preference");
   }
 });
 

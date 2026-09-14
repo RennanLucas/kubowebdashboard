@@ -1,10 +1,12 @@
 // Cancela uma assinatura recorrente do Mercado Pago no fim do período atual.
 // Marca cancel_at_period_end=true localmente e atualiza o preapproval no MP para status="cancelled".
 // O usuário mantém acesso até current_period_end (validado por has_active_subscription).
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
 
 const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -34,13 +36,6 @@ Deno.serve(async (req) => {
       return json({ error: "Não autenticado" }, 401);
     }
 
-    // Rate limiting estrito (5 req/janela) — mesma faixa de create-mp-preference,
-    // por ser mutação de faturamento que chama a API do Mercado Pago.
-    const rateCheck = checkRateLimit(token, 5, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 5);
-    }
-
     // Identifica o usuário a partir do JWT
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${token}` } },
@@ -50,6 +45,8 @@ Deno.serve(async (req) => {
 
     const userId = userData.user.id;
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const rateCheck = await checkSharedRateLimit(admin,"mp-cancel-subscription",userId,5);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt,corsHeaders,5);
 
     const body = await req.json().catch(() => ({}));
     const organizationId = body.organizationId as string | undefined;
@@ -112,7 +109,7 @@ Deno.serve(async (req) => {
     return json({ success: true, mpUpdated, accessUntil: sub.current_period_end });
   } catch (e) {
     console.error("mp-cancel-subscription error:", e);
-    return json({ error: "Erro interno" }, 500);
+    return errorResponse(e,corsHeaders,"mp-cancel-subscription");
   }
 });
 

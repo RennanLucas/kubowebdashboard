@@ -5,7 +5,8 @@ import { oneRelation } from "../_shared/relations.ts";
 import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -25,18 +26,15 @@ Deno.serve(async (req) => {
     );
     const token = authHeader.replace("Bearer ", "").trim();
 
-    // Rate limiting: 20 req/janela por usuário — mesmo limite dos outros
-    // endpoints de dashboard (devices/geo/pages/sources), que já eram limitados.
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
 
     // Fast Auth
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Token inválido" }), { status: 401, headers: corsHeaders });
     }
+
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "get-dashboard-overview", user.id, 20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");
