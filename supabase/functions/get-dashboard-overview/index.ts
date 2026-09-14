@@ -1,6 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 import { filterSource } from "../_shared/analytics-source.ts";
+import { oneRelation } from "../_shared/relations.ts";
 import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
@@ -72,7 +73,9 @@ Deno.serve(async (req) => {
     const { maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
     const period = analyticsPeriod(url.searchParams, days, maxHistoryDays);
 
-    const leadValue = Number(projData.organizations.lead_value) > 0 ? Number(projData.organizations.lead_value) : 25;
+    const organization = oneRelation(projData.organizations);
+    if (!organization) throw new Error("Organização do projeto não encontrada.");
+    const leadValue = Number(organization.lead_value) > 0 ? Number(organization.lead_value) : 25;
 
     // 1. JIT Aggregation (aggregates anything missing up to NOW)
     const { error: aggregateError } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
@@ -231,8 +234,8 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       client: {
-        company_name: projData.organizations.name,
-        domain: projData.organizations.domain,
+        company_name: organization.name,
+        domain: organization.domain,
         lead_value: leadValue
       },
       summary: { totalVisitors, totalViews, totalLeads, totalSessions },

@@ -1,10 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { resolveTier, limitsForTier } from "../_shared/plans.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { resolveTier, limitsForTier, type PlanTier } from "../_shared/plans.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -12,13 +13,6 @@ Deno.serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY ausente" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -70,7 +64,7 @@ Deno.serve(async (req) => {
 
     // TODO: Fallback to owner's plan if organization doesn't have a plan in Phase 3.2
     let MONTHLY_LIMIT = 0;
-    let tier = "free";
+    let tier: PlanTier = "free";
 
     const { data: orgSub } = await admin
       .from("subscriptions")
@@ -88,6 +82,7 @@ Deno.serve(async (req) => {
         .from("subscriptions")
         .select("plan_id, status, current_period_end")
         .eq("user_id", userId)
+        .is("organization_id", null)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -97,29 +92,40 @@ Deno.serve(async (req) => {
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const { count: usedThisMonth } = await admin
+    const { count: usedThisMonth, error: usageError } = await admin
       .from("ai_insights")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("created_at", monthStart);
+    if (usageError) throw usageError;
 
     const used = usedThisMonth ?? 0;
     const remaining = Math.max(0, MONTHLY_LIMIT - used);
 
-    const { data: latest } = await admin
+    const { data: scopedProjects, error: scopeError } = await admin.from("projects")
+      .select("id").eq("organization_id", organizationId);
+    if (scopeError) throw scopeError;
+    const scopedProjectIds = (scopedProjects ?? []).map(project => project.id);
+    const { data: latest, error: latestError } = scopedProjectIds.length ? await admin
       .from("ai_insights")
       .select("id, content, created_at, period_days, model")
       .eq("user_id", userId)
+      .in("project_id", scopedProjectIds)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .maybeSingle() : { data: null, error: null };
+    if (latestError) throw latestError;
 
     if (action === "status") {
-      return new Response(JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ used, remaining, limit: MONTHLY_LIMIT, latest, plan: tier, configured: Boolean(LOVABLE_API_KEY) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (action !== "generate") {
       return new Response(JSON.stringify({ error: "ação inválida" }), { status: 400, headers: corsHeaders });
+    }
+
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "METHOD_NOT_ALLOWED" }), { status: 405, headers: { ...corsHeaders, Allow: "POST", "Content-Type": "application/json" } });
     }
 
     if (MONTHLY_LIMIT <= 0) {
@@ -128,6 +134,12 @@ Deno.serve(async (req) => {
 
     if (remaining <= 0) {
       return new Response(JSON.stringify({ error: "LIMIT_REACHED", message: "Limite atingido.", used, limit: MONTHLY_LIMIT }), { status: 429, headers: corsHeaders });
+    }
+
+    if (!LOVABLE_API_KEY) {
+      return new Response(JSON.stringify({ error: "AI_NOT_CONFIGURED", message: "A integração de IA ainda não está disponível. Nenhuma geração foi realizada." }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { data: orgData, error: orgErr } = await admin

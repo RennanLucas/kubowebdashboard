@@ -1,5 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { analyticsPeriod } from "../_shared/analytics-period.ts";
+import { oneRelation } from "../_shared/relations.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { resolveProjectTier, enforceHistoryLimit, enforcePremiumFeature, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
@@ -88,8 +89,10 @@ Deno.serve(async (req) => {
       return errorResponse(planError, corsHeaders, "generate-report:plan");
     }
 
+    const organization = oneRelation(projData.organizations);
+    if (!organization) throw new Error("Organização do projeto não encontrada.");
     const clientData = {
-      company_name: projData.organizations.name
+      company_name: organization.name
     };
     const currentProject = { name: projData.name };
 

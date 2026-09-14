@@ -13,6 +13,7 @@ import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 import { getAppUrl } from "@/lib/utils";
 import { OTPInput } from "@/components/auth/OTPInput";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type AuthStep = "form" | "otp_signup" | "otp_magiclink" | "otp_recovery" | "reset_password";
 
@@ -373,11 +374,14 @@ const Login = () => {
         <meta property="og:url" content="https://kubowebdashboard.lovable.app/login" />
         <link rel="canonical" href="https://kubowebdashboard.lovable.app/login" />
       </Helmet>
-      <div className="min-h-screen flex bg-background">
+      <div className="auth-page min-h-screen flex bg-background">
         
         {renderLeftPanel()}
 
         <div className="flex-1 flex items-center justify-center p-8 bg-background relative overflow-hidden">
+          <div className="absolute top-4 right-4 z-20">
+            <ThemeToggle variant="outline" />
+          </div>
           <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
           <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
           

@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Authentication remains immediately readable when entrance motion is disabled. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-page [class*="animate-"],
+  .auth-page .stagger-children > * {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, Map } from "lucide-react";
+import { toast } from "sonner";
 
 const STATUS_MAP: Record<string, { label: string, color: string, icon: string }> = {
   planned: { label: "Próximos passos", color: "bg-purple-100 text-purple-800", icon: "🟣" },
@@ -16,7 +17,7 @@ export function PublicRoadmap() {
   const orgId = activeOrganization?.id;
   const queryClient = useQueryClient();
 
-  const { data: roadmapItems, isLoading } = useQuery({
+  const { data: roadmapItems, isLoading, error: roadmapError, refetch } = useQuery({
     queryKey: ["roadmap-public"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,7 +34,7 @@ export function PublicRoadmap() {
     }
   });
 
-  const { data: myVotes } = useQuery({
+  const { data: myVotes, isLoading: votesLoading, error: votesError } = useQuery({
     queryKey: ["my-roadmap-votes", orgId],
     enabled: !!orgId,
     queryFn: async () => {
@@ -52,21 +53,26 @@ export function PublicRoadmap() {
       if (!orgId) throw new Error("Org not found");
       
       if (isVoted) {
-        await supabase.from("roadmap_votes" as any).delete()
+        const { error } = await supabase.from("roadmap_votes" as any).delete()
           .eq("roadmap_item_id", itemId)
           .eq("organization_id", orgId);
+        if (error) throw error;
       } else {
-        await supabase.from("roadmap_votes" as any).insert({
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData.user) throw new Error("Sessão expirada");
+        const { error } = await supabase.from("roadmap_votes" as any).insert({
           roadmap_item_id: itemId,
           organization_id: orgId,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: authData.user.id
         });
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roadmap-public"] });
       queryClient.invalidateQueries({ queryKey: ["my-roadmap-votes", orgId] });
-    }
+    },
+    onError: () => toast.error("Não foi possível registrar o voto. Tente novamente."),
   });
 
   if (isLoading) {
@@ -79,15 +85,8 @@ export function PublicRoadmap() {
     );
   }
 
-  if (!roadmapItems || roadmapItems.length === 0) {
-    return (
-      <div className="text-center py-24 bg-muted/30 rounded-2xl border border-border">
-        <Map className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">Roadmap vazio</h3>
-        <p className="text-muted-foreground">Em breve compartilharemos as novidades em que estamos trabalhando.</p>
-      </div>
-    );
-  }
+  if (roadmapError) return <div role="alert" className="rounded-xl border p-6"><p>Não foi possível carregar o roadmap.</p><Button variant="outline" className="mt-3" onClick={() => void refetch()}>Tentar novamente</Button></div>;
+  if (!roadmapItems?.length) return <div className="rounded-2xl border bg-muted/30 p-12 text-center"><Map className="mx-auto mb-4 h-10 w-10 text-muted-foreground" /><h3 className="font-semibold">Roadmap vazio</h3><p className="mt-2 text-muted-foreground">Em breve compartilharemos as novidades em que estamos trabalhando.</p></div>;
 
   // Group by status
   const groups: Record<string, any[]> = {
@@ -134,7 +133,8 @@ export function PublicRoadmap() {
                         size="sm"
                         className={`h-8 px-3 gap-1.5 ${hasVoted ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : ""}`}
                         onClick={() => voteMutation.mutate({ itemId: item.id, isVoted: !!hasVoted })}
-                        disabled={voteMutation.isPending || statusKey === 'published'}
+                        aria-label={hasVoted ? "Remover meu voto" : "Votar nesta melhoria"}
+                        disabled={!orgId || votesLoading || !!votesError || voteMutation.isPending || statusKey === 'published'}
                       >
                         <ThumbsUp className={`h-3.5 w-3.5 ${hasVoted ? "fill-primary" : ""}`} />
                         <span className="font-semibold">{votesCount}</span>

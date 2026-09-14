@@ -1,5 +1,6 @@
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { insertIdempotently } from "./_persist.ts";
+import { oneRelation } from "../_shared/relations.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents, isBot } from "./_ingest.ts";
 
@@ -51,6 +52,7 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
     }
 
     let isActive = true;
+    const legacyClient = oneRelation(projectData.clients);
 
     // 1. Tenta a assinatura da Organização (Fase 3 Multi-tenant)
     if (projectData.organization_id) {
@@ -65,12 +67,12 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
       if (orgSub) {
         isActive = !["canceled", "unpaid"].includes(orgSub.status);
       }
-    } else if (projectData.clients?.user_id) {
+    } else if (legacyClient?.user_id) {
       // 2. Fallback de Migração: Usa a assinatura legada do user_id do client
       const { data: subData } = await supabaseAdmin
         .from("subscriptions")
         .select("status, organization_id")
-        .eq("user_id", projectData.clients.user_id)
+        .eq("user_id", legacyClient.user_id)
         .is("organization_id", null)
         .order("created_at", { ascending: false })
         .limit(1)

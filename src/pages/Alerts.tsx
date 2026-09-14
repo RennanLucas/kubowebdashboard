@@ -24,6 +24,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useSelectedProject } from "@/hooks/useSelectedProject";
+import AlertPreferencesCard from "@/components/settings/AlertPreferencesCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AlertSeverity = "critical" | "warning" | "info" | "success";
 
@@ -220,11 +222,15 @@ export default function Alerts() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {unreadCount > 0 && (
-              <Button variant="outline" size="sm" onClick={markAllRead}>
-                <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={markAllRead}
+              disabled={unreadCount === 0}
+              title={unreadCount === 0 ? "Nenhum alerta pendente" : undefined}
+            >
+              <Check className="h-3.5 w-3.5 mr-1" /> Marcar todos como lidos
+            </Button>
             {persisted.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -254,88 +260,114 @@ export default function Alerts() {
           </div></div>
         </div>
 
-        {/* Persisted alerts (from cron) */}
-        {persisted.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-              Notificações automáticas
-            </h2>
-            <div className="space-y-3 animate-fade-up stagger-children">
-              {persisted.map((alert) => {
-                const cfg = severityConfig[alert.severity] ?? severityConfig.info;
-                return (
-                  <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} ${alert.read ? "opacity-60" : "shadow-sm"}`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`shrink-0 ${cfg.color}`}>
-                        <Bell className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="text-sm font-semibold text-foreground">{alert.title}</h3>
-                          {!alert.read && <Badge variant="default" className="text-[10px] h-4">Novo</Badge>}
-                          <span className="text-[10px] text-muted-foreground">
-                            {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true, locale: ptBR })}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{alert.message}</p>
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        {!alert.read && (
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => markAsRead(alert.id)}>
-                            <Check className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => dismiss(alert.id)}>
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <Tabs defaultValue="feed" className="space-y-6">
+          <TabsList className="bg-muted/50 p-1">
+            <TabsTrigger value="feed" className="text-xs sm:text-sm">
+              Notificações e Insights
+              {unreadCount > 0 && <Badge variant="destructive" className="ml-1.5 text-[10px] h-4 px-1.5">{unreadCount}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="text-xs sm:text-sm">
+              Preferências de Alerta
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Local rule-based insights */}
-        <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-          Insights atuais
-        </h2>
-        {isLoading ? (
-          <Card className="p-12 text-center text-muted-foreground text-sm">Carregando alertas...</Card>
-        ) : alerts.length === 0 && persisted.length === 0 ? (
-          <Card className="p-12 text-center glass-card border-dashed">
-            <div className="mx-auto w-16 h-16 rounded-full bg-[hsl(var(--success))]/10 flex items-center justify-center mb-4">
-              <CheckCircle2 className="h-8 w-8 text-[hsl(var(--success))]" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">Tudo certo por aqui!</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Nenhuma anomalia detectada. Continuaremos monitorando seus dados.
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-3 animate-fade-up stagger-children" style={{ animationDelay: "200ms" }}>
-            {alerts.map((alert) => {
-              const cfg = severityConfig[alert.severity];
-              return (
-                <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} shadow-sm`}>
-                  <div className="flex items-start gap-3">
-                    <div className={`shrink-0 ${cfg.color}`}>{alert.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-semibold text-foreground">{alert.title}</h3>
-                        <Badge variant={cfg.badge} className="text-[10px]">
-                          {alert.severity === "critical" ? "Crítico" : alert.severity === "warning" ? "Atenção" : alert.severity === "success" ? "Positivo" : "Info"}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{alert.message}</p>
-                    </div>
+          <TabsContent value="feed" className="space-y-6 mt-0">
+            {/* Persisted alerts (from cron) */}
+            {persisted.length > 0 && (
+              <div>
+                <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                  Notificações automáticas
+                </h2>
+                <div className="space-y-3 animate-fade-up stagger-children">
+                  {persisted.map((alert) => {
+                    const cfg = severityConfig[alert.severity] ?? severityConfig.info;
+                    return (
+                      <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} ${alert.read ? "opacity-60" : "shadow-sm"}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`shrink-0 ${cfg.color}`}>
+                            <Bell className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="text-sm font-semibold text-foreground">{alert.title}</h3>
+                              {!alert.read && <Badge variant="default" className="text-[10px] h-4">Novo</Badge>}
+                              <span className="text-[10px] text-muted-foreground">
+                                {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true, locale: ptBR })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{alert.message}</p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {!alert.read && (
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => markAsRead(alert.id)}>
+                                <Check className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => dismiss(alert.id)}>
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Local rule-based insights */}
+            <div>
+              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Insights atuais
+              </h2>
+              {isLoading ? (
+                <Card className="p-12 text-center text-muted-foreground text-sm">Carregando alertas...</Card>
+              ) : alerts.length === 0 && persisted.length === 0 ? (
+                <Card className="p-12 text-center glass-card border-dashed">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-[hsl(var(--success))]/10 flex items-center justify-center mb-4">
+                    <CheckCircle2 className="h-8 w-8 text-[hsl(var(--success))]" />
                   </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Tudo certo por aqui!</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                    Nenhuma anomalia detectada. Continuaremos monitorando seus dados.
+                  </p>
                 </Card>
-              );
-            })}
-          </div>
-        )}
+              ) : (
+                <div className="space-y-3 animate-fade-up stagger-children" style={{ animationDelay: "200ms" }}>
+                  {alerts.map((alert) => {
+                    const cfg = severityConfig[alert.severity];
+                    return (
+                      <Card key={alert.id} className={`p-4 border ${cfg.bg} ${cfg.borderLeft} shadow-sm`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`shrink-0 ${cfg.color}`}>{alert.icon}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-sm font-semibold text-foreground">{alert.title}</h3>
+                              <Badge variant={cfg.badge} className="text-[10px]">
+                                {alert.severity === "critical" ? "Crítico" : alert.severity === "warning" ? "Atenção" : alert.severity === "success" ? "Positivo" : "Info"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{alert.message}</p>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="preferences" className="mt-0">
+            {projectId ? (
+              <AlertPreferencesCard projectId={projectId} />
+            ) : (
+              <Card className="p-12 text-center text-muted-foreground text-sm">
+                Selecione um projeto para configurar as preferências de notificação.
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

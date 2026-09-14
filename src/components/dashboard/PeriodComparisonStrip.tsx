@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus, ArrowRight } from "lucide-react";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { percentageChange } from "@/lib/metric-comparison";
 
 interface ComparisonItem {
   label: string;
@@ -55,9 +56,8 @@ export const PeriodComparisonStrip = ({ dateRange, items, period, available = tr
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {items.map((item) => {
           const fmt = item.format ?? fmtDefault;
-          const diff = item.current - item.previous;
-          const pct = item.previous > 0 ? (diff / item.previous) * 100 : (item.current > 0 ? 100 : 0);
-          const rounded = Math.round(pct * 10) / 10;
+          const pct = percentageChange(item.current, item.previous);
+          const rounded = pct === null ? 0 : Math.round(pct * 10) / 10;
           const dir = rounded > 0 ? "up" : rounded < 0 ? "down" : "flat";
 
           const dirStyle = dir === "up"
@@ -83,7 +83,7 @@ export const PeriodComparisonStrip = ({ dateRange, items, period, available = tr
                 className={`inline-flex items-center gap-0.5 mt-2 px-1.5 py-0.5 rounded-md text-[11px] font-semibold tabular-nums ${dirStyle.bg} ${dirStyle.text}`}
               >
                 {dirStyle.icon}
-                {rounded > 0 ? "+" : ""}{rounded}%
+                {pct === null ? "Sem base comparável" : `${rounded > 0 ? "+" : ""}${rounded}%`}
               </span>
             </div>
           );

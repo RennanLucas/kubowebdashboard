@@ -18,17 +18,17 @@ export function InsightsStatusCard({ periodDays, hasHistoryForSelectedPeriod, an
         <div className="space-y-1 text-sm">
           <p className="font-medium text-foreground">
             {!hasHistoryForSelectedPeriod
-              ? `Atualização com IA necessária para ${periodDays} dias`
+              ? `Nova análise necessária para ${periodDays} dias`
               : analysisSource === "generated"
-                ? `Análise de ${periodDays} dias atualizada com IA`
-                : `Histórico de ${periodDays} dias carregado sem IA`}
+                ? `Análise local de ${periodDays} dias atualizada`
+                : `Histórico de ${periodDays} dias carregado`}
           </p>
           <p className="text-muted-foreground">
             {!hasHistoryForSelectedPeriod
               ? "Ainda não existe uma versão salva para esse período. Se quiser visualizar esse recorte, gere uma nova análise manualmente."
               : analysisSource === "generated"
-                ? "Você está vendo uma versão recém-atualizada. Só será necessário rodar IA de novo se quiser renovar os insights."
-                : "Você está vendo uma versão já salva no histórico. Só use a atualização com IA se quiser gerar uma leitura nova dos dados."}
+                ? "Você está vendo uma versão recém-atualizada. Gere outra análise apenas quando quiser renovar os insights."
+                : "Você está vendo uma versão já salva no histórico. Atualize apenas quando quiser gerar uma leitura nova dos dados."}
           </p>
         </div>
       </div>
@@ -41,9 +41,9 @@ export function InsightsExplanationCard() {
     <Card className="mb-6 p-4 sm:p-6">
       <div className="space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground">O que a IA analisa</h2>
+          <h2 className="text-base font-semibold text-foreground">O que a análise considera</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            A IA cruza os principais sinais do período para transformar números soltos em leitura de desempenho e oportunidades de ação.
+            O Kubo cruza os principais sinais do período para transformar números soltos em leitura de desempenho e oportunidades de ação.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -96,7 +96,7 @@ export function InsightsWarningCard({ periodDays, generating, historyLoading, ha
         <div className="space-y-1 text-sm">
           <p className="font-medium text-foreground">Nenhum histórico salvo para {periodDays} dias</p>
           <p className="text-muted-foreground">
-            Se você quiser esse período, gere uma nova análise manualmente. Enquanto isso, não vamos consumir IA automaticamente.
+            Se você quiser esse período, gere uma nova análise manualmente. A análise local não utiliza créditos de uma API de IA.
           </p>
         </div>
       </div>
@@ -112,9 +112,9 @@ export function InsightsEmptyStateCard({ analysis, generating, periodDays }: Par
       <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
         <Sparkles className="h-8 w-8 text-primary" />
       </div>
-      <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise com IA</h3>
+      <h3 className="text-lg font-medium text-foreground mb-2">Pronto para gerar sua análise</h3>
       <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-        Ao clicar em "Gerar análise com IA", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
+        Ao clicar em "Gerar análise", o sistema processa os dados dos últimos {periodDays} dias e entrega um relatório com resumo executivo, destaques, pontos de atenção e próximos passos.
       </p>
     </Card>
   );
@@ -128,9 +128,9 @@ export function InsightsGeneratingCard({ generating, periodDays }: Partial<Insig
       <div className="absolute inset-0 bg-primary/5 animate-pulse" />
       <div className="relative z-10">
         <Loader2 className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise com IA</h3>
+        <h3 className="text-lg font-medium text-foreground mb-2">Gerando análise local</h3>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          A IA está lendo os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
+          O Kubo está processando os dados dos últimos {periodDays} dias para montar o diagnóstico. Quando terminar, o relatório aparecerá nesta tela com os insights principais e a opção de ver os detalhes de cada recomendação.
         </p>
       </div>
     </Card>

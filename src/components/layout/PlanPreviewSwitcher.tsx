@@ -25,7 +25,7 @@ export const PlanPreviewSwitcher = () => {
   const { isAdmin } = useIsAdmin();
   const { preview, setPreview } = usePlanPreview();
 
-      const showSwitcher = isAdmin;
+  const showSwitcher = isAdmin || import.meta.env.DEV;
 
   if (!showSwitcher) return null;
 

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { resolveTier, limitsForTier, type PlanTier } from "./plans.ts";
 
 export async function resolveProjectTier(

@@ -1,6 +1,6 @@
-﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { resolveTier, limitsForTier } from "../_shared/plans.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { errorResponse } from "../_shared/plan-gate.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 import {
@@ -207,6 +207,7 @@ function parseOS(ua: string): string {
 // --- Main handler ---
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -373,7 +374,7 @@ Deno.serve(async (req) => {
     let ga4Data: Awaited<ReturnType<typeof fetchGA4Report>> | null = null;
 
     if (
-      shouldUseGA4({
+      serviceAccountJson && shouldUseGA4({
         hasServiceAccount: !!serviceAccountJson,
         hasPropertyId: !!analyticsPropertyId,
         sourceFilter,
@@ -390,9 +391,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const ga4HasData = ga4Data && ga4Data.dailyMetrics.length > 0;
-
-    if (ga4HasData) {
+    if (ga4Data && ga4Data.dailyMetrics.length > 0) {
       // Also fetch events from DB to enrich GA4 data with leads
       let ga4Events: any[] = [];
       if (projectId) {

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
 import { filterSource } from "../_shared/analytics-source.ts";
 import { analyticsPeriod } from "../_shared/analytics-period.ts";

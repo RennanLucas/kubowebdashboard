@@ -9,12 +9,14 @@ import { ptBR } from "date-fns/locale";
 import { Navigate } from "react-router-dom";
 import { FeatureLock } from "@/components/FeatureLock";
 import { useSelectedProject } from "@/hooks/useSelectedProject";
+import { usePlan } from "@/hooks/usePlan";
 
 export default function Live() {
   const { selectedProjectId } = useSelectedProject();
+  const plan = usePlan();
   const { data, error } = useDashboardAnalytics(1, selectedProjectId);
   const projectId = selectedProjectId || data?.client?.project?.id || null;
-  const { visitors, loading, error: feedError, retry } = useLiveFeed(projectId, 100);
+  const { visitors, loading, error: feedError, retry } = useLiveFeed(!plan.loading && plan.can("live") ? projectId : null, 100);
 
   if ((error as Error | null)?.message === "AUTH_EXPIRED") {
     return <Navigate to="/login" replace />;
@@ -39,13 +41,14 @@ export default function Live() {
           </div>
 
         {/* Stats */}
+        <FeatureLock feature="live" description="Veja quem está no seu site agora, de onde vem e qual página está acessando. Disponível a partir do plano Pro.">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <Card className="glass-card shadow-sm border-border/50">
             <CardContent className="pt-5 pb-5">
               <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs mb-2 uppercase tracking-wider">
                 <Activity className="h-4 w-4 text-success" /> Ativos agora
               </div>
-              <div className="text-3xl font-bold text-foreground">{activeNow}</div>
+              <div className="text-3xl font-bold text-foreground">{error ? "—" : activeNow}</div>
             </CardContent>
           </Card>
           <Card className="glass-card shadow-sm border-border/50">
@@ -66,7 +69,7 @@ export default function Live() {
           </Card>
         </div>
 
-        <FeatureLock feature="live" description="Veja quem está no seu site agora, de onde vem e qual página está acessando. Disponível a partir do plano Pro.">
+        {error && <div role="alert" className="mb-4 text-sm text-muted-foreground">Não foi possível atualizar a contagem de visitantes ativos.</div>}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Stream de visitantes</CardTitle>

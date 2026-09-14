@@ -1,4 +1,5 @@
 import { useLiveFeed } from "@/hooks/useLiveFeed";
+import { usePlan } from "@/hooks/usePlan";
 import { Globe, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,7 +13,8 @@ interface LiveFeedCardProps {
 }
 
 const LiveFeedCard = ({ projectId, compact = true }: LiveFeedCardProps) => {
-  const { visitors, loading, error, retry } = useLiveFeed(projectId, compact ? 8 : 50);
+  const plan = usePlan();
+  const { visitors, loading, error, retry } = useLiveFeed(!plan.loading && plan.can("live") ? projectId : null, compact ? 8 : 50);
 
   return (
     <SectionCard
