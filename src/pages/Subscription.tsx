@@ -25,6 +25,7 @@ import { usePlans } from "@/hooks/usePlans";
 import { getAppUrl } from "@/lib/utils";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-error";
+import { checkoutUrlFromResponse } from "@/lib/payment-checkout";
 
 type SwitchablePlanId = string;
 
@@ -97,10 +98,24 @@ export default function SubscriptionPage() {
   const nextChargeDays = daysUntil(referenceDate);
 
   const handleCancel = async () => {
+    if (!activeOrganization) {
+      toast.error("Selecione uma organização antes de cancelar o plano.");
+      return;
+    }
+    if (!currentRole || !["owner", "admin"].includes(currentRole)) {
+      toast.error("Somente o proprietário ou um administrador pode cancelar o plano.");
+      return;
+    }
     setCanceling(true);
     try {
-      const { data, error } = await supabase.functions.invoke("mp-cancel-subscription", {});
-      if (error) throw new Error(error.message);
+      const { data, error } = await supabase.functions.invoke("mp-cancel-subscription", {
+        body: { organizationId: activeOrganization.id },
+      });
+      if (error) throw new Error(await getEdgeFunctionErrorMessage(
+        error,
+        data,
+        "Não foi possível cancelar agora. Nenhuma alteração foi feita.",
+      ));
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success("Assinatura cancelada", {
         description: `Seu acesso continua ativo até ${formatDate(subscription?.current_period_end ?? null)}.`,
@@ -139,11 +154,10 @@ export default function SubscriptionPage() {
           "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
         ));
       }
-      const url = (data as any)?.url;
-      if (!url) throw new Error((data as any)?.error || "Falha ao gerar checkout");
+      const url = checkoutUrlFromResponse(data);
       // Redireciona ao checkout do Mercado Pago.
       // O backend vincula o checkout à organização ativa e valida o papel do usuário.
-      window.location.href = url;
+      window.location.assign(url);
     } catch (e) {
       toast.error(
         (e as Error).message ||

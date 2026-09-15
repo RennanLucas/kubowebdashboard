@@ -38,7 +38,7 @@
 |--------|---------|--------|--------|
 | `VITE_SUPABASE_PUBLISHABLE_KEY` (anon key) | `.env` | deletado em `3a7a0e7` | ⚠️ NO HISTORY |
 | `VITE_PAYMENTS_CLIENT_TOKEN` (pk_live_*) | `.env.production` | `3a7a0e7` | ⚠️ NO HISTORY |
-| `E2E_USER_PASSWORD="Rennanlucas135@"` | `.env.staging` | `04a8371` | ⚠️ NO HISTORY |
+| `E2E_USER_PASSWORD=<redacted>` | `.env.staging` | `04a8371` | ⚠️ NO HISTORY — rotacionar a credencial de teste |
 | `E2E_OWNER_EMAIL` (email real) | `.env.staging` | `04a8371` | ⚠️ NO HISTORY |
 
 **Evidência:** `git log --all -p -- "*.env*"` retorna os valores em plaintext.  

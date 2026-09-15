@@ -31,6 +31,7 @@ const state = vi.hoisted(() => ({
   },
   orgRow: null as Record<string, unknown> | null,
   legacyRow: null as Record<string, unknown> | null,
+  queryError: null as Error | null,
   fromCalls: [] as FromCall[],
   channels: [] as FakeChannel[],
   removed: [] as unknown[],
@@ -55,7 +56,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         limit: () => builder,
         maybeSingle: async () => ({
           data: call.isNull.includes("organization_id") ? state.legacyRow : state.orgRow,
-          error: null,
+          error: state.queryError,
         }),
       };
       return builder;
@@ -118,6 +119,7 @@ beforeEach(() => {
   state.org = { activeOrganization: { id: "org1" }, loading: false };
   state.orgRow = null;
   state.legacyRow = null;
+  state.queryError = null;
   state.fromCalls = [];
   state.channels = [];
   state.removed = [];
@@ -168,6 +170,7 @@ describe("useSubscription queries", () => {
     const orgCall = state.fromCalls.find((c) => "organization_id" in c.filters);
     expect(orgCall?.table).toBe("subscriptions");
     expect(orgCall?.filters.organization_id).toBe("org1");
+    expect(orgCall?.filters.environment).toBe("live");
     expect(result.current.subscription).toMatchObject({ id: "sub1" });
     expect(result.current.isActive).toBe(true);
   });
@@ -179,6 +182,7 @@ describe("useSubscription queries", () => {
 
     const legacyCall = state.fromCalls.find((c) => c.isNull.includes("organization_id"));
     expect(legacyCall?.filters.user_id).toBe("u1");
+    expect(legacyCall?.filters.environment).toBe("live");
     expect(result.current.ambiguousSubscription).toMatchObject({ id: "legacy1" });
   });
 
@@ -196,6 +200,14 @@ describe("useSubscription queries", () => {
 });
 
 describe("useSubscription isActive", () => {
+  it("surfaces a database failure instead of treating a paying customer as free", async () => {
+    state.queryError = new Error("network unavailable");
+    const { result } = render();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.error).toBe(state.queryError);
+    expect(result.current.isActive).toBe(false);
+  });
+
   it("is false when neither row exists", async () => {
     const { result } = render();
     await waitFor(() => expect(result.current.loading).toBe(false));

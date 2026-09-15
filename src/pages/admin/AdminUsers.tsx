@@ -206,7 +206,7 @@ export default function Admin() {
       <Helmet>
         <title>Admin — KUBOWEB</title>
         <meta name="description" content="Painel administrativo da plataforma KUBOWEB." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/admin" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/admin" />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">

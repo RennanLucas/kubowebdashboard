@@ -13,6 +13,7 @@ import { getPlan, listPlans } from "../_shared/plans.ts";
 import { rateLimitResponse } from "../_shared/rate-limit.ts";
 import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 import { errorResponse } from "../_shared/plan-gate.ts";
+import { getPaymentEnvironment } from "../_shared/payment-environment.ts";
 import {
   computeIsActive,
   computeIsTrialing,
@@ -52,6 +53,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const paymentEnvironment = getPaymentEnvironment();
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return json({ error: "Unauthorized" }, 401);
@@ -113,12 +115,31 @@ Deno.serve(async (req) => {
         "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
       )
       .eq("organization_id", organizationId)
+      .eq("environment", paymentEnvironment)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     data = orgSub as SubscriptionRow | null;
     error = orgErr;
+
+    // Compatibility for customers created before organization billing. The
+    // row is still bound to the authenticated user and to this environment.
+    if (!data && !error) {
+      const { data: legacySub, error: legacyError } = await supabaseAdmin
+        .from("subscriptions")
+        .select(
+          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
+        )
+        .eq("user_id", userId)
+        .is("organization_id", null)
+        .eq("environment", paymentEnvironment)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      data = legacySub as SubscriptionRow | null;
+      error = legacyError;
+    }
 
     if (error) {
       console.error("[get-subscription-status] db error", error);

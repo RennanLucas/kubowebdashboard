@@ -4,6 +4,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { rateLimitResponse } from "../_shared/rate-limit.ts";
 import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 import { errorResponse } from "../_shared/plan-gate.ts";
+import { isTrustedOrigin } from "../_shared/origins.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -11,6 +12,36 @@ const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 // Validação pragmática de formato (não RFC 5322 completa): um @, sem espaços,
 // domínio com ponto. Suficiente para rejeitar entrada obviamente inválida.
 const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]!);
+}
+
+async function sendInviteEmail(to: string, inviteLink: string): Promise<boolean> {
+  const apiKey = Deno.env.get("BREVO_API_KEY") ?? Deno.env.get("BREVO_SMTP_KEY");
+  const fromEmail = Deno.env.get("BREVO_FROM_EMAIL");
+  if (!apiKey || !fromEmail) return false;
+  const safeLink = escapeHtml(inviteLink);
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "api-key": apiKey },
+    body: JSON.stringify({
+      sender: { name: "KUBOWEB", email: fromEmail },
+      to: [{ email: to }],
+      subject: "Você foi convidado para o KUBOWEB",
+      htmlContent: `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;background:#f6f8fc;padding:24px;color:#111827"><div style="max-width:560px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 12px">Você foi convidado</h1><p style="line-height:1.6;color:#4b5563">Você foi convidado para fazer parte do KUBOWEB. Clique no botão abaixo para aceitar o convite e criar sua conta.</p><a href="${safeLink}" style="display:inline-block;margin-top:12px;padding:12px 20px;border-radius:10px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Aceitar convite</a><p style="margin-top:24px;font-size:13px;color:#6b7280">Este convite expira em 7 dias. Se você não esperava este convite, pode ignorar este e-mail com segurança.</p></div></body></html>`,
+      tags: ["organization-invite"],
+    }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) {
+    console.error("create-invite email rejected", { status: response.status });
+    return false;
+  }
+  return true;
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -112,18 +143,33 @@ Deno.serve(async (req) => {
     if (insertErr) {
       // Não devolve a mensagem do Postgres (vaza nomes de constraint/coluna).
       console.error("create-invite insert error:", insertErr);
+      if (insertErr.code === "23505") {
+        return json({ error: "Já existe um convite pendente para este e-mail." }, 409);
+      }
       return json({ error: "Falha ao criar convite" }, 500);
     }
 
     // Link de convite direto para o membro aceitar
-    const appUrl = Deno.env.get("APP_URL") || "https://kubowebdashboard.vercel.app";
+    const configuredAppUrl = Deno.env.get("APP_URL") || "https://kubowebdashboard.vercel.app";
+    const configuredOrigin = (() => {
+      try { return new URL(configuredAppUrl).origin; } catch { return ""; }
+    })();
+    const appUrl = isTrustedOrigin(configuredOrigin, Deno.env.get("ALLOWED_ORIGIN"))
+      ? configuredOrigin
+      : "https://kubowebdashboard.vercel.app";
     const inviteLink = `${appUrl}/auth/invite#token=${token_plain}`;
+    let deliveredByEmail = false;
+    try {
+      deliveredByEmail = await sendInviteEmail(normalizedEmail, inviteLink);
+    } catch (emailError) {
+      console.error("create-invite email unavailable", emailError);
+    }
 
     return json({
       success: true,
       inviteId: inviteData.id,
       inviteLink,
-      delivery: "link",
+      delivery: deliveredByEmail ? "email" : "link",
     });
 
   } catch (e) {

@@ -81,10 +81,11 @@ function recordRoute(route: RouteAudit) {
   console.log(`[AUDIT-ROUTE] ${route.route} | Opened: ${route.opened} | Mobile: ${route.mobile} | Result: ${route.result}`);
 }
 
-const EMAIL = process.env.E2E_USER_A_EMAIL || "e2e_iso_a@example.test";
-const PASSWORD = process.env.E2E_USER_A_PASSWORD || "Rennanlucas135@";
+const EMAIL = process.env.E2E_USER_A_EMAIL || "";
+const PASSWORD = process.env.E2E_USER_A_PASSWORD || "";
 
 async function loginUser(page: Page) {
+  test.skip(!EMAIL || !PASSWORD, "Requires isolated staging E2E credentials");
   await page.addInitScript(() => {
     localStorage.setItem("kuboweb_tour_completed_v1", "1");
   });

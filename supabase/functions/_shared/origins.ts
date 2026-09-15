@@ -1,6 +1,5 @@
 const PUBLIC_ORIGINS = [
   "https://kubowebdashboard.vercel.app",
-  "https://kubowebdashboard.lovable.app",
 ];
 const LOCAL_ORIGINS = [5173, 8080, 3000].map((port) => `http://localhost:${port}`);
 

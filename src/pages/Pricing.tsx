@@ -13,10 +13,11 @@ import { toast } from "sonner";
 import { cn, getAppUrl } from "@/lib/utils";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-error";
+import { checkoutUrlFromResponse } from "@/lib/payment-checkout";
 
 export default function Pricing() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isActive, subscription, loading: subLoading } = useSubscription();
+  const { isActive, subscription, loading: subLoading, error: subscriptionError, refresh: refreshSubscription } = useSubscription();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const { plans, loading: plansLoading, error: plansError } = usePlans();
   const { activeOrganization, currentRole, loading: orgLoading } = useOrganization();
@@ -39,6 +40,17 @@ export default function Pricing() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
+  if (subscriptionError && !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center space-y-4">
+          <h1 className="text-xl font-semibold">Não foi possível validar seu plano</h1>
+          <p className="text-sm text-muted-foreground">Nenhuma cobrança foi iniciada. Verifique sua conexão e tente novamente.</p>
+          <Button onClick={() => refreshSubscription()}>Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
   if (isActive && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   const handleCheckout = async (planId: string) => {
@@ -67,10 +79,7 @@ export default function Pricing() {
           "Não foi possível abrir o pagamento agora. Tente novamente em alguns instantes.",
         ));
       }
-      if (!data?.url) {
-        throw new Error(data?.error || "Não foi possível iniciar o pagamento agora.");
-      }
-      window.location.href = data.url;
+      window.location.assign(checkoutUrlFromResponse(data));
     } catch (e) {
       toast.error(
         (e as Error).message ||
@@ -134,7 +143,7 @@ export default function Pricing() {
                 price: plan.amount,
                 priceCurrency: plan.currency,
                 availability: "https://schema.org/InStock",
-                url: "https://kubowebdashboard.lovable.app/pricing",
+                url: "https://kubowebdashboard.vercel.app/pricing",
               },
             }))
           )}

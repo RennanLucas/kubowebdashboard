@@ -3,6 +3,7 @@ import { insertIdempotently } from "./_persist.ts";
 import { oneRelation } from "../_shared/relations.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents, isBot } from "./_ingest.ts";
+import { getPaymentEnvironment } from "../_shared/payment-environment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,7 @@ interface ProjectStatus {
 const planCache = new Map<string, { status: ProjectStatus; expiresAt: number }>();
 
 async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Promise<ProjectStatus> {
+  const paymentEnvironment = getPaymentEnvironment();
   const now = Date.now();
   const cached = planCache.get(pid);
   if (cached && cached.expiresAt > now) {
@@ -60,6 +62,7 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
         .from("subscriptions")
         .select("status")
         .eq("organization_id", projectData.organization_id)
+        .eq("environment", paymentEnvironment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -74,6 +77,7 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
         .select("status, organization_id")
         .eq("user_id", legacyClient.user_id)
         .is("organization_id", null)
+        .eq("environment", paymentEnvironment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

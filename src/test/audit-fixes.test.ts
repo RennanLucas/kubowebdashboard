@@ -62,6 +62,7 @@ describe("trusted preview and checkout origins", () => {
   });
   it.each([
     "https://kubowebdashboard-attacker.vercel.app",
+    "https://kubowebdashboard.lovable.app",
     "https://kubowebdashboard.evil.example",
     "https://kubowebdashboard-a-rennanlucas-projects.vercel.app.evil.example",
     "javascript:alert(1)",

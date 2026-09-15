@@ -50,6 +50,7 @@ export interface SubscriptionStatus {
 
 export function useSubscriptionStatus(enabled = true) {
   const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
   const { activeOrganization, loading: orgLoading } = useOrganization();
   const organizationId = activeOrganization?.id;
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
@@ -57,7 +58,7 @@ export function useSubscriptionStatus(enabled = true) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
-    if (!enabled || authLoading || orgLoading || !user || !organizationId) {
+    if (!enabled || authLoading || orgLoading || !userId || !organizationId) {
       setStatus(null);
       setLoading(enabled && (authLoading || orgLoading));
       return;
@@ -94,7 +95,7 @@ export function useSubscriptionStatus(enabled = true) {
     } finally {
       setLoading(false);
     }
-  }, [enabled, authLoading, orgLoading, user, organizationId]);
+  }, [enabled, authLoading, orgLoading, userId, organizationId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -107,7 +108,7 @@ export function useSubscriptionStatus(enabled = true) {
       return;
     }
     fetchStatus();
-    if (!user || !organizationId) return;
+    if (!userId || !organizationId) return;
 
     // Realtime: re-busca quando a row do usuário muda (webhook MP, cancelamento, etc).
     const channel = supabase
@@ -127,7 +128,7 @@ export function useSubscriptionStatus(enabled = true) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [enabled, authLoading, orgLoading, user?.id, organizationId, fetchStatus]);
+  }, [enabled, authLoading, orgLoading, userId, organizationId, fetchStatus]);
 
   return { status, loading, error, refresh: fetchStatus };
 }

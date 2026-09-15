@@ -178,7 +178,7 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       <Helmet>
         <title>Configurar conta — KUBOWEB</title>
         <meta name="description" content="Configure sua conta e comece a rastrear visitantes e leads no seu site." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/onboarding" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/onboarding" />
       </Helmet>
       {/* Left side - branding */}
       <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12 relative overflow-hidden">

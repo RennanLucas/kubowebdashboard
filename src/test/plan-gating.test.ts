@@ -15,6 +15,7 @@ import {
 } from "../../supabase/functions/_shared/plan-gate.ts";
 
 describe("resolveTier", () => {
+  const future = () => new Date(Date.now() + 30 * 86400000).toISOString();
   it("returns 'free' when subscription is null", () => {
     expect(resolveTier(null)).toBe("free");
   });
@@ -24,19 +25,19 @@ describe("resolveTier", () => {
   });
 
   it("returns 'pro' for active subscription", () => {
-    expect(resolveTier({ status: "active" })).toBe("pro");
+    expect(resolveTier({ status: "active", current_period_end: future() })).toBe("pro");
   });
 
   it("returns 'pro' for trialing subscription", () => {
-    expect(resolveTier({ status: "trialing" })).toBe("pro");
+    expect(resolveTier({ status: "trialing", current_period_end: future() })).toBe("pro");
   });
 
   it("returns 'pro' for authorized subscription", () => {
-    expect(resolveTier({ status: "authorized" })).toBe("pro");
+    expect(resolveTier({ status: "authorized", current_period_end: future() })).toBe("pro");
   });
 
   it("returns 'pro' for approved subscription", () => {
-    expect(resolveTier({ status: "approved" })).toBe("pro");
+    expect(resolveTier({ status: "approved", current_period_end: future() })).toBe("pro");
   });
 
   it("returns 'pro' for canceled sub with future period_end (grace period)", () => {
@@ -72,8 +73,13 @@ describe("resolveTier", () => {
   });
 
   it("is case-insensitive about the status string", () => {
-    expect(resolveTier({ status: "ACTIVE" })).toBe("pro");
-    expect(resolveTier({ status: "Trialing" })).toBe("pro");
+    expect(resolveTier({ status: "ACTIVE", current_period_end: future() })).toBe("pro");
+    expect(resolveTier({ status: "Trialing", current_period_end: future() })).toBe("pro");
+  });
+
+  it("never grants an unbounded active plan", () => {
+    expect(resolveTier({ status: "active" })).toBe("free");
+    expect(resolveTier({ status: "trialing", current_period_end: null })).toBe("free");
   });
 });
 

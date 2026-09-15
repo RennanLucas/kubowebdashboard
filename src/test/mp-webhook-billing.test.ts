@@ -8,11 +8,15 @@ import {
   mapPreapprovalStatus,
   computePeriodEnd,
   computeTrialEnd,
+  createExternalReference,
+  isReferenceEnvironmentAllowed,
 } from "../../supabase/functions/mp-webhook/_billing.ts";
 
 describe("parseExternalReference", () => {
   it("parses a full v2 reference", () => {
     expect(parseExternalReference("v2|org:o1|plan:pro_monthly|user:u1")).toEqual({
+      version: "v2",
+      environment: undefined,
       organizationId: "o1",
       planId: "pro_monthly",
       userId: "u1",
@@ -21,6 +25,8 @@ describe("parseExternalReference", () => {
 
   it("is order-independent within a v2 reference", () => {
     expect(parseExternalReference("v2|user:u1|plan:p1|org:o1")).toEqual({
+      version: "v2",
+      environment: undefined,
       organizationId: "o1",
       planId: "p1",
       userId: "u1",
@@ -29,6 +35,8 @@ describe("parseExternalReference", () => {
 
   it("leaves organizationId undefined when the v2 reference omits org", () => {
     expect(parseExternalReference("v2|plan:p1|user:u1")).toEqual({
+      version: "v2",
+      environment: undefined,
       organizationId: undefined,
       planId: "p1",
       userId: "u1",
@@ -37,6 +45,8 @@ describe("parseExternalReference", () => {
 
   it("leaves plan/user undefined when a v2 reference omits them", () => {
     expect(parseExternalReference("v2|user:u1")).toEqual({
+      version: "v2",
+      environment: undefined,
       organizationId: undefined,
       planId: undefined,
       userId: "u1",
@@ -49,6 +59,7 @@ describe("parseExternalReference", () => {
 
   it("parses the legacy v1 'userId|planId' reference", () => {
     expect(parseExternalReference("user-123|plan-pro")).toEqual({
+      version: "v1",
       organizationId: undefined,
       planId: "plan-pro",
       userId: "user-123",
@@ -57,10 +68,41 @@ describe("parseExternalReference", () => {
 
   it("handles a legacy reference with only a userId", () => {
     expect(parseExternalReference("user-123")).toEqual({
+      version: "v1",
       organizationId: undefined,
       planId: undefined,
       userId: "user-123",
     });
+  });
+
+  it("creates a v3 reference bound to the payment environment", () => {
+    const value = createExternalReference({
+      environment: "sandbox",
+      organizationId: "org-id",
+      planId: "kuboweb_pro_monthly",
+      userId: "user-id",
+    });
+    expect(value).toBe("v3|env:sandbox|org:org-id|plan:kuboweb_pro_monthly|user:user-id");
+    expect(parseExternalReference(value)).toEqual({
+      version: "v3",
+      environment: "sandbox",
+      organizationId: "org-id",
+      planId: "kuboweb_pro_monthly",
+      userId: "user-id",
+    });
+  });
+
+  it("isolates v3 references and permits legacy references only in live", () => {
+    const sandbox = parseExternalReference("v3|env:sandbox|org:o1|plan:p1|user:u1");
+    const legacy = parseExternalReference("v2|org:o1|plan:p1|user:u1");
+    expect(isReferenceEnvironmentAllowed(sandbox, "sandbox")).toBe(true);
+    expect(isReferenceEnvironmentAllowed(sandbox, "live")).toBe(false);
+    expect(isReferenceEnvironmentAllowed(legacy, "live")).toBe(true);
+    expect(isReferenceEnvironmentAllowed(legacy, "sandbox")).toBe(false);
+  });
+
+  it("fails closed when an identity field is duplicated", () => {
+    expect(parseExternalReference("v3|env:live|org:o1|org:o2|plan:p1|user:u1")).toEqual({ version: "v3" });
   });
 });
 

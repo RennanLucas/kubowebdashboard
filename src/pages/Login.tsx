@@ -371,8 +371,8 @@ const Login = () => {
         <title>{isSignUp ? "Criar conta" : "Entrar"} — KUBOWEB</title>
         <meta name="description" content="Acesse seu painel de analytics e leads da KUBOWEB." />
         <meta property="og:title" content="Entrar — KUBOWEB" />
-        <meta property="og:url" content="https://kubowebdashboard.lovable.app/login" />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/login" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/login" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/login" />
       </Helmet>
       <div className="auth-page min-h-screen flex bg-background">
         

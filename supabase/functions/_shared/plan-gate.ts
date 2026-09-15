@@ -1,11 +1,13 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { resolveTier, limitsForTier, type PlanTier } from "./plans.ts";
+import { getPaymentEnvironment } from "./payment-environment.ts";
 
 export async function resolveProjectTier(
   supabaseAdmin: SupabaseClient,
   organizationId: string,
   userId: string
 ): Promise<{ tier: PlanTier; maxHistoryDays: number }> {
+  const paymentEnvironment = getPaymentEnvironment();
   // 1. Administradores da plataforma possuem acesso Pro irrestrito
   if (userId) {
     const { data: adminRole } = await supabaseAdmin
@@ -25,6 +27,7 @@ export async function resolveProjectTier(
     .from("subscriptions")
     .select("status, current_period_end")
     .eq("organization_id", organizationId)
+    .eq("environment", paymentEnvironment)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -34,6 +37,7 @@ export async function resolveProjectTier(
     .select("status, current_period_end")
     .eq("user_id", userId)
     .is("organization_id", null)
+    .eq("environment", paymentEnvironment)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

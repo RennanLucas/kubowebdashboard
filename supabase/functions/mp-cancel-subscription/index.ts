@@ -7,8 +7,8 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { rateLimitResponse } from "../_shared/rate-limit.ts";
 import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 import { errorResponse } from "../_shared/plan-gate.ts";
+import { getMpConfig } from "../_shared/mp-config.ts";
 
-const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -30,6 +30,10 @@ Deno.serve(async (req) => {
 
 
   try {
+    const mpConfig = getMpConfig((name) => Deno.env.get(name));
+    if (!mpConfig.token) {
+      return json({ error: "Integração de pagamento indisponível neste ambiente." }, 503);
+    }
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "").trim();
     if (!token) {
@@ -67,46 +71,66 @@ Deno.serve(async (req) => {
     }
 
     // Busca a assinatura ativa mais recente dessa ORG
-    const { data: sub, error: subErr } = await admin
+    const { data: orgSubscription, error: orgSubscriptionError } = await admin
       .from("subscriptions")
-      .select("*")
+      .select("id,external_id,provider,environment,current_period_end,cancel_at_period_end")
       .eq("organization_id", organizationId)
+      .eq("environment", mpConfig.environment)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-
-    if (subErr || !sub) return json({ error: "Nenhuma assinatura encontrada para a organização" }, 404);
-
-    const preapprovalId = sub.external_id as string | null;
-    let mpUpdated = false;
-
-    if (preapprovalId && sub.provider === "mercadopago") {
-      const res = await fetch(`https://api.mercadopago.com/preapproval/${preapprovalId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${MP_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "cancelled" }),
-      });
-      if (res.ok) {
-        mpUpdated = true;
-      } else {
-        const txt = await res.text();
-        console.error("MP cancel error:", res.status, txt);
-      }
+    if (orgSubscriptionError) throw orgSubscriptionError;
+    let sub = orgSubscription;
+    if (!sub) {
+      const { data: legacySubscription, error: legacyError } = await admin
+        .from("subscriptions")
+        .select("id,external_id,provider,environment,current_period_end,cancel_at_period_end")
+        .eq("user_id", userId)
+        .is("organization_id", null)
+        .eq("environment", mpConfig.environment)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (legacyError) throw legacyError;
+      sub = legacySubscription;
     }
 
-    // Marca cancelamento ao fim do período (mantém acesso até current_period_end)
-    await admin
+    if (!sub) return json({ error: "Nenhuma assinatura encontrada para a organização" }, 404);
+
+    if (sub.cancel_at_period_end) {
+      return json({ success: true, mpUpdated: true, accessUntil: sub.current_period_end });
+    }
+
+    const preapprovalId = sub.external_id as string | null;
+    if (sub.provider !== "mercadopago" || !preapprovalId || !/^[A-Za-z0-9_-]{1,128}$/.test(preapprovalId)) {
+      return json({ error: "Esta assinatura não pode ser cancelada por este fluxo." }, 409);
+    }
+
+    const res = await fetch(`https://api.mercadopago.com/preapproval/${encodeURIComponent(preapprovalId)}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${mpConfig.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "cancelled" }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) {
+      console.error("MP cancel rejected", { status: res.status });
+      return json({ error: "O Mercado Pago não confirmou o cancelamento. Nenhuma alteração foi feita; tente novamente." }, 502);
+    }
+
+    // Somente confirma localmente depois da confirmação do provedor.
+    const { error: updateError } = await admin
       .from("subscriptions")
       .update({
         cancel_at_period_end: true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", sub.id);
+    if (updateError) throw updateError;
 
-    return json({ success: true, mpUpdated, accessUntil: sub.current_period_end });
+    return json({ success: true, mpUpdated: true, accessUntil: sub.current_period_end });
   } catch (e) {
     console.error("mp-cancel-subscription error:", e);
     return errorResponse(e,corsHeaders,"mp-cancel-subscription");

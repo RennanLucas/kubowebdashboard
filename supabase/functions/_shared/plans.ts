@@ -94,7 +94,7 @@ const ACTIVE_STATUS = ["active", "trialing", "authorized", "approved"];
 export function resolveTier(sub: SubscriptionRow | null | undefined): PlanTier {
   if (!sub) return "free";
   const status = (sub.status ?? "").toLowerCase();
-  const periodOk = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
+  const periodOk = !!sub.current_period_end && new Date(sub.current_period_end) > new Date();
   const active = (ACTIVE_STATUS.includes(status) && periodOk)
     || (["canceled", "cancelled"].includes(status) && !!sub.current_period_end && new Date(sub.current_period_end) > new Date());
   if (!active) return "free";

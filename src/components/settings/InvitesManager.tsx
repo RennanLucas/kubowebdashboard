@@ -27,6 +27,7 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [inviteDelivery, setInviteDelivery] = useState<"email" | "link">("link");
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<OrgRole>("viewer");
@@ -81,7 +82,10 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
       if (!res.ok) throw new Error(result.error || "Erro ao criar convite");
 
       setInviteLink(result.inviteLink || "");
-      if (result.inviteLink) {
+      setInviteDelivery(result.delivery === "email" ? "email" : "link");
+      if (result.delivery === "email") {
+        toast.success(`Convite enviado por e-mail para ${email.trim().toLowerCase()}.`);
+      } else if (result.inviteLink) {
         try {
           await navigator.clipboard.writeText(result.inviteLink);
           toast.success(`Convite criado! Link de acesso copiado para a área de transferência.`);
@@ -106,7 +110,7 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
     try {
       const { error } = await supabase
         .from("organization_invites")
-        .delete()
+        .update({ status: "revoked" })
         .eq("id", inviteId);
         
       if (error) throw error;
@@ -175,7 +179,11 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
       {inviteLink && canManageInvites && (
         <div className="rounded-lg border p-4 space-y-2">
           <Label htmlFor="created-invite-link">Link do convite</Label>
-          <p className="text-sm text-muted-foreground">Compartilhe este link com a pessoa convidada. O sistema não enviou um e-mail automaticamente.</p>
+          <p className="text-sm text-muted-foreground">
+            {inviteDelivery === "email"
+              ? "O convite foi enviado por e-mail. Você também pode copiar este link diretamente."
+              : "O e-mail não estava disponível. Compartilhe este link com a pessoa convidada."}
+          </p>
           <Input id="created-invite-link" readOnly value={inviteLink} onFocus={(e) => e.target.select()} />
         </div>
       )}
