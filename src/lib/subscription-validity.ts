@@ -24,8 +24,8 @@ export function isSubscriptionValid(
   now: number = Date.now(),
 ): boolean {
   if (!sub) return false;
-  const periodOk =
-    !sub.current_period_end || new Date(sub.current_period_end).getTime() > now;
+  const periodOk = !!sub.current_period_end &&
+    new Date(sub.current_period_end).getTime() > now;
   if (ACTIVE_STATUSES.includes(sub.status) && periodOk) return true;
   // Grace period: a canceled plan still grants access until the paid period ends.
   if (

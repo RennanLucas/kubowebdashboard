@@ -36,7 +36,7 @@ export default function CheckoutReturn() {
       <Helmet>
         <title>Status do pagamento — KUBOWEB</title>
         <meta name="description" content="Confirmação de pagamento e ativação da assinatura KUBOWEB." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/checkout/return" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/checkout/return" />
       </Helmet>
       {/* Header com botão de sair sempre disponível */}
       <header className="border-b bg-card/60 backdrop-blur">

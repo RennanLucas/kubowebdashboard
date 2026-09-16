@@ -1,8 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 
+import { filterSource } from "../_shared/analytics-source.ts";
+import { analyticsPeriod } from "../_shared/analytics-period.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { resolveProjectTier, enforceHistoryLimit, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { resolveProjectTier, parseDaysParam, errorResponse } from "../_shared/plan-gate.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -12,16 +15,14 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return new Response("Não autorizado", { status: 401, headers: corsHeaders });
 
-    // Rate limiting: 20 req/min por usuário
     const token = authHeader.replace("Bearer ", "").trim();
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders);
-    }
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
     if (!user) return new Response("Token inválido", { status: 401, headers: corsHeaders });
+
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "get-dashboard-pages", user.id, 20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
 
     const url = new URL(req.url);
     const projectId = url.searchParams.get("project_id");
@@ -55,16 +56,14 @@ Deno.serve(async (req) => {
 
     // Enforce plan-based history limit
     const { tier, maxHistoryDays } = await resolveProjectTier(supabaseAdmin, projData.organization_id, user.id);
-    const enforcedDays = enforceHistoryLimit(days, maxHistoryDays);
+    const period = analyticsPeriod(url.searchParams, days, maxHistoryDays);
 
     // JIT Aggregation (Safe concurrent execution due to SKIP LOCKED)
-    await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    const { error: aggregateError } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+    if (aggregateError) throw aggregateError;
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (enforcedDays - 1));
-    const startStr = startDate.toISOString().split("T")[0];
-    const endStr = endDate.toISOString().split("T")[0];
+    const startStr = period.start;
+    const endStr = period.end;
 
     let query = supabaseAdmin
       .from('analytics_daily_pages')
@@ -73,15 +72,13 @@ Deno.serve(async (req) => {
       .gte('date', startStr)
       .lte('date', endStr);
 
-    if (sourceFilter !== "all") {
-      const canonicalSource = sourceFilter === 'direct' ? 'Direto' : sourceFilter === 'organic' ? 'Google' : sourceFilter === 'social' ? 'Instagram' : sourceFilter;
-      query = query.eq('source', canonicalSource);
-    }
+    query = filterSource(query, sourceFilter);
     if (deviceFilter !== "all") {
       query = query.ilike('device', deviceFilter);
     }
 
-    const { data } = await query;
+    const { data, error: queryError } = await query;
+    if (queryError) throw queryError;
 
     const pageMap: Record<string, { path: string; views: number; visitors: number; sessions: number; bounces: number; total_time: number }> = {};
     for (const row of (data || [])) {

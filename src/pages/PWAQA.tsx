@@ -213,7 +213,7 @@ const PWAQA = () => {
       <Helmet>
         <title>QA do PWA — KUBOWEB</title>
         <meta name="description" content="Diagnóstico do Progressive Web App da plataforma KUBOWEB." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/admin/pwa-qa" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/admin/pwa-qa" />
       </Helmet>
       <div className="mb-4">
         <Link to="/admin" className="text-[13px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
@@ -246,7 +246,7 @@ const PWAQA = () => {
 
       {isPreviewHost && (
         <div className="mt-6 rounded-md border border-warning/30 bg-warning/5 p-3 text-[13px] text-foreground">
-          <strong>Atenção:</strong> você está no preview do Lovable. O service worker é desativado de propósito aqui para não atrapalhar o desenvolvimento. Para validar de verdade, acesse a versão publicada (kubowebdashboard.lovable.app).
+          <strong>Atenção:</strong> o service worker é desativado no ambiente de desenvolvimento para não atrapalhar os testes. Para validar de verdade, acesse a versão publicada (kubowebdashboard.vercel.app).
         </div>
       )}
 

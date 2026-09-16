@@ -31,8 +31,8 @@ describe("status constants (drift guard vs resolveTier)", () => {
 });
 
 describe("computeIsActive", () => {
-  it("is active for an active status with no period end", () => {
-    expect(computeIsActive(sub({ status: "active" }), NOW)).toBe(true);
+  it("rejects an active status with no period end", () => {
+    expect(computeIsActive(sub({ status: "active" }), NOW)).toBe(false);
   });
 
   it("is active for an active status within the period", () => {
@@ -48,9 +48,9 @@ describe("computeIsActive", () => {
   });
 
   it("is active for trialing / authorized / approved statuses", () => {
-    expect(computeIsActive(sub({ status: "trialing" }), NOW)).toBe(true);
-    expect(computeIsActive(sub({ status: "authorized" }), NOW)).toBe(true);
-    expect(computeIsActive(sub({ status: "approved" }), NOW)).toBe(true);
+    expect(computeIsActive(sub({ status: "trialing", current_period_end: FUTURE }), NOW)).toBe(true);
+    expect(computeIsActive(sub({ status: "authorized", current_period_end: FUTURE }), NOW)).toBe(true);
+    expect(computeIsActive(sub({ status: "approved", current_period_end: FUTURE }), NOW)).toBe(true);
   });
 
   it("keeps a canceled subscription active during its grace period", () => {

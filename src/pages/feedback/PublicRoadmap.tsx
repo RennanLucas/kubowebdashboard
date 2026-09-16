@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/contexts/OrganizationContext";
@@ -13,64 +12,12 @@ const STATUS_MAP: Record<string, { label: string, color: string, icon: string }>
   published: { label: "Implementado", color: "bg-green-100 text-green-800", icon: "🟢" },
 };
 
-const DEFAULT_ROADMAP_ITEMS = [
-  {
-    id: "item-shopify",
-    title: "Integração Nativa Shopify & Nuvemshop",
-    description: "Rastreamento automático de transações, ticket médio e abandono de checkout sem configurações manuais.",
-    status: "in_development",
-    category: "Integrações",
-    roadmap_item_votes: [{ vote_count: 28 }],
-  },
-  {
-    id: "item-telegram",
-    title: "Alertas Instantâneos no Telegram e Slack",
-    description: "Notificações em tempo real sobre picos de tráfego, quedas de conversão ou metas batidas.",
-    status: "planned",
-    category: "Notificações",
-    roadmap_item_votes: [{ vote_count: 19 }],
-  },
-  {
-    id: "item-utm",
-    title: "Relatório Avançado de Campanhas & UTMs",
-    description: "Visão detalhada de UTM Source, Medium, Campaign e Content com taxa de conversão por anúncio.",
-    status: "planned",
-    category: "Analytics",
-    roadmap_item_votes: [{ vote_count: 34 }],
-  },
-  {
-    id: "item-export",
-    title: "Exportação Automatizada para Google Sheets",
-    description: "Sincronização diária de visitantes e conversões direto em uma planilha da sua agência.",
-    status: "testing",
-    category: "Exportação",
-    roadmap_item_votes: [{ vote_count: 15 }],
-  },
-  {
-    id: "item-pwa",
-    title: "Aplicativo Mobile PWA com Notificações Push",
-    description: "Instalação do painel direto no celular (iOS/Android) para monitoramento em tempo real.",
-    status: "published",
-    category: "Plataforma",
-    roadmap_item_votes: [{ vote_count: 42 }],
-  },
-];
-
 export function PublicRoadmap() {
   const { activeOrganization } = useOrganization();
   const orgId = activeOrganization?.id;
   const queryClient = useQueryClient();
 
-  const [localVotedIds, setLocalVotedIds] = useState<Set<string>>(() => {
-    try {
-      const saved = localStorage.getItem("kubo_local_roadmap_votes");
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
-  const { data: roadmapItems, isLoading } = useQuery({
+  const { data: roadmapItems, isLoading, error: roadmapError, refetch } = useQuery({
     queryKey: ["roadmap-public"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -87,7 +34,7 @@ export function PublicRoadmap() {
     }
   });
 
-  const { data: myVotes } = useQuery({
+  const { data: myVotes, isLoading: votesLoading, error: votesError } = useQuery({
     queryKey: ["my-roadmap-votes", orgId],
     enabled: !!orgId,
     queryFn: async () => {
@@ -106,44 +53,27 @@ export function PublicRoadmap() {
       if (!orgId) throw new Error("Org not found");
       
       if (isVoted) {
-        await supabase.from("roadmap_votes" as any).delete()
+        const { error } = await supabase.from("roadmap_votes" as any).delete()
           .eq("roadmap_item_id", itemId)
           .eq("organization_id", orgId);
+        if (error) throw error;
       } else {
-        await supabase.from("roadmap_votes" as any).insert({
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData.user) throw new Error("Sessão expirada");
+        const { error } = await supabase.from("roadmap_votes" as any).insert({
           roadmap_item_id: itemId,
           organization_id: orgId,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: authData.user.id
         });
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roadmap-public"] });
       queryClient.invalidateQueries({ queryKey: ["my-roadmap-votes", orgId] });
-    }
+    },
+    onError: () => toast.error("Não foi possível registrar o voto. Tente novamente."),
   });
-
-  const handleToggleVote = (itemId: string, isVoted: boolean) => {
-    if (itemId.startsWith("item-")) {
-      setLocalVotedIds((prev) => {
-        const next = new Set(prev);
-        if (isVoted) {
-          next.delete(itemId);
-          toast.info("Voto removido.");
-        } else {
-          next.add(itemId);
-          toast.success("Voto registrado! Obrigado por apoiar esta melhoria.");
-        }
-        try {
-          localStorage.setItem("kubo_local_roadmap_votes", JSON.stringify(Array.from(next)));
-        } catch {}
-        return next;
-      });
-      return;
-    }
-
-    voteMutation.mutate({ itemId, isVoted });
-  };
 
   if (isLoading) {
     return (
@@ -155,7 +85,8 @@ export function PublicRoadmap() {
     );
   }
 
-  const effectiveItems = (roadmapItems && roadmapItems.length > 0) ? roadmapItems : DEFAULT_ROADMAP_ITEMS;
+  if (roadmapError) return <div role="alert" className="rounded-xl border p-6"><p>Não foi possível carregar o roadmap.</p><Button variant="outline" className="mt-3" onClick={() => void refetch()}>Tentar novamente</Button></div>;
+  if (!roadmapItems?.length) return <div className="rounded-2xl border bg-muted/30 p-12 text-center"><Map className="mx-auto mb-4 h-10 w-10 text-muted-foreground" /><h3 className="font-semibold">Roadmap vazio</h3><p className="mt-2 text-muted-foreground">Em breve compartilharemos as novidades em que estamos trabalhando.</p></div>;
 
   // Group by status
   const groups: Record<string, any[]> = {
@@ -165,7 +96,7 @@ export function PublicRoadmap() {
     planned: []
   };
 
-  effectiveItems.forEach((item: any) => {
+  roadmapItems.forEach((item: any) => {
     if (groups[item.status]) {
       groups[item.status].push(item);
     }
@@ -184,11 +115,8 @@ export function PublicRoadmap() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {items.map(item => {
-                const isLocalFallback = item.id.startsWith("item-");
-                const baseVote = item.roadmap_item_votes?.[0]?.vote_count || 0;
-                const localBonus = isLocalFallback && localVotedIds.has(item.id) ? 1 : 0;
-                const votesCount = baseVote + localBonus;
-                const hasVoted = isLocalFallback ? localVotedIds.has(item.id) : myVotes?.has(item.id);
+                const votesCount = item.roadmap_item_votes?.[0]?.vote_count || 0;
+                const hasVoted = myVotes?.has(item.id);
 
                 return (
                   <div key={item.id} className="bg-card border rounded-xl p-5 shadow-sm flex flex-col">
@@ -204,8 +132,9 @@ export function PublicRoadmap() {
                         variant={hasVoted ? "secondary" : "outline"}
                         size="sm"
                         className={`h-8 px-3 gap-1.5 ${hasVoted ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : ""}`}
-                        onClick={() => handleToggleVote(item.id, !!hasVoted)}
-                        disabled={voteMutation.isPending || statusKey === 'published'}
+                        onClick={() => voteMutation.mutate({ itemId: item.id, isVoted: !!hasVoted })}
+                        aria-label={hasVoted ? "Remover meu voto" : "Votar nesta melhoria"}
+                        disabled={!orgId || votesLoading || !!votesError || voteMutation.isPending || statusKey === 'published'}
                       >
                         <ThumbsUp className={`h-3.5 w-3.5 ${hasVoted ? "fill-primary" : ""}`} />
                         <span className="font-semibold">{votesCount}</span>

@@ -1,8 +1,8 @@
-﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { resolveTier, limitsForTier } from "../_shared/plans.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { errorResponse } from "../_shared/plan-gate.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { errorResponse, resolveProjectTier } from "../_shared/plan-gate.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
 import {
   parseDevice,
   classifySource,
@@ -207,6 +207,7 @@ function parseOS(ua: string): string {
 // --- Main handler ---
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -240,13 +241,6 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "").trim();
 
-    // Rate limiting: 20 req/janela por usuário. Este endpoint pode chamar as
-    // APIs do GA4/Search Console, então o custo por requisição é externo.
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
-
     // Prefer getClaims() (local JWKS validation — resilient to transient
     // Auth server hiccups). Fall back to getUser() if claims verification
     // fails for a reason other than an actually invalid token.
@@ -273,23 +267,11 @@ Deno.serve(async (req) => {
     }
 
 
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin, "get-analytics", userId, 20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
+
     const url = new URL(req.url);
     const requestedDays = parseInt(url.searchParams.get("days") || "30", 10);
-
-    // Enforce the history window allowed by the user's plan (server-side).
-    const { data: subRow } = await supabaseAdmin
-      .from("subscriptions")
-      .select("plan_id, status, current_period_end")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const planTier = resolveTier(subRow);
-    const planLimits = limitsForTier(planTier);
-    const days = Math.max(
-      1,
-      Math.min(Number.isFinite(requestedDays) ? requestedDays : 30, planLimits.maxHistoryDays),
-    );
 
     const selectedProjectId = url.searchParams.get("project_id") || null;
     const sourceFilter = (url.searchParams.get("source") || "all").toLowerCase();
@@ -345,6 +327,14 @@ Deno.serve(async (req) => {
        return new Response(JSON.stringify({ error: "Missing or invalid project_id" }), { status: 400, headers: corsHeaders });
     }
 
+    // The project organization—not another subscription owned by the same
+    // person—decides this request's history limit.
+    const { maxHistoryDays } = await resolveProjectTier(supabaseAdmin, orgData.id, userId);
+    const days = Math.max(
+      1,
+      Math.min(Number.isFinite(requestedDays) ? requestedDays : 30, maxHistoryDays),
+    );
+
     const projectId = currentProject?.id;
     const analyticsPropertyId = orgData.analytics_property_id;
     const clientData = {
@@ -373,7 +363,7 @@ Deno.serve(async (req) => {
     let ga4Data: Awaited<ReturnType<typeof fetchGA4Report>> | null = null;
 
     if (
-      shouldUseGA4({
+      serviceAccountJson && shouldUseGA4({
         hasServiceAccount: !!serviceAccountJson,
         hasPropertyId: !!analyticsPropertyId,
         sourceFilter,
@@ -390,9 +380,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const ga4HasData = ga4Data && ga4Data.dailyMetrics.length > 0;
-
-    if (ga4HasData) {
+    if (ga4Data && ga4Data.dailyMetrics.length > 0) {
       // Also fetch events from DB to enrich GA4 data with leads
       let ga4Events: any[] = [];
       if (projectId) {

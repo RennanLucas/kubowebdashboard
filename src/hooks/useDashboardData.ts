@@ -25,6 +25,8 @@ const isTokenStale = (token?: string | null, bufferSeconds = 60) => {
 };
 
 interface FetchOptions {
+  start?: string;
+  end?: string;
   source?: string;
   device?: string;
 }
@@ -42,6 +44,7 @@ interface DailyMetric {
 }
 
 interface DashboardOverview {
+  period?: { start: string; end: string; comparisonAvailable: boolean };
   metrics: DailyMetric[];
   summary: {
     totalVisitors: number;
@@ -101,6 +104,7 @@ const fetchEndpoint = async <T = unknown>(
   opts: FetchOptions = {},
 ): Promise<T> => {
   const query = new URLSearchParams({ days: String(days) });
+  if (opts.start && opts.end) { query.set("start", opts.start); query.set("end", opts.end); }
   if (projectId) query.set("project_id", projectId);
   if (opts.source && opts.source !== "all") query.set("source", opts.source);
   if (opts.device && opts.device !== "all") query.set("device", opts.device);
@@ -139,7 +143,7 @@ export const useOverview = (days: number, projectId?: string, filters?: FetchOpt
   const orgId = activeOrganization?.id;
 
   return useQuery({
-    queryKey: ["dashboard-overview", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
+    queryKey: ["dashboard-overview", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device, filters?.start, filters?.end],
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
@@ -156,7 +160,7 @@ export const useTopPages = (days: number, projectId?: string, filters?: FetchOpt
   const orgId = activeOrganization?.id;
 
   return useQuery({
-    queryKey: ["dashboard-pages", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
+    queryKey: ["dashboard-pages", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device, filters?.start, filters?.end],
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
@@ -173,11 +177,11 @@ export const useTrafficSources = (days: number, projectId?: string, filters?: Fe
   const orgId = activeOrganization?.id;
 
   return useQuery({
-    queryKey: ["dashboard-sources", session?.user?.id, orgId, cappedDays, projectId, filters?.device],
+    queryKey: ["dashboard-sources", session?.user?.id, orgId, cappedDays, projectId, filters?.device, filters?.start, filters?.end],
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint<{ trafficSources: any }>("get-dashboard-sources", cappedDays, projectId, token, { device: filters?.device });
+      return fetchEndpoint<{ trafficSources: any }>("get-dashboard-sources", cappedDays, projectId, token, { ...filters, source: undefined });
     },
   });
 };
@@ -190,11 +194,11 @@ export const useDevices = (days: number, projectId?: string, filters?: FetchOpti
   const orgId = activeOrganization?.id;
 
   return useQuery({
-    queryKey: ["dashboard-devices", session?.user?.id, orgId, cappedDays, projectId, filters?.source],
+    queryKey: ["dashboard-devices", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.start, filters?.end],
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();
-      return fetchEndpoint<{ devices: any; browsers: any; operatingSystems: any }>("get-dashboard-devices", cappedDays, projectId, token, { source: filters?.source });
+      return fetchEndpoint<{ devices: any; browsers: any; operatingSystems: any }>("get-dashboard-devices", cappedDays, projectId, token, { ...filters, device: undefined });
     },
   });
 };
@@ -207,7 +211,7 @@ export const useGeo = (days: number, projectId?: string, filters?: FetchOptions)
   const orgId = activeOrganization?.id;
 
   return useQuery({
-    queryKey: ["dashboard-geo", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device],
+    queryKey: ["dashboard-geo", session?.user?.id, orgId, cappedDays, projectId, filters?.source, filters?.device, filters?.start, filters?.end],
         enabled: !authLoading && !!session?.access_token && !plan.loading && !!orgId && !!projectId,
     queryFn: async () => {
       const token = await getSession();

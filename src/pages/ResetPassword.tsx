@@ -232,12 +232,12 @@ const ResetPassword = () => {
         <meta name="description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
         <meta property="og:title" content="Recuperar senha — KUBOWEB" />
         <meta property="og:description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
-        <meta property="og:url" content="https://kubowebdashboard.lovable.app/reset-password" />
-        <meta property="og:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/reset-password" />
+        <meta property="og:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
         <meta name="twitter:title" content="Recuperar senha — KUBOWEB" />
         <meta name="twitter:description" content="Redefina sua senha de acesso ao KUBOWEB Client Portal." />
-        <meta name="twitter:image" content="https://kubowebdashboard.lovable.app/og-image.png" />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/reset-password" />
+        <meta name="twitter:image" content="https://kubowebdashboard.vercel.app/og-image.png" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/reset-password" />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-8">
       <div className="w-full max-w-sm p-8 rounded-3xl glass-card shadow-2xl border-white/10 animate-fade-in relative overflow-hidden">

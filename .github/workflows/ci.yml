@@ -64,6 +64,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          # Fail closed if the staging backend is accidentally configured as live.
+          VITE_PAYMENTS_ENVIRONMENT: sandbox
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           E2E_USER_A_EMAIL: ${{ secrets.E2E_USER_A_EMAIL }}

@@ -18,7 +18,7 @@ const NotFound = () => {
       <Helmet>
         <title>Página não encontrada — KUBOWEB</title>
         <meta name="description" content="A página que você procura não foi encontrada no KUBOWEB." />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/" />
       </Helmet>
       <div className="text-center relative z-10 glass-strong p-16 rounded-3xl max-w-lg mx-auto shadow-2xl animate-fade-up border border-border/50">
         <h1 className="mb-4 text-8xl font-bold text-shimmer tracking-tighter">404</h1>

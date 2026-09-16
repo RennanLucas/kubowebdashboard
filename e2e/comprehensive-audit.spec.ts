@@ -81,10 +81,11 @@ function recordRoute(route: RouteAudit) {
   console.log(`[AUDIT-ROUTE] ${route.route} | Opened: ${route.opened} | Mobile: ${route.mobile} | Result: ${route.result}`);
 }
 
-const EMAIL = process.env.E2E_USER_A_EMAIL || "e2e_iso_a@example.test";
-const PASSWORD = process.env.E2E_USER_A_PASSWORD || "Rennanlucas135@";
+const EMAIL = process.env.E2E_USER_A_EMAIL || "";
+const PASSWORD = process.env.E2E_USER_A_PASSWORD || "";
 
 async function loginUser(page: Page) {
+  test.skip(!EMAIL || !PASSWORD, "Requires isolated staging E2E credentials");
   await page.addInitScript(() => {
     localStorage.setItem("kuboweb_tour_completed_v1", "1");
   });
@@ -482,10 +483,10 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     if (await themeToggle.isVisible()) {
       const initialClass = await page.locator("html").getAttribute("class");
       await themeToggle.click();
-      await page.waitForTimeout(300);
+      const targetTheme = initialClass?.split(/\s+/).includes("dark") ? /Claro/ : /Escuro/;
+      await page.getByRole("menuitem", { name: targetTheme }).click();
       const nextClass = await page.locator("html").getAttribute("class");
       themeWorks = initialClass !== nextClass;
-      await themeToggle.click();
     }
     recordItem({
       id: "HEAD-003",

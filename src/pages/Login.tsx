@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { pendingInvitePath } from "@/lib/pending-invite";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
 import { getAppUrl } from "@/lib/utils";
 import { OTPInput } from "@/components/auth/OTPInput";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type AuthStep = "form" | "otp_signup" | "otp_magiclink" | "otp_recovery" | "reset_password";
 
@@ -67,7 +69,7 @@ const Login = () => {
         supabase.from("clients").select("id").eq("user_id", session.user.id).limit(1).maybeSingle(),
         supabase.from("organization_members").select("id").eq("user_id", session.user.id).limit(1).maybeSingle()
       ]);
-      if (!cancelled) navigate((client || orgMember) ? "/dashboard" : "/onboarding", { replace: true });
+      if (!cancelled) navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"), { replace: true });
     })();
     return () => { cancelled = true; };
   }, [session, authLoading, navigate, step]);
@@ -120,7 +122,7 @@ const Login = () => {
 
         if (data.session) {
           toast.success("Conta criada com sucesso!");
-          navigate("/onboarding");
+          navigate(pendingInvitePath() || "/onboarding");
           return;
         }
 
@@ -140,10 +142,10 @@ const Login = () => {
           supabase.from("clients").select("id").eq("user_id", userId).limit(1).maybeSingle(),
           supabase.from("organization_members").select("id").eq("user_id", userId).limit(1).maybeSingle()
         ]);
-        navigate((client || orgMember) ? "/dashboard" : "/onboarding");
+        navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"));
         return;
       }
-      navigate("/dashboard");
+      navigate(pendingInvitePath() || "/dashboard");
     } catch (error: any) {
       if (error.message?.includes("already registered") || error.message?.includes("User already registered")) {
         toast.error("Este email já está cadastrado. Tente entrar.");
@@ -211,10 +213,10 @@ const Login = () => {
             supabase.from("clients").select("id").eq("user_id", userId).limit(1).maybeSingle(),
             supabase.from("organization_members").select("id").eq("user_id", userId).limit(1).maybeSingle()
           ]);
-          navigate((client || orgMember) ? "/dashboard" : "/onboarding");
+          navigate(pendingInvitePath() || ((client || orgMember) ? "/dashboard" : "/onboarding"));
           return;
         }
-        navigate("/onboarding");
+        navigate(pendingInvitePath() || "/onboarding");
       }
     } catch (error: any) {
       let msg = error.message;
@@ -289,7 +291,7 @@ const Login = () => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       toast.success("Senha atualizada com sucesso!");
-      navigate("/dashboard");
+      navigate(pendingInvitePath() || "/dashboard");
     } catch (error: any) {
       toast.error(error.message || "Erro ao atualizar a senha.");
     } finally {
@@ -369,14 +371,17 @@ const Login = () => {
         <title>{isSignUp ? "Criar conta" : "Entrar"} — KUBOWEB</title>
         <meta name="description" content="Acesse seu painel de analytics e leads da KUBOWEB." />
         <meta property="og:title" content="Entrar — KUBOWEB" />
-        <meta property="og:url" content="https://kubowebdashboard.lovable.app/login" />
-        <link rel="canonical" href="https://kubowebdashboard.lovable.app/login" />
+        <meta property="og:url" content="https://kubowebdashboard.vercel.app/login" />
+        <link rel="canonical" href="https://kubowebdashboard.vercel.app/login" />
       </Helmet>
-      <div className="min-h-screen flex bg-background">
+      <div className="auth-page min-h-screen flex bg-background">
         
         {renderLeftPanel()}
 
         <div className="flex-1 flex items-center justify-center p-8 bg-background relative overflow-hidden">
+          <div className="absolute top-4 right-4 z-20">
+            <ThemeToggle variant="outline" />
+          </div>
           <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
           <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
           

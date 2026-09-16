@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useAllUserProjects } from "@/hooks/useAllUserProjects";
+import { percentageChange } from "@/lib/metric-comparison";
+import { usePlan } from "@/hooks/usePlan";
 
 
 interface Stats {
@@ -46,7 +48,7 @@ function ProjectColumn({
   side: "left" | "right";
   days: number;
 }) {
-  const { data, isLoading } = useDashboardAnalytics(days, projectId);
+  const { data, isLoading, error, refetch } = useDashboardAnalytics(days, projectId);
   const stats = computeStats(data?.metrics);
   const accent = side === "left" ? "from-chart-blue to-primary" : "from-chart-orange to-chart-purple";
 
@@ -85,6 +87,8 @@ function ProjectColumn({
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </>
+        ) : error ? (
+          <div role="alert" className="space-y-3 text-sm"><p>Não foi possível carregar este projeto.</p><button type="button" onClick={() => refetch()} className="text-primary underline">Tentar novamente</button></div>
         ) : (
           <>
             <StatRow icon={<Users className="h-5 w-5" />} label="Visitantes" value={stats.visitors.toLocaleString("pt-BR")} />
@@ -114,18 +118,13 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
   if (a === 0 && b === 0) return null;
   const diff = a - b;
   const winner = diff > 0 ? "A" : diff < 0 ? "B" : null;
-  let pct = "—";
-  if (winner === "A") {
-    pct = b > 0 ? (((a - b) / b) * 100).toFixed(1) : "100.0";
-  } else if (winner === "B") {
-    pct = a > 0 ? (((b - a) / a) * 100).toFixed(1) : "100.0";
-  }
+  const pct = winner === "A" ? percentageChange(a, b) : percentageChange(b, a);
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground font-medium">{label}</span>
       {winner ? (
         <Badge className={winner === "A" ? "bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/20 shadow-sm" : "bg-[hsl(var(--warning))]/15 text-[hsl(var(--warning))] hover:bg-[hsl(var(--warning))]/20 shadow-sm"}>
-          Projeto {winner} +{pct}%
+          Projeto {winner} {pct === null ? "· sem base comparável" : `+${pct.toFixed(1)}%`}
         </Badge>
       ) : (
         <Badge variant="secondary">Empate</Badge>
@@ -136,7 +135,9 @@ function VersusBadge({ a, b, label }: { a: number; b: number; label: string }) {
 
 const Compare = () => {
   const { user } = useAuth();
-  const [days, setDays] = useState(30);
+  const plan = usePlan();
+  const [requestedDays, setDays] = useState(30);
+  const days = Math.min(requestedDays, plan.maxHistoryDays);
   const { data: baseData, isLoading: baseLoading, error } = useDashboardAnalytics(days);
 
   const { data: projectsData } = useAllUserProjects();
@@ -151,12 +152,12 @@ const Compare = () => {
 
   // Default selection
   useEffect(() => {
-    if (projects.length >= 1 && !projectA) setProjectA(projects[0].id);
-    if (projects.length >= 2 && !projectB) setProjectB(projects[1].id);
+    if (!projects.some(project => project.id === projectA)) setProjectA(projects[0]?.id);
+    if (!projects.some(project => project.id === projectB)) setProjectB(projects[1]?.id);
   }, [projects, projectA, projectB]);
 
-  const { data: dataA } = useDashboardAnalytics(days, projectA);
-  const { data: dataB } = useDashboardAnalytics(days, projectB);
+  const { data: dataA, error: errorA, isLoading: loadingA } = useDashboardAnalytics(days, projectA);
+  const { data: dataB, error: errorB, isLoading: loadingB } = useDashboardAnalytics(days, projectB);
   const statsA = computeStats(dataA?.metrics);
   const statsB = computeStats(dataB?.metrics);
 
@@ -197,8 +198,8 @@ const Compare = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Últimos 7 dias</SelectItem>
-                <SelectItem value="30">Últimos 30 dias</SelectItem>
-                <SelectItem value="90">Últimos 90 dias</SelectItem>
+                <SelectItem value="30" disabled={plan.maxHistoryDays < 30}>Últimos 30 dias</SelectItem>
+                <SelectItem value="90" disabled={plan.maxHistoryDays < 90}>Últimos 90 dias</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -229,10 +230,12 @@ const Compare = () => {
                 <h2 className="text-lg font-semibold">Quem está na frente?</h2>
               </div>
               <div className="space-y-3">
+                {errorA || errorB ? <p role="alert">Comparação indisponível enquanto um dos projetos não carregar.</p> : loadingA || loadingB ? <p role="status">Carregando comparação…</p> : <>
                 <VersusBadge a={statsA.visitors} b={statsB.visitors} label="Mais visitantes" />
                 <VersusBadge a={statsA.leads} b={statsB.leads} label="Mais leads" />
                 <VersusBadge a={statsA.conversion} b={statsB.conversion} label="Melhor conversão" />
                 <VersusBadge a={statsA.value} b={statsB.value} label="Maior valor estimado" />
+                </>}
               </div>
             </Card>
           </>

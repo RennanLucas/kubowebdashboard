@@ -1,17 +1,26 @@
 ﻿import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+import { getPaymentEnvironment } from "../_shared/payment-environment.ts";
+
 // compute-alerts is cron-only, no browser access needed
 const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BREVO_SMTP_KEY = Deno.env.get("BREVO_SMTP_KEY");
+const BREVO_SMTP_KEY = Deno.env.get("BREVO_API_KEY") ?? Deno.env.get("BREVO_SMTP_KEY");
 const BREVO_FROM_EMAIL = Deno.env.get("BREVO_FROM_EMAIL") ?? "no-reply@kuboweb.com";
+const APP_URL = Deno.env.get("PUBLIC_APP_URL") ?? "https://kubowebdashboard.vercel.app";
+
+function escapeHtml(value: unknown) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]!);
+}
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!BREVO_SMTP_KEY) {
     console.warn("BREVO_SMTP_KEY não configurada â€” email não enviado");
-    return;
+    return false;
   }
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -26,13 +35,16 @@ async function sendEmail(to: string, subject: string, html: string) {
         subject,
         htmlContent: html,
       }),
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) {
-      const t = await res.text();
-      console.error("Brevo send failed", res.status, t);
+      console.error("Brevo send failed", { status: res.status });
+      return false;
     }
+    return true;
   } catch (e) {
     console.error("Brevo send exception", e);
+    return false;
   }
 }
 
@@ -40,12 +52,12 @@ function alertEmailHtml(opts: { title: string; message: string; projectName: str
   return `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f8f9fb;padding:24px;color:#0f1117">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;border:1px solid #e5e7eb">
     <div style="font-size:12px;color:#6366f1;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">KUBOWEB Pro Â· Alerta inteligente</div>
-    <h1 style="font-size:20px;margin:8px 0 12px;color:#0f1117">${opts.title}</h1>
-    <p style="font-size:14px;color:#374151;line-height:1.5;margin:0 0 16px">${opts.message}</p>
+    <h1 style="font-size:20px;margin:8px 0 12px;color:#0f1117">${escapeHtml(opts.title)}</h1>
+    <p style="font-size:14px;color:#374151;line-height:1.5;margin:0 0 16px">${escapeHtml(opts.message)}</p>
     <div style="font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:14px;margin-top:18px">
-      Projeto: <strong style="color:#0f1117">${opts.projectName}</strong>
+      Projeto: <strong style="color:#0f1117">${escapeHtml(opts.projectName)}</strong>
     </div>
-    <a href="https://cubie-dash.lovable.app/alerts" style="display:inline-block;margin-top:18px;background:#6366f1;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500">Ver no painel</a>
+    <a href="${escapeHtml(APP_URL)}/alerts" style="display:inline-block;margin-top:18px;background:#6366f1;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500">Ver no painel</a>
     <p style="font-size:11px;color:#9ca3af;margin-top:24px">Você recebeu este email porque sua organização assina o plano Pro. Para ajustar alertas, acesse Configurações.</p>
   </div></body></html>`;
 }
@@ -63,23 +75,25 @@ function isAuthorized(req: Request): boolean {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
   // Only accept exact service role key match - no JWT parsing
-  return serviceKey && token === serviceKey;
+  return !!serviceKey && token === serviceKey;
 }
 
 // Fonte única para checagem de plano
 const getOrgPlanStatus = async (supabase: any, orgId: string) => {
+  const paymentEnvironment = getPaymentEnvironment();
   // 1. Assinatura pela organização
   const { data: orgSub } = await supabase
     .from("subscriptions")
     .select("plan_id, status, current_period_end")
     .eq("organization_id", orgId)
+    .eq("environment", paymentEnvironment)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   const planActive = (sub: any) => {
     const okStatus = sub && ["active", "trialing", "authorized", "approved"].includes(sub.status);
-    const periodOk = !sub?.current_period_end || new Date(sub.current_period_end) > new Date();
+    const periodOk = !!sub?.current_period_end && new Date(sub.current_period_end) > new Date();
     return okStatus && periodOk;
   };
 
@@ -103,6 +117,7 @@ const getOrgPlanStatus = async (supabase: any, orgId: string) => {
         .select("plan_id, status, current_period_end")
         .eq("user_id", owner.user_id)
         .is("organization_id", null)
+        .eq("environment", paymentEnvironment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -209,12 +224,12 @@ Deno.serve(async (req) => {
           await supabase.from("alerts").insert({ project_id: project.id, ...payload });
           created++;
           for (const email of targetEmails) {
-            await sendEmail(
+            const sent = await sendEmail(
               email,
               `[KUBOWEB] ${payload.title}`,
               alertEmailHtml({ title: payload.title, message: payload.message, projectName: project.name }),
             );
-            emailsSent++;
+            if (sent) emailsSent++;
           }
         };
 

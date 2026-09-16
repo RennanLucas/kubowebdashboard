@@ -5,12 +5,32 @@ import "./index.css";
 import { registerPWA } from "./lib/pwa";
 import { clearChunkReloadGuard, isChunkLoadError, tryReloadOnce } from "./lib/chunk-reload";
 
-// Apply persisted theme before render to avoid flash (defaults to dark)
+// Apply persisted theme before render to avoid flash (defaults to light on first access)
 try {
-  const stored = localStorage.getItem("kuboweb:theme");
-  if (stored !== "light") document.documentElement.classList.add("dark");
+  let stored = localStorage.getItem("kuboweb:theme");
+  if (!stored) {
+    stored = localStorage.getItem("theme");
+    if (stored) {
+      try {
+        localStorage.setItem("kuboweb:theme", stored);
+      } catch {}
+    }
+  }
+  let isDark = false;
+  if (stored === "dark") {
+    isDark = true;
+  } else if (stored === "system") {
+    isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  } else {
+    isDark = false;
+  }
+  if (isDark) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
 } catch {
-  document.documentElement.classList.add("dark");
+  document.documentElement.classList.remove("dark");
 }
 
 // Auto-recover from stale lazy-loaded chunks after a redeploy.

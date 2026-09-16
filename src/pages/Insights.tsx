@@ -27,8 +27,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSelectedProject } from "@/hooks/useSelectedProject";
 import { Navigate } from "react-router-dom";
+import { useAllUserProjects } from "@/hooks/useAllUserProjects";
+import { usePlan } from "@/hooks/usePlan";
+import { useRequestScope } from "@/hooks/useRequestScope";
+import { FeatureLock } from "@/components/FeatureLock";
 
 import { InsightsHeader } from "@/components/insights/InsightsHeader";
+import { AIInsightsPanel } from "@/components/insights/AIInsightsPanel";
 import { 
   InsightsStatusCard, 
   InsightsExplanationCard, 
@@ -50,8 +55,15 @@ export default function Insights() {
   const { user } = useAuth();
   const { activeOrganization } = useOrganization();
   const { selectedProjectId } = useSelectedProject();
+  const plan = usePlan();
+  const { data: projects } = useAllUserProjects();
+  const projectId = projects?.find(project => project.id === selectedProjectId)?.id ?? projects?.[0]?.id;
+  const canAnalyze = !plan.loading && plan.can("ai_insights");
   const [periodDays, setPeriodDays] = useState<7 | 30>(30);
-  const { data, isLoading, error } = useDashboardAnalytics(periodDays, selectedProjectId);
+  const { data, isLoading, error } = useDashboardAnalytics(periodDays, projectId);
+  const scopeKey = `${user?.id}:${activeOrganization?.id}:${projectId}:${canAnalyze}`;
+  const captureScope = useRequestScope(scopeKey);
+  const [displayScope, setDisplayScope] = useState(scopeKey);
   
   const [analysis, setAnalysis] = useState<string>("");
   const [analysisDetails, setAnalysisDetails] = useState<InsightDetail[]>([]);
@@ -97,7 +109,7 @@ export default function Insights() {
         {
           title: "Detalhes indisponíveis nesta versão",
           reason: "Esta versão foi carregada do histórico salvo sem os detalhes estruturados exibidos no painel.",
-          recommendation: "Clique em “Atualizar com IA” quando quiser gerar uma nova leitura com o detalhamento completo desta análise.",
+          recommendation: "Clique em “Atualizar análise” quando quiser gerar uma nova leitura com o detalhamento completo desta análise.",
           sources: [
             { label: "Origem", value: "Histórico salvo" },
             { label: "Período", value: `${periodDays} dias` },
@@ -110,7 +122,7 @@ export default function Insights() {
       {
         title: "Detalhes ainda não disponíveis",
         reason: "Esta análise não possui o detalhamento estruturado necessário para preencher este painel no momento.",
-        recommendation: "Clique em “Atualizar com IA” para gerar uma nova versão com explicações detalhadas e fontes resumidas.",
+        recommendation: "Clique em “Atualizar análise” para gerar uma nova versão com explicações detalhadas e fontes resumidas.",
         sources: [
           { label: "Origem", value: analysisSource === "generated" ? "Análise atual" : "Indefinida" },
           { label: "Período", value: `${periodDays} dias` },
@@ -222,12 +234,14 @@ export default function Insights() {
 
   const retryDetails = async () => {
     if (!analysis || analysisSource !== "generated") return;
+    const isCurrent = captureScope();
 
     setDetailsLoading(true);
     setDetailsError(null);
 
     try {
       const details = await buildInsightDetails();
+      if (!isCurrent()) return;
       setAnalysisDetails(details);
       if (activeInsightId) {
         setDetailsCache((current) => ({
@@ -238,9 +252,10 @@ export default function Insights() {
       setOpenSources({});
       setVisibleSourceCounts({});
     } catch (e: any) {
+      if (!isCurrent()) return;
       setDetailsError(e?.message || "Não foi possível carregar os detalhes desta análise.");
     } finally {
-      setDetailsLoading(false);
+      if (isCurrent()) setDetailsLoading(false);
     }
   };
 
@@ -409,27 +424,44 @@ export default function Insights() {
   };
 
   const fetchHourly = async (): Promise<HourlyPoint[]> => {
-    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id;
     if (!projectId) return [];
     const since = new Date();
-    since.setDate(since.getDate() - periodDays);
-    const { data: rows, error: pvError } = await supabase
-      .from("pageviews")
-      .select("created_at")
-      .eq("project_id", projectId)
-      .gte("created_at", since.toISOString())
-      .limit(10000);
-    if (pvError || !rows) return [];
+    since.setUTCHours(0, 0, 0, 0);
+    since.setUTCDate(since.getUTCDate() - (periodDays - 1));
     const buckets = new Array(24).fill(0);
-    for (const r of rows) {
-      const h = new Date(r.created_at as string).getHours();
-      if (h >= 0 && h < 24) buckets[h] += 1;
+    const until = new Date().toISOString();
+    const isCurrent = captureScope();
+    let offset = 0;
+    while (true) {
+      const { data: rows, error: pvError, count } = await supabase
+        .from("pageviews")
+        .select("created_at", { count: "exact" })
+        .eq("project_id", projectId)
+        .gte("created_at", since.toISOString())
+        .lte("created_at", until)
+        .order("created_at").order("id")
+        .range(offset, offset + 999);
+      if (!isCurrent()) return [];
+      if (pvError) throw new Error("Não foi possível carregar a distribuição por horário.");
+      // Do not silently present a truncated distribution as a complete analysis.
+      if (count === null || count > 10000) throw new Error("Este volume de visitas requer distribuição por horário consolidada. A análise local não foi gerada.");
+      if (!rows?.length) {
+        if (offset < count) throw new Error("A distribuição por horário ficou incompleta. Tente novamente.");
+        break;
+      }
+      for (const row of rows) {
+        const hour = new Date(row.created_at).getHours();
+        if (hour >= 0 && hour < 24) buckets[hour] += 1;
+      }
+      offset += rows.length;
+      if (offset >= count) break;
     }
     return buckets.map((visitors, hour) => ({ hour, visitors }));
   };
 
   const loadHistory = async (options?: { append?: boolean }) => {
-    if (!user) return;
+    if (!user || !projectId || !canAnalyze) return;
+    const isCurrent = captureScope();
 
     const append = options?.append ?? false;
     const currentHistory = append ? history : [];
@@ -437,18 +469,16 @@ export default function Insights() {
 
     if (append) setHistoryLoadingMore(true);
     else setHistoryLoading(true);
-    const projectId = data?.client?.project?.id ?? data?.client?.projects?.[0]?.id ?? null;
-
-    let query = supabase
+    const query = supabase
       .from("ai_insights")
       .select("id, content, created_at, period_days, model, project_id")
       .eq("user_id", user.id)
+      .eq("project_id", projectId)
       .order("created_at", { ascending: false })
       .range(nextOffset, nextOffset + HISTORY_PAGE_SIZE - 1);
 
-    if (projectId) query = query.eq("project_id", projectId);
-
     const { data: rows, error: historyError } = await query;
+    if (!isCurrent()) return;
 
     if (historyError) {
       toast.error("Erro ao carregar histórico de insights");
@@ -469,12 +499,14 @@ export default function Insights() {
   };
 
   const generate = async () => {
+    if (!canAnalyze || !projectId || !data || error || isLoading) return;
+    const isCurrent = captureScope();
     setGenerating(true);
     setDetailsLoading(true);
     setDetailsError(null);
     try {
-      await new Promise((r) => setTimeout(r, 300));
       const hourlyDistribution = await fetchHourly();
+      if (!isCurrent()) return;
       const result = generateLocalInsights({
         days: periodDays,
         metrics: data?.metrics ?? [],
@@ -526,7 +558,6 @@ export default function Insights() {
       setDetailsLoading(false);
 
       if (user) {
-        const projectId = selectedProjectId || data?.client?.project?.id || data?.client?.projects?.[0]?.id || null;
         const { data: insertedInsight, error: insertError } = await supabase
           .from("ai_insights")
           .insert({
@@ -538,6 +569,7 @@ export default function Insights() {
           })
           .select("id, content, created_at, period_days, model, project_id")
           .single();
+        if (!isCurrent()) return;
 
         if (insertError) {
           toast.error("Erro ao salvar a geração no histórico");
@@ -556,10 +588,12 @@ export default function Insights() {
         await loadHistory();
       }
     } catch (e: any) {
-      toast.error(e?.message || "Erro ao gerar análise");
+      if (isCurrent()) toast.error(e?.message || "Erro ao gerar análise");
     } finally {
-      setDetailsLoading(false);
-      setGenerating(false);
+      if (isCurrent()) {
+        setDetailsLoading(false);
+        setGenerating(false);
+      }
     }
   };
 
@@ -576,12 +610,21 @@ export default function Insights() {
     setOpenSources({});
     setVisibleSourceCounts({});
     setHistory([]);
-  }, [activeOrganization?.id, data?.client?.project?.id]);
+    setDetailsCache({});
+    setLoadingMoreSources({});
+    setSourceScrollPositions({});
+    setSourceSearchTerms({});
+    setHistoryLoading(false);
+    setHistoryLoadingMore(false);
+    setHasMoreHistory(false);
+    setGenerating(false);
+    setDisplayScope(scopeKey);
+  }, [scopeKey]);
 
   useEffect(() => {
-    if (!user || !data) return;
+    if (!user || !projectId || !canAnalyze) return;
     loadHistory();
-  }, [user?.id, data?.client?.project?.id]);
+  }, [user?.id, projectId, activeOrganization?.id, canAnalyze]);
 
   useEffect(() => {
     if (!compareInsightId || !analysis) {
@@ -639,6 +682,9 @@ export default function Insights() {
     return <Navigate to="/login" replace />;
   }
 
+  if (!canAnalyze) return <AppLayout><div className="mx-auto max-w-4xl p-6"><FeatureLock feature="ai_insights"><Skeleton className="h-24" /></FeatureLock></div></AppLayout>;
+  if (displayScope !== scopeKey) return <AppLayout><Skeleton className="mx-auto h-48 max-w-4xl" /></AppLayout>;
+
   return (
     <AppLayout>
       <Helmet>
@@ -652,25 +698,31 @@ export default function Insights() {
           onPeriodChange={handlePeriodChange}
           analysis={analysis}
           generating={generating}
-          isLoading={isLoading}
+          isLoading={isLoading || !!error || !data || !projectId}
           exporting={exporting}
           onGenerate={generate}
           onExportPDF={exportPDF}
           onExportMarkdown={exportMarkdown}
         />
 
+        {projectId && <AIInsightsPanel key={`${scopeKey}:${periodDays}`} projectId={projectId} periodDays={periodDays} onGenerated={applyHistoryItem} />}
+        <div role="status" className="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+          “Gerar análise local” usa regras automáticas das métricas, sem IA externa e sem consumir quota. “Gerar com IA” usa a integração paga do plano Pro, somente após seu clique.
+        </div>
+        {error && <div role="alert" className="mb-4 text-sm text-destructive">Não foi possível carregar as métricas deste projeto. A geração foi desabilitada para não criar uma análise com dados incompletos.</div>}
+
         <p className="mb-4 text-xs text-muted-foreground">
           A nova versão só é criada quando você clicar no botão. Enquanto a atualização roda, a versão atual continua visível e o histórico anterior é preservado.
         </p>
 
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Nota sobre a IA</span>
+          <span className="font-medium text-foreground">Nota sobre a análise</span>
           <InfoTooltip
             side="right"
             content={
               <div className="space-y-2">
                 <p>
-                  A IA interpreta métricas de tráfego, conversões, dispositivos, origens, páginas e padrões por horário para sugerir oportunidades e riscos reais para o seu negócio.
+                  A análise local interpreta métricas de tráfego, conversões, dispositivos, origens, páginas e padrões por horário para sugerir oportunidades e riscos para o seu negócio.
                 </p>
                 <p>
                   As recomendações são geradas a partir da base de dados reais do seu projeto e servem como apoio à sua análise técnica.
@@ -701,7 +753,7 @@ export default function Insights() {
             <Card className="p-4 sm:p-8 lg:p-10 space-y-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-2">
-                  <h2 className="text-base font-semibold text-foreground">Relatório gerado com IA</h2>
+                  <h2 className="text-base font-semibold text-foreground">{analysisSource === "history" ? "Relatório salvo" : "Relatório de análise local"}</h2>
                   <p className="text-sm text-muted-foreground">Expanda os detalhes para entender o motivo por trás de cada recomendação.</p>
                   <Button
                     type="button"

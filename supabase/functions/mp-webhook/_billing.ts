@@ -14,20 +14,53 @@ const TRIAL_DAYS = 7;
  */
 export function parseExternalReference(
   extRef: string,
-): { organizationId?: string; planId?: string; userId?: string } {
-  if (extRef.startsWith("v2|")) {
+): { version: "v1" | "v2" | "v3"; environment?: "live" | "sandbox"; organizationId?: string; planId?: string; userId?: string } {
+  if (extRef.startsWith("v2|") || extRef.startsWith("v3|")) {
     const parts = extRef.split("|");
-    let orgId, planId, userId;
-    for (const p of parts) {
-      if (p.startsWith("org:")) orgId = p.replace("org:", "");
-      if (p.startsWith("plan:")) planId = p.replace("plan:", "");
-      if (p.startsWith("user:")) userId = p.replace("user:", "");
+    const version = parts.shift() as "v2" | "v3";
+    const values = new Map<string, string>();
+    for (const part of parts) {
+      const separator = part.indexOf(":");
+      if (separator < 1) continue;
+      const key = part.slice(0, separator);
+      const value = part.slice(separator + 1);
+      // Duplicate identity fields make the reference ambiguous: fail closed.
+      if (values.has(key)) return { version };
+      values.set(key, value);
     }
-    return { organizationId: orgId, planId, userId };
+    const environment = values.get("env");
+    return {
+      version,
+      environment: environment === "live" || environment === "sandbox" ? environment : undefined,
+      organizationId: values.get("org"),
+      planId: values.get("plan"),
+      userId: values.get("user"),
+    };
   } else {
     const [userId, planId] = extRef.split("|");
-    return { organizationId: undefined, planId, userId };
+    return { version: "v1", organizationId: undefined, planId, userId };
   }
+}
+
+export function createExternalReference(input: {
+  environment: "live" | "sandbox";
+  organizationId: string;
+  planId: string;
+  userId: string;
+}): string {
+  return `v3|env:${input.environment}|org:${input.organizationId}|plan:${input.planId}|user:${input.userId}`;
+}
+
+export function isReferenceEnvironmentAllowed(
+  reference: ReturnType<typeof parseExternalReference>,
+  environment: "live" | "sandbox",
+): boolean {
+  // Legacy references were issued before test/live binding existed. They may
+  // be honored only by live to avoid turning historical production IDs into
+  // sandbox grants (or vice versa).
+  return reference.version === "v3"
+    ? reference.environment === environment
+    : environment === "live";
 }
 
 /**

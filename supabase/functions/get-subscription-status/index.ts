@@ -10,7 +10,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 // dependência de terceiros para algo que é configuração nossa.
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { getPlan, listPlans } from "../_shared/plans.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
+import { getPaymentEnvironment } from "../_shared/payment-environment.ts";
 import {
   computeIsActive,
   computeIsTrialing,
@@ -50,6 +53,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const paymentEnvironment = getPaymentEnvironment();
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return json({ error: "Unauthorized" }, 401);
@@ -62,13 +66,6 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
-
-    // Rate limiting por token (20 req/janela) — o frontend consulta este endpoint
-    // em toda montagem de tela de billing.
-    const rateCheck = checkRateLimit(token, 20, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 20);
-    }
 
     const { data: claimsData, error: claimsError } = await supabase.auth
       .getClaims(token);
@@ -87,6 +84,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    const rateCheck = await checkSharedRateLimit(supabaseAdmin,"get-subscription-status",userId,20);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt,corsHeaders,20);
 
     // Autoriza exatamente a organização ativa informada pelo cliente. Nunca
     // escolhe uma assinatura entre todas as organizações do usuário.
@@ -116,12 +115,31 @@ Deno.serve(async (req) => {
         "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
       )
       .eq("organization_id", organizationId)
+      .eq("environment", paymentEnvironment)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     data = orgSub as SubscriptionRow | null;
     error = orgErr;
+
+    // Compatibility for customers created before organization billing. The
+    // row is still bound to the authenticated user and to this environment.
+    if (!data && !error) {
+      const { data: legacySub, error: legacyError } = await supabaseAdmin
+        .from("subscriptions")
+        .select(
+          "id,status,plan_id,current_period_start,current_period_end,trial_end,cancel_at_period_end,environment,provider,amount,external_id,updated_at,created_at",
+        )
+        .eq("user_id", userId)
+        .is("organization_id", null)
+        .eq("environment", paymentEnvironment)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      data = legacySub as SubscriptionRow | null;
+      error = legacyError;
+    }
 
     if (error) {
       console.error("[get-subscription-status] db error", error);
@@ -214,7 +232,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     // Log detalhado no servidor, mensagem genérica para o cliente.
     console.error("[get-subscription-status] unexpected", e);
-    return json({ error: "Erro inesperado" }, 500);
+    return errorResponse(e,corsHeaders,"get-subscription-status");
   }
 });
 

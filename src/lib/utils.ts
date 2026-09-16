@@ -40,5 +40,7 @@ export const parseLeadValue = (raw: string): { value: number | null; error: stri
 };
 
 export const getAppUrl = () => {
-  return import.meta.env.PROD ? 'https://kubowebdashboard.vercel.app' : window.location.origin;
+  return typeof window === "undefined"
+    ? "https://kubowebdashboard.vercel.app"
+    : window.location.origin;
 };

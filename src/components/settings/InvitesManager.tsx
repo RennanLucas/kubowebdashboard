@@ -26,6 +26,8 @@ interface Invite {
 export default function InvitesManager({ organizationId, currentRole }: InvitesManagerProps) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviteDelivery, setInviteDelivery] = useState<"email" | "link">("link");
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<OrgRole>("viewer");
@@ -79,7 +81,11 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Erro ao criar convite");
 
-      if (result.inviteLink) {
+      setInviteLink(result.inviteLink || "");
+      setInviteDelivery(result.delivery === "email" ? "email" : "link");
+      if (result.delivery === "email") {
+        toast.success(`Convite enviado por e-mail para ${email.trim().toLowerCase()}.`);
+      } else if (result.inviteLink) {
         try {
           await navigator.clipboard.writeText(result.inviteLink);
           toast.success(`Convite criado! Link de acesso copiado para a área de transferência.`);
@@ -104,7 +110,7 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
     try {
       const { error } = await supabase
         .from("organization_invites")
-        .delete()
+        .update({ status: "revoked" })
         .eq("id", inviteId);
         
       if (error) throw error;
@@ -132,7 +138,7 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Enviar Convite</DialogTitle>
+                <DialogTitle>Criar convite</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-2">
                 <div className="space-y-2">
@@ -162,7 +168,7 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
                 <Button onClick={handleInvite} disabled={saving}>
-                  {saving ? "Enviando..." : "Enviar convite"}
+                  {saving ? "Criando..." : "Criar convite"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -170,6 +176,17 @@ export default function InvitesManager({ organizationId, currentRole }: InvitesM
         )}
       </div>
 
+      {inviteLink && canManageInvites && (
+        <div className="rounded-lg border p-4 space-y-2">
+          <Label htmlFor="created-invite-link">Link do convite</Label>
+          <p className="text-sm text-muted-foreground">
+            {inviteDelivery === "email"
+              ? "O convite foi enviado por e-mail. Você também pode copiar este link diretamente."
+              : "O e-mail não estava disponível. Compartilhe este link com a pessoa convidada."}
+          </p>
+          <Input id="created-invite-link" readOnly value={inviteLink} onFocus={(e) => e.target.select()} />
+        </div>
+      )}
       {!canManageInvites && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border/50">
           <ShieldAlert className="h-4 w-4 text-orange-400" />

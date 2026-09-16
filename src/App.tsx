@@ -14,6 +14,7 @@ import { lazyWithRetry } from "@/lib/chunk-reload";
 // This dramatically reduces unused JS on initial load (only the
 // page the user actually visits is downloaded).
 // lazy loading routes
+const AcceptInvite = lazyWithRetry(() => import("./pages/AcceptInvite"), "accept-invite");
 const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"), "auth-callback");
 const Login = lazyWithRetry(() => import("./pages/Login"), "login");
 const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"), "dashboard");
@@ -71,6 +72,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/auth/invite" element={<AcceptInvite />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/install" element={<Install />} />

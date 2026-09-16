@@ -18,6 +18,7 @@ interface Props {
   topPage?: { name: string; views: number };
   activeProjectId?: string;
   dateRange: number;
+  period?: { start: string; end: string };
   monthlyAdSpend: number;
 }
 
@@ -32,6 +33,7 @@ export const OverviewSection = ({
   topPage,
   activeProjectId,
   dateRange,
+  period,
   monthlyAdSpend,
 }: Props) => {
   const plan = usePlan();
@@ -58,7 +60,7 @@ export const OverviewSection = ({
         bounceRate={bounceRate}
         trafficChangePct={trafficChangePct}
       />
-      <ReturningVisitorsCard projectId={activeProjectId} days={dateRange} />
+      <ReturningVisitorsCard period={period} projectId={activeProjectId} days={dateRange} />
       <CostPerLeadCard monthlyAdSpend={monthlyAdSpend} leads={totalLeads} days={dateRange} />
     </div>
 

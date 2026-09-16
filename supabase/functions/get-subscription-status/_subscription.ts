@@ -19,7 +19,7 @@ export interface SubscriptionState {
  * of its paid period (grace period).
  */
 export function computeIsActive(sub: SubscriptionState, now: number): boolean {
-  const periodOk = !sub.current_period_end ||
+  const periodOk = !!sub.current_period_end &&
     new Date(sub.current_period_end).getTime() > now;
   if (ACTIVE_STATUSES.includes(sub.status) && periodOk) return true;
   if (

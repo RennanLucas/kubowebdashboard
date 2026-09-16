@@ -1,6 +1,9 @@
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { insertIdempotently } from "./_persist.ts";
+import { oneRelation } from "../_shared/relations.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { checkRateLimit, getIP, getCountryFromHeaders, buildRowsFromEvents, isBot } from "./_ingest.ts";
+import { getPaymentEnvironment } from "../_shared/payment-environment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +33,7 @@ interface ProjectStatus {
 const planCache = new Map<string, { status: ProjectStatus; expiresAt: number }>();
 
 async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Promise<ProjectStatus> {
+  const paymentEnvironment = getPaymentEnvironment();
   const now = Date.now();
   const cached = planCache.get(pid);
   if (cached && cached.expiresAt > now) {
@@ -50,6 +54,7 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
     }
 
     let isActive = true;
+    const legacyClient = oneRelation(projectData.clients);
 
     // 1. Tenta a assinatura da Organização (Fase 3 Multi-tenant)
     if (projectData.organization_id) {
@@ -57,6 +62,7 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
         .from("subscriptions")
         .select("status")
         .eq("organization_id", projectData.organization_id)
+        .eq("environment", paymentEnvironment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -64,13 +70,14 @@ async function isProjectActive(pid: string, supabaseAdmin: SupabaseClient): Prom
       if (orgSub) {
         isActive = !["canceled", "unpaid"].includes(orgSub.status);
       }
-    } else if (projectData.clients?.user_id) {
+    } else if (legacyClient?.user_id) {
       // 2. Fallback de Migração: Usa a assinatura legada do user_id do client
       const { data: subData } = await supabaseAdmin
         .from("subscriptions")
         .select("status, organization_id")
-        .eq("user_id", projectData.clients.user_id)
+        .eq("user_id", legacyClient.user_id)
         .is("organization_id", null)
+        .eq("environment", paymentEnvironment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -228,43 +235,13 @@ Deno.serve(async (req) => {
       { userAgent, country, city },
     );
 
-    let inserted = 0;
-
-    if (eventsToInsert.length > 0) {
-      // onConflict: "event_id", ignoreDuplicates: true para deduplicação idempotente
-      const { error } = await supabaseAdmin
-        .from("events")
-        .upsert(eventsToInsert, { onConflict: "event_id", ignoreDuplicates: true });
-      if (error) {
-        if (error.code === "23505" || error.message?.includes("idx_events_event_id") || error.message?.includes("duplicate key")) {
-          console.warn(JSON.stringify({ event: "db_duplicate_ignored", target: "events", details: error.message }));
-        } else {
-          console.error(JSON.stringify({ event: "db_insert_error", target: "events", details: error.message }));
-          return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store events" } }, 500);
-        }
-      } else {
-        inserted += eventsToInsert.length;
-      }
-    }
-    
-    if (pageviewsToInsert.length > 0) {
-      // onConflict: "event_id", ignoreDuplicates: true para deduplicação idempotente
-      const { error } = await supabaseAdmin
-        .from("pageviews")
-        .upsert(pageviewsToInsert, { onConflict: "event_id", ignoreDuplicates: true });
-      if (error) {
-        if (error.code === "23505" || error.message?.includes("idx_pageviews_event_id") || error.message?.includes("duplicate key")) {
-          console.warn(JSON.stringify({ event: "db_duplicate_ignored", target: "pageviews", details: error.message }));
-        } else {
-          console.error(JSON.stringify({ event: "db_insert_error", target: "pageviews", details: error.message }));
-          return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Failed to store pageviews" } }, 500);
-        }
-      } else {
-        inserted += pageviewsToInsert.length;
-      }
-    }
-
-    return jsonResponse({ ok: true, processed: inserted });
+    const insertedEvents = await insertIdempotently(
+      eventsToInsert, (rows) => supabaseAdmin.from("events").insert(rows), "idx_events_event_id",
+    );
+    const insertedPageviews = await insertIdempotently(
+      pageviewsToInsert, (rows) => supabaseAdmin.from("pageviews").insert(rows), "idx_pageviews_event_id",
+    );
+    return jsonResponse({ ok: true, processed: insertedEvents + insertedPageviews });
   } catch (e: unknown) {
     console.error(JSON.stringify({ event: "internal_error", details: (e as Error)?.message || "Unknown error" }));
     return jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Internal server error" } }, 500);

@@ -1248,6 +1248,10 @@ export type Database = {
         Args: { p_project_id: string }
         Returns: undefined
       }
+      accept_invite_token: {
+        Args: { invite_token: string }
+        Returns: string
+      }
       list_organization_members: {
         Args: { p_organization_id: string }
         Returns: { user_id: string; role: string; created_at: string; email: string | null; full_name: string | null }[]

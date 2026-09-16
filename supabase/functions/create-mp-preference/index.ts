@@ -1,12 +1,16 @@
 // Cria checkout do Mercado Pago: preapproval recorrente para os planos KUBOWEB.
 // Usa a definição compartilhada em _shared/plans.ts — desabilitar um plano lá
 // automaticamente bloqueia novos checkouts dele.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { getPlan, type PlanId } from "../_shared/plans.ts";
+import { checkoutReturnUrl } from "../_shared/origins.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
+import { getMpConfig } from "../_shared/mp-config.ts";
+import { createExternalReference } from "../mp-webhook/_billing.ts";
 
-const MP_TOKEN = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") || Deno.env.get("MP_ACCESS_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -14,6 +18,7 @@ const SUPABASE_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
@@ -22,18 +27,13 @@ Deno.serve(async (req) => {
     });
 
   try {
+    const mpConfig = getMpConfig((name) => Deno.env.get(name));
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return json({ error: "Unauthorized" }, 401);
     }
 
     const token = authHeader.replace("Bearer ", "").trim();
-
-    // Rate limiting: 10 req/min por usuário
-    const rateCheck = checkRateLimit(token, 10, "user");
-    if (!rateCheck.allowed) {
-      return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
-    }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
       global: { headers: { Authorization: authHeader } },
@@ -64,6 +64,10 @@ Deno.serve(async (req) => {
       return json({ error: "Sua sessão expirou. Entre novamente para continuar." }, 401);
     }
 
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+    const rateCheck = await checkSharedRateLimit(admin, "create-mp-preference", userId, 10);
+    if (!rateCheck.allowed) return rateLimitResponse(rateCheck.resetAt, corsHeaders, 10);
+
     const body = await req.json().catch(() => ({}));
     const planId = body.planId as PlanId | undefined;
     const returnUrl = (body.returnUrl as string | undefined) ?? "";
@@ -74,7 +78,6 @@ Deno.serve(async (req) => {
     }
 
     // Consulta de papel da organização via admin para isolamento consistente
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE || SUPABASE_ANON);
     const { data: memberData, error: memberErr } = await admin
       .from("organization_members")
       .select("role")
@@ -86,6 +89,37 @@ Deno.serve(async (req) => {
       return json({ error: "Acesso negado para gerenciar faturamento desta organização" }, 403);
     }
 
+    // A double click or a repeated checkout must not create a second paid
+    // agreement while this organization already has access in this universe.
+    const { data: currentSubscription, error: currentSubscriptionError } = await admin
+      .from("subscriptions")
+      .select("status,current_period_end")
+      .eq("organization_id", organizationId)
+      .eq("environment", mpConfig.environment)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (currentSubscriptionError) throw currentSubscriptionError;
+    const { data: legacySubscription, error: legacySubscriptionError } = await admin
+      .from("subscriptions")
+      .select("status,current_period_end")
+      .eq("user_id", userId)
+      .is("organization_id", null)
+      .eq("environment", mpConfig.environment)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (legacySubscriptionError) throw legacySubscriptionError;
+    const effectiveSubscription = currentSubscription ?? legacySubscription;
+    const currentPeriodEnd = effectiveSubscription?.current_period_end
+      ? Date.parse(effectiveSubscription.current_period_end)
+      : Number.NaN;
+    if (effectiveSubscription &&
+      ["active", "trialing", "authorized", "approved", "canceled", "cancelled"].includes(effectiveSubscription.status) &&
+      Number.isFinite(currentPeriodEnd) && currentPeriodEnd > Date.now()) {
+      return json({ error: "Esta organização já possui uma assinatura ativa neste ambiente." }, 409);
+    }
+
     const plan = planId ? getPlan(planId) : null;
     if (!plan) return json({ error: "Invalid planId" }, 400);
     if (!plan.enabled) {
@@ -94,31 +128,21 @@ Deno.serve(async (req) => {
         409,
       );
     }
-    if (!MP_TOKEN) {
-      return json({ error: "Integração do Mercado Pago não configurada (token ausente)." }, 503);
+    if (!mpConfig.token || !mpConfig.secret) {
+      return json({ error: "Integração de pagamento indisponível neste ambiente." }, 503);
     }
 
-    const origin = req.headers.get("origin") || "";
-    let baseReturn = "https://kubowebdashboard.vercel.app/checkout/return";
-    if (returnUrl) {
-      try {
-        const parsed = new URL(returnUrl);
-        if (
-          parsed.origin === origin ||
-          parsed.hostname.includes("kubowebdashboard") ||
-          parsed.hostname === "localhost"
-        ) {
-          baseReturn = returnUrl;
-        }
-      } catch {
-        /* invalid URL — use default */
-      }
-    }
+    const baseReturn = checkoutReturnUrl(returnUrl, Deno.env.get("ALLOWED_ORIGIN"));
 
     // Assinatura recorrente (cartão) com 7 dias grátis
     const payload: Record<string, unknown> = {
       reason: String(plan.reason || "KUBOWEB Pro").slice(0, 60),
-      external_reference: `v2|org:${organizationId}|plan:${planId}|user:${userId}`,
+      external_reference: createExternalReference({
+        environment: mpConfig.environment,
+        organizationId,
+        planId: plan.id,
+        userId,
+      }),
       back_url: baseReturn,
       auto_recurring: {
         frequency: plan.frequency,
@@ -134,50 +158,32 @@ Deno.serve(async (req) => {
       payload.payer_email = email;
     }
 
-    let res = await fetch("https://api.mercadopago.com/preapproval", {
+    const res = await fetch("https://api.mercadopago.com/preapproval", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${MP_TOKEN}`,
+        Authorization: `Bearer ${mpConfig.token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
     });
 
-    let data = await res.json();
-
-    // Se o Mercado Pago reclamar que o comprador é o mesmo que o vendedor (ou erro de payer_email), tenta sem payer_email
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
-      const errStr = JSON.stringify(data).toLowerCase();
-      if (payload.payer_email && (errStr.includes("payer_email") || errStr.includes("collector") || errStr.includes("same"))) {
-        console.warn("Mercado Pago rejeitou payer_email (possível conta do vendedor). Retentando checkout genérico...");
-        delete payload.payer_email;
-        res = await fetch("https://api.mercadopago.com/preapproval", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${MP_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-        data = await res.json();
-      }
+      console.error("MP preapproval rejected", { status: res.status });
+      return json({ error: "Não foi possível iniciar a assinatura. Tente novamente ou entre em contato com o suporte." }, 502);
     }
 
-    if (!res.ok) {
-      console.error("MP preapproval error:", data);
-      const detailMsg =
-        data?.message ||
-        (Array.isArray(data?.cause)
-          ? data.cause.map((c: any) => c.description || c.code).join(", ")
-          : null) ||
-        "Falha ao criar assinatura no Mercado Pago";
-      return json({ error: detailMsg, details: data }, 502);
+    const checkoutUrl = data?.init_point;
+    if (typeof checkoutUrl !== "string" || !/^https:\/\/www\.mercadopago\.com(?:\.br)?\//i.test(checkoutUrl)) {
+      console.error("MP preapproval returned no trusted checkout URL");
+      return json({ error: "O provedor não retornou uma página de pagamento válida." }, 502);
     }
 
-    return json({ url: data.init_point, id: data.id });
+    return json({ url: checkoutUrl, id: data.id, environment: mpConfig.environment });
   } catch (e) {
     console.error("create-mp-preference error:", e);
-    return json({ error: (e as Error).message || "Erro interno" }, 500);
+    return errorResponse(e, corsHeaders, "create-mp-preference");
   }
 });
 

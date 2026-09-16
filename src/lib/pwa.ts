@@ -1,6 +1,6 @@
 /**
- * PWA registration with strict guards against Lovable preview iframes.
- * The service worker only registers in production, on the real domain,
+ * PWA registration with strict guards against previews and iframes.
+ * The service worker only registers on the real production domain,
  * outside of any iframe.
  *
  * When a new version of the app is detected, a Sonner toast prompts the
@@ -22,12 +22,9 @@ export function registerPWA() {
   })();
 
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("id-preview--") ||
-    host.includes("lovableproject.com") ||
-    (!import.meta.env.PROD && (host === "localhost" || host === "127.0.0.1"));
+  const isProductionHost = host === "kubowebdashboard.vercel.app";
 
-  if (isInIframe || isPreviewHost) {
+  if (isInIframe || !isProductionHost) {
     // Make sure no stale SW survives in preview/iframe contexts
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker

@@ -1,8 +1,38 @@
 <!doctype html>
-<html lang="pt-BR" translate="no" class="dark">
+<html lang="pt-BR" translate="no">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Anti-FOUC Theme Initializer: Default to light on first access -->
+    <script>
+      (function() {
+        try {
+          var canonical = localStorage.getItem('kuboweb:theme');
+          var legacy = localStorage.getItem('theme');
+          var stored = canonical || legacy;
+          if (!canonical && legacy) {
+            try { localStorage.setItem('kuboweb:theme', legacy); } catch (e) {}
+          }
+          var isDark = false;
+          if (stored === 'dark') {
+            isDark = true;
+          } else if (stored === 'system') {
+            isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          } else {
+            isDark = false;
+          }
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          var metaTheme = document.querySelector('meta[name="theme-color"]');
+          if (metaTheme) {
+            metaTheme.setAttribute('content', isDark ? '#0a0b14' : '#ffffff');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>Kubo Analytics | Entenda seu site. Decida melhor.</title>
     <meta name="description" content="Analytics próprio para acompanhar visitantes, páginas, fontes, conversões, alertas e insights do seu site em uma leitura clara.">
     <meta name="author" content="Kubo Web" />
@@ -14,7 +44,7 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0a0b14" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

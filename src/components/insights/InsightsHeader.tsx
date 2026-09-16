@@ -38,7 +38,7 @@ export function InsightsHeader({
           Insights com IA
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-          Ao gerar a análise, a IA cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
+          Ao gerar a análise, o Kubo cruza os dados dos últimos {periodDays} dias e monta um relatório com insights, riscos, oportunidades e ações sugeridas.
         </p>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:gap-2">
@@ -82,7 +82,7 @@ export function InsightsHeader({
         )}
         <Button onClick={onGenerate} disabled={generating || isLoading} className="w-full justify-center gap-2 sm:w-auto">
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {generating ? "Atualizando..." : analysis ? "Atualizar com IA" : "Gerar com IA"}
+          {generating ? "Atualizando..." : analysis ? "Atualizar análise local" : "Gerar análise local"}
         </Button>
       </div>
     </div>

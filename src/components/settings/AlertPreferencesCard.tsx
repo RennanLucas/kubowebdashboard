@@ -113,7 +113,7 @@ export default function AlertPreferencesCard({ projectId }: { projectId: string 
     }
 
     return newErrors;
-  }, [prefs]);
+  }, [prefs, emailAllowed]);
 
   const hasErrors = Object.keys(errors).length > 0;
 

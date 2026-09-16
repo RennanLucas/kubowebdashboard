@@ -7,9 +7,10 @@ import { SectionCard } from "./SectionCard";
 interface Props {
   projectId?: string;
   days: number;
+  period?: { start: string; end: string };
 }
 
-export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
+export const ReturningVisitorsCard = ({ projectId, days, period }: Props) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ returning: 0, total: 0, percentage: 0 });
 
@@ -19,14 +20,17 @@ export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
     setLoading(true);
 
     const fetchData = async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - days);
+      const until = period ? new Date(period.end + "T00:00:00Z") : new Date();
+      until.setUTCHours(0, 0, 0, 0);
+      until.setUTCDate(until.getUTCDate() + 1);
+      const since = period ? new Date(period.start + "T00:00:00Z") : new Date(until.getTime() - days * 86400000);
 
       const { data, error } = await supabase
         .from("pageviews")
         .select("session_id, created_at")
         .eq("project_id", projectId)
         .gte("created_at", since.toISOString())
+        .lt("created_at", until.toISOString())
         .not("session_id", "is", null)
         .limit(10000);
 
@@ -52,7 +56,7 @@ export const ReturningVisitorsCard = ({ projectId, days }: Props) => {
 
     fetchData();
     return () => { cancelled = true; };
-  }, [projectId, days]);
+  }, [projectId, days, period]);
 
   return (
     <SectionCard

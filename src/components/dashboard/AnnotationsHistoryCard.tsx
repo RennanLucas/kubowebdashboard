@@ -34,9 +34,10 @@ interface Props {
   projectId?: string;
   projectName?: string;
   dateRangeDays: number;
+  period?: { start: string; end: string };
 }
 
-export const AnnotationsHistoryCard = ({ projectId, projectName, dateRangeDays }: Props) => {
+export const AnnotationsHistoryCard = ({ projectId, projectName, dateRangeDays, period }: Props) => {
   const { annotations, loading, remove, update } = useAnnotations(projectId);
   const [filter, setFilter] = useState<AnnotationCategory | "all">("all");
   const [editing, setEditing] = useState<Annotation | null>(null);
@@ -46,15 +47,15 @@ export const AnnotationsHistoryCard = ({ projectId, projectName, dateRangeDays }
     since.setDate(since.getDate() - dateRangeDays);
     const sinceKey = since.toISOString().slice(0, 10);
     return annotations
-      .filter((a) => a.date >= sinceKey)
+      .filter((a) => a.date >= (period?.start || sinceKey) && (!period || a.date <= period.end))
       .filter((a) => filter === "all" || a.category === filter);
-  }, [annotations, dateRangeDays, filter]);
+  }, [annotations, dateRangeDays, filter, period]);
 
   return (
     <SectionCard
       icon={<CalendarDays className="h-4 w-4 text-primary" />}
       title="Histórico de eventos e campanhas"
-      subtitle={`Anotações dos últimos ${dateRangeDays} dias`}
+      subtitle={period ? `Anotações de ${period.start} a ${period.end}` : `Anotações dos últimos ${dateRangeDays} dias`}
       tooltip="Marque campanhas, lançamentos e eventos importantes diretamente no gráfico de visitantes. Eles aparecerão aqui e como linhas verticais no chart."
       actions={
         <div className="flex items-center gap-1.5">

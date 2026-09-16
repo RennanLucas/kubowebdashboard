@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { checkRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { rateLimitResponse } from "../_shared/rate-limit.ts";
+import { checkSharedRateLimit } from "../_shared/shared-rate-limit.ts";
+import { errorResponse } from "../_shared/plan-gate.ts";
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -31,7 +33,7 @@ serve(async (req) => {
     }
 
     // Rate limiting para admin endpoints (50 req/window por admin)
-    const generalRateCheck = checkRateLimit(userRes.user.id, 50, "user");
+    const generalRateCheck = await checkSharedRateLimit(admin,"admin-list-users",userRes.user.id,50);
     if (!generalRateCheck.allowed) {
       return rateLimitResponse(generalRateCheck.resetAt, corsHeaders, 50);
     }
@@ -86,16 +88,14 @@ serve(async (req) => {
 
       return json({ 
         users: result,
-        // @ts-expect-error: Total might exist on usersList depending on the Supabase version
         total: usersList.total,
-        // @ts-expect-error: Pagination might exist
         nextPage: usersList.nextPage
       });
     }
 
     if (action === "promote" || action === "demote") {
       // Rate limiting mais estrito para ações críticas (5 req/window)
-      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      const criticalRateCheck = await checkSharedRateLimit(admin,"admin-list-users:critical",userRes.user.id,5);
       if (!criticalRateCheck.allowed) {
         return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
       }
@@ -113,7 +113,7 @@ serve(async (req) => {
 
     if (action === "grant_subscription") {
       // Rate limiting mais estrito para ações críticas (5 req/window)
-      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      const criticalRateCheck = await checkSharedRateLimit(admin,"admin-list-users:critical",userRes.user.id,5);
       if (!criticalRateCheck.allowed) {
         return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
       }
@@ -150,7 +150,7 @@ serve(async (req) => {
 
     if (action === "revoke_subscription") {
       // Rate limiting mais estrito para ações críticas (5 req/window)
-      const criticalRateCheck = checkRateLimit(`${userRes.user.id}:critical`, 5, "user");
+      const criticalRateCheck = await checkSharedRateLimit(admin,"admin-list-users:critical",userRes.user.id,5);
       if (!criticalRateCheck.allowed) {
         return rateLimitResponse(criticalRateCheck.resetAt, corsHeaders, 5);
       }
@@ -175,7 +175,7 @@ serve(async (req) => {
   } catch (e) {
     // Não vaza a mensagem interna para o cliente — apenas registra no log.
     console.error("admin-list-users error:", e);
-    return json({ error: "Internal server error" }, 500);
+    return errorResponse(e,corsHeaders,"admin-list-users");
   }
 });
 

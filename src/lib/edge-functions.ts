@@ -27,6 +27,13 @@ interface EdgeFunctionRequestOptions {
   signal?: AbortSignal;
 }
 
+export class EdgeFunctionError extends Error {
+  constructor(message:string, public readonly status:number, public readonly code:string|null) {
+    super(message);
+    this.name = "EdgeFunctionError";
+  }
+}
+
 export async function requestEdgeFunction<T>(
   name: string,
   accessToken: string,
@@ -54,8 +61,10 @@ export async function requestEdgeFunction<T>(
 
   if (!response.ok) {
     const errorPayload = payload as { error?: string; message?: string } | null;
-    throw new Error(
-      errorPayload?.error || errorPayload?.message || `Erro ao buscar dados (${response.status})`,
+    throw new EdgeFunctionError(
+      errorPayload?.message || errorPayload?.error || `Erro ao buscar dados (${response.status})`,
+      response.status,
+      errorPayload?.error ?? null,
     );
   }
 

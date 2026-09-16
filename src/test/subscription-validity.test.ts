@@ -29,9 +29,9 @@ describe("isSubscriptionValid", () => {
     }
   });
 
-  it("accepts an active status with no period end (open-ended)", () => {
-    expect(isSubscriptionValid({ status: "active", current_period_end: null }, NOW)).toBe(true);
-    expect(isSubscriptionValid({ status: "active" }, NOW)).toBe(true);
+  it("rejects an active status with no period end (unbounded grant)", () => {
+    expect(isSubscriptionValid({ status: "active", current_period_end: null }, NOW)).toBe(false);
+    expect(isSubscriptionValid({ status: "active" }, NOW)).toBe(false);
   });
 
   it("rejects an active status once the period has lapsed", () => {

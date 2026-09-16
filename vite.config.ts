@@ -55,7 +55,21 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /\/functions\//],
-        globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
+        // Keep installation light. Hashed route/vendor chunks are cached only
+        // when the customer actually opens that part of the product, preserving
+        // route-level lazy loading instead of downloading the whole app at once.
+        globPatterns: ["**/*.{html,png,svg,woff2}"],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/assets/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "kubo-hashed-assets-v1",
+              expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
