@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
   // Fail closed: these tests never contact Supabase, payment or email services.
   await page.route("**/*", route => {
     const url = new URL(route.request().url());
-    return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
+    return ["127.0.0.1", "localhost"].includes(url.hostname) ? route.continue() : route.abort();
   });
 });
 

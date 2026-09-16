@@ -13,7 +13,9 @@ for (const width of [375,390,430,768,1280]) {
         body:'export const useOrganization = () => ({ activeOrganization:{id:"00000000-0000-4000-8000-000000000003"} });' });
       if (url.pathname==="/src/hooks/usePlan.ts") return route.fulfill({ contentType:"application/javascript",
         body:'export const usePlan = () => ({ loading:false,can:() => true });' });
-      if (url.hostname==="kubo-test.invalid" && url.pathname==="/functions/v1/ai-weekly-insights") {
+      // Intercept the Edge Function by path so the fixture stays hermetic even
+      // when CI injects a real staging Supabase URL.
+      if (url.pathname.endsWith("/functions/v1/ai-weekly-insights")) {
         const headers = { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Headers":"authorization,apikey,content-type",
           "Access-Control-Allow-Methods":"GET,POST,OPTIONS" };
         if (route.request().method()==="OPTIONS") return route.fulfill({ status:204,headers });
@@ -23,7 +25,7 @@ for (const width of [375,390,430,768,1280]) {
           latest:{ id:"fixture-insight",content:"Relatório de teste com dados sintéticos.",created_at:"2030-01-01T00:00:00Z",
             project_id:"00000000-0000-4000-8000-000000000005",period_days:7,model:quota.model } } : quota });
       }
-      return url.hostname==="127.0.0.1" ? route.continue() : route.abort();
+      return ["127.0.0.1", "localhost"].includes(url.hostname) ? route.continue() : route.abort();
     });
     await page.setViewportSize({ width,height:900 });
     await page.emulateMedia({ reducedMotion:"reduce" });

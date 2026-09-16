@@ -483,10 +483,10 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     if (await themeToggle.isVisible()) {
       const initialClass = await page.locator("html").getAttribute("class");
       await themeToggle.click();
-      await page.waitForTimeout(300);
+      const targetTheme = initialClass?.split(/\s+/).includes("dark") ? /Claro/ : /Escuro/;
+      await page.getByRole("menuitem", { name: targetTheme }).click();
       const nextClass = await page.locator("html").getAttribute("class");
       themeWorks = initialClass !== nextClass;
-      await themeToggle.click();
     }
     recordItem({
       id: "HEAD-003",
