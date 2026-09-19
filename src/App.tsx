@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { TrackerConsoleBridge } from "@/components/TrackerConsoleBridge";
 import { lazyWithRetry } from "@/lib/chunk-reload";
 
 // Lazy-load all route pages so each becomes its own chunk.
@@ -68,6 +69,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <OrganizationProvider>
+              <TrackerConsoleBridge />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Landing />} />

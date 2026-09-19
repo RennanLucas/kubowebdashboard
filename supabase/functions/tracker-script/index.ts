@@ -131,11 +131,16 @@ Deno.serve(async (req) => {
 
   var MAX_Q=50,BATCH_SIZE=10,tid=null;
 
-  // Generate unique event ID for deduplication
+  // Generate unique event ID for deduplication (RFC 4122 compliant UUID v4)
   function newId(){
-    try{return crypto.randomUUID();}catch(e){
-      return Math.random().toString(36).substr(2,9)+Date.now().toString(36);
-    }
+    try{
+      if(typeof crypto!=="undefined"&&crypto.randomUUID)return crypto.randomUUID();
+    }catch(e){}
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){
+      var r=Math.random()*16|0;
+      var v=c==="x"?r:(r&0x3|0x8);
+      return v.toString(16);
+    });
   }
 
   // Extract UTM params from URL

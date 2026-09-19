@@ -76,8 +76,14 @@ Deno.serve(async (req) => {
     const leadValue = Number(organization.lead_value) > 0 ? Number(organization.lead_value) : 25;
 
     // 1. JIT Aggregation (aggregates anything missing up to NOW)
-    const { error: aggregateError } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
-    if (aggregateError) throw aggregateError;
+    try {
+      const { error: rpcErr } = await supabaseAdmin.rpc('aggregate_analytics_jit', { p_project_id: projectId });
+      if (rpcErr) {
+        console.warn("Aviso JIT aggregate_analytics_jit:", rpcErr.message);
+      }
+    } catch (aggErr) {
+      console.warn("Falha silenciosa ao chamar aggregate_analytics_jit:", aggErr);
+    }
 
     // 2. Calculate date ranges
     const startStr = period.start;
@@ -194,10 +200,25 @@ Deno.serve(async (req) => {
     let prevViews = 0;
     let prevVisitors = 0;
     let prevLeads = 0;
+    let prevWhatsapp = 0;
+    let prevForms = 0;
+    let prevButtons = 0;
     for (const row of (prevData || [])) prevViews += row.views;
     for (const row of (prevData || [])) prevVisitors += row.visitors;
     for (const ev of (prevEvents || [])) {
       if (["whatsapp_click", "form_submit"].includes(ev.event_type)) prevLeads += ev.count;
+      if (ev.event_type === "whatsapp_click") prevWhatsapp += ev.count;
+      else if (ev.event_type === "form_submit") prevForms += ev.count;
+      else if (ev.event_type === "button_click") prevButtons += ev.count;
+    }
+
+    let totalWhatsapp = 0;
+    let totalForms = 0;
+    let totalButtons = 0;
+    for (const m of Object.values(dailyMap)) {
+      totalWhatsapp += m.whatsapp_clicks;
+      totalForms += m.form_submissions;
+      totalButtons += m.button_clicks;
     }
 
     const calcChange = (curr: number, prev: number) =>
@@ -213,6 +234,18 @@ Deno.serve(async (req) => {
       conversionRate: Number((currConv - prevConv).toFixed(2)),
       estimatedValue: calcChange(totalLeads * leadValue, prevLeads * leadValue),
       prevVisitors, prevViews, prevLeads, prevConversionRate: prevConv, prevEstimatedValue: prevLeads * leadValue
+    };
+
+    const conversions = {
+      whatsapp_clicks: totalWhatsapp,
+      form_submissions: totalForms,
+      button_clicks: totalButtons,
+      changes: {
+        whatsapp: calcChange(totalWhatsapp, prevWhatsapp),
+        forms: calcChange(totalForms, prevForms),
+        buttons: calcChange(totalButtons, prevButtons),
+      },
+      recent: [],
     };
 
     const engagement = {
@@ -240,6 +273,7 @@ Deno.serve(async (req) => {
       metrics,
       period,
       comparison,
+      conversions,
       engagement,
       activeVisitors: activeNow || 0,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

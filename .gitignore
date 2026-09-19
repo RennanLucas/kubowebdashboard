@@ -43,6 +43,7 @@ coverage/
 bfg.jar
 test-xss-tracker.html
 .env.e2e
+e2e/evidence/
 
 .vercel
 .worktrees/

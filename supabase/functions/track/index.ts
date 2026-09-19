@@ -18,7 +18,7 @@ const eventSchema = z.object({
   path: z.string().max(1000).optional().default("/"),
   ref: z.string().max(1000).optional(),
   sid: z.string().max(200).optional(),
-  event_id: z.string().uuid().optional(), // Idempotency key for deduplication
+  event_id: z.string().uuid().optional().or(z.literal("").transform(() => undefined)), // Idempotency key for deduplication
   event_type: z.string().max(200).optional(),
   event_label: z.string().max(1000).optional(),
   metadata: z.record(z.unknown()).optional(),

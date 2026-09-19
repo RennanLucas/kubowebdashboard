@@ -66,7 +66,7 @@ export function AIInsightsPanel({ projectId,periodDays,onGenerated }:Props) {
     try {
       const result = await requestEdgeFunction<Status>("ai-weekly-insights",session.access_token,{
         method:"POST",query:query("generate"),body:{ request_id:id,period_days:periodDays },
-        signal:AbortSignal.timeout(60000),
+        signal: typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(60000) : undefined,
       });
       if (!isCurrent()) return;
       queryClient.setQueryData(queryKey,result);
