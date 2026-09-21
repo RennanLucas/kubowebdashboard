@@ -61,7 +61,7 @@ export const ARTICLE_COMPONENTS: Record<string, React.FC> = {
   </Article>,
 
   "ai-insights": () => <Article>
-    <p>Insights com IA transforma métricas do projeto em um resumo com oportunidades e riscos. O recurso pertence ao plano Pro.</p><Section title="Como usar"><ol className="list-decimal space-y-2 pl-5"><li>Selecione o projeto correto.</li><li>Escolha a janela de análise disponível.</li><li>Gere a análise e confira as métricas usadas como fonte.</li><li>Use o histórico para comparar resultados e exporte quando necessário.</li></ol></Section><Note>O plano Pro permite até 10 análises por mês. Poucos dados podem produzir uma análise limitada; a IA apoia decisões, mas não substitui a leitura das métricas.</Note>
+    <p>Insights com IA transforma métricas do projeto em um resumo com oportunidades e riscos. O recurso pertence ao plano Pro.</p><Section title="Como usar"><ol className="list-decimal space-y-2 pl-5"><li>Selecione o projeto correto.</li><li>Escolha a janela de análise disponível.</li><li>Gere a análise e confira as métricas usadas como fonte.</li><li>Use o histórico para comparar resultados e exporte quando necessário.</li></ol></Section><Note>O plano Pro permite até 5 análises por mês. Poucos dados podem produzir uma análise limitada; a IA apoia decisões, mas não substitui a leitura das métricas.</Note>
   </Article>,
 
   "projects": () => <Article>
@@ -73,7 +73,7 @@ export const ARTICLE_COMPONENTS: Record<string, React.FC> = {
   </Article>,
 
   "billing-plans": () => <Article>
-    <Section title="Gratuito"><p>1 projeto e histórico de 7 dias. IA, Live, Comparar, Apresentação, PDF/CSV, alertas por e-mail, anotações, metas e heatmaps ficam bloqueados. Os alertas dentro do painel continuam disponíveis.</p></Section><Section title="Pro"><p>Projetos ilimitados, histórico de 365 dias, até 10 análises de IA por mês e acesso aos recursos avançados.</p></Section><Section title="Cobrança e cancelamento"><p>A assinatura é processada pelo Mercado Pago. A tela de Assinatura mostra o plano atual. Ao cancelar, o acesso permanece até o fim do período já pago.</p></Section><Note>Os limites efetivos exibidos na tela de Assinatura são a referência para sua organização.</Note>
+    <Section title="Gratuito"><p>1 projeto e histórico de 7 dias. IA, Live, Comparar, Apresentação, PDF/CSV, alertas por e-mail, anotações, metas e heatmaps ficam bloqueados. Os alertas dentro do painel continuam disponíveis.</p></Section><Section title="Pro"><p>Projetos ilimitados, histórico de 365 dias, até 5 análises de IA por mês e acesso aos recursos avançados.</p></Section><Section title="Cobrança e cancelamento"><p>A assinatura é processada pelo Mercado Pago. A tela de Assinatura mostra o plano atual. Ao cancelar, o acesso permanece até o fim do período já pago.</p></Section><Note>Os limites efetivos exibidos na tela de Assinatura são a referência para sua organização.</Note>
   </Article>,
 
   "faq": () => <Article>

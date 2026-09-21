@@ -26,6 +26,7 @@ export interface AIDependencies {
   summary: () => Promise<
     { current: { views: number }; events: { total: number }[] }
   >;
+  consumeProviderBudget: () => Promise<void>;
   generate: (summary: unknown) => Promise<{ content: string; usage: unknown }>;
 }
 export async function runAIGeneration(
@@ -114,6 +115,10 @@ export async function runAIGeneration(
     if (reservation.state === "succeeded" && reservation.latest) {
       return reply({ ...reservation, configured: deps.configured });
     }
+    // Reserve the shared free-tier allowance before the provider can be called.
+    // A denied allowance still leaves this request unstarted, so its monthly
+    // organization quota is released by the failure transition below.
+    await deps.consumeProviderBudget();
     const started = await deps.command("start");
     if (!started.started) {
       return failure(

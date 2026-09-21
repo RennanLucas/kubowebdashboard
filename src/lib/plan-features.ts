@@ -70,7 +70,7 @@ export const PLAN_CAPABILITIES: Record<PlanTier, PlanCapabilities> = {
     label: "Pro",
     maxProjects: Number.POSITIVE_INFINITY,
     maxHistoryDays: 365,
-    aiMonthlyLimit: 10,
+    aiMonthlyLimit: 5,
     features: PRO_FEATURES,
   },
 };

@@ -41,13 +41,13 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlight: "7 dias grátis — cancele a qualquer momento",
     cta: "Começar 7 dias grátis",
     features: [
-      "Tudo incluído, sem limites artificiais",
+      "Todos os recursos do KUBOWEB Pro",
       "Projetos / sites ilimitados",
       "Rastreamento ilimitado de visitantes",
       "Conversões: WhatsApp, formulários e botões",
       "Visitantes em tempo real",
       "Mapas de Calor (Heatmaps)",
-      "Resumos com IA e Alertas",
+      "5 resumos com IA por mês e Alertas",
       "Histórico estendido de 12 meses",
       "Relatórios em PDF e Exportação CSV",
     ],
@@ -79,7 +79,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<PlanTier, TierLimits> = {
   free: { tier: "free", maxProjects: 1, maxHistoryDays: 7, aiMonthlyLimit: 0, emailAlerts: false },
-  pro: { tier: "pro", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365, aiMonthlyLimit: 10, emailAlerts: true },
+  pro: { tier: "pro", maxProjects: Number.MAX_SAFE_INTEGER, maxHistoryDays: 365, aiMonthlyLimit: 5, emailAlerts: true },
 };
 
 interface SubscriptionRow {

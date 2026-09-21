@@ -49,7 +49,7 @@ describe("usePlan tier resolution", () => {
     expect(result.current.label).toBe(PLAN_CAPABILITIES.pro.label);
     expect(result.current.maxProjects).toBe(Number.POSITIVE_INFINITY);
     expect(result.current.maxHistoryDays).toBe(365);
-    expect(result.current.aiMonthlyLimit).toBe(10);
+    expect(result.current.aiMonthlyLimit).toBe(5);
   });
 
   it("exposes the free limits on the free tier", () => {

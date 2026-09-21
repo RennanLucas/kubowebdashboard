@@ -10,6 +10,7 @@ const consume = (scope:string,hash=HASH,limit=3,window=3600) => db.query<{ allow
 beforeAll(async () => {
   await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS; CREATE SCHEMA kubo_limits_private;");
   await db.exec(readFileSync("supabase/migrations/20260914140000_shared_request_limits.sql","utf8"));
+  await db.exec(readFileSync("supabase/migrations/20260921143000_gemini_free_tier_limits.sql","utf8"));
 },60000);
 afterAll(async () => { await db.close(); });
 describe("PostgreSQL shared request buckets", () => {
@@ -26,9 +27,14 @@ describe("PostgreSQL shared request buckets", () => {
   });
   it.each([
     ["invalid scope",HASH,3,60], ["ok","raw-user-id",3,60],
-    ["ok",HASH,0,60], ["ok",HASH,10001,60], ["ok",HASH,3,0], ["ok",HASH,3,3601],
+    ["ok",HASH,0,60], ["ok",HASH,10001,60], ["ok",HASH,3,0], ["ok",HASH,3,86401],
   ])("rejects invalid arguments (%#)", async (scope,hash,limit,window) => {
     await expect(consume(String(scope),String(hash),Number(limit),Number(window))).rejects.toThrow("INVALID_RATE_LIMIT_ARGUMENTS");
+  });
+  it("supports a daily free-tier bucket and enforces its exact cap", async () => {
+    const results = await Promise.all(Array.from({ length:18 },() => consume("ai-provider-daily",HASH,15,86_400)));
+    expect(results.filter(result => result.rows[0].allowed)).toHaveLength(15);
+    expect(results[17].rows[0].remaining).toBe(0);
   });
   it("reopens a new bucket without counting a prior window", async () => {
     await db.exec(`INSERT INTO kubo_limits_private.request_limits VALUES ('new-window','${HASH}',now()-interval '2 hours',now()-interval '1 hour',999)`);

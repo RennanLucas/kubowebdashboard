@@ -38,6 +38,7 @@ beforeAll(async () => {
   await db.exec(readFileSync("supabase/migrations/20260815000000_analytics_rollups.sql","utf8"));
   await db.exec(readFileSync("supabase/migrations/20260914003000_enforce_plan_limits.sql","utf8"));
   await db.exec(readFileSync("supabase/migrations/20260914143000_atomic_ai_quota.sql","utf8"));
+  await db.exec(readFileSync("supabase/migrations/20260921143100_pro_ai_monthly_limit.sql","utf8"));
 },60000);
 beforeEach(async () => {
   await db.exec(`RESET ROLE; TRUNCATE kubo_limits_private.ai_generations,ai_insights,subscriptions,analytics_daily_overview,analytics_daily_events;
@@ -54,7 +55,7 @@ describe("paid AI cost ledger", () => {
   });
   it("enforces quota under simultaneous submissions (local PostgreSQL queue)", async () => {
     const result = await Promise.allSettled(Array.from({ length:18 },() => command("reserve",randomUUID())));
-    expect(result.filter(item => item.status==="fulfilled")).toHaveLength(10);
+    expect(result.filter(item => item.status==="fulfilled")).toHaveLength(limitsForTier("pro").aiMonthlyLimit);
   });
   it("blocks Free and viewer spending without creating a reservation", async () => {
     await db.exec("TRUNCATE subscriptions");

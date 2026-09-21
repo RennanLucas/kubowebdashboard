@@ -110,6 +110,24 @@ Deno.serve(async (req) => {
         }
         return data;
       },
+      consumeProviderBudget: async () => {
+        const minute = await checkSharedRateLimit(
+          admin,
+          "ai-provider-minute",
+          "gemini-free-project",
+          4,
+          60,
+        );
+        if (!minute.allowed) throw new Error("AI_PROVIDER_RATE_LIMIT");
+        const daily = await checkSharedRateLimit(
+          admin,
+          "ai-provider-daily",
+          "gemini-free-project",
+          15,
+          86_400,
+        );
+        if (!daily.allowed) throw new Error("AI_PROVIDER_DAILY_LIMIT");
+      },
       generate: (summary) => generateGeminiInsight(key, summary),
     });
     return json(
@@ -123,6 +141,14 @@ Deno.serve(async (req) => {
       AI_LIMIT_REACHED: [
         429,
         "Você atingiu o limite mensal de análises com IA da organização.",
+      ],
+      AI_PROVIDER_RATE_LIMIT: [
+        429,
+        "Muitas análises foram iniciadas agora. Aguarde um minuto e tente novamente.",
+      ],
+      AI_PROVIDER_DAILY_LIMIT: [
+        429,
+        "O limite diário compartilhado da IA foi atingido. Tente novamente amanhã.",
       ],
       AI_ACCESS_DENIED: [403, "Acesso negado à organização."],
       AI_WRITE_DENIED: [403, "Você não pode gerar análises pagas."],

@@ -20,7 +20,7 @@ describe("PLAN_CAPABILITIES", () => {
     expect(pro.tier).toBe("pro");
     expect(pro.maxProjects).toBe(Number.POSITIVE_INFINITY);
     expect(pro.maxHistoryDays).toBe(365);
-    expect(pro.aiMonthlyLimit).toBe(10);
+    expect(pro.aiMonthlyLimit).toBe(5);
   });
 
   it("free tier blocks premium features", () => {

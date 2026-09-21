@@ -5,6 +5,7 @@ export async function checkSharedRateLimit(
   scope: string,
   identifier: string,
   limit: number,
+  windowSeconds = 60,
 ) {
   if (!identifier) throw new Error("RATE_LIMIT_UNAVAILABLE");
   const digest = await crypto.subtle.digest(
@@ -20,7 +21,7 @@ export async function checkSharedRateLimit(
       p_scope: scope,
       p_subject_hash: hash,
       p_limit: limit,
-      p_window_seconds: 60,
+      p_window_seconds: windowSeconds,
     });
   } catch {
     throw new Error("RATE_LIMIT_UNAVAILABLE");

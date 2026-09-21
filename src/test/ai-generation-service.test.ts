@@ -1,17 +1,18 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { runAIGeneration, type AIDependencies, type AIStatus } from "../../supabase/functions/ai-weekly-insights/_service";
-const base:AIStatus = { state:null,request_id:null,used:0,remaining:10,limit:10,resets_at:"2030-02-01",
+const base:AIStatus = { state:null,request_id:null,used:0,remaining:5,limit:5,resets_at:"2030-02-01",
   can_generate:true,started:false,latest:null };
 const report = { id:"insight",content:"Report",created_at:"2030-01-01",period_days:7,model:"gemini-3.8-flash",project_id:"project" };
 function dependencies(overrides:Partial<AIStatus>={}) {
   const command = vi.fn<AIDependencies["command"]>().mockImplementation(async action => {
-    if (action==="reserve") return { ...base,state:"reserved",used:1,remaining:9 };
-    if (action==="start") return { ...base,state:"started",started:true,used:1,remaining:9 };
-    if (action==="complete") return { ...base,state:"succeeded",used:1,remaining:9,latest:report };
+    if (action==="reserve") return { ...base,state:"reserved",used:1,remaining:4 };
+    if (action==="start") return { ...base,state:"started",started:true,used:1,remaining:4 };
+    if (action==="complete") return { ...base,state:"succeeded",used:1,remaining:4,latest:report };
     return { ...base,...overrides };
   });
   return { configured:true,command,summary:vi.fn().mockResolvedValue({ current:{ views:100 },events:[] }),
+    consumeProviderBudget:vi.fn().mockResolvedValue(undefined),
     generate:vi.fn().mockResolvedValue({ content:"Report",usage:{ input_tokens:100 } }) };
 }
 describe("paid generation orchestration", () => {
@@ -51,8 +52,16 @@ describe("paid generation orchestration", () => {
     const result = await runAIGeneration("generate",deps);
     expect(result.httpStatus).toBe(200);
     expect(deps.command.mock.calls.map(call => call[0])).toEqual(["status","reserve","start","complete"]);
+    expect(deps.consumeProviderBudget).toHaveBeenCalledTimes(1);
     expect(deps.generate).toHaveBeenCalledTimes(1);
     expect(deps.command.mock.calls[3]).toEqual(["complete","Report",{ input_tokens:100 }]);
+  });
+  it("releases an unstarted reservation when the shared free-tier allowance is exhausted", async () => {
+    const deps = dependencies();
+    deps.consumeProviderBudget.mockRejectedValue(new Error("AI_PROVIDER_DAILY_LIMIT"));
+    await expect(runAIGeneration("generate",deps)).rejects.toThrow("AI_PROVIDER_DAILY_LIMIT");
+    expect(deps.command.mock.calls.map(call => call[0])).toEqual(["status","reserve","fail"]);
+    expect(deps.generate).not.toHaveBeenCalled();
   });
   it("does not call the provider when another request won the start transition", async () => {
     const deps = dependencies();

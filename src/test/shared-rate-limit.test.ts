@@ -23,6 +23,11 @@ describe("shared request limit client", () => {
     const rpc = vi.fn().mockResolvedValue({ data:[{ allowed:false, remaining:0, reset_at:reset }], error:null });
     expect((await checkSharedRateLimit(client(rpc),"generate-report","actor",5)).allowed).toBe(false);
   });
+  it("supports a UTC-aligned daily provider allowance", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data:[{ allowed:true, remaining:14, reset_at:reset }], error:null });
+    await checkSharedRateLimit(client(rpc),"ai-provider-daily","gemini-free-project",15,86_400);
+    expect(rpc.mock.calls[0][1]).toMatchObject({ p_limit:15,p_window_seconds:86_400 });
+  });
   it("rejects an empty identity before accessing the store", async () => {
     const rpc = vi.fn();
     await expect(checkSharedRateLimit(client(rpc),"reports","",5)).rejects.toThrow("RATE_LIMIT_UNAVAILABLE");
