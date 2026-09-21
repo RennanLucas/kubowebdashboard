@@ -31,7 +31,12 @@ describe("Gemini provider adapter (no external requests)", () => {
   });
   it("does not retry a failed provider request or expose its raw body", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response("sensitive provider details",{ status:429 }));
-    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_PROVIDER_UNAVAILABLE");
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_PROVIDER_HTTP_429");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it("distinguishes network failures without exposing their details", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("sensitive network details"));
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_PROVIDER_NETWORK");
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it("rejects missing credentials and excessive input before any network request", async () => {
