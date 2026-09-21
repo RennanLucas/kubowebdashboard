@@ -29,11 +29,11 @@ describe("Gemini provider adapter (no external requests)", () => {
   });
   it.each(["", " ".repeat(10)])("rejects an empty answer instead of saving a fake report", async text => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(text));
-    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_INVALID_OUTPUT");
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_EMPTY_OUTPUT");
   });
   it.each(["MAX_TOKENS","SAFETY"])("rejects incomplete/blocked answers (%s)", async reason => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response("Partial",reason));
-    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_INVALID_OUTPUT");
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow(`AI_FINISH_${reason}`);
   });
   it("does not retry a failed provider request or expose its raw body", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response("sensitive provider details",{ status:429 }));
@@ -47,7 +47,7 @@ describe("Gemini provider adapter (no external requests)", () => {
   });
   it("rejects a malformed provider stream", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response("data: not-json\n\n"));
-    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_INVALID_OUTPUT");
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_INVALID_STREAM");
   });
   it("rejects missing credentials and excessive input before any network request", async () => {
     const fetcher = vi.fn<typeof fetch>();

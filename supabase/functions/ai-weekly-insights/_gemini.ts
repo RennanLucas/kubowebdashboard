@@ -34,10 +34,10 @@ function parseGeminiStream(stream: string): GeminiResponse[] {
     try {
       payloads.push(JSON.parse(data) as GeminiResponse);
     } catch {
-      throw new Error("AI_INVALID_OUTPUT");
+      throw new Error("AI_INVALID_STREAM");
     }
   }
-  if (!payloads.length) throw new Error("AI_INVALID_OUTPUT");
+  if (!payloads.length) throw new Error("AI_EMPTY_STREAM");
   return payloads;
 }
 export async function generateGeminiInsight(
@@ -90,7 +90,7 @@ export async function generateGeminiInsight(
   try {
     payloads = parseGeminiStream(await response.text());
   } catch (error) {
-    if (error instanceof Error && error.message === "AI_INVALID_OUTPUT") {
+    if (error instanceof Error && error.message.startsWith("AI_")) {
       throw error;
     }
     const code = transportFailure(error);
@@ -108,9 +108,13 @@ export async function generateGeminiInsight(
     candidate.content?.parts ?? []
   ).filter((part) => !part.thought)
     .map((part) => part.text ?? "").join("").trim();
-  if (
-    finalCandidate?.finishReason !== "STOP" || !content || content.length > 30000
-  ) throw new Error("AI_INVALID_OUTPUT");
+  if (finalCandidate?.finishReason !== "STOP") {
+    const reason = finalCandidate?.finishReason?.replace(/[^A-Z0-9_]/g, "_") ??
+      "MISSING";
+    throw new Error(`AI_FINISH_${reason}`);
+  }
+  if (!content) throw new Error("AI_EMPTY_OUTPUT");
+  if (content.length > 30000) throw new Error("AI_OUTPUT_TOO_LARGE");
   const usage = [...payloads].reverse().find((payload) => payload.usageMetadata)
     ?.usageMetadata ?? {};
   const validCount = (value: unknown) =>
