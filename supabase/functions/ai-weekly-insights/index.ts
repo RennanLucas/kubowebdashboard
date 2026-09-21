@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
       console.error("AI generation failed", { code: message });
       return json({
         error: "AI_UNAVAILABLE",
+        provider_code: message,
         message:
           "Não foi possível concluir a análise. Consulte a solicitação antes de gerar novamente; uma chamada iniciada pode estar contabilizada na quota.",
       }, 503);
