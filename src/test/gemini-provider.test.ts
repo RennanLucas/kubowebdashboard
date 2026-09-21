@@ -1,10 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { generateGeminiInsight, GEMINI_MODEL, MAX_OUTPUT_TOKENS } from "../../supabase/functions/ai-weekly-insights/_gemini";
-const response = (text:string,finish="STOP") => new Response(JSON.stringify({
-  candidates:[{ finishReason:finish,content:{ parts:[{ text:"private thinking",thought:true },{ text }] } }],
-  usageMetadata:{ promptTokenCount:120,candidatesTokenCount:40,totalTokenCount:170 },
-}));
+const response = (text:string,finish="STOP") => new Response(
+  `data: ${JSON.stringify({
+    candidates:[{ content:{ parts:[{ text:"private thinking",thought:true },{ text }] } }],
+  })}\n\ndata: ${JSON.stringify({
+    candidates:[{ finishReason:finish }],
+    usageMetadata:{ promptTokenCount:120,candidatesTokenCount:40,totalTokenCount:170 },
+  })}\n\n`,
+  { headers:{ "Content-Type":"text/event-stream" } },
+);
 describe("Gemini provider adapter (no external requests)", () => {
   it("bounds tokens, uses only server header credentials and removes thought content", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response("Report"));
@@ -13,6 +18,7 @@ describe("Gemini provider adapter (no external requests)", () => {
     expect(result.model).toBe(GEMINI_MODEL);
     expect(result.usage.total_tokens).toBe(170);
     expect(fetcher.mock.calls[0][0]).not.toContain("server-secret");
+    expect(fetcher.mock.calls[0][0]).toContain("streamGenerateContent?alt=sse");
     const options = fetcher.mock.calls[0][1]!;
     expect(options.headers).toMatchObject({ "x-goog-api-key":"server-secret" });
     const body = JSON.parse(options.body as string);
@@ -38,6 +44,10 @@ describe("Gemini provider adapter (no external requests)", () => {
     const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new TypeError("sensitive network details"));
     await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_PROVIDER_NETWORK");
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it("rejects a malformed provider stream", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response("data: not-json\n\n"));
+    await expect(generateGeminiInsight("key",{},fetcher)).rejects.toThrow("AI_INVALID_OUTPUT");
   });
   it("rejects missing credentials and excessive input before any network request", async () => {
     const fetcher = vi.fn<typeof fetch>();
