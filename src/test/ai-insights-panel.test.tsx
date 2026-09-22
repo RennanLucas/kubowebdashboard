@@ -7,7 +7,7 @@ vi.mock("@/contexts/AuthContext",() => ({ useAuth:() => ({ user:{ id:"user" },se
 vi.mock("@/contexts/OrganizationContext",() => ({ useOrganization:() => ({ activeOrganization:{ id:"org" } }) }));
 vi.mock("@/hooks/usePlan",() => ({ usePlan:() => ({ loading:false,can:() => state.pro }) }));
 vi.mock("@/lib/edge-functions",() => ({ requestEdgeFunction:(...args:unknown[]) => state.request(...args) }));
-const quota = { state:null,request_id:null,limit:10,remaining:10,used:0,configured:true,can_generate:true,
+const quota = { state:null,request_id:null,limit:5,remaining:5,used:0,configured:true,can_generate:true,
   model:"gemini-3.8-flash",latest:null,resets_at:"2030-02-01T00:00:00Z" };
 const pendingKey = "kubo:ai-request:user:org:project:7";
 const UUID = "00000000-0000-4000-8000-000000000099";
@@ -27,7 +27,7 @@ describe("paid AI panel", () => {
     expect(state.request).not.toHaveBeenCalled();
   });
   it("reads quota on mount without starting a generation", async () => {
-    mount(); await screen.findByText("10 de 10");
+    mount(); await screen.findByText("5 de 5");
     expect(state.request).toHaveBeenCalledTimes(1);
     expect(state.request.mock.calls[0][2].query.get("action")).toBe("status");
     expect(state.request.mock.calls[0][2].query.get("project_id")).toBe("project");
@@ -40,7 +40,7 @@ describe("paid AI panel", () => {
       }
       return quota;
     });
-    mount(); await screen.findByText("10 de 10");
+    mount(); await screen.findByText("5 de 5");
     fireEvent.click(screen.getByRole("button",{ name:"Gerar com IA" }));
     await screen.findByText("Transport failure");
     await waitFor(() => expect(screen.getByRole("button",{ name:"Retomar solicitação" })).toBeEnabled());
@@ -50,7 +50,7 @@ describe("paid AI panel", () => {
   });
   it("disables generation for an unconfigured provider or read-only role", async () => {
     state.request.mockResolvedValue({ ...quota,configured:false,can_generate:false });
-    mount(); await screen.findByText("10 de 10");
+    mount(); await screen.findByText("5 de 5");
     expect(screen.getByRole("button",{ name:"Gerar com IA" })).toBeDisabled();
     expect(state.request).toHaveBeenCalledTimes(1);
   });
