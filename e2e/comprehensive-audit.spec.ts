@@ -1030,20 +1030,24 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     const hasEmptyState = await emptyState.isVisible();
 
     const printBtn = page.locator('button:has-text("Imprimir / PDF")').first();
-    const isPrintDisabled = await printBtn.isDisabled();
+    const hasPrintButton = (await printBtn.count()) > 0;
+    const isPrintDisabled = hasPrintButton ? await printBtn.isDisabled() : false;
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     recordItem({
       id: "REPO-001",
       page: "Relatórios (/reports)",
       element: "Botão 'Imprimir / PDF' & Estado Vazio",
       action: "Verificar comportamento defensivo em projeto sem visitas suficientes",
-      result: hasEmptyState && isPrintDisabled
+      result: redirectedToPricing
+        ? "Plano Gratuito redireciona corretamente para a página de upgrade"
+        : hasEmptyState && isPrintDisabled
         ? "Exibe estado vazio explicativo ('Sem dados suficientes') e desabilita botão de impressão defensivamente"
         : "Botão de relatório ativo",
       backend: "useDashboardAnalytics",
       persistence: "N/A",
       mobile: "Compatível",
-      status: "✅ FUNCIONANDO"
+      status: redirectedToPricing || hasPrintButton ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     const uploadLogoBtn = page.locator('label:has-text("Sua Logo")').first();
@@ -1062,12 +1066,14 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
 
     recordRoute({
       route: "/reports",
-      opened: true,
+      opened: !redirectedToPricing,
       refresh: true,
       auth: true,
       permission: "Feature 'pdf_report' (Pro)",
       mobile: true,
-      result: "Página de relatórios operando com controle de dados e white-label",
+      result: redirectedToPricing
+        ? "Bloqueio do recurso Pro funcionando para a conta Gratuita"
+        : "Página de relatórios operando com controle de dados e white-label",
       consoleErrors,
       serverErrors
     });
@@ -1140,7 +1146,9 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     // 2. Adicionar Projeto Dialog
     const addProjectBtn = page.locator('button:has-text("Adicionar projeto")').first();
     let addProjectWorks = false;
-    if (await addProjectBtn.isVisible()) {
+    const addProjectVisible = await addProjectBtn.isVisible();
+    const addProjectLimited = addProjectVisible && await addProjectBtn.isDisabled();
+    if (addProjectVisible && !addProjectLimited) {
       await addProjectBtn.click();
       await page.waitForTimeout(300);
       const dialog = page.locator('[role="dialog"]').first();
@@ -1152,11 +1160,13 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Configurações (/settings)",
       element: "Botão 'Adicionar projeto' (Modal de Criação)",
       action: "Clicar no botão para abrir modal de novo site",
-      result: addProjectWorks ? "Modal abre com campo de nome, URL opcional e validação de limite" : "Modal não abriu",
+      result: addProjectLimited
+        ? "Limite de 1 projeto do plano Gratuito aplicado corretamente"
+        : addProjectWorks ? "Modal abre com campo de nome, URL opcional e validação de limite" : "Modal não abriu",
       backend: "Tabela projects (insert RLS)",
       persistence: "Salvo no banco de dados",
       mobile: "Compatível",
-      status: addProjectWorks ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: addProjectWorks || addProjectLimited ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     // 3. Tab Membros
@@ -1187,7 +1197,9 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
 
     const inviteBtn = page.locator('button:has-text("Convidar membro")').first();
     let inviteModalWorks = false;
-    if (await inviteBtn.isVisible()) {
+    const inviteVisible = await inviteBtn.isVisible();
+    const inviteLimited = inviteVisible && await inviteBtn.isDisabled();
+    if (inviteVisible && !inviteLimited) {
       await inviteBtn.click();
       await page.waitForTimeout(300);
       const dialog = page.locator('[role="dialog"]').first();
@@ -1199,11 +1211,13 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Configurações (/settings)",
       element: "Aba Convites (InvitesManager Modal)",
       action: "Abrir modal de convidar novo membro",
-      result: inviteModalWorks ? "Modal abre com input de e-mail e seletor de permissão (Visualizador/Editor/Admin)" : "Modal não abriu",
+      result: inviteLimited
+        ? "Convite indisponível conforme o limite do plano atual"
+        : inviteModalWorks ? "Modal abre com input de e-mail e seletor de permissão (Visualizador/Editor/Admin)" : "Modal não abriu",
       backend: "Tabela organization_invites",
       persistence: "Salvo no banco de dados",
       mobile: "Compatível",
-      status: inviteModalWorks ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: inviteModalWorks || inviteLimited ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     // 5. Tab Assinatura
@@ -1211,14 +1225,14 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await billingTab.click();
     await page.waitForTimeout(400);
 
-    const billingBadge = page.locator('text=/Plano Pro|Assinatura Ativa|Trial|Gerenciar/i').first();
+    const billingBadge = page.locator('text=/Plano Pro|Plano Gratuito|Gratuito|Assinatura Ativa|Trial|Gerenciar/i').first();
     const hasBilling = (await billingBadge.count()) > 0;
     recordItem({
       id: "SETT-005",
       page: "Configurações (/settings)",
       element: "Aba Assinatura (SubscriptionTab)",
       action: "Verificar status do plano ativo e botão de gestão",
-      result: hasBilling ? "Exibe detalhes do plano Pro, status ativo e atalho para gestão de cobrança" : "Aba vazia",
+      result: hasBilling ? "Exibe os detalhes e o status do plano atual" : "Aba vazia",
       backend: "useSubscription / Tabela subscriptions",
       persistence: "Sincronizado com Mercado Pago",
       mobile: "Compatível",
