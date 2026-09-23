@@ -2,17 +2,17 @@ import { expect, test } from "@playwright/test";
 
 const principalPages = [
   { path: "/dashboard", title: /Dashboard/i, marker: /Analytics/i },
-  { path: "/live", title: /Visitantes ao vivo/i, marker: /Stream de visitantes/i },
-  { path: "/goals", title: /Metas e Funis/i, marker: /Definir meta/i },
-  { path: "/heatmaps", title: /Heatmaps e Gravações/i, marker: /Conectar Microsoft Clarity|Alterar integração/i },
-  { path: "/insights", title: /Insights com IA/i, marker: /Gerar.*insight|Atualizar.*insight|Análise inteligente/i },
+  { path: "/live", title: /Visitantes ao vivo/i, marker: /Stream de visitantes/i, feature: "live", inlineLock: true },
+  { path: "/goals", title: /Metas e Funis/i, marker: /Definir meta/i, feature: "goals" },
+  { path: "/heatmaps", title: /Heatmaps e Gravações/i, marker: /Conectar Microsoft Clarity|Alterar integração/i, feature: "heatmap" },
+  { path: "/insights", title: /Insights com IA/i, marker: /Gerar.*insight|Atualizar.*insight|Análise inteligente/i, feature: "ai_insights" },
   { path: "/alerts", title: /Alertas/i, marker: /Alertas e Notificações/i },
-  { path: "/compare", title: /Comparar projetos/i, marker: /Comparar Projetos/i },
-  { path: "/reports", title: /Relatórios profissionais/i, marker: /Documento executivo com dados reais/i },
-  { path: "/presentation", title: /Apresentação/i, marker: /Modo Apresentação/i },
-];
+  { path: "/compare", title: /Comparar projetos/i, marker: /Comparar Projetos/i, feature: "compare" },
+  { path: "/reports", title: /Relatórios profissionais/i, marker: /Documento executivo com dados reais/i, feature: "pdf_report" },
+  { path: "/presentation", title: /Apresentação/i, marker: /Modo Apresentação/i, feature: "presentation" },
+] as const;
 
-test.describe("Principal pages - real authenticated Pro tenant", () => {
+test.describe("Principal pages - real authenticated tenant", () => {
   test.beforeEach(async ({ page }) => {
     const email = process.env.E2E_OWNER_EMAIL;
     const password = process.env.E2E_USER_PASSWORD;
@@ -23,6 +23,8 @@ test.describe("Principal pages - real authenticated Pro tenant", () => {
     await page.fill('input[type="password"]', password!);
     await page.click('button[type="submit"]');
     await page.waitForURL("**/dashboard", { timeout: 20_000 });
+    await expect(page.getByTestId("date-range-picker")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("plan-badge")).not.toHaveText("...", { timeout: 15_000 });
   });
 
   for (const item of principalPages) {
@@ -34,10 +36,27 @@ test.describe("Principal pages - real authenticated Pro tenant", () => {
         if (response.status() >= 500) serverErrors.push(`${response.status()} ${response.url()}`);
       });
 
+      const tier = ((await page.getByTestId("plan-badge").innerText()).trim().toLowerCase() === "pro")
+        ? "pro"
+        : "free";
+      const hasFeatureGate = "feature" in item;
+      const usesInlineLock = "inlineLock" in item && item.inlineLock;
+
       await page.goto(item.path);
-      await expect(page).toHaveURL(new RegExp(`${item.path}$`));
-      await expect(page).toHaveTitle(item.title);
-      await expect(page.getByText(item.marker).first()).toBeVisible();
+
+      if (tier === "free" && hasFeatureGate && !usesInlineLock) {
+        await expect(page).toHaveURL(/\/pricing$/);
+        await expect(page).toHaveTitle(/Planos/i);
+        await expect(page.getByText("Plano atual", { exact: true }).first()).toBeVisible();
+      } else if (tier === "free" && usesInlineLock) {
+        await expect(page).toHaveURL(new RegExp(`${item.path}$`));
+        await expect(page).toHaveTitle(item.title);
+        await expect(page.getByText(/disponível a partir do plano Pro/i)).toBeVisible();
+      } else {
+        await expect(page).toHaveURL(new RegExp(`${item.path}$`));
+        await expect(page).toHaveTitle(item.title);
+        await expect(page.getByText(item.marker).first()).toBeVisible();
+      }
       await expect(page.locator("body")).not.toContainText(/Something went wrong|Erro inesperado/i);
       expect(runtimeErrors).toEqual([]);
       expect(serverErrors).toEqual([]);

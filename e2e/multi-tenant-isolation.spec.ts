@@ -94,14 +94,31 @@ test.describe("Isolamento Multi-Tenant A<->B (RLS direto)", () => {
   });
 
   // ---- projects ----------------------------------------------------------
-  test("Owner cria projeto da organização sem client_id legado", async () => {
+  test("Criação de projeto respeita o plano e mantém o isolamento entre organizações", async () => {
     const created = await clientA.from("projects").insert({
       name: "E2E project creation regression",
       organization_id: ORG_A_ID,
       client_id: null,
     }).select("id, client_id, organization_id").single();
-    expect(created.error, created.error?.message).toBeNull();
-    expect(created.data).toBeTruthy();
+
+    // A conta E2E pode representar o plano Gratuito ou o Pro. No Gratuito, a
+    // organização já possui o projeto da fixture e o segundo INSERT deve ser
+    // recusado pelo limite server-side. No Pro, o INSERT deve funcionar sem o
+    // client_id legado e continuar invisível para a outra organização.
+    if (created.error) {
+      expect(created.error.code).toBe("23514");
+      expect(created.error.message).toContain("PROJECT_LIMIT_EXCEEDED");
+
+      const ownProjects = await clientA
+        .from("projects")
+        .select("id")
+        .eq("organization_id", ORG_A_ID);
+      expect(ownProjects.error).toBeNull();
+      expect(ownProjects.data?.some((project) => project.id === PROJECT_A_ID)).toBe(true);
+      return;
+    }
+
+    expect(created.data, "plano com projetos adicionais deve concluir o INSERT").toBeTruthy();
     const id = created.data!.id;
     try {
       expect(created.data!.client_id).toBeNull();

@@ -20,6 +20,18 @@ async function login(page: Page) {
   await page.click('button[type="submit"]');
   await page.waitForURL("**/dashboard", { timeout: 25000 });
   await page.waitForLoadState("domcontentloaded");
+  await expect(page.getByTestId("date-range-picker")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("date-range-picker")).toBeEnabled();
+  await expect(page.getByTestId("plan-badge")).not.toHaveText("...", { timeout: 15000 });
+}
+
+async function selectTheme(page: Page, theme: "Claro" | "Escuro") {
+  const toggle = page.locator('button[aria-label*="Tema"]').first();
+  await expect(toggle).toBeVisible();
+  await toggle.click();
+  const option = page.getByRole("menuitem").filter({ hasText: theme });
+  await expect(option).toBeVisible();
+  await option.click();
 }
 
 test.describe("Validação E2E Real do Sistema de Temas - Kubo Analytics", () => {
@@ -296,17 +308,13 @@ test.describe("Validação E2E Real do Sistema de Temas - Kubo Analytics", () =>
     await login(page);
 
     // 1. Dashboard em modo Claro
-    const userMenuThemeBtn = page.locator('button[aria-label*="Tema"]').first();
-    await expect(userMenuThemeBtn).toBeVisible();
-    await userMenuThemeBtn.click();
-    await page.locator('[role="menuitem"]:has-text("Claro")').click();
+    await selectTheme(page, "Claro");
 
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(false);
     await page.screenshot({ path: path.join(EVIDENCE_DIR, "09-dashboard-claro.png") });
 
     // 2. Dashboard em modo Escuro
-    await userMenuThemeBtn.click();
-    await page.locator('[role="menuitem"]:has-text("Escuro")').click();
+    await selectTheme(page, "Escuro");
 
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
     await page.screenshot({ path: path.join(EVIDENCE_DIR, "10-dashboard-escuro.png") });

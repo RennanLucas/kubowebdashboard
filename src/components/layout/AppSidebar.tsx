@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const mainItems: {
   title: string;
@@ -153,8 +154,9 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/70 bg-sidebar/40">
-        {/* Collapse toggle */}
-        <div className={`flex ${collapsed ? "justify-center" : "justify-end"} px-2 pt-2`}>
+        {/* Theme and Collapse toggle */}
+        <div className={`flex items-center ${collapsed ? "justify-center flex-col gap-1.5" : "justify-between"} px-2 pt-2`}>
+          <ThemeToggle variant="ghost" className="h-7 w-7 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent" />
           <Button
             variant="ghost"
             size="icon"

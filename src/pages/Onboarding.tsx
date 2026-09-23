@@ -11,6 +11,7 @@ import { ArrowRight, Globe, Building2, Rocket, CheckCircle2, BarChart3, Zap } fr
 import TrackingSnippet from "@/components/TrackingSnippet";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface ClientFormData {
   companyName: string;
@@ -214,7 +215,10 @@ const Onboarding = ({ editMode = false, existingClient }: OnboardingProps) => {
       </div>
 
       {/* Right side - form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
+        <div className="absolute top-4 right-4 z-20">
+          <ThemeToggle variant="outline" className="border-border bg-card shadow-sm" />
+        </div>
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-6 flex justify-center">
             <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto dark:hidden block" />

@@ -74,6 +74,9 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/cadastro" element={<Login />} />
+                  <Route path="/register" element={<Login />} />
+                  <Route path="/signup" element={<Login />} />
                   <Route path="/auth/invite" element={<AcceptInvite />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/reset-password" element={<ResetPassword />} />

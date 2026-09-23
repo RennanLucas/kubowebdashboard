@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { pendingInvitePath } from "@/lib/pending-invite";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, BarChart3, Sparkles, Activity, Crown, Flame, FileText, History, Shield, Zap, Globe } from "lucide-react";
 import logoKuboweb from "@/assets/logo-kuboweb.png";
 import logoKubowebWhite from "@/assets/logo-kuboweb-white.png";
-import { getAppUrl } from "@/lib/utils";
+import { cn, getAppUrl } from "@/lib/utils";
 import { OTPInput } from "@/components/auth/OTPInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -37,7 +37,17 @@ const describeEmailError = (error: any, fallback: string): string => {
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { session, loading: authLoading } = useAuth();
+
+  const isDirectSignUp =
+    location.pathname === "/cadastro" ||
+    location.pathname === "/register" ||
+    location.pathname === "/signup" ||
+    searchParams.get("signup") === "true" ||
+    searchParams.get("mode") === "signup" ||
+    searchParams.get("tab") === "signup";
   
   const [step, setStep] = useState<AuthStep>("form");
   const [fullName, setFullName] = useState("");
@@ -46,9 +56,15 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(isDirectSignUp);
   const [showPassword, setShowPassword] = useState(false);
   const isBusy = loading || authLoading;
+
+  useEffect(() => {
+    if (isDirectSignUp) {
+      setIsSignUp(true);
+    }
+  }, [isDirectSignUp]);
 
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -385,11 +401,47 @@ const Login = () => {
           <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
           <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
           
-          <div className="w-full max-w-md animate-scale-in glass-strong p-8 sm:p-10 rounded-2xl relative z-10 shadow-2xl">
-            <div className="mb-8 flex justify-center lg:justify-start">
-              <img src={logoKuboweb} alt="KUBOWEB" className="h-10 w-auto dark:hidden block" />
-              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-10 w-auto hidden dark:block" />
+          <div className="w-full max-w-md animate-scale-in bg-card text-card-foreground border border-border/80 p-8 sm:p-10 rounded-2xl relative z-10 shadow-2xl">
+            <div className="mb-6 flex justify-between items-center">
+              <img src={logoKuboweb} alt="KUBOWEB" className="h-9 w-auto dark:hidden block" />
+              <img src={logoKubowebWhite} alt="KUBOWEB" className="h-9 w-auto hidden dark:block" />
+              <span className="text-xs font-medium text-muted-foreground px-2.5 py-1 rounded-full bg-muted/60 border border-border/50">
+                {isSignUp ? "Novo cadastro" : "Acesso seguro"}
+              </span>
             </div>
+
+            {step === "form" && (
+              <div className="grid grid-cols-2 p-1 bg-muted/60 rounded-xl mb-6 border border-border/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(false);
+                  }}
+                  className={cn(
+                    "py-2 text-sm font-medium rounded-lg transition-all",
+                    !isSignUp
+                      ? "bg-background text-foreground shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Entrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(true);
+                  }}
+                  className={cn(
+                    "py-2 text-sm font-medium rounded-lg transition-all",
+                    isSignUp
+                      ? "bg-background text-foreground shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Criar Conta (Cadastro)
+                </button>
+              </div>
+            )}
 
             {step === "reset_password" ? (
               <div className="animate-fade-in space-y-5">

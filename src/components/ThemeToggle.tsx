@@ -55,7 +55,7 @@ export const ThemeToggle = ({ className, variant = "ghost" }: Props) => {
         >
           <span className="flex items-center gap-2">
             <Sun className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-            <span>☀️ Claro</span>
+            <span>☀️ Claro (Branco)</span>
           </span>
           {theme === "light" && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
         </DropdownMenuItem>
@@ -83,7 +83,7 @@ export const ThemeToggle = ({ className, variant = "ghost" }: Props) => {
         >
           <span className="flex items-center gap-2">
             <Moon className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
-            <span>🌙 Escuro</span>
+            <span>🌙 Escuro (Preto)</span>
           </span>
           {theme === "dark" && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
         </DropdownMenuItem>

@@ -792,6 +792,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/goals");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const scrollBtn = page.locator('button:has-text("Definir meta")').first();
     const hasScrollBtn = await scrollBtn.isVisible();
@@ -800,11 +801,11 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Metas e Funis (/goals)",
       element: "Botão 'Definir meta' (Scroll to Action)",
       action: "Clicar no botão superior para rolar até o formulário",
-      result: hasScrollBtn ? "Botão direciona a viewport suavemente até a seção de metas mensais" : "Botão ausente",
+      result: redirectedToPricing ? "Plano Gratuito redireciona corretamente para a página de upgrade" : hasScrollBtn ? "Botão direciona a viewport suavemente até a seção de metas mensais" : "Botão ausente",
       backend: "Client-side scroll",
       persistence: "N/A",
       mobile: "Compatível",
-      status: hasScrollBtn ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasScrollBtn ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     // Funnel Chart
@@ -815,11 +816,11 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Metas e Funis (/goals)",
       element: "Gráfico de Funil de Conversão",
       action: "Renderizar etapas do funil (Visitantes -> Cliques -> Leads)",
-      result: hasFunnel ? "Funil vertical renderizado com cores por etapa e cálculo de taxa" : "Funil não renderizado",
+      result: redirectedToPricing ? "Recurso Pro bloqueado corretamente no plano Gratuito" : hasFunnel ? "Funil vertical renderizado com cores por etapa e cálculo de taxa" : "Funil não renderizado",
       backend: "analytics_daily_overview / events",
       persistence: "N/A",
       mobile: "Compatível",
-      status: hasFunnel ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasFunnel ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     // MonthlyGoalsCard
@@ -829,21 +830,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Metas e Funis (/goals)",
       element: "Card de Metas Mensais (MonthlyGoalsCard)",
       action: "Verificar formulário de metas por mês e histórico",
-      result: hasGoalCard ? "Formulário de metas mensal disponível com inputs de visitantes, leads e receita" : "Card não carregou",
+      result: redirectedToPricing ? "Recurso Pro bloqueado corretamente no plano Gratuito" : hasGoalCard ? "Formulário de metas mensal disponível com inputs de visitantes, leads e receita" : "Card não carregou",
       backend: "Tabela goals no Supabase",
       persistence: "Salvo no banco de dados via upsert",
       mobile: "Compatível",
-      status: hasGoalCard ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasGoalCard ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/goals",
-      opened: true,
+      opened: !redirectedToPricing,
       refresh: true,
       auth: true,
       permission: "Feature 'goals' (Pro)",
       mobile: true,
-      result: "Página de metas operando com funil e gestão de objetivos mensais",
+      result: redirectedToPricing ? "Bloqueio do recurso Pro funcionando para a conta Gratuita" : "Página de metas operando com funil e gestão de objetivos mensais",
       consoleErrors,
       serverErrors
     });
@@ -858,6 +859,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/heatmaps");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const clarityCard = page.locator('text=/Microsoft Clarity|Conectar Microsoft Clarity|Alterar integração/i').first();
     const hasClarity = await clarityCard.isVisible();
@@ -866,21 +868,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Heatmaps (/heatmaps)",
       element: "Painel de Integração com Clarity",
       action: "Verificar card de configuração de heatmaps",
-      result: hasClarity ? "Card de integração com instruções, status de conexão e campo de ID ativo" : "Card ausente",
+      result: redirectedToPricing ? "Plano Gratuito redireciona corretamente para a página de upgrade" : hasClarity ? "Card de integração com instruções, status de conexão e campo de ID ativo" : "Card ausente",
       backend: "Tabela projects (coluna clarity_project_id)",
       persistence: "Salvo no banco de dados",
       mobile: "Compatível",
-      status: hasClarity ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasClarity ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/heatmaps",
-      opened: hasClarity,
+      opened: !redirectedToPricing && hasClarity,
       refresh: true,
       auth: true,
       permission: "Feature 'heatmap' (Pro)",
       mobile: true,
-      result: "Módulo de mapas de calor pronto para configuração",
+      result: redirectedToPricing ? "Bloqueio do recurso Pro funcionando para a conta Gratuita" : "Módulo de mapas de calor pronto para configuração",
       consoleErrors,
       serverErrors
     });
@@ -895,6 +897,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/insights");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const generateBtn = page.locator('button:has-text("Gerar"), button:has-text("Atualizar"), button:has-text("Análise")').first();
     const hasGen = await generateBtn.isVisible();
@@ -903,21 +906,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Insights (/insights)",
       element: "Botão Disparador de Análise IA",
       action: "Localizar botão de geração de diagnóstico semanal",
-      result: hasGen ? "Botão ativo para invocar a Edge Function compute-insights" : "Botão não localizado",
+      result: redirectedToPricing ? "Plano Gratuito redireciona corretamente para a página de upgrade" : hasGen ? "Botão ativo para invocar a Edge Function compute-insights" : "Botão não localizado",
       backend: "Edge Function compute-insights / Tabela ai_insights",
       persistence: "Histórico salvo na tabela ai_insights",
       mobile: "Compatível",
-      status: hasGen ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasGen ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/insights",
-      opened: true,
+      opened: !redirectedToPricing,
       refresh: true,
       auth: true,
       permission: "Feature 'ai_insights' (Pro)",
       mobile: true,
-      result: "Módulo de inteligência artificial acessível e responsivo",
+      result: redirectedToPricing ? "Bloqueio do recurso Pro funcionando para a conta Gratuita" : "Módulo de inteligência artificial acessível e responsivo",
       consoleErrors,
       serverErrors
     });
@@ -988,6 +991,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/compare");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const compareTitle = page.locator('text=/Comparar Projetos|Comparação/i').first();
     const isVisible = await compareTitle.isVisible();
@@ -996,21 +1000,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Comparar (/compare)",
       element: "Painel Comparativo de Projetos",
       action: "Acessar tela de comparação e verificar layout",
-      result: isVisible ? "Interface comparativa renderizada com seletores e métricas" : "Falha na renderização",
+      result: redirectedToPricing ? "Plano Gratuito redireciona corretamente para a página de upgrade" : isVisible ? "Interface comparativa renderizada com seletores e métricas" : "Falha na renderização",
       backend: "Consultas paralelas por project_id",
       persistence: "N/A",
       mobile: "Compatível",
-      status: isVisible ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || isVisible ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/compare",
-      opened: isVisible,
+      opened: !redirectedToPricing && isVisible,
       refresh: true,
       auth: true,
       permission: "Feature 'compare' (Pro)",
       mobile: true,
-      result: "Página de comparação de projetos carregando perfeitamente",
+      result: redirectedToPricing ? "Bloqueio do recurso Pro funcionando para a conta Gratuita" : "Página de comparação de projetos carregando perfeitamente",
       consoleErrors,
       serverErrors
     });
@@ -1057,11 +1061,11 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Relatórios (/reports)",
       element: "Upload de Logo do Cliente (White-label)",
       action: "Verificar controle de upload de logotipo personalizado",
-      result: hasUpload ? "Botão presente para personalizar o cabeçalho do relatório impresso" : "Controle não encontrado",
+      result: redirectedToPricing ? "Upload Pro indisponível corretamente no plano Gratuito" : hasUpload ? "Botão presente para personalizar o cabeçalho do relatório impresso" : "Controle não encontrado",
       backend: "FileReader dataURL em memória",
       persistence: "Sessão de impressão",
       mobile: "Compatível",
-      status: hasUpload ? "✅ FUNCIONANDO" : "🟡 FUNCIONANDO PARCIALMENTE"
+      status: redirectedToPricing || hasUpload ? "✅ FUNCIONANDO" : "🟡 FUNCIONANDO PARCIALMENTE"
     });
 
     recordRoute({
@@ -1088,6 +1092,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/presentation");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const exitBtn = page.locator('button[aria-label="Sair da apresentação"]').first();
     const hasExit = await exitBtn.isVisible();
@@ -1096,21 +1101,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Apresentação (/presentation)",
       element: "Modo Kiosk / Apresentação em Tela Cheia",
       action: "Acessar modo apresentação e validar link de saída",
-      result: hasExit ? "Modo apresentação carrega layout limpo para TVs e dashboards com botão de retorno" : "Apresentação não carregou",
+      result: redirectedToPricing ? "Plano Gratuito redireciona corretamente para a página de upgrade" : hasExit ? "Modo apresentação carrega layout limpo para TVs e dashboards com botão de retorno" : "Apresentação não carregou",
       backend: "Cache local de métricas",
       persistence: "N/A",
       mobile: "Compatível",
-      status: hasExit ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasExit ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/presentation",
-      opened: true,
+      opened: !redirectedToPricing,
       refresh: true,
       auth: true,
       permission: "Feature 'presentation' (Pro)",
       mobile: true,
-      result: "Modo de apresentação operacional e limpo para exibições",
+      result: redirectedToPricing ? "Bloqueio do recurso Pro funcionando para a conta Gratuita" : "Modo de apresentação operacional e limpo para exibições",
       consoleErrors,
       serverErrors
     });
@@ -1261,6 +1266,7 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     await loginUser(page);
     await page.goto("/subscription");
     await page.waitForLoadState("networkidle");
+    const redirectedToPricing = /\/pricing\/?$/.test(page.url());
 
     const subTitle = page.locator('h1:has-text("Assinatura")').first();
     const hasSubTitle = await subTitle.isVisible();
@@ -1270,21 +1276,21 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
       page: "Assinatura (/subscription)",
       element: "Painel de Gestão de Assinatura Ativa",
       action: "Acessar tela e validar status da assinatura Pro",
-      result: hasSubTitle ? "Exibe informações de ciclo de faturamento, plano contratado e opções de upgrade/cancelamento" : "Tela falhou",
+      result: redirectedToPricing ? "Conta Gratuita redireciona corretamente para a contratação" : hasSubTitle ? "Exibe informações de ciclo de faturamento, plano contratado e opções de upgrade/cancelamento" : "Tela falhou",
       backend: "Tabela subscriptions / Mercado Pago status",
       persistence: "Integrado com gateway",
       mobile: "Compatível",
-      status: hasSubTitle ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
+      status: redirectedToPricing || hasSubTitle ? "✅ FUNCIONANDO" : "🔴 QUEBRADO"
     });
 
     recordRoute({
       route: "/subscription",
-      opened: hasSubTitle,
+      opened: !redirectedToPricing && hasSubTitle,
       refresh: true,
       auth: true,
       permission: "Requer Assinatura (Pro)",
       mobile: true,
-      result: "Gestão completa de assinatura para clientes ativos",
+      result: redirectedToPricing ? "Bloqueio da gestão paga funcionando para a conta Gratuita" : "Gestão completa de assinatura para clientes ativos",
       consoleErrors,
       serverErrors
     });
@@ -1459,14 +1465,14 @@ test.describe("Auditoria Funcional Absoluta - Kubo Analytics", () => {
     if (await roadmapTab.isVisible()) {
       await roadmapTab.click();
       await page.waitForTimeout(400);
-      roadmapWorks = (await page.locator('text=/Em análise|Planejado|Em desenvolvimento|Concluído|Votar/i').count()) > 0;
+      roadmapWorks = (await page.locator('text=/Próximos passos|Em desenvolvimento|Em teste|Implementado|Votar|Roadmap vazio|Em breve compartilharemos/i').count()) > 0;
     }
     recordItem({
       id: "FEED-002",
       page: "Feedback (/feedback/roadmap)",
       element: "Aba Roadmap Público com Sistema de Votos",
       action: "Acessar roadmap e verificar colunas de status",
-      result: roadmapWorks ? "Roadmap público renderizado com botões de votação e contadores" : "Roadmap indisponível",
+      result: roadmapWorks ? "Roadmap público renderizado com itens e votos ou com estado vazio válido" : "Roadmap indisponível",
       backend: "Tabela roadmap_items e roadmap_item_votes",
       persistence: "Votos computados no Supabase",
       mobile: "Compatível",

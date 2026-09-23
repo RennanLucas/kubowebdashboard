@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, CreditCard, User as UserIcon, Sun } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -62,6 +62,12 @@ export const UserMenu = () => {
           <Link to="/settings" className="cursor-pointer">
             <SettingsIcon className="h-3.5 w-3.5 mr-2" />
             Configurações
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/settings?tab=general" className="cursor-pointer">
+            <Sun className="h-3.5 w-3.5 mr-2 text-amber-500" />
+            Aparência & Tema
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

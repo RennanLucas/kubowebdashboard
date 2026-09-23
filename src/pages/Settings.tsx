@@ -8,7 +8,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Building2, Save } from "lucide-react";
+import { Building2, Save, Sun, Moon, Laptop, Check } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { cn } from "@/lib/utils";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export default function Settings() {
   const { user } = useAuth();
   const { activeOrganization, currentRole, loading: orgLoading } = useOrganization();
   const { subscription, loading: subLoading } = useSubscription();
+  const { theme, setTheme } = useTheme();
 
   const [saving, setSaving] = useState(false);
   const [orgName, setOrgName] = useState("");
@@ -157,6 +160,80 @@ export default function Settings() {
                     {saving ? "Salvando..." : <><Save className="mr-2 h-4 w-4" /> Salvar Alterações</>}
                   </Button>
                 )}
+              </div>
+            </div>
+
+            {/* Aparência e Tema do Painel */}
+            <div className="glass-card rounded-xl p-6 space-y-4 shadow-sm border border-border/60">
+              <div>
+                <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Sun className="h-4 w-4 text-primary" /> Aparência e Tema do Painel
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Por padrão, o painel abre em branco (tema claro). O cliente pode personalizar e alternar para o tema escuro (preto) ou sistema a qualquer momento.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-xl border text-left transition-all duration-200",
+                    theme === "light"
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
+                      : "border-border/70 hover:border-border hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+                      <Sun className="h-4 w-4" />
+                    </div>
+                    {theme === "light" && <Check className="h-4 w-4 text-primary" />}
+                  </div>
+                  <div className="font-medium text-sm text-foreground">Tema Claro (Branco)</div>
+                  <div className="text-xs text-muted-foreground mt-1">Fundo branco com visual limpo e alto contraste. (Padrão inicial)</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-xl border text-left transition-all duration-200",
+                    theme === "dark"
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
+                      : "border-border/70 hover:border-border hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                      <Moon className="h-4 w-4" />
+                    </div>
+                    {theme === "dark" && <Check className="h-4 w-4 text-primary" />}
+                  </div>
+                  <div className="font-medium text-sm text-foreground">Tema Escuro (Preto)</div>
+                  <div className="text-xs text-muted-foreground mt-1">Modo escuro para menor fadiga visual e ambientes com pouca luz.</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme("system")}
+                  className={cn(
+                    "flex flex-col items-start p-4 rounded-xl border text-left transition-all duration-200",
+                    theme === "system"
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm"
+                      : "border-border/70 hover:border-border hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="h-8 w-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500">
+                      <Laptop className="h-4 w-4" />
+                    </div>
+                    {theme === "system" && <Check className="h-4 w-4 text-primary" />}
+                  </div>
+                  <div className="font-medium text-sm text-foreground">Sistema</div>
+                  <div className="text-xs text-muted-foreground mt-1">Sincroniza automaticamente com o tema do seu dispositivo.</div>
+                </button>
               </div>
             </div>
 
