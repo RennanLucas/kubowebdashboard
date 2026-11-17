@@ -1,21 +1,22 @@
-import { Helmet } from "react-helmet-async";
-import { CursorGlow, LandingHero, LandingNav } from "@/components/landing/premium/LandingHero";
-import {
-  CapabilitiesSection, CompatibilitySection, ComparisonSection, FinalCTA,
-  FloatingWhatsAppTester, InsightsSection, LandingFAQ, PremiumFooter,
-  PremiumPricing, ProblemSolutionBridge, ProductStory, RealtimeSection,
-  RoiCalculatorSection, SecurityInfrastructureSection, SetupSection, SignalRail,
-  TestimonialsSection, TrustProofSection,
-} from "@/components/landing/premium/LandingExperience";
-import { useLandingReveal } from "@/components/landing/premium/useLandingReveal";
-import "@/components/landing/premium/landing-premium.css";
+import { Helmet } from "react-helmet-async";
+import { SmoothScroll } from "@/components/landing/SmoothScroll";
+import { Nav } from "@/components/landing/Nav";
+import { Hero, CursorGlow } from "@/components/landing/Hero";
+import { SocialProof } from "@/components/landing/SocialProof";
+import { ProblemSolution } from "@/components/landing/ProblemSolution";
+import { Showcase } from "@/components/landing/Showcase";
+import { Features } from "@/components/landing/Features";
+import { Comparison } from "@/components/landing/Comparison";
+import { Security } from "@/components/landing/Security";
+import { GetStarted } from "@/components/landing/GetStarted";
+import { Pricing } from "@/components/landing/Pricing";
+import { FAQ } from "@/components/landing/FAQ";
+import { CTA } from "@/components/landing/CTA";
+import { Footer } from "@/components/landing/Footer";
+import { WhatsAppTester } from "@/components/landing/WhatsAppTester";
+import "@/components/landing/landing.css";
 
-/* ─────────────────────────────────────────────────────────────
-   Main Landing Component
-   ───────────────────────────────────────────────────────────── */
 const Landing = () => {
-  useLandingReveal();
-
   return (
     <>
       <Helmet>
@@ -48,37 +49,32 @@ const Landing = () => {
           })}
         </script>
       </Helmet>
-      
-      <div className="lp-root selection:bg-blue-500/30 selection:text-white">
-        <CursorGlow />
-        <LandingNav />
-        
-        <main>
-          <LandingHero />
-          <SignalRail />
-          <TrustProofSection />
-          <ProblemSolutionBridge />
-          <ProductStory />
-          <RealtimeSection />
-          <CapabilitiesSection />
-          <CompatibilitySection />
-          <ComparisonSection />
-          <SecurityInfrastructureSection />
-          <InsightsSection />
-          <TestimonialsSection />
-          <SetupSection />
-          <RoiCalculatorSection />
-          <PremiumPricing />
-          <LandingFAQ />
-          <FinalCTA />
-        </main>
 
-        <PremiumFooter />
-        <FloatingWhatsAppTester />
-      </div>
+      <SmoothScroll>
+        <div className="lp-root selection:bg-blue-500/30 selection:text-white">
+          <CursorGlow />
+          <Nav />
+
+          <main>
+            <Hero />
+            <SocialProof />
+            <ProblemSolution />
+            <Showcase />
+            <Features />
+            <Comparison />
+            <Security />
+            <GetStarted />
+            <Pricing />
+            <FAQ />
+            <CTA />
+          </main>
+
+          <Footer />
+          <WhatsAppTester />
+        </div>
+      </SmoothScroll>
     </>
   );
 };
 
 export default Landing;
-

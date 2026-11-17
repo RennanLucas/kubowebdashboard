@@ -1,163 +1,133 @@
-import React, { useEffect, useRef } from 'react';
-import { Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { usePlans } from "@/hooks/usePlans";
+import { FALLBACK_PRO_PLAN, FREE_PLAN_FEATURES } from "./data";
+import { fadeUp, staggerContainer, viewportOnce } from "./motion";
 
-const Pricing = () => {
-  const sectionRef = useRef<HTMLElement>(null);
+function PricingCard({
+  name, tierLabel, badgeText, tagline, price, cadence, billingSubtext,
+  featuresLabel, features, cta, recommended, disabled,
+}: {
+  name: string; tierLabel?: string; badgeText?: string; tagline: string; price: string; cadence: string;
+  billingSubtext?: string; featuresLabel?: string; features: string[]; cta: string;
+  recommended?: boolean; disabled?: boolean;
+}) {
+  return (
+    <motion.article variants={fadeUp} className={`lp-price-card ${recommended ? "is-recommended" : ""}`}>
+      {recommended && badgeText && (
+        <div className="lp-price-badge"><Sparkles size={11} /><span>{badgeText}</span></div>
+      )}
+      <div className="lp-price-card__header">
+        <span className={`lp-price-tier ${recommended ? "is-pro" : ""}`}>{tierLabel}</span>
+        <h3 className="lp-price-card__title">{name}</h3>
+        <p className="lp-price-card__tagline">{tagline}</p>
+      </div>
+      <div className="lp-price">
+        <div className="lp-price__main"><strong className="lp-price__amount">{price}</strong><small className="lp-price__cadence">{cadence}</small></div>
+        {billingSubtext && <div className="lp-price__sub">{billingSubtext}</div>}
+      </div>
+      <div className="lp-price-card__features-wrap">
+        {featuresLabel && <span className="lp-price-card__features-title">{featuresLabel}</span>}
+        <ul className="lp-price-card__list">
+          {features.map((feature) => (
+            <li key={feature}><span className={`lp-check-badge ${recommended ? "is-pro" : ""}`}><Check size={11} /></span><span>{feature}</span></li>
+          ))}
+        </ul>
+      </div>
+      <div className="lp-price-card__action">
+        {disabled ? (
+          <span className="lp-price-btn is-disabled" aria-disabled="true">Indisponível <ArrowRight size={13} /></span>
+        ) : recommended ? (
+          <Link to="/login" className="lp-cta" style={{ width: "100%" }} aria-label={cta}><span>{cta}</span><ArrowRight size={13} /></Link>
+        ) : (
+          <Link to="/login" className="lp-cta lp-cta--ghost" aria-label={cta}><span>{cta}</span><ArrowRight size={13} /></Link>
+        )}
+      </div>
+    </motion.article>
+  );
+}
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const elements = sectionRef.current?.querySelectorAll('.reveal-scroll');
-    elements?.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+export function Pricing() {
+  const { plans, loading, error } = usePlans();
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("monthly");
+  const isAnnual = billingPeriod === "annual";
 
   return (
-    <section ref={sectionRef} className="py-24 bg-black relative" id="pricing">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-black to-black pointer-events-none" />
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16 reveal-scroll fade-up">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Planos <span className="linear-text-gradient">Simples e Transparentes</span>
-          </h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Comece de graça e faça o upgrade quando precisar de mais poder.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto items-center">
-          
-          {/* Free Plan */}
-          <div className="reveal-scroll scale-in glass-panel rounded-3xl p-8 border border-white/10 bg-[#080c13]/80">
-            <h3 className="text-2xl font-bold text-white mb-2">Gratuito</h3>
-            <p className="text-gray-400 mb-6">Para quem está começando</p>
-            
-            <div className="mb-8">
-              <span className="text-5xl font-bold text-white">R$ 0</span>
-              <span className="text-gray-400">/mês</span>
-            </div>
-
-            <Link to="/login" className="block w-full mb-8">
-              <Button variant="outline" className="w-full py-6 text-lg rounded-xl border-white/20 text-white hover:bg-white/10">
-                Começar grátis
-              </Button>
-            </Link>
-
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-gray-300">
-                <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span>1 projeto</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-300">
-                <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span>Histórico de 7 dias</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-300">
-                <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span>Painel completo</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-300">
-                <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span>Script de rastreamento</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-300">
-                <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span>Alertas básicos</span>
-              </li>
-              
-              {/* Not included */}
-              <li className="flex items-center gap-3 text-gray-500 pt-4 border-t border-white/5">
-                <X className="w-5 h-5 shrink-0" />
-                <span>Sem visitantes em tempo real</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-500">
-                <X className="w-5 h-5 shrink-0" />
-                <span>Sem IA</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-500">
-                <X className="w-5 h-5 shrink-0" />
-                <span>Sem heatmaps</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-500">
-                <X className="w-5 h-5 shrink-0" />
-                <span>Sem relatórios PDF/Excel</span>
-              </li>
-            </ul>
+    <section id="pricing" className="lp-pricing">
+      <div className="lp-shell">
+        <motion.div className="lp-section-head lp-section-head--center" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <span>Planos transparentes</span>
+          <h2>Comece grátis.<br />Evolua quando fizer sentido.</h2>
+          <p>Sem surpresas ou contratos de fidelidade. Teste o plano Pro completo por 7 dias grátis.</p>
+          <div className="lp-pricing__toggle" role="group" aria-label="Ciclo de faturamento">
+            <button type="button" className={billingPeriod === "monthly" ? "is-active" : ""} onClick={() => setBillingPeriod("monthly")}>Mensal</button>
+            <button type="button" className={billingPeriod === "annual" ? "is-active" : ""} onClick={() => setBillingPeriod("annual")}>
+              Anual <span className="lp-pricing__discount-pill">-20% OFF</span>
+            </button>
           </div>
+        </motion.div>
 
-          {/* Pro Plan */}
-          <div className="reveal-scroll scale-in md:scale-105 glass-panel rounded-3xl p-8 border border-primary relative bg-[#080c13] shadow-[0_0_40px_rgba(108,60,225,0.2)]">
-            <div className="absolute top-0 right-8 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-bold tracking-wide">
-              MAIS ESCOLHIDO
-            </div>
+        <motion.div className="lp-pricing__grid" variants={staggerContainer(0.1)} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <PricingCard
+            name="Gratuito"
+            tierLabel="Iniciante"
+            tagline="Para validar o Kubo no seu site sem custos."
+            price="R$ 0,00"
+            cadence="/mês"
+            billingSubtext="Sem cartão de crédito necessário"
+            featuresLabel="O que está incluso:"
+            features={FREE_PLAN_FEATURES}
+            cta="Criar conta grátis"
+          />
 
-            <h3 className="text-2xl font-bold text-primary-100 mb-2">Pro</h3>
-            <p className="text-gray-400 mb-6">Para quem quer resultados</p>
-            
-            <div className="mb-8">
-              <span className="text-5xl font-bold text-white">R$ 49,90</span>
-              <span className="text-gray-400">/mês</span>
-            </div>
+          {loading && <div className="lp-price-card lp-price-card--loading is-recommended" aria-label="Carregando plano Pro"><i /><i /><i /><i /></div>}
 
-            <Link to="/login" className="block w-full mb-8">
-              <Button className="w-full py-6 text-lg rounded-xl bg-primary hover:bg-primary/90 text-white font-medium hover:shadow-[0_0_20px_rgba(108,60,225,0.4)] transition-all">
-                Assinar Pro
-              </Button>
-            </Link>
+          {!loading && plans.map((plan) => {
+            const isPro = plan.name.toLowerCase().includes("pro");
+            const displayPrice = isPro && isAnnual ? "R$ 39,90" : plan.price;
+            const subtext = isPro && isAnnual
+              ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano"
+              : "7 dias grátis — cancele a qualquer momento";
+            return (
+              <PricingCard
+                key={plan.id}
+                name={plan.name}
+                tierLabel="Completo"
+                badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
+                tagline={plan.tagline || FALLBACK_PRO_PLAN.tagline}
+                price={displayPrice}
+                cadence={plan.cadence}
+                billingSubtext={subtext}
+                featuresLabel="Tudo do Gratuito, mais:"
+                features={plan.features.length >= 7 ? plan.features : FALLBACK_PRO_PLAN.features}
+                cta={plan.cta || "Começar 7 dias grátis"}
+                recommended
+                disabled={!plan.enabled}
+              />
+            );
+          })}
 
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span className="font-medium">Projetos ilimitados</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Histórico de 365 dias</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Visitantes em tempo real</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Kubo AI semanal</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Mapas de calor</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Relatórios PDF e Excel</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>Suporte prioritário</span>
-              </li>
-              <li className="flex items-center gap-3 text-white">
-                <div className="bg-primary/20 p-1 rounded-full"><Check className="w-4 h-4 text-primary" /></div>
-                <span>White-label</span>
-              </li>
-            </ul>
-          </div>
+          {!loading && (error || plans.length === 0) && (
+            <PricingCard
+              {...FALLBACK_PRO_PLAN}
+              tierLabel="Completo"
+              badgeText="★ MAIS ESCOLHIDO POR AGÊNCIAS"
+              price={isAnnual ? "R$ 39,90" : FALLBACK_PRO_PLAN.price}
+              billingSubtext={isAnnual ? "Faturado R$ 478,80/ano · Economia de R$ 120/ano" : "7 dias grátis — cancele a qualquer momento"}
+              featuresLabel="Tudo do Gratuito, mais:"
+              recommended
+            />
+          )}
+        </motion.div>
 
-        </div>
+        <motion.div className="lp-pricing__guarantees" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <div className="lp-guarantee-item"><Check size={14} /><span>Ativação imediata em menos de 2 minutos</span></div>
+          <div className="lp-guarantee-item"><Check size={14} /><span>Sem cobrança durante o período de 7 dias</span></div>
+          <div className="lp-guarantee-item"><Check size={14} /><span>Cancelamento direto no painel com 1 clique</span></div>
+        </motion.div>
       </div>
     </section>
   );
-};
-
-export default Pricing;
+}

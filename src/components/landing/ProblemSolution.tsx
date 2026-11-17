@@ -1,88 +1,94 @@
-import React, { useEffect, useRef } from 'react';
-import { AlertCircle, Clock, Smartphone, Settings, LayoutDashboard, Zap, MessageCircle, Code } from 'lucide-react';
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { AlertTriangle, Check, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { PROBLEM_POINTS, SOLUTION_POINTS } from "./data";
+import { fadeUp, viewportOnce } from "./motion";
 
-const problems = [
-  { icon: AlertCircle, title: "Interface confusa", desc: "O GA4 mudou tudo e os relatórios estão cada vez mais difíceis de entender." },
-  { icon: Clock, title: "Dados atrasados", desc: "Precisa esperar de 24h a 48h para ver os resultados da sua campanha de hoje." },
-  { icon: Smartphone, title: "Sem WhatsApp", desc: "Não rastreia cliques no botão de WhatsApp sem configurações complexas." },
-  { icon: Settings, title: "Setup técnico pesado", desc: "GTM, dataLayer, eventos customizados. Uma dor de cabeça para configurar." },
-];
+export function ProblemSolution() {
+  const [sliderPos, setSliderPos] = useState(50);
+  const [dragging, setDragging] = useState(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
-const solutions = [
-  { icon: LayoutDashboard, title: "Painel intuitivo", desc: "Tudo que importa em uma única tela, fácil de entender para você e seu cliente." },
-  { icon: Zap, title: "Dados em tempo real", desc: "Veja quem está no seu site agora e acompanhe as conversões no mesmo segundo." },
-  { icon: MessageCircle, title: "WhatsApp nativo", desc: "Rastreie automaticamente cada clique no WhatsApp, sem configurar nada." },
-  { icon: Code, title: "Uma linha de código", desc: "Copie, cole na tag <head> do site e pronto. O Kubo faz o resto por você." },
-];
-
-export default function ProblemSolution() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    }, { threshold: 0.1 });
-    
-    const elements = document.querySelectorAll('.reveal-scroll');
-    elements.forEach(el => observer.observe(el));
-    
-    return () => observer.disconnect();
-  }, []);
+  const updatePosition = (clientX: number) => {
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setSliderPos(Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100)));
+  };
 
   return (
-    <section className="py-24 px-4 md:px-6 relative overflow-hidden" ref={sectionRef}>
-      <div className="max-w-6xl mx-auto">
-        {/* Problems */}
-        <div className="mb-20">
-          <div className="text-center mb-12 reveal-scroll fade-up">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              O Google Analytics ficou <span className="text-red-500">complicado demais.</span>
-            </h2>
-            <p className="text-xl text-gray-400">A ferramenta que deveria ajudar, virou um problema.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {problems.map((item, idx) => (
-              <div key={idx} className={`glass-panel p-6 rounded-2xl border border-red-500/20 bg-red-950/10 reveal-scroll fade-up-delay-${(idx % 5) + 1}`}>
-                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500">
-                  <item.icon size={24} />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+    <section className="lp-bridge">
+      <div className="lp-shell">
+        <motion.div className="lp-section-head lp-section-head--center" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <span>O contraste que muda o jogo</span>
+          <h2>Por que o Google Analytics<br />ficou para trás.</h2>
+          <p>O GA4 se tornou um labirinto de configurações, dados com atraso de até 48 horas e zero foco em conversão rápida de WhatsApp.</p>
+        </motion.div>
 
-        <div className="w-full flex justify-center mb-20 reveal-scroll scale-in">
-          <div className="h-24 w-px bg-gradient-to-b from-red-500/50 via-purple-500/50 to-primary/80 section-divider"></div>
-        </div>
+        <motion.div className="lp-split-section" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+          <div className="lp-split-controls">
+            <button type="button" className={`lp-split-mode-btn ${sliderPos === 50 ? "is-active" : ""}`} onClick={() => setSliderPos(50)}>
+              <SlidersHorizontal size={12} /><span>Dividido (50 / 50)</span>
+            </button>
+            <button type="button" className={`lp-split-mode-btn is-ga4 ${sliderPos >= 90 ? "is-active" : ""}`} onClick={() => setSliderPos(100)}>
+              <X size={12} /><span>Ver 100% GA4</span>
+            </button>
+            <button type="button" className={`lp-split-mode-btn is-kubo ${sliderPos <= 10 ? "is-active" : ""}`} onClick={() => setSliderPos(0)}>
+              <Check size={12} /><span>Ver 100% Kubo Analytics</span>
+            </button>
+          </div>
 
-        {/* Solutions */}
-        <div>
-          <div className="text-center mb-12 reveal-scroll fade-up">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              O Kubo resolve isso em <span className="primary-text-gradient">2 minutos.</span>
-            </h2>
-            <p className="text-xl text-gray-400">Simples, rápido e feito para conversão.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {solutions.map((item, idx) => (
-              <div key={idx} className={`glass-panel p-6 rounded-2xl border border-primary/20 bg-primary/5 premium-hover reveal-scroll fade-up-delay-${(idx % 5) + 1}`}>
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-4 text-primary glow-pulse">
-                  <item.icon size={24} />
+          <div
+            ref={viewportRef}
+            className="lp-split-viewport"
+            onPointerDown={(e) => { setDragging(true); updatePosition(e.clientX); (e.target as HTMLElement).setPointerCapture?.(e.pointerId); }}
+            onPointerMove={(e) => dragging && updatePosition(e.clientX)}
+            onPointerUp={() => setDragging(false)}
+            onPointerCancel={() => setDragging(false)}
+            style={{ cursor: dragging ? "ew-resize" : "default" }}
+            aria-label="Comparador interativo entre GA4 e Kubo"
+          >
+            {/* Two real side-by-side panes (not an overlapping clip-path) so each
+                side's content stays fully readable at any slider position. */}
+            <div className="lp-split-pane lp-split-pane--before" style={{ width: `${sliderPos}%` }}>
+              <div className="lp-split-pane__content">
+                <div className="lp-split-header">
+                  <span className="lp-split-badge lp-split-badge--ga4"><AlertTriangle size={12} /> Google Analytics (GA4)</span>
+                  <span className="lp-split-latency">Atraso: <b>24h a 48h</b></span>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-gray-400 text-sm">{item.desc}</p>
+                <div className="lp-split-points">
+                  {PROBLEM_POINTS.map((p) => (
+                    <div className="lp-split-point" key={p.title}>
+                      <X size={14} className="is-bad" />
+                      <div><strong>{p.title}</strong><p>{p.copy}</p></div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            </div>
+
+            <div className="lp-split-pane lp-split-pane--after" style={{ width: `${100 - sliderPos}%` }}>
+              <div className="lp-split-pane__content">
+                <div className="lp-split-header">
+                  <span className="lp-split-badge lp-split-badge--kubo"><Sparkles size={12} /> Kubo Analytics</span>
+                  <span className="lp-split-latency">Latência: <b>tempo real</b></span>
+                </div>
+                <div className="lp-split-points">
+                  {SOLUTION_POINTS.map((p) => (
+                    <div className="lp-split-point" key={p.title}>
+                      <Check size={14} className="is-good" />
+                      <div><strong>{p.title}</strong><p>{p.copy}</p></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="lp-split-handle" style={{ left: `${sliderPos}%` }} onPointerDown={(e) => { setDragging(true); updatePosition(e.clientX); }}>
+              <div className="lp-split-handle__btn"><span>◀ ▶</span></div>
+              <div className="lp-split-handle__pill">{sliderPos < 35 ? "Kubo" : sliderPos > 65 ? "GA4" : `${Math.round(sliderPos)}%`}</div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
