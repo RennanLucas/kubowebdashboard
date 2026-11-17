@@ -5,6 +5,14 @@
    washes, no card kit. The one saturated colour is reserved for "live".
    =========================================================================== */
 
+/* Lenis writes scrollTop frame by frame. The app's global
+   `html { scroll-behavior: smooth }` (src/index.css) makes every one of those
+   writes animate instead of land, so the two fight and the page stops moving.
+   Lenis owns the scroll while it is mounted, so the native easing has to go. */
+html.lenis {
+  scroll-behavior: auto;
+}
+
 .lp-root {
   --paper: #fafaf8;
   --paper-deep: #f2f1ec;

@@ -74,6 +74,54 @@ test.describe('Landing premium', () => {
   test('rolagem por âncora mantém a seção alvo no topo', async ({ page }) => {
     await page.goto('/');
     await page.locator('.lp-nav__link[href="#pricing"]').click();
-    await expect(page.locator('#pricing')).toBeInViewport();
+
+    // Assert the target's real offset, not just "in viewport" — Lenis reverts
+    // programmatic scrolls it doesn't own, and the section would still count as
+    // in-viewport for a moment before snapping back to the top of the page.
+    await expect
+      .poll(() => page.evaluate(() => Math.round(document.getElementById('pricing')!.getBoundingClientRect().top)), { timeout: 5000 })
+      .toBeLessThanOrEqual(8);
+
+    const y = await page.evaluate(() => Math.round(window.scrollY));
+    expect(y).toBeGreaterThan(100);
+  });
+
+  test('deep link abre a página já na seção pedida', async ({ page }) => {
+    await page.goto('/#pricing');
+
+    // The landing route is lazy-loaded, so the section only exists once that
+    // chunk has rendered.
+    await expect(page.locator('#pricing')).toBeAttached();
+
+    // Layout keeps settling after mount (fonts, plan fetch), so this keeps
+    // polling until the retry-on-settle loop in SmoothScroll has landed.
+    await expect
+      .poll(() => page.evaluate(() => Math.round(document.getElementById('pricing')!.getBoundingClientRect().top)), { timeout: 8000 })
+      .toBeLessThanOrEqual(8);
+
+    const y = await page.evaluate(() => Math.round(window.scrollY));
+    expect(y).toBeGreaterThan(100);
+  });
+
+  test('o scroll nativo continua funcionando sob o smooth scroll', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(800);
+
+    // Regression guard: the app sets `html { scroll-behavior: smooth }`, which
+    // fights Lenis's frame-by-frame scrollTop writes and can freeze the page.
+    await page.mouse.move(700, 450);
+    await page.mouse.wheel(0, 1600);
+    await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 5000 }).toBeGreaterThan(200);
+
+    await page.keyboard.press('End');
+    await expect
+      .poll(
+        () =>
+          page.evaluate(() =>
+            Math.round(document.documentElement.scrollHeight - window.innerHeight - window.scrollY),
+          ),
+        { timeout: 8000 },
+      )
+      .toBeLessThanOrEqual(4);
   });
 });
