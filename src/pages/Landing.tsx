@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { SmoothScroll } from "@/components/landing/SmoothScroll";
 import { Nav } from "@/components/landing/Nav";
-import { Hero, CursorGlow } from "@/components/landing/Hero";
+import { Hero } from "@/components/landing/Hero";
 import { SocialProof } from "@/components/landing/SocialProof";
 import { ProblemSolution } from "@/components/landing/ProblemSolution";
 import { Showcase } from "@/components/landing/Showcase";
@@ -52,7 +52,6 @@ const Landing = () => {
 
       <SmoothScroll>
         <div className="lp-root selection:bg-blue-500/30 selection:text-white">
-          <CursorGlow />
           <Nav />
 
           <main>

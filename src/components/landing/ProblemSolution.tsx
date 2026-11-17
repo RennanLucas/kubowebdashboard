@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { AlertTriangle, Check, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { Check, SlidersHorizontal, X } from "lucide-react";
 import { PROBLEM_POINTS, SOLUTION_POINTS } from "./data";
-import { fadeUp, viewportOnce } from "./motion";
 
 export function ProblemSolution() {
   const [sliderPos, setSliderPos] = useState(50);
@@ -16,15 +14,18 @@ export function ProblemSolution() {
   };
 
   return (
-    <section className="lp-bridge">
+    <section className="lp-section">
       <div className="lp-shell">
-        <motion.div className="lp-section-head lp-section-head--center" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <span>O contraste que muda o jogo</span>
-          <h2>Por que o Google Analytics<br />ficou para trás.</h2>
-          <p>O GA4 se tornou um labirinto de configurações, dados com atraso de até 48 horas e zero foco em conversão rápida de WhatsApp.</p>
-        </motion.div>
+        <div className="lp-section__head">
+          <span className="lp-label">Comparação</span>
+          <h2 className="lp-h2">O Google Analytics foi feito para outra década.</h2>
+          <p>
+            Filas de configuração, dados que chegam um dia depois e nenhuma noção de conversão em
+            WhatsApp. O Kubo foi construído para o que você precisa ver hoje.
+          </p>
+        </div>
 
-        <motion.div className="lp-split-section" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+        <div className="lp-split-section">
           <div className="lp-split-controls">
             <button type="button" className={`lp-split-mode-btn ${sliderPos === 50 ? "is-active" : ""}`} onClick={() => setSliderPos(50)}>
               <SlidersHorizontal size={12} /><span>Dividido (50 / 50)</span>
@@ -52,7 +53,7 @@ export function ProblemSolution() {
             <div className="lp-split-pane lp-split-pane--before" style={{ width: `${sliderPos}%` }}>
               <div className="lp-split-pane__content">
                 <div className="lp-split-header">
-                  <span className="lp-split-badge lp-split-badge--ga4"><AlertTriangle size={12} /> Google Analytics (GA4)</span>
+                  <span className="lp-split-badge lp-split-badge--ga4">Google Analytics (GA4)</span>
                   <span className="lp-split-latency">Atraso: <b>24h a 48h</b></span>
                 </div>
                 <div className="lp-split-points">
@@ -69,7 +70,7 @@ export function ProblemSolution() {
             <div className="lp-split-pane lp-split-pane--after" style={{ width: `${100 - sliderPos}%` }}>
               <div className="lp-split-pane__content">
                 <div className="lp-split-header">
-                  <span className="lp-split-badge lp-split-badge--kubo"><Sparkles size={12} /> Kubo Analytics</span>
+                  <span className="lp-split-badge lp-split-badge--kubo">Kubo Analytics</span>
                   <span className="lp-split-latency">Latência: <b>tempo real</b></span>
                 </div>
                 <div className="lp-split-points">
@@ -88,7 +89,7 @@ export function ProblemSolution() {
               <div className="lp-split-handle__pill">{sliderPos < 35 ? "Kubo" : sliderPos > 65 ? "GA4" : `${Math.round(sliderPos)}%`}</div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

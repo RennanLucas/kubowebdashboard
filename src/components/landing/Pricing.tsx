@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePlans } from "@/hooks/usePlans";
 import { FALLBACK_PRO_PLAN, FREE_PLAN_FEATURES } from "./data";
-import { fadeUp, staggerContainer, viewportOnce } from "./motion";
 
 function PricingCard({
   name, tierLabel, badgeText, tagline, price, cadence, billingSubtext,
@@ -15,12 +13,10 @@ function PricingCard({
   recommended?: boolean; disabled?: boolean;
 }) {
   return (
-    <motion.article variants={fadeUp} className={`lp-price-card ${recommended ? "is-recommended" : ""}`}>
-      {recommended && badgeText && (
-        <div className="lp-price-badge"><Sparkles size={11} /><span>{badgeText}</span></div>
-      )}
+    <article className={`lp-price-card ${recommended ? "is-recommended" : ""}`}>
+      {recommended && badgeText && <div className="lp-price-badge">{badgeText}</div>}
       <div className="lp-price-card__header">
-        <span className={`lp-price-tier ${recommended ? "is-pro" : ""}`}>{tierLabel}</span>
+        <span className="lp-price-tier">{tierLabel}</span>
         <h3 className="lp-price-card__title">{name}</h3>
         <p className="lp-price-card__tagline">{tagline}</p>
       </div>
@@ -45,7 +41,7 @@ function PricingCard({
           <Link to="/login" className="lp-cta lp-cta--ghost" aria-label={cta}><span>{cta}</span><ArrowRight size={13} /></Link>
         )}
       </div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -55,21 +51,21 @@ export function Pricing() {
   const isAnnual = billingPeriod === "annual";
 
   return (
-    <section id="pricing" className="lp-pricing">
+    <section id="pricing" className="lp-section">
       <div className="lp-shell">
-        <motion.div className="lp-section-head lp-section-head--center" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <span>Planos transparentes</span>
-          <h2>Comece grátis.<br />Evolua quando fizer sentido.</h2>
-          <p>Sem surpresas ou contratos de fidelidade. Teste o plano Pro completo por 7 dias grátis.</p>
+        <div className="lp-section__head">
+          <span className="lp-label">Planos</span>
+          <h2 className="lp-h2">Comece grátis. Evolua quando fizer sentido.</h2>
+          <p>Sem fidelidade e sem cobrança durante os 7 dias de teste do Pro.</p>
           <div className="lp-pricing__toggle" role="group" aria-label="Ciclo de faturamento">
             <button type="button" className={billingPeriod === "monthly" ? "is-active" : ""} onClick={() => setBillingPeriod("monthly")}>Mensal</button>
             <button type="button" className={billingPeriod === "annual" ? "is-active" : ""} onClick={() => setBillingPeriod("annual")}>
-              Anual <span className="lp-pricing__discount-pill">-20% OFF</span>
+              Anual <span className="lp-pricing__discount-pill">-20%</span>
             </button>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div className="lp-pricing__grid" variants={staggerContainer(0.1)} initial="hidden" whileInView="show" viewport={viewportOnce}>
+        <div className="lp-pricing__grid">
           <PricingCard
             name="Gratuito"
             tierLabel="Iniciante"
@@ -120,13 +116,13 @@ export function Pricing() {
               recommended
             />
           )}
-        </motion.div>
+        </div>
 
-        <motion.div className="lp-pricing__guarantees" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <div className="lp-guarantee-item"><Check size={14} /><span>Ativação imediata em menos de 2 minutos</span></div>
-          <div className="lp-guarantee-item"><Check size={14} /><span>Sem cobrança durante o período de 7 dias</span></div>
-          <div className="lp-guarantee-item"><Check size={14} /><span>Cancelamento direto no painel com 1 clique</span></div>
-        </motion.div>
+        <div className="lp-pricing__guarantees">
+          <div className="lp-guarantee-item"><Check size={14} /><span>Ativação em menos de 2 minutos</span></div>
+          <div className="lp-guarantee-item"><Check size={14} /><span>Sem cobrança durante os 7 dias</span></div>
+          <div className="lp-guarantee-item"><Check size={14} /><span>Cancelamento no painel, 1 clique</span></div>
+        </div>
       </div>
     </section>
   );

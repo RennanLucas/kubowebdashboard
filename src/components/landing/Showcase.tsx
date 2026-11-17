@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
 import { STORY_STEPS } from "./data";
 import { ProductPreview } from "./ProductPreview";
-import { fadeUp, viewportOnce } from "./motion";
 
 function StoryStep({ index, step, onActivate }: { index: number; step: (typeof STORY_STEPS)[number]; onActivate: (i: number) => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,18 +12,11 @@ function StoryStep({ index, step, onActivate }: { index: number; step: (typeof S
   }, [inView, index, onActivate]);
 
   return (
-    <motion.article
-      ref={ref}
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="show"
-      viewport={viewportOnce}
-      className={inView ? "is-active" : ""}
-    >
+    <article ref={ref} className={inView ? "is-active" : ""}>
       <span>{step.kicker}</span>
       <h3>{step.title}</h3>
       <p>{step.copy}</p>
-    </motion.article>
+    </article>
   );
 }
 
@@ -35,11 +27,14 @@ export function Showcase() {
   return (
     <section id="product-story" className="lp-story">
       <div className="lp-shell">
-        <motion.div className="lp-section-head" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <span>Do acesso à decisão</span>
-          <h2>Entenda <span className="lp-shimmer-word">o que acontece</span><br />no seu site.</h2>
-          <p>Uma apresentação contínua dos sinais que o Kubo já acompanha — sem inventar métricas, integrações ou promessas.</p>
-        </motion.div>
+        <div className="lp-section__head">
+          <span className="lp-label">O que o painel mostra</span>
+          <h2 className="lp-h2">A mesma tela, em quatro perguntas.</h2>
+          <p>
+            Cada etapa é uma pergunta que você faz sobre o site. O painel responde com os sinais que
+            já coleta — sem inventar métricas nem prometer integrações.
+          </p>
+        </div>
 
         <div className="lp-story__grid">
           <div className="lp-story__visual">

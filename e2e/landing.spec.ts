@@ -6,8 +6,8 @@ test.describe('Landing premium', () => {
 
     await expect(page).toHaveTitle(/Kubo Analytics/);
     await expect(page.getByRole('heading', { level: 1, name: /Veja o que acontece/i })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: /Entenda o que acontece/i })).toBeAttached();
-    await expect(page.getByText('Dados demonstrativos').first()).toBeAttached();
+    await expect(page.getByRole('heading', { level: 2, name: /A mesma tela, em quatro perguntas/i })).toBeAttached();
+    await expect(page.locator('.lp-reader')).toBeAttached();
 
     const primaryCta = page.getByRole('link', { name: /Começar 7 dias grátis/i }).first();
     await expect(primaryCta).toHaveAttribute('href', '/login');

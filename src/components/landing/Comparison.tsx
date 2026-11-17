@@ -1,25 +1,25 @@
-import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { COMPARISON_ROWS } from "./data";
-import { fadeUp, viewportOnce } from "./motion";
 
 export function Comparison() {
   return (
-    <section id="comparative" className="lp-comparison">
+    <section id="comparative" className="lp-section">
       <div className="lp-shell">
-        <motion.div className="lp-section-head lp-section-head--center" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <span>Comparativo direto</span>
-          <h2>Por que agências e empresas<br />estão migrando para o Kubo.</h2>
-          <p>Uma comparação clara entre a complexidade do passado e a velocidade do presente.</p>
-        </motion.div>
+        <div className="lp-section__head">
+          <span className="lp-label">Comparativo</span>
+          <h2 className="lp-h2">O que muda na prática.</h2>
+          <p>
+            Oito diferenças concretas entre manter o GA4 e trocar a leitura do site para o Kubo.
+          </p>
+        </div>
 
-        <motion.div className="lp-comparison__table-wrap" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+        <div className="lp-comparison__table-wrap">
           <table className="lp-comparison__table" aria-label="Tabela comparativa entre Google Analytics e Kubo">
             <thead>
               <tr>
-                <th>Recurso / diferencial</th>
+                <th>Recurso</th>
                 <th>Google Analytics (GA4)</th>
-                <th className="is-kubo"><span>Kubo Analytics</span></th>
+                <th className="is-kubo">Kubo Analytics</th>
               </tr>
             </thead>
             <tbody>
@@ -32,7 +32,7 @@ export function Comparison() {
               ))}
             </tbody>
           </table>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -21,6 +21,17 @@ export const HERO_TYPING_PHRASES = [
   "em tempo real",
 ];
 
+/** Illustrative rows for the hero's live reader. Labels are explicit that this is demo data. */
+export const LIVE_FEED = [
+  { id: "e1", time: "14:02:11", what: "Visita em /servicos", detail: "Google Orgânico", where: "São Paulo", lead: false },
+  { id: "e2", time: "14:02:09", what: "Clique no WhatsApp", detail: "Botão flutuante", where: "Curitiba", lead: true },
+  { id: "e3", time: "14:01:54", what: "Visita em /precos", detail: "Instagram", where: "Recife", lead: false },
+  { id: "e4", time: "14:01:48", what: "Clique no WhatsApp", detail: "CTA do rodapé", where: "Rio de Janeiro", lead: true },
+  { id: "e5", time: "14:01:31", what: "Visita em /", detail: "Busca direta", where: "Belo Horizonte", lead: false },
+  { id: "e6", time: "14:01:20", what: "Envio de formulário", detail: "Orçamento rápido", where: "Porto Alegre", lead: true },
+  { id: "e7", time: "14:01:02", what: "Visita em /sobre", detail: "LinkedIn", where: "Florianópolis", lead: false },
+];
+
 /** Product facts used in the compact capability marquee under the hero. */
 export const CAPABILITY_MARQUEE = [
   "Script ultraleve de 2KB",
@@ -35,7 +46,7 @@ export const CAPABILITY_MARQUEE = [
 
 export const STORY_STEPS = [
   {
-    kicker: "01 · Visão geral",
+    kicker: "Visão geral",
     title: "O pulso do seu site em uma tela.",
     copy: "Visitantes, visualizações, sessões, leads e conversão entram em contexto, com comparação de período e leitura por projeto.",
     stat: "12.842",

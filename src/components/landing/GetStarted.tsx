@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import { INSTALL_SNIPPET, SETUP_STEPS } from "./data";
-import { fadeUp, staggerContainer, viewportOnce } from "./motion";
 
 export function GetStarted() {
   const [copied, setCopied] = useState(false);
@@ -14,43 +12,46 @@ export function GetStarted() {
   };
 
   return (
-    <section className="lp-setup">
+    <section className="lp-section">
       <div className="lp-shell">
-        <motion.div className="lp-section-head" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
-          <span>Comece sem complexidade</span>
-          <h2>Do zero aos primeiros sinais<br />em quatro passos.</h2>
-          <p>Instale em minutos e tenha total clareza do tráfego sem depender de configurações complexas.</p>
-        </motion.div>
+        <div className="lp-section__head">
+          <span className="lp-label">Instalação</span>
+          <h2 className="lp-h2">Quatro passos, uma linha de código.</h2>
+          <p>
+            Sem SDK, sem conta de anúncios, sem esperar propagação. Você cola o script e os
+            primeiros eventos aparecem em segundos.
+          </p>
+        </div>
 
-        <motion.div className="lp-deck-wrap" variants={staggerContainer(0.08)} initial="hidden" whileInView="show" viewport={viewportOnce}>
+        <div className="lp-deck-wrap">
           {SETUP_STEPS.map((step) => (
-            <motion.article key={step.number} variants={fadeUp} className="lp-deck-card">
-              <span className="lp-deck-card__num">Etapa {step.number}</span>
+            <article key={step.number} className="lp-deck-card">
+              <span className="lp-deck-card__num">{step.number}</span>
               <h3>{step.title}</h3>
               <p>{step.copy}</p>
-            </motion.article>
+            </article>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div className="lp-terminal" variants={fadeUp} initial="hidden" whileInView="show" viewport={viewportOnce}>
+        <div className="lp-terminal">
           <div className="lp-terminal__header">
-            <div className="lp-terminal__controls"><span className="lp-terminal__dot is-red" /><span className="lp-terminal__dot is-yellow" /><span className="lp-terminal__dot is-green" /></div>
-            <span className="lp-terminal__label">instalação · 1 linha</span>
+            <div className="lp-terminal__controls"><span className="lp-terminal__dot" /><span className="lp-terminal__dot" /><span className="lp-terminal__dot" /></div>
+            <span className="lp-terminal__label">antes de &lt;/head&gt;</span>
             <button type="button" onClick={handleCopy} className={`lp-terminal__copy-btn ${copied ? "is-copied" : ""}`} aria-label="Copiar código de instalação">
-              {copied ? <><Check size={12} /><span>Copiado!</span></> : <><Copy size={12} /><span>Copiar snippet</span></>}
+              {copied ? <><Check size={12} /><span>Copiado</span></> : <><Copy size={12} /><span>Copiar</span></>}
             </button>
           </div>
           <div className="lp-terminal__body">
             <pre className="lp-terminal__code"><code>{INSTALL_SNIPPET}</code></pre>
           </div>
           <div className="lp-terminal__footer">
-            <span className="lp-terminal__badge"><span className="lp-live-dot" /> Snippet ativo e assíncrono</span>
+            <span className="lp-terminal__badge"><span className="lp-live-dot" /> assíncrono, não bloqueia a página</span>
             <div className="lp-terminal__meta">
-              <span>Peso: <b>2.1 KB</b></span>
-              <span>Cookies: <b>Zero</b></span>
+              <span>peso <b>2.1 KB</b></span>
+              <span>cookies <b>zero</b></span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

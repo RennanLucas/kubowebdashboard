@@ -1,6 +1,4 @@
-import { motion } from "framer-motion";
 import { CAPABILITY_MARQUEE, COMPATIBILITY_PLATFORMS } from "./data";
-import { fadeUp, staggerContainer, viewportOnce } from "./motion";
 
 /**
  * Social proof built only from facts about the product itself — no invented
@@ -25,26 +23,12 @@ export function SocialProof() {
       </div>
 
       <div className="lp-shell lp-proof__compat">
-        <motion.p
-          className="lp-proof__compat-label"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="show"
-          viewport={viewportOnce}
-        >
-          Instala com uma linha em qualquer stack
-        </motion.p>
-        <motion.div
-          className="lp-proof__compat-list"
-          variants={staggerContainer(0.04)}
-          initial="hidden"
-          whileInView="show"
-          viewport={viewportOnce}
-        >
+        <p className="lp-proof__compat-label">Instala com uma linha em qualquer stack</p>
+        <div className="lp-proof__compat-list">
           {COMPATIBILITY_PLATFORMS.map((name) => (
-            <motion.span key={name} variants={fadeUp} className="lp-proof__compat-pill">{name}</motion.span>
+            <span key={name} className="lp-proof__compat-pill">{name}</span>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
